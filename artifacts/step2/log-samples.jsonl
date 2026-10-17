@@ -1,0 +1,3 @@
+{"event": "Started server process [23768]", "pid": 23768, "boot_id": "1d6ca94e", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-17T23:54:34.088647Z"}
+{"event": "Waiting for application startup.", "pid": 23768, "boot_id": "1d6ca94e", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-17T23:54:34.089655Z"}
+{"event": "Application startup complete.", "pid": 23768, "boot_id": "1d6ca94e", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-17T23:54:34.107873Z"}

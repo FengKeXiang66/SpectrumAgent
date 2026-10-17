@@ -1,0 +1,24 @@
+{
+  "started_at": "2026-10-17T23:54:33.3491794Z",
+  "finished_at": "2026-10-17T23:54:43.3050799Z",
+  "checks": {
+    "1": "PASS",
+    "2": "PASS",
+    "3": "PASS",
+    "4": "PASS",
+    "5": "PASS",
+    "multiprocessing": "PASS",
+    "7": "PASS",
+    "8a": "PASS",
+    "6": "PASS",
+    "8b": "PASS"
+  },
+  "timings_ms": {
+    "first_launch": 690.567,
+    "kill_test_launch": 577.676,
+    "stale_restart": 612.545
+  },
+  "failed_check": null,
+  "cold_machine_verified": false,
+  "external_python_required_at_runtime": false
+}

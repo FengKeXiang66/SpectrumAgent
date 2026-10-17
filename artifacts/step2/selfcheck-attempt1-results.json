@@ -1,0 +1,20 @@
+{
+  "started_at": "2026-10-17T23:53:14.7410252Z",
+  "finished_at": "2026-10-17T23:53:21.8357440Z",
+  "checks": {
+    "1": "PASS",
+    "2": "PASS",
+    "3": "PASS",
+    "4": "PASS",
+    "5": "PASS",
+    "multiprocessing": "PASS",
+    "7": "PASS",
+    "8a": "FAIL"
+  },
+  "timings_ms": {
+    "first_launch": 1712.879
+  },
+  "failed_check": "8a",
+  "cold_machine_verified": false,
+  "external_python_required_at_runtime": false
+}

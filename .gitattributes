@@ -1,0 +1,9 @@
+*.py text eol=lf
+*.spec text eol=lf
+*.md text eol=lf
+# Preserve raw acceptance evidence byte-for-byte, including console line endings.
+artifacts/step2/*.txt -text -whitespace
+artifacts/step2/*.log -text -whitespace
+artifacts/step2/*.json -text -whitespace
+artifacts/step2/*.jsonl -text -whitespace
+artifacts/step2/REPORT.md -text -whitespace

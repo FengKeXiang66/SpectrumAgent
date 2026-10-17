@@ -1,0 +1,21 @@
+{
+  "scope": "CreateProcessW call through first identity-matching HTTP 200; includes polling overhead",
+  "first_launch_of_formal_build": {
+    "elapsed_ms": 1712.879,
+    "pid": 16680,
+    "boot_id": "b6671f77",
+    "evidence": "selfcheck-attempt1-output.txt",
+    "whole_attempt_passed": false,
+    "failed_check": "8a"
+  },
+  "complete_passing_rerun": {
+    "initial_launch_ms": 690.567,
+    "kill_test_launch_ms": 577.676,
+    "stale_restart_ms": 612.545,
+    "evidence": "selfcheck-output.txt",
+    "is_cold_start_claim": false
+  },
+  "os_file_cache_flushed": false,
+  "machine_rebooted_for_measurement": false,
+  "clean_windows_without_python_verified": false
+}

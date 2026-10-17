@@ -1,0 +1,90 @@
+**********************
+PowerShell transcript start
+Start time: 20261018075314
+Username: WIN-RTKE72PB5BE\Administrator
+RunAs User: WIN-RTKE72PB5BE\Administrator
+Configuration Name: 
+Machine: WIN-RTKE72PB5BE (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Users\Administrator\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\powershell\pwsh.dll -Command try { [Console]::OutputEncoding=[System.Text.Encoding]::UTF8 } catch {}
+& 'E:\AI_Agent\artifacts\step2\selfcheck_step2.ps1'
+Process ID: 11756
+PSVersion: 7.6.5
+PSEdition: Core
+GitCommitId: 7.6.5
+OS: Microsoft Windows 10.0.26100
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.4
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+GDAL_DATA=
+PROJ_DATA=
+PROJ_LIB=
+child_PATH=C:\Windows\System32;C:\Windows
+=== 1. Direct frozen engine launch / process identity ===
+> CreateProcessW("E:\AI_Agent\artifacts\step2\dist\app\app.exe") [CREATE_NEW_CONSOLE, SW_HIDE; no Python/command shell]
+spawn_pid=16680 handshake_pid=16680 health_pid=16680
+first_launch_process_start_to_health_200_ms=1712.879
+> tasklist.exe /FI "IMAGENAME eq app.exe"
+
+> Get-CimInstance Win32_Process -Filter "Name = 'app.exe'"
+
+ProcessId       : 16680
+ParentProcessId : 11756
+ExecutablePath  : E:\AI_Agent\artifacts\step2\dist\app\app.exe
+CommandLine     : "E:\AI_Agent\artifacts\step2\dist\app\app.exe"
+app_process_count=1
+=== 2. Four real curl requests ===
+> curl.exe --noproxy "*" http://127.0.0.1:60068/health
+HTTP 200
+{"status":"ok","boot_id":"b6671f77","pid":16680,"version":"0.1.0","uptime_s":0.61}
+> curl.exe --noproxy "*" http://127.0.0.1:60068/smoke
+HTTP 401
+{"error":"UNAUTHORIZED","detail":"需要本次引擎握手中的 Bearer token。"}
+> curl.exe --noproxy "*" -H "Authorization: Bearer $($identity.token)" http://127.0.0.1:60068/smoke
+HTTP 200
+{"nan_ratio":0.0,"reflectance_range":[-1.5275289241381491,1.5275289241381491],"bands":8,"shape":[8,8,8],"elapsed_ms":118.051}
+> curl.exe --noproxy "*" -H "Authorization: Bearer $($identity.token)" http://127.0.0.1:60068/smoke?blocks=8
+HTTP 200
+{"nan_ratio":0.0,"reflectance_range":[-1.5275289241381491,1.5275289241381491],"bands":8,"shape":[8,8,8],"elapsed_ms":163.967}
+=== 3. Complete handshake (token redacted only) ===
+{
+  "boot_id": "b6671f77",
+  "pid": 16680,
+  "process_created_at": "2026-10-17T23:53:14.947Z",
+  "port": 60068,
+  "token": "<redacted>",
+  "protocol": 1,
+  "version": "0.1.0",
+  "started_at": "2026-10-17T23:53:16.520Z"
+}
+=== 4. JSONL logs ===
+valid_json_lines=48 current_boot_lines=15 token_occurrences=0
+{"event": "Started server process [16680]", "boot_id": "b6671f77", "pid": 16680, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-17T23:53:16.468287Z"}
+{"event": "Waiting for application startup.", "boot_id": "b6671f77", "pid": 16680, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-17T23:53:16.468287Z"}
+{"event": "Application startup complete.", "boot_id": "b6671f77", "pid": 16680, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-17T23:53:16.482547Z"}
+=== 5. Frozen GeoTIFF generation / readback (no external interpreter) ===
+> & "E:\AI_Agent\artifacts\step2\dist\app\app.exe" --selfcheck-geotiff
+exit_code=0
+{"check": "geotiff", "result": "PASS", "frozen": true, "executable": "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\app.exe", "crs": "EPSG:32650", "shape": [10, 12], "width": 12, "height": 10, "count": 3, "transform": [30.0, 0.0, 500000.0, 0.0, -30.0, 4000000.0], "dtype": "float32", "pixel_values_equal": true, "GDAL_DATA": null, "PROJ_DATA": null, "PROJ_LIB": null, "proj_db": "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\_internal\\rasterio\\proj_data\\proj.db", "gdalvrt_xsd": "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\_internal\\rasterio\\gdal_data\\gdalvrt.xsd", "rasterio_module": "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\_internal\\rasterio\\__init__.py", "numpy_module": "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\_internal\\numpy\\__init__.py", "python_search_paths": ["E:\\AI_Agent\\artifacts\\step2\\dist\\app\\_internal\\base_library.zip", "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\_internal\\python3.12\\lib-dynload", "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\_internal", "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\_internal\\setuptools\\_vendor"], "sample": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\testdata\\geotiff-check-pg9sp7o8\\generated.tif", "sample_removed": true}
+=== Additional: freeze_support / one temporary spawn worker (no pool) ===
+> & "E:\AI_Agent\artifacts\step2\dist\app\app.exe" --selfcheck-worker
+exit_code=0
+{"check": "multiprocessing", "result": "PASS", "diagnostic_pid": 23776, "worker_pid": 24272, "parent_pid": 23776, "frozen": true, "worker_exitcode": 0, "handshake_unchanged": true}
+=== 7. Size / first-launch health latency ===
+internal_files=543 internal_total_bytes=238793334 exe_bytes=16763405
+rasterio_libs_dll_count=36 rasterio_pyd_count=15
+first_launch_process_start_to_health_200_ms=1712.879
+Timing scope: first launch of this build in this selfcheck; no OS cache flush or clean-machine cold boot was performed.
+=== 8a. Normal Ctrl+C shutdown ===
+> GenerateConsoleCtrlEvent(CTRL_C_EVENT) to PID 16680 [separate helper attaches to engine console]
+engine_exit_code=
+process_absent=True pid=16680 listener_absent=True port=60068
+PS>TerminatingError(): "Handshake remains after normal exit, before test hygiene."
+CHECK_8a=FAIL
+System.Management.Automation.RuntimeException: Handshake remains after normal exit, before test hygiene.
+**********************
+PowerShell transcript end
+End time: 20261018075321
+**********************

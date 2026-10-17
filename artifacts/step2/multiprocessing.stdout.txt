@@ -1,0 +1,1 @@
+{"check": "multiprocessing", "result": "PASS", "diagnostic_pid": 14980, "worker_pid": 28592, "parent_pid": 14980, "frozen": true, "worker_exitcode": 0, "handshake_unchanged": true}

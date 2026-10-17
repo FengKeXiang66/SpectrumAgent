@@ -1,0 +1,146 @@
+[
+  {
+    "Name": "freexl-1-f984fed45cb40bcf96e583a5d17e3e9f.dll",
+    "Length": 67072
+  },
+  {
+    "Name": "gdal-ca23e679e52f19649323f953f4a92966.dll",
+    "Length": 23074816
+  },
+  {
+    "Name": "geos_c-ee1211e77d58bd95402e455720af8ce9.dll",
+    "Length": 498176
+  },
+  {
+    "Name": "geos-353ca83806e765757ee1ac85230fad94.dll",
+    "Length": 2600448
+  },
+  {
+    "Name": "geotiff-5e33421f0ae45bc20fe26c869841819c.dll",
+    "Length": 160256
+  },
+  {
+    "Name": "gif-1107c2c29ae9bc2dab88f8650eedf346.dll",
+    "Length": 36352
+  },
+  {
+    "Name": "hdf5_hl-0f04f4391d2304f0c3baecb4b64cc3c7.dll",
+    "Length": 128512
+  },
+  {
+    "Name": "hdf5-90d65e8c6734fd05e7f71019aea56e63.dll",
+    "Length": 4166656
+  },
+  {
+    "Name": "iconv-2-ebb8d125e8964d978f001ad727bb1f6a.dll",
+    "Length": 1092096
+  },
+  {
+    "Name": "jpeg62-f01e7c07b88707d3293da417a2270e8d.dll",
+    "Length": 718336
+  },
+  {
+    "Name": "json-c-69add94c2356636200f46910429b496e.dll",
+    "Length": 58368
+  },
+  {
+    "Name": "Lerc-bd596e02be0e2a4d97970986d405b306.dll",
+    "Length": 529920
+  },
+  {
+    "Name": "libcrypto-3-x64-2afd3870ac1ca9227daaf71022d519dd.dll",
+    "Length": 5351424
+  },
+  {
+    "Name": "libcurl-59fd99b636208c0efd91cad8b4cf028c.dll",
+    "Length": 656896
+  },
+  {
+    "Name": "libexpat-533441caabb6e8e810f3c428aac8662a.dll",
+    "Length": 167936
+  },
+  {
+    "Name": "liblzma-493fcad0ab8b3babd9c41dbd94a1afe5.dll",
+    "Length": 189952
+  },
+  {
+    "Name": "libpng16-644a70bf72a6c164e16c88d6a0c64f5b.dll",
+    "Length": 196096
+  },
+  {
+    "Name": "libpq-95c240938b5ffe9f0191160d951f9302.dll",
+    "Length": 306176
+  },
+  {
+    "Name": "libsharpyuv-39f8caaabd4dd845629ed7064c22149b.dll",
+    "Length": 24576
+  },
+  {
+    "Name": "libssl-3-x64-cdfaf2036db9847e1470a7adabf3576a.dll",
+    "Length": 876544
+  },
+  {
+    "Name": "libwebp-c62a0ecd823a4ac55d020b1e5b4e214d.dll",
+    "Length": 381440
+  },
+  {
+    "Name": "libxml2-ee3a45b6842891635a7194ed3bf4439b.dll",
+    "Length": 1216000
+  },
+  {
+    "Name": "minizip-a17a1f1144c99133fb8ac04c5fc0d727.dll",
+    "Length": 47616
+  },
+  {
+    "Name": "msvcp140-a4c2229bdc2a2a630acdc095b4d86008.dll",
+    "Length": 575056
+  },
+  {
+    "Name": "netcdf-80fff5a18c54bb9f3a649624658cc0ae.dll",
+    "Length": 1262080
+  },
+  {
+    "Name": "openjp2-c1951c6e297b4dfbc1ecfed46df803af.dll",
+    "Length": 367616
+  },
+  {
+    "Name": "pcre2-8-4250f3875b7c8017370f480e5933b922.dll",
+    "Length": 613376
+  },
+  {
+    "Name": "proj_9-d142a65602e419d49589809f8c96ed95.dll",
+    "Length": 3434496
+  },
+  {
+    "Name": "qhull_r-9dfe5950fe3ffbeff1f83f37ef8a3b6a.dll",
+    "Length": 447488
+  },
+  {
+    "Name": "spatialite-462100c3ae387a5046878044decbecb9.dll",
+    "Length": 7539712
+  },
+  {
+    "Name": "sqlite3-a95e23ad82678982e28e9780f07ae1f7.dll",
+    "Length": 1139200
+  },
+  {
+    "Name": "szip-237b7e7db63858546dc0b6d1d1113e6c.dll",
+    "Length": 33792
+  },
+  {
+    "Name": "tiff-ab336932b464eb213b8c0ba892721190.dll",
+    "Length": 496128
+  },
+  {
+    "Name": "tinyxml2-b1394948d9bf11d7822da2aabdf5ab40.dll",
+    "Length": 93184
+  },
+  {
+    "Name": "zlib1-63e59a7591925180e9af63ff1cf293fb.dll",
+    "Length": 90112
+  },
+  {
+    "Name": "zstd-2363c320dd62f9f202293b4b1406aac1.dll",
+    "Length": 657920
+  }
+]
