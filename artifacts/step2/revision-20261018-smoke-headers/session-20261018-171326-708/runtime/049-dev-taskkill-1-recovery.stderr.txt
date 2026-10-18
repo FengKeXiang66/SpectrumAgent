@@ -1,0 +1,15 @@
+{"pid": 10044, "event": "engine_boot", "logger": "engine", "level": "info", "timestamp": "2026-10-18T09:14:37.385589Z"}
+{"event": "Started server process [10044]", "pid": 10044, "boot_id": "cce589bc", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:14:37.962581Z"}
+{"reason": "dead_pid", "old_boot_id": "d6a10b54", "old_pid": 17676, "old_process_created_at": "2026-10-18T09:14:35.672Z", "old_port": 56960, "event": "stale_handshake_removed", "pid": 10044, "boot_id": "cce589bc", "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T09:14:37.968034Z"}
+{"event": "Waiting for application startup.", "pid": 10044, "boot_id": "cce589bc", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:14:37.968534Z"}
+{"event": "Application startup complete.", "pid": 10044, "boot_id": "cce589bc", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:14:37.991068Z"}
+{"event": "Uvicorn running on http://127.0.0.1:56970 (Press CTRL+C to quit)", "pid": 10044, "boot_id": "cce589bc", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:14:37.991680Z"}
+{"event": "127.0.0.1:56971 - \"GET /health HTTP/1.1\" 200", "pid": 10044, "boot_id": "cce589bc", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T09:14:38.060783Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:56970/health \"HTTP/1.1 200 OK\"", "pid": 10044, "boot_id": "cce589bc", "logger": "httpx", "level": "info", "timestamp": "2026-10-18T09:14:38.061780Z"}
+{"boot_id": "cce589bc", "pid": 10044, "port": 56970, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T09:14:38.068698Z"}
+{"event": "127.0.0.1:56972 - \"GET /health HTTP/1.1\" 200", "pid": 10044, "boot_id": "cce589bc", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T09:14:38.106212Z"}
+{"event": "Shutting down", "pid": 10044, "boot_id": "cce589bc", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:14:38.396283Z"}
+{"event": "Waiting for application shutdown.", "pid": 10044, "boot_id": "cce589bc", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:14:38.504169Z"}
+{"boot_id": "cce589bc", "cleanup_phase": "lifespan", "event": "engine_stopped", "pid": 10044, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T09:14:38.505286Z"}
+{"event": "Application shutdown complete.", "pid": 10044, "boot_id": "cce589bc", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:14:38.505787Z"}
+{"event": "Finished server process [10044]", "pid": 10044, "boot_id": "cce589bc", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:14:38.505787Z"}

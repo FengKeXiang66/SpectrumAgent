@@ -1,0 +1,17 @@
+{
+  "event": "exit_verified",
+  "mode": "frozen",
+  "signal": "break",
+  "boot_id": "a2ef43bc",
+  "pid": 15776,
+  "process_created_at": "2026-10-18T09:14:01.341Z",
+  "port": 56756,
+  "exit_code": 3,
+  "launcher_exit_code": 3,
+  "pid_absent": true,
+  "port_absent": true,
+  "engine_stopped_count": 1,
+  "handshake_exists": false,
+  "residual_handshake": null,
+  "classification": "immediate_cleanup"
+}

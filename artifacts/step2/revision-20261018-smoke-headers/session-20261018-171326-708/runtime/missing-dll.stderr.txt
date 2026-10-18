@@ -1,0 +1,2 @@
+[PYI-27004:ERROR] Failed to load Python DLL 'E:\AI_Agent\artifacts\step2\revision-20261018-smoke-headers\dist\app\_internal\python312.dll'.
+LoadLibrary: ?????????

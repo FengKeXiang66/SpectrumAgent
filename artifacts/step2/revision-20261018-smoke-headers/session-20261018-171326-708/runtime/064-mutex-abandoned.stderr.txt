@@ -1,0 +1,15 @@
+{"pid": 27616, "event": "engine_boot", "logger": "engine", "level": "info", "timestamp": "2026-10-18T09:15:32.165082Z"}
+{"event": "Started server process [27616]", "boot_id": "a12910aa", "pid": 27616, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:15:32.463619Z"}
+{"action": "reread_handshake_under_lock", "event": "startup_mutex_abandoned", "boot_id": "a12910aa", "pid": 27616, "logger": "engine.startup_mutex", "level": "warning", "timestamp": "2026-10-18T09:15:32.463619Z"}
+{"event": "Waiting for application startup.", "boot_id": "a12910aa", "pid": 27616, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:15:32.464241Z"}
+{"event": "Application startup complete.", "boot_id": "a12910aa", "pid": 27616, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:15:32.468240Z"}
+{"event": "Uvicorn running on http://127.0.0.1:55143 (Press CTRL+C to quit)", "boot_id": "a12910aa", "pid": 27616, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:15:32.474166Z"}
+{"event": "127.0.0.1:55144 - \"GET /health HTTP/1.1\" 200", "boot_id": "a12910aa", "pid": 27616, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T09:15:32.501440Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:55143/health \"HTTP/1.1 200 OK\"", "boot_id": "a12910aa", "pid": 27616, "logger": "httpx", "level": "info", "timestamp": "2026-10-18T09:15:32.502478Z"}
+{"boot_id": "a12910aa", "pid": 27616, "port": 55143, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T09:15:32.516638Z"}
+{"event": "127.0.0.1:55145 - \"GET /health HTTP/1.1\" 200", "boot_id": "a12910aa", "pid": 27616, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T09:15:32.539868Z"}
+{"event": "Shutting down", "boot_id": "a12910aa", "pid": 27616, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:15:32.847823Z"}
+{"event": "Waiting for application shutdown.", "boot_id": "a12910aa", "pid": 27616, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:15:32.955314Z"}
+{"boot_id": "a12910aa", "cleanup_phase": "lifespan", "event": "engine_stopped", "pid": 27616, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T09:15:32.958352Z"}
+{"event": "Application shutdown complete.", "boot_id": "a12910aa", "pid": 27616, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:15:32.958829Z"}
+{"event": "Finished server process [27616]", "boot_id": "a12910aa", "pid": 27616, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:15:32.958829Z"}

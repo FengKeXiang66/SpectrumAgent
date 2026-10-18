@@ -1,0 +1,10 @@
+{
+  "boot_id": "3d623d23",
+  "pid": 21896,
+  "process_created_at": "2026-10-18T09:13:33.604Z",
+  "port": 56560,
+  "token": "<redacted>",
+  "protocol": 1,
+  "version": "0.1.0",
+  "started_at": "2026-10-18T09:13:34.171Z"
+}

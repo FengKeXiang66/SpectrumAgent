@@ -1,0 +1,15 @@
+{"pid": 24936, "event": "engine_boot", "logger": "engine", "level": "info", "timestamp": "2026-10-18T09:14:05.775859Z"}
+{"event": "Started server process [24936]", "boot_id": "1ad84fbd", "pid": 24936, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:14:06.078854Z"}
+{"event": "Waiting for application startup.", "boot_id": "1ad84fbd", "pid": 24936, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:14:06.079350Z"}
+{"event": "Application startup complete.", "boot_id": "1ad84fbd", "pid": 24936, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:14:06.083176Z"}
+{"event": "Uvicorn running on http://127.0.0.1:56784 (Press CTRL+C to quit)", "boot_id": "1ad84fbd", "pid": 24936, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:14:06.083578Z"}
+{"event": "127.0.0.1:56785 - \"GET /health HTTP/1.1\" 200", "boot_id": "1ad84fbd", "pid": 24936, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T09:14:06.115651Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:56784/health \"HTTP/1.1 200 OK\"", "boot_id": "1ad84fbd", "pid": 24936, "logger": "httpx", "level": "info", "timestamp": "2026-10-18T09:14:06.116636Z"}
+{"boot_id": "1ad84fbd", "pid": 24936, "port": 56784, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T09:14:06.130203Z"}
+{"event": "127.0.0.1:56786 - \"GET /health HTTP/1.1\" 200", "boot_id": "1ad84fbd", "pid": 24936, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T09:14:06.149166Z"}
+{"event": "127.0.0.1:56791 - \"GET /health HTTP/1.1\" 200", "boot_id": "1ad84fbd", "pid": 24936, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T09:14:06.766801Z"}
+{"event": "Shutting down", "boot_id": "1ad84fbd", "pid": 24936, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:14:06.990431Z"}
+{"event": "Waiting for application shutdown.", "boot_id": "1ad84fbd", "pid": 24936, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:14:07.099217Z"}
+{"boot_id": "1ad84fbd", "cleanup_phase": "lifespan", "event": "engine_stopped", "pid": 24936, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T09:14:07.102193Z"}
+{"event": "Application shutdown complete.", "boot_id": "1ad84fbd", "pid": 24936, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:14:07.102697Z"}
+{"event": "Finished server process [24936]", "boot_id": "1ad84fbd", "pid": 24936, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:14:07.102697Z"}

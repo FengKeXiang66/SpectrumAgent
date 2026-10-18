@@ -1,0 +1,17 @@
+{
+  "event": "exit_verified",
+  "mode": "dev",
+  "signal": "break",
+  "boot_id": "835e929f",
+  "pid": 27368,
+  "process_created_at": "2026-10-18T09:14:14.362Z",
+  "port": 56835,
+  "exit_code": 3,
+  "launcher_exit_code": 3,
+  "pid_absent": true,
+  "port_absent": true,
+  "engine_stopped_count": 1,
+  "handshake_exists": false,
+  "residual_handshake": null,
+  "classification": "immediate_cleanup"
+}

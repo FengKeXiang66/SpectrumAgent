@@ -1,0 +1,1 @@
+{"error":"INVALID_REQUEST","detail":"1 validation error:\n  {'type': 'greater_than_equal', 'loc': ('query', 'blocks'), 'msg': 'Input should be greater than or equal to 1', 'input': '0', 'ctx': {'ge': 1}}\n\n  Endpoint: GET /smoke"}

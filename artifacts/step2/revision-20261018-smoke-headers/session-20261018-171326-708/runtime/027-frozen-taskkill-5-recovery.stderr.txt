@@ -1,0 +1,15 @@
+{"pid": 15776, "event": "engine_boot", "logger": "engine", "level": "info", "timestamp": "2026-10-18T09:14:01.575360Z"}
+{"event": "Started server process [15776]", "boot_id": "a2ef43bc", "pid": 15776, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:14:01.866693Z"}
+{"reason": "dead_pid", "old_boot_id": "2b295207", "old_pid": 2340, "old_process_created_at": "2026-10-18T09:14:00.270Z", "old_port": 56748, "event": "stale_handshake_removed", "boot_id": "a2ef43bc", "pid": 15776, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T09:14:01.869046Z"}
+{"event": "Waiting for application startup.", "boot_id": "a2ef43bc", "pid": 15776, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:14:01.869046Z"}
+{"event": "Application startup complete.", "boot_id": "a2ef43bc", "pid": 15776, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:14:01.889940Z"}
+{"event": "Uvicorn running on http://127.0.0.1:56756 (Press CTRL+C to quit)", "boot_id": "a2ef43bc", "pid": 15776, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:14:01.890922Z"}
+{"event": "127.0.0.1:56757 - \"GET /health HTTP/1.1\" 200", "boot_id": "a2ef43bc", "pid": 15776, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T09:14:01.919548Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:56756/health \"HTTP/1.1 200 OK\"", "boot_id": "a2ef43bc", "pid": 15776, "logger": "httpx", "level": "info", "timestamp": "2026-10-18T09:14:01.919548Z"}
+{"boot_id": "a2ef43bc", "pid": 15776, "port": 56756, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T09:14:01.926336Z"}
+{"event": "127.0.0.1:56760 - \"GET /health HTTP/1.1\" 200", "boot_id": "a2ef43bc", "pid": 15776, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T09:14:01.953380Z"}
+{"event": "Shutting down", "boot_id": "a2ef43bc", "pid": 15776, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:14:02.229207Z"}
+{"event": "Waiting for application shutdown.", "boot_id": "a2ef43bc", "pid": 15776, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:14:02.337412Z"}
+{"boot_id": "a2ef43bc", "cleanup_phase": "lifespan", "event": "engine_stopped", "pid": 15776, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T09:14:02.338945Z"}
+{"event": "Application shutdown complete.", "boot_id": "a2ef43bc", "pid": 15776, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:14:02.338945Z"}
+{"event": "Finished server process [15776]", "boot_id": "a2ef43bc", "pid": 15776, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:14:02.338945Z"}

@@ -1,0 +1,5 @@
+{"pid": 25236, "event": "engine_boot", "logger": "engine", "level": "info", "timestamp": "2026-10-18T09:15:01.131652Z"}
+{"event": "Started server process [25236]", "boot_id": "92a8a239", "pid": 25236, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:15:01.454864Z"}
+{"error": "STARTUP_MUTEX_TIMEOUT", "wait_result": 258, "event": "startup_mutex_failed", "boot_id": "92a8a239", "pid": 25236, "logger": "engine.startup_mutex", "level": "error", "timestamp": "2026-10-18T09:15:31.460611Z"}
+{"error": "STARTUP_MUTEX_TIMEOUT", "event": "engine_start_failed", "boot_id": "92a8a239", "pid": 25236, "logger": "engine", "level": "error", "timestamp": "2026-10-18T09:15:31.461714Z"}
+引擎启动失败：STARTUP_MUTEX_TIMEOUT；请查看 C:\Users\Administrator\AppData\Local\SpectrumAgent\logs

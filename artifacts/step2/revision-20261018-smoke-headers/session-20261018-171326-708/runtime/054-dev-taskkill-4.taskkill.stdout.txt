@@ -1,0 +1,1 @@
+SUCCESS: The process with PID 22484 has been terminated.

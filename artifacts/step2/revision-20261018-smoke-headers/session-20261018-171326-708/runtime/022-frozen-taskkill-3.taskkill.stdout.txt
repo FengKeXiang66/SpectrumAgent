@@ -1,0 +1,1 @@
+SUCCESS: The process with PID 26060 has been terminated.

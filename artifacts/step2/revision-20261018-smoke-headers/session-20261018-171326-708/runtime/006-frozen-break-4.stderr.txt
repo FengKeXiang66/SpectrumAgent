@@ -1,0 +1,14 @@
+{"pid": 21896, "event": "engine_boot", "logger": "engine", "level": "info", "timestamp": "2026-10-18T09:13:33.828847Z"}
+{"event": "Started server process [21896]", "boot_id": "3d623d23", "pid": 21896, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:13:34.132413Z"}
+{"event": "Waiting for application startup.", "boot_id": "3d623d23", "pid": 21896, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:13:34.132413Z"}
+{"event": "Application startup complete.", "boot_id": "3d623d23", "pid": 21896, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:13:34.136719Z"}
+{"event": "Uvicorn running on http://127.0.0.1:56560 (Press CTRL+C to quit)", "boot_id": "3d623d23", "pid": 21896, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:13:34.136719Z"}
+{"event": "127.0.0.1:56561 - \"GET /health HTTP/1.1\" 200", "boot_id": "3d623d23", "pid": 21896, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T09:13:34.170212Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:56560/health \"HTTP/1.1 200 OK\"", "boot_id": "3d623d23", "pid": 21896, "logger": "httpx", "level": "info", "timestamp": "2026-10-18T09:13:34.171208Z"}
+{"boot_id": "3d623d23", "pid": 21896, "port": 56560, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T09:13:34.288263Z"}
+{"event": "127.0.0.1:56562 - \"GET /health HTTP/1.1\" 200", "boot_id": "3d623d23", "pid": 21896, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T09:13:34.315903Z"}
+{"event": "Shutting down", "boot_id": "3d623d23", "pid": 21896, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:13:34.608166Z"}
+{"event": "Waiting for application shutdown.", "boot_id": "3d623d23", "pid": 21896, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:13:34.716113Z"}
+{"boot_id": "3d623d23", "cleanup_phase": "lifespan", "event": "engine_stopped", "pid": 21896, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T09:13:34.719473Z"}
+{"event": "Application shutdown complete.", "boot_id": "3d623d23", "pid": 21896, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:13:34.720012Z"}
+{"event": "Finished server process [21896]", "boot_id": "3d623d23", "pid": 21896, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T09:13:34.720012Z"}

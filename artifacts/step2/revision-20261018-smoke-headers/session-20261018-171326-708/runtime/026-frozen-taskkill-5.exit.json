@@ -1,0 +1,26 @@
+{
+  "event": "exit_verified",
+  "mode": "frozen",
+  "signal": "taskkill",
+  "boot_id": "2b295207",
+  "pid": 2340,
+  "process_created_at": "2026-10-18T09:14:00.270Z",
+  "port": 56748,
+  "exit_code": 1,
+  "launcher_exit_code": 1,
+  "pid_absent": true,
+  "port_absent": true,
+  "engine_stopped_count": 0,
+  "handshake_exists": true,
+  "residual_handshake": {
+    "boot_id": "2b295207",
+    "pid": 2340,
+    "process_created_at": "2026-10-18T09:14:00.270Z",
+    "port": 56748,
+    "token": "<redacted>",
+    "protocol": 1,
+    "version": "0.1.0",
+    "started_at": "2026-10-18T09:14:00.842Z"
+  },
+  "classification": "recovery_path_not_graceful_exit_claim"
+}
