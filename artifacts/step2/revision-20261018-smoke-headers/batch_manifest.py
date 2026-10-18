@@ -42,7 +42,10 @@ def inputs():
     assert not git("diff", "HEAD", "--", "backend", "requirements-lock.txt", str(BATCH.relative_to(ROOT)))
     sources = sorted((ROOT / "backend").rglob("*.py")) + [ROOT / "requirements-lock.txt"]
     sources += sorted(BATCH.glob("*.py")) + sorted(BATCH.glob("*.ps1")) + [BATCH / "build.spec"]
-    old = git("ls-files", "artifacts/step2").splitlines()
+    # -z avoids core.quotePath octal quoting for Chinese evidence filenames.
+    old = subprocess.check_output(
+        ["git", "ls-files", "-z", "artifacts/step2"], cwd=ROOT
+    ).decode("utf-8").rstrip("\0").split("\0")
     old = [p for p in old if not p.startswith(BATCH.relative_to(ROOT).as_posix() + "/")]
     write("build-inputs.json", {
         "artifact_source_commit": git("rev-parse", "HEAD"),

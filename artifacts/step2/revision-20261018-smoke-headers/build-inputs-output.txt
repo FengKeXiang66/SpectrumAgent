@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "E:\AI_Agent\artifacts\step2\revision-20261018-smoke-headers\batch_manifest.py", line 141, in <module>
+    globals()[action]()
+  File "E:\AI_Agent\artifacts\step2\revision-20261018-smoke-headers\batch_manifest.py", line 50, in inputs
+    "sealed_old_evidence_sha256": {p: sha(ROOT / p) for p in old},
+                                      ^^^^^^^^^^^^^
+  File "E:\AI_Agent\artifacts\step2\revision-20261018-smoke-headers\batch_manifest.py", line 19, in sha
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+                          ^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\pathlib.py", line 1019, in read_bytes
+    with self.open(mode='rb') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument: 'E:\\AI_Agent\\"artifacts\\step2\\V1.2-\\346\\276\\204\\346\\270\\205\\345\\200\\231\\351\\200\\211.md"'
