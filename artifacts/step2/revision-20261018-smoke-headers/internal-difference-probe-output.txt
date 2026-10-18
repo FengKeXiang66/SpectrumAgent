@@ -1,0 +1,21 @@
+{
+  "old_count": 543,
+  "new_count": 543,
+  "old_bytes": 238793334,
+  "new_bytes": 238793334,
+  "differences": [
+    {
+      "path": "_internal/base_library.zip",
+      "old": {
+        "path": "_internal/base_library.zip",
+        "bytes": 1333490,
+        "sha256": "1d3567d8362d913002fbf539762f35c9386a162a2dce3a129c4581bf479097a1"
+      },
+      "new": {
+        "path": "_internal/base_library.zip",
+        "bytes": 1333490,
+        "sha256": "0d90d7e04ce41f7440969348719d04dd174f32492e57e031e9418fa75559c5b5"
+      }
+    }
+  ]
+}

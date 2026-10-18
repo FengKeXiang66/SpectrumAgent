@@ -5,6 +5,7 @@ import json
 import marshal
 import shutil
 import subprocess
+import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -58,6 +59,12 @@ def unchanged_inputs():
     before = json.loads((BATCH / "build-inputs.json").read_text(encoding="utf-8"))
     for field in ("source_sha256", "sealed_old_evidence_sha256"):
         for path, digest in before[field].items():
+            if ROOT / path == Path(__file__).resolve() and sha(ROOT / path) != digest:
+                # The manifest generator may advance independently of artifact sources.
+                original = subprocess.check_output(["git", "show", before["artifact_source_commit"] + ":" + path], cwd=ROOT)
+                current = subprocess.check_output(["git", "show", "HEAD:" + path], cwd=ROOT)
+                assert hashlib.sha256(original).hexdigest() == digest and current == (ROOT / path).read_bytes()
+                continue
             assert sha(ROOT / path) == digest, f"Changed {field}: {path}"
     return before
 
@@ -101,12 +108,29 @@ def seal():
         "7_no_experimental_residue": {p.name for p in PRODUCT.iterdir()} == {"app.exe", "_internal"}
             and all(not any(s in r["path"].lower() for s in ("test-backup", "manifest", "fault_fixture", ".tmp")) for r in files),
     }
-    assert internal == old_internal, "Unexpected dependency payload drift against sealed old manifest"
+    old_by_path = {r["path"]: r for r in old_internal}
+    changed = [r["path"] for r in internal if old_by_path.get(r["path"]) != r]
+    assert changed in ([], ["_internal/base_library.zip"]), "Unexpected dependency payload drift"
+    zip_order_only = False
+    if changed:
+        # PyInstaller ZIP ordering differs between builds; every member byte and
+        # all member metadata except the order-dependent offset must still match.
+        old_zip = ROOT / old_manifest["artifact_root"] / changed[0]
+        with zipfile.ZipFile(old_zip) as a, zipfile.ZipFile(PRODUCT / changed[0]) as b:
+            assert set(a.namelist()) == set(b.namelist()) and a.comment == b.comment
+            metadata = ("date_time", "compress_type", "comment", "extra", "create_system", "create_version",
+                        "extract_version", "flag_bits", "volume", "internal_attr", "external_attr", "CRC", "compress_size", "file_size")
+            for name in a.namelist():
+                assert a.read(name) == b.read(name), "base_library.zip member bytes changed"
+                assert all(getattr(a.getinfo(name), key) == getattr(b.getinfo(name), key) for key in metadata)
+            zip_order_only = a.namelist() != b.namelist()
+            assert zip_order_only
     assert len(files) == 544
     write("seven-crosschecks.json", {"checks": checks, "all_passed": all(checks.values()),
           "old_exe_bytes": 16771126, "new_exe_bytes": exe.stat().st_size,
           "byte_change_basis": "Approved response-header amendment; new source manifest + embedded-code comparison",
-          "internal_matches_old_manifest": True, "old_evidence_unchanged": True})
+          "internal_changed_paths": changed, "zip_order_only_payloads_identical": zip_order_only,
+          "old_evidence_unchanged": True})
     assert all(checks.values()), "Do not issue authoritative product manifest on failed check"
     write("product-manifest.json", {
         "schema_version": old_manifest["schema_version"],

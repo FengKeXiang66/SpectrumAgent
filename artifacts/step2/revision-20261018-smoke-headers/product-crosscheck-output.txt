@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "E:\AI_Agent\artifacts\step2\revision-20261018-smoke-headers\batch_manifest.py", line 144, in <module>
+    globals()[action]()
+  File "E:\AI_Agent\artifacts\step2\revision-20261018-smoke-headers\batch_manifest.py", line 104, in seal
+    assert internal == old_internal, "Unexpected dependency payload drift against sealed old manifest"
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Unexpected dependency payload drift against sealed old manifest
