@@ -1,0 +1,11 @@
+rustc 1.99.1 (58cf8f9c3 2026-10-13)
+
+cargo 1.99.1 (5f94df478 2026-08-27)
+
+{
+  "path": "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\EdgeUpdate\\Clients\\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}",
+  "name": "Microsoft Edge WebView2 Runtime",
+  "version": "155.0.4283.62"
+}
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools
+

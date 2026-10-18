@@ -1,0 +1,234 @@
+{
+  "node": "v24.19.0",
+  "platform": "win32",
+  "arch": "x64",
+  "PATH_Node_20_18_0_satisfies_vite": false,
+  "rows": [
+    {
+      "package": "react",
+      "kind": "node-engine",
+      "required": ">=0.10.0",
+      "actual": "24.19.0",
+      "passed": true
+    },
+    {
+      "package": "react-dom",
+      "kind": "peer",
+      "peer": "react",
+      "required": "^19.3.1",
+      "actual": "19.3.1",
+      "optional": false,
+      "passed": true
+    },
+    {
+      "package": "vite",
+      "kind": "node-engine",
+      "required": "^20.19.0 || >=22.12.0",
+      "actual": "24.19.0",
+      "passed": true
+    },
+    {
+      "package": "vite",
+      "kind": "peer",
+      "peer": "tsx",
+      "required": "^4.8.1",
+      "actual": null,
+      "optional": true,
+      "passed": true
+    },
+    {
+      "package": "vite",
+      "kind": "peer",
+      "peer": "jiti",
+      "required": ">=1.21.0",
+      "actual": null,
+      "optional": true,
+      "passed": true
+    },
+    {
+      "package": "vite",
+      "kind": "peer",
+      "peer": "less",
+      "required": "^4.0.0",
+      "actual": null,
+      "optional": true,
+      "passed": true
+    },
+    {
+      "package": "vite",
+      "kind": "peer",
+      "peer": "sass",
+      "required": "^1.70.0",
+      "actual": null,
+      "optional": true,
+      "passed": true
+    },
+    {
+      "package": "vite",
+      "kind": "peer",
+      "peer": "yaml",
+      "required": "^2.4.2",
+      "actual": null,
+      "optional": true,
+      "passed": true
+    },
+    {
+      "package": "vite",
+      "kind": "peer",
+      "peer": "stylus",
+      "required": ">=0.54.8",
+      "actual": null,
+      "optional": true,
+      "passed": true
+    },
+    {
+      "package": "vite",
+      "kind": "peer",
+      "peer": "terser",
+      "required": "^5.16.0",
+      "actual": null,
+      "optional": true,
+      "passed": true
+    },
+    {
+      "package": "vite",
+      "kind": "peer",
+      "peer": "esbuild",
+      "required": "^0.27.0 || ^0.28.0",
+      "actual": null,
+      "optional": true,
+      "passed": true
+    },
+    {
+      "package": "vite",
+      "kind": "peer",
+      "peer": "sugarss",
+      "required": "^5.0.0",
+      "actual": null,
+      "optional": true,
+      "passed": true
+    },
+    {
+      "package": "vite",
+      "kind": "peer",
+      "peer": "@types/node",
+      "required": "^20.19.0 || >=22.12.0",
+      "actual": "24.10.1",
+      "optional": true,
+      "passed": true
+    },
+    {
+      "package": "vite",
+      "kind": "peer",
+      "peer": "sass-embedded",
+      "required": "^1.70.0",
+      "actual": null,
+      "optional": true,
+      "passed": true
+    },
+    {
+      "package": "vite",
+      "kind": "peer",
+      "peer": "@vitejs/devtools",
+      "required": "^0.7.1",
+      "actual": null,
+      "optional": true,
+      "passed": true
+    },
+    {
+      "package": "typescript",
+      "kind": "node-engine",
+      "required": ">=14.17",
+      "actual": "24.19.0",
+      "passed": true
+    },
+    {
+      "package": "@vitejs/plugin-react",
+      "kind": "node-engine",
+      "required": "^20.19.0 || >=22.12.0",
+      "actual": "24.19.0",
+      "passed": true
+    },
+    {
+      "package": "@vitejs/plugin-react",
+      "kind": "peer",
+      "peer": "vite",
+      "required": "^8.0.0",
+      "actual": "8.3.4",
+      "optional": false,
+      "passed": true
+    },
+    {
+      "package": "@vitejs/plugin-react",
+      "kind": "peer",
+      "peer": "oxc-transform-react",
+      "required": "^0.152.0",
+      "actual": null,
+      "optional": true,
+      "passed": true
+    },
+    {
+      "package": "@vitejs/plugin-react",
+      "kind": "peer",
+      "peer": "@rolldown/plugin-babel",
+      "required": "^0.1.7 || ^0.2.0",
+      "actual": null,
+      "optional": true,
+      "passed": true
+    },
+    {
+      "package": "@vitejs/plugin-react",
+      "kind": "peer",
+      "peer": "babel-plugin-react-compiler",
+      "required": "^1.0.0",
+      "actual": null,
+      "optional": true,
+      "passed": true
+    },
+    {
+      "package": "@types/react",
+      "kind": "minimum-typescript",
+      "required": "5.6",
+      "actual": "5.9.3",
+      "passed": true
+    },
+    {
+      "package": "@types/react-dom",
+      "kind": "peer",
+      "peer": "@types/react",
+      "required": "^19.3.0",
+      "actual": "19.3.0",
+      "optional": false,
+      "passed": true
+    },
+    {
+      "package": "@types/react-dom",
+      "kind": "minimum-typescript",
+      "required": "5.6",
+      "actual": "5.9.3",
+      "passed": true
+    },
+    {
+      "package": "@types/node",
+      "kind": "minimum-typescript",
+      "required": "5.2",
+      "actual": "5.9.3",
+      "passed": true
+    },
+    {
+      "package": "@tauri-apps/cli",
+      "kind": "node-engine",
+      "required": ">= 10",
+      "actual": "24.19.0",
+      "passed": true
+    },
+    {
+      "package": "npm",
+      "kind": "node-engine",
+      "version": "10.8.2",
+      "required": "^18.17.0 || >=20.5.0",
+      "actual": "24.19.0",
+      "passed": true
+    }
+  ]
+}

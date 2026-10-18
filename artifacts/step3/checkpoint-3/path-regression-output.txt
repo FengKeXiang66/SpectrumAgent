@@ -1,0 +1,19 @@
+   Compiling spectrum-agent v0.1.0 (E:\AI_Agent\src-tauri)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.57s
+     Running tests\supervisor_stubs.rs (src-tauri\target\debug\deps\supervisor_stubs-f1904bb8bb35a89b.exe)
+
+running 1 test
+
+thread 'absent_executable_immediately_fails_and_does_not_clean_invalid_old_handshake' (23384) panicked at tests\supervisor_stubs.rs:269:5:
+assertion failed: !displayed_path.contains('/')
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test absent_executable_immediately_fails_and_does_not_clean_invalid_old_handshake ... FAILED
+
+failures:
+
+failures:
+    absent_executable_immediately_fails_and_does_not_clean_invalid_old_handshake
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `--test supervisor_stubs`

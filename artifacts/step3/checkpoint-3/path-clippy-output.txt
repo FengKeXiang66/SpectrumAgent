@@ -1,0 +1,2 @@
+    Checking spectrum-agent v0.1.0 (E:\AI_Agent\src-tauri)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.70s

@@ -1,0 +1,1451 @@
+[
+  {
+    "name": "tauri",
+    "version": "2.12.4",
+    "url": "https://crates.io/api/v1/crates/tauri/2.12.4/dependencies",
+    "raw": {
+      "dependencies": [
+        {
+          "id": 39717746,
+          "version_id": 3496724,
+          "crate_id": "anyhow",
+          "req": "^1",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717790,
+          "version_id": 3496724,
+          "crate_id": "bytes",
+          "req": "^1",
+          "optional": false,
+          "default_features": true,
+          "features": [
+            "serde"
+          ],
+          "target": "cfg(any(target_os = \"android\", all(target_vendor = \"apple\", not(target_os = \"macos\"))))",
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717775,
+          "version_id": 3496724,
+          "crate_id": "cargo_toml",
+          "req": "^1.0",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "dev",
+          "downloads": 0
+        },
+        {
+          "id": 39717747,
+          "version_id": 3496724,
+          "crate_id": "cookie",
+          "req": "^0.18",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717749,
+          "version_id": 3496724,
+          "crate_id": "dirs",
+          "req": "^7",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717750,
+          "version_id": 3496724,
+          "crate_id": "dunce",
+          "req": "^1",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717798,
+          "version_id": 3496724,
+          "crate_id": "embed_plist",
+          "req": "^1.2",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": "cfg(target_os = \"macos\")",
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717751,
+          "version_id": 3496724,
+          "crate_id": "getrandom",
+          "req": "^0.3",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717752,
+          "version_id": 3496724,
+          "crate_id": "glob",
+          "req": "^0.3",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717783,
+          "version_id": 3496724,
+          "crate_id": "glob",
+          "req": "^0.3",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "build",
+          "downloads": 0
+        },
+        {
+          "id": 39717793,
+          "version_id": 3496724,
+          "crate_id": "gtk",
+          "req": "^0.18",
+          "optional": false,
+          "default_features": true,
+          "features": [
+            "v3_24"
+          ],
+          "target": "cfg(any(target_os = \"linux\", target_os = \"dragonfly\", target_os = \"freebsd\", target_os = \"openbsd\", target_os = \"netbsd\"))",
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717784,
+          "version_id": 3496724,
+          "crate_id": "heck",
+          "req": "^0.5",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "build",
+          "downloads": 0
+        },
+        {
+          "id": 39717753,
+          "version_id": 3496724,
+          "crate_id": "heck",
+          "req": "^0.5",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717754,
+          "version_id": 3496724,
+          "crate_id": "http",
+          "req": "^1",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717776,
+          "version_id": 3496724,
+          "crate_id": "http-range",
+          "req": "^0.1.5",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "dev",
+          "downloads": 0
+        },
+        {
+          "id": 39717797,
+          "version_id": 3496724,
+          "crate_id": "jni",
+          "req": "^0.21",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": "cfg(target_os = \"android\")",
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717787,
+          "version_id": 3496724,
+          "crate_id": "libc",
+          "req": "^0.2",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": "cfg(all(target_vendor = \"apple\", not(target_os = \"macos\")))",
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717757,
+          "version_id": 3496724,
+          "crate_id": "log",
+          "req": "^0.4.21",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717758,
+          "version_id": 3496724,
+          "crate_id": "mime",
+          "req": "^0.3",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717795,
+          "version_id": 3496724,
+          "crate_id": "muda",
+          "req": "^0.20",
+          "optional": false,
+          "default_features": false,
+          "features": [
+            "serde",
+            "gtk3"
+          ],
+          "target": "cfg(any(target_os = \"linux\", target_os = \"dragonfly\", target_os = \"freebsd\", target_os = \"openbsd\", target_os = \"netbsd\", target_os = \"windows\", target_os = \"macos\"))",
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717804,
+          "version_id": 3496724,
+          "crate_id": "objc2",
+          "req": "^0.6",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": "cfg(target_vendor = \"apple\")",
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717799,
+          "version_id": 3496724,
+          "crate_id": "objc2-app-kit",
+          "req": "^0.3.2",
+          "optional": false,
+          "default_features": false,
+          "features": [
+            "std",
+            "NSApplication",
+            "NSColor",
+            "NSResponder",
+            "NSView",
+            "NSWindow",
+            "NSImage"
+          ],
+          "target": "cfg(target_os = \"macos\")",
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717800,
+          "version_id": 3496724,
+          "crate_id": "objc2-foundation",
+          "req": "^0.3.2",
+          "optional": false,
+          "default_features": false,
+          "features": [
+            "std",
+            "NSData",
+            "NSEnumerator",
+            "NSThread"
+          ],
+          "target": "cfg(target_os = \"macos\")",
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717788,
+          "version_id": 3496724,
+          "crate_id": "objc2-ui-kit",
+          "req": "^0.3.2",
+          "optional": false,
+          "default_features": false,
+          "features": [
+            "UIApplication",
+            "UIResponder",
+            "UIView"
+          ],
+          "target": "cfg(all(target_vendor = \"apple\", not(target_os = \"macos\")))",
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717801,
+          "version_id": 3496724,
+          "crate_id": "objc2-web-kit",
+          "req": "^0.3.2",
+          "optional": false,
+          "default_features": false,
+          "features": [
+            "objc2-app-kit",
+            "WKWebView",
+            "WKWebViewConfiguration",
+            "WKUserContentController"
+          ],
+          "target": "cfg(target_os = \"macos\")",
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717759,
+          "version_id": 3496724,
+          "crate_id": "percent-encoding",
+          "req": "^2",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717802,
+          "version_id": 3496724,
+          "crate_id": "plist",
+          "req": "^1",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": "cfg(target_os = \"macos\")",
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717777,
+          "version_id": 3496724,
+          "crate_id": "proptest",
+          "req": "^1.6.0",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "dev",
+          "downloads": 0
+        },
+        {
+          "id": 39717778,
+          "version_id": 3496724,
+          "crate_id": "quickcheck",
+          "req": "^1.0.3",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "dev",
+          "downloads": 0
+        },
+        {
+          "id": 39717779,
+          "version_id": 3496724,
+          "crate_id": "quickcheck_macros",
+          "req": "^1.0.0",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "dev",
+          "downloads": 0
+        },
+        {
+          "id": 39717760,
+          "version_id": 3496724,
+          "crate_id": "raw-window-handle",
+          "req": "^0.6",
+          "optional": false,
+          "default_features": true,
+          "features": [
+            "std"
+          ],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717791,
+          "version_id": 3496724,
+          "crate_id": "reqwest",
+          "req": "^0.13",
+          "optional": false,
+          "default_features": false,
+          "features": [
+            "json",
+            "stream"
+          ],
+          "target": "cfg(any(target_os = \"android\", all(target_vendor = \"apple\", not(target_os = \"macos\"))))",
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717780,
+          "version_id": 3496724,
+          "crate_id": "serde",
+          "req": "^1",
+          "optional": false,
+          "default_features": true,
+          "features": [
+            "derive"
+          ],
+          "target": null,
+          "kind": "dev",
+          "downloads": 0
+        },
+        {
+          "id": 39717761,
+          "version_id": 3496724,
+          "crate_id": "serde",
+          "req": "^1",
+          "optional": false,
+          "default_features": true,
+          "features": [
+            "derive",
+            "rc"
+          ],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717762,
+          "version_id": 3496724,
+          "crate_id": "serde_json",
+          "req": "^1",
+          "optional": false,
+          "default_features": true,
+          "features": [
+            "raw_value"
+          ],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717781,
+          "version_id": 3496724,
+          "crate_id": "serde_json",
+          "req": "^1",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "dev",
+          "downloads": 0
+        },
+        {
+          "id": 39717763,
+          "version_id": 3496724,
+          "crate_id": "serde_repr",
+          "req": "^0.1",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717764,
+          "version_id": 3496724,
+          "crate_id": "serialize-to-javascript",
+          "req": "^0.1.2",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717789,
+          "version_id": 3496724,
+          "crate_id": "swift-rs",
+          "req": "^1.0.9",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": "cfg(all(target_vendor = \"apple\", not(target_os = \"macos\")))",
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717785,
+          "version_id": 3496724,
+          "crate_id": "tauri-build",
+          "req": "^2.7.3",
+          "optional": false,
+          "default_features": false,
+          "features": [],
+          "target": null,
+          "kind": "build",
+          "downloads": 0
+        },
+        {
+          "id": 39717766,
+          "version_id": 3496724,
+          "crate_id": "tauri-macros",
+          "req": "~2.7.3",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717767,
+          "version_id": 3496724,
+          "crate_id": "tauri-runtime",
+          "req": "~2.12.2",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717769,
+          "version_id": 3496724,
+          "crate_id": "tauri-utils",
+          "req": "~2.10.2",
+          "optional": false,
+          "default_features": true,
+          "features": [
+            "resources"
+          ],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717786,
+          "version_id": 3496724,
+          "crate_id": "tauri-utils",
+          "req": "~2.10.2",
+          "optional": false,
+          "default_features": true,
+          "features": [
+            "build-2"
+          ],
+          "target": null,
+          "kind": "build",
+          "downloads": 0
+        },
+        {
+          "id": 39717770,
+          "version_id": 3496724,
+          "crate_id": "thiserror",
+          "req": "^2",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717771,
+          "version_id": 3496724,
+          "crate_id": "tokio",
+          "req": "^1",
+          "optional": false,
+          "default_features": true,
+          "features": [
+            "rt",
+            "rt-multi-thread",
+            "sync",
+            "fs",
+            "io-util"
+          ],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717782,
+          "version_id": 3496724,
+          "crate_id": "tokio",
+          "req": "^1",
+          "optional": false,
+          "default_features": true,
+          "features": [
+            "full"
+          ],
+          "target": null,
+          "kind": "dev",
+          "downloads": 0
+        },
+        {
+          "id": 39717773,
+          "version_id": 3496724,
+          "crate_id": "url",
+          "req": "^2",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717806,
+          "version_id": 3496724,
+          "crate_id": "window-vibrancy",
+          "req": "^0.8.1",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": "cfg(windows)",
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717803,
+          "version_id": 3496724,
+          "crate_id": "window-vibrancy",
+          "req": "^0.8.1",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": "cfg(target_os = \"macos\")",
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717807,
+          "version_id": 3496724,
+          "crate_id": "windows",
+          "req": "^0.62",
+          "optional": false,
+          "default_features": true,
+          "features": [
+            "Win32_Foundation",
+            "Win32_UI",
+            "Win32_UI_WindowsAndMessaging",
+            "Win32_System_LibraryLoader",
+            "Win32_Graphics_Gdi"
+          ],
+          "target": "cfg(windows)",
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717748,
+          "version_id": 3496724,
+          "crate_id": "data-url",
+          "req": "^0.3",
+          "optional": true,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717755,
+          "version_id": 3496724,
+          "crate_id": "http-range",
+          "req": "^0.1",
+          "optional": true,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717756,
+          "version_id": 3496724,
+          "crate_id": "image",
+          "req": "^0.25",
+          "optional": true,
+          "default_features": false,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717792,
+          "version_id": 3496724,
+          "crate_id": "rustls",
+          "req": "^0.23",
+          "optional": true,
+          "default_features": false,
+          "features": [
+            "ring"
+          ],
+          "target": "cfg(any(target_os = \"android\", all(target_vendor = \"apple\", not(target_os = \"macos\"))))",
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717765,
+          "version_id": 3496724,
+          "crate_id": "specta",
+          "req": "^2.0.0-rc.16",
+          "optional": true,
+          "default_features": false,
+          "features": [
+            "function",
+            "derive"
+          ],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717768,
+          "version_id": 3496724,
+          "crate_id": "tauri-runtime-wry",
+          "req": "~2.12.2",
+          "optional": true,
+          "default_features": false,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717772,
+          "version_id": 3496724,
+          "crate_id": "tracing",
+          "req": "^0.1",
+          "optional": true,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717796,
+          "version_id": 3496724,
+          "crate_id": "tray-icon",
+          "req": "^0.25",
+          "optional": true,
+          "default_features": false,
+          "features": [
+            "serde",
+            "libappindicator"
+          ],
+          "target": "cfg(any(target_os = \"linux\", target_os = \"dragonfly\", target_os = \"freebsd\", target_os = \"openbsd\", target_os = \"netbsd\", target_os = \"windows\", target_os = \"macos\"))",
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717774,
+          "version_id": 3496724,
+          "crate_id": "uuid",
+          "req": "^1",
+          "optional": true,
+          "default_features": true,
+          "features": [
+            "v4"
+          ],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717794,
+          "version_id": 3496724,
+          "crate_id": "webkit2gtk",
+          "req": "^2",
+          "optional": true,
+          "default_features": true,
+          "features": [
+            "v2_40"
+          ],
+          "target": "cfg(any(target_os = \"linux\", target_os = \"dragonfly\", target_os = \"freebsd\", target_os = \"openbsd\", target_os = \"netbsd\"))",
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717805,
+          "version_id": 3496724,
+          "crate_id": "webview2-com",
+          "req": "^0.39",
+          "optional": true,
+          "default_features": true,
+          "features": [],
+          "target": "cfg(windows)",
+          "kind": "normal",
+          "downloads": 0
+        }
+      ]
+    }
+  },
+  {
+    "name": "tauri-build",
+    "version": "2.7.3",
+    "url": "https://crates.io/api/v1/crates/tauri-build/2.7.3/dependencies",
+    "raw": {
+      "dependencies": [
+        {
+          "id": 39717694,
+          "version_id": 3496720,
+          "crate_id": "anyhow",
+          "req": "^1",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717695,
+          "version_id": 3496720,
+          "crate_id": "cargo_toml",
+          "req": "^1.0",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717696,
+          "version_id": 3496720,
+          "crate_id": "dirs",
+          "req": "^7",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717697,
+          "version_id": 3496720,
+          "crate_id": "glob",
+          "req": "^0.3",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717698,
+          "version_id": 3496720,
+          "crate_id": "heck",
+          "req": "^0.5",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717699,
+          "version_id": 3496720,
+          "crate_id": "json-patch",
+          "req": "^4",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717701,
+          "version_id": 3496720,
+          "crate_id": "schemars",
+          "req": "^0.8.22",
+          "optional": false,
+          "default_features": true,
+          "features": [
+            "preserve_order"
+          ],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717702,
+          "version_id": 3496720,
+          "crate_id": "semver",
+          "req": "^1",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717703,
+          "version_id": 3496720,
+          "crate_id": "serde",
+          "req": "^1",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717704,
+          "version_id": 3496720,
+          "crate_id": "serde_json",
+          "req": "^1",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717711,
+          "version_id": 3496720,
+          "crate_id": "serial_test",
+          "req": "^3.5",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "dev",
+          "downloads": 0
+        },
+        {
+          "id": 39717705,
+          "version_id": 3496720,
+          "crate_id": "static_vcruntime",
+          "req": "^3.0",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717706,
+          "version_id": 3496720,
+          "crate_id": "strsim",
+          "req": "^0.11",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717708,
+          "version_id": 3496720,
+          "crate_id": "tauri-utils",
+          "req": "~2.10.2",
+          "optional": false,
+          "default_features": true,
+          "features": [
+            "build-2",
+            "resources"
+          ],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717709,
+          "version_id": 3496720,
+          "crate_id": "tauri-winres",
+          "req": "^0.3",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717710,
+          "version_id": 3496720,
+          "crate_id": "walkdir",
+          "req": "^2",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717700,
+          "version_id": 3496720,
+          "crate_id": "quote",
+          "req": "^1",
+          "optional": true,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39717707,
+          "version_id": 3496720,
+          "crate_id": "tauri-codegen",
+          "req": "~2.7.3",
+          "optional": true,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        }
+      ]
+    }
+  },
+  {
+    "name": "tauri-plugin-single-instance",
+    "version": "2.5.4",
+    "url": "https://crates.io/api/v1/crates/tauri-plugin-single-instance/2.5.4/dependencies",
+    "raw": {
+      "dependencies": [
+        {
+          "id": 39720506,
+          "version_id": 3496919,
+          "crate_id": "serde",
+          "req": "^1",
+          "optional": false,
+          "default_features": true,
+          "features": [
+            "derive"
+          ],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39720507,
+          "version_id": 3496919,
+          "crate_id": "serde_json",
+          "req": "^1",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39720508,
+          "version_id": 3496919,
+          "crate_id": "tauri",
+          "req": "^2.12",
+          "optional": false,
+          "default_features": false,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39720513,
+          "version_id": 3496919,
+          "crate_id": "tauri",
+          "req": "^2.12",
+          "optional": false,
+          "default_features": false,
+          "features": [
+            "test"
+          ],
+          "target": null,
+          "kind": "dev",
+          "downloads": 0
+        },
+        {
+          "id": 39720510,
+          "version_id": 3496919,
+          "crate_id": "thiserror",
+          "req": "^2",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39720511,
+          "version_id": 3496919,
+          "crate_id": "tokio",
+          "req": "^1",
+          "optional": false,
+          "default_features": true,
+          "features": [
+            "net"
+          ],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39720512,
+          "version_id": 3496919,
+          "crate_id": "tracing",
+          "req": "^0.1",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39720515,
+          "version_id": 3496919,
+          "crate_id": "windows-sys",
+          "req": "^0.61",
+          "optional": false,
+          "default_features": true,
+          "features": [
+            "Win32_System_Threading",
+            "Win32_System_DataExchange",
+            "Win32_Foundation",
+            "Win32_UI_WindowsAndMessaging",
+            "Win32_Security",
+            "Win32_System_LibraryLoader",
+            "Win32_Graphics_Gdi"
+          ],
+          "target": "cfg(target_os = \"windows\")",
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39720514,
+          "version_id": 3496919,
+          "crate_id": "zbus",
+          "req": "^5.9",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": "cfg(target_os = \"linux\")",
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39720505,
+          "version_id": 3496919,
+          "crate_id": "semver",
+          "req": "^1",
+          "optional": true,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39720509,
+          "version_id": 3496919,
+          "crate_id": "tauri-plugin-deep-link",
+          "req": "^2.6.2",
+          "optional": true,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        }
+      ]
+    }
+  },
+  {
+    "name": "tauri-plugin-opener",
+    "version": "2.7.2",
+    "url": "https://crates.io/api/v1/crates/tauri-plugin-opener/2.7.2/dependencies",
+    "raw": {
+      "dependencies": [
+        {
+          "id": 39720373,
+          "version_id": 3496909,
+          "crate_id": "dunce",
+          "req": "^1",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39720374,
+          "version_id": 3496909,
+          "crate_id": "glob",
+          "req": "^0.3",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39720387,
+          "version_id": 3496909,
+          "crate_id": "objc2-app-kit",
+          "req": "^0.3",
+          "optional": false,
+          "default_features": false,
+          "features": [
+            "std",
+            "NSWorkspace"
+          ],
+          "target": "cfg(target_os = \"macos\")",
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39720388,
+          "version_id": 3496909,
+          "crate_id": "objc2-foundation",
+          "req": "^0.3",
+          "optional": false,
+          "default_features": false,
+          "features": [
+            "std",
+            "NSURL",
+            "NSArray",
+            "NSString"
+          ],
+          "target": "cfg(target_os = \"macos\")",
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39720375,
+          "version_id": 3496909,
+          "crate_id": "open",
+          "req": "^5",
+          "optional": false,
+          "default_features": true,
+          "features": [
+            "shellexecute-on-windows"
+          ],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39720381,
+          "version_id": 3496909,
+          "crate_id": "schemars",
+          "req": "^0.8",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "build",
+          "downloads": 0
+        },
+        {
+          "id": 39720382,
+          "version_id": 3496909,
+          "crate_id": "serde",
+          "req": "^1",
+          "optional": false,
+          "default_features": true,
+          "features": [
+            "derive"
+          ],
+          "target": null,
+          "kind": "build",
+          "downloads": 0
+        },
+        {
+          "id": 39720376,
+          "version_id": 3496909,
+          "crate_id": "serde",
+          "req": "^1",
+          "optional": false,
+          "default_features": true,
+          "features": [
+            "derive"
+          ],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39720377,
+          "version_id": 3496909,
+          "crate_id": "serde_json",
+          "req": "^1",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39720386,
+          "version_id": 3496909,
+          "crate_id": "tauri",
+          "req": "^2.12",
+          "optional": false,
+          "default_features": false,
+          "features": [
+            "wry"
+          ],
+          "target": "cfg(target_os = \"ios\")",
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39720380,
+          "version_id": 3496909,
+          "crate_id": "tauri",
+          "req": "^2.12",
+          "optional": false,
+          "default_features": false,
+          "features": [
+            "wry"
+          ],
+          "target": null,
+          "kind": "dev",
+          "downloads": 0
+        },
+        {
+          "id": 39720378,
+          "version_id": 3496909,
+          "crate_id": "tauri",
+          "req": "^2.12",
+          "optional": false,
+          "default_features": false,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39720383,
+          "version_id": 3496909,
+          "crate_id": "tauri-plugin",
+          "req": "^2.7.1",
+          "optional": false,
+          "default_features": true,
+          "features": [
+            "build"
+          ],
+          "target": null,
+          "kind": "build",
+          "downloads": 0
+        },
+        {
+          "id": 39720379,
+          "version_id": 3496909,
+          "crate_id": "thiserror",
+          "req": "^2",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": null,
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39720384,
+          "version_id": 3496909,
+          "crate_id": "url",
+          "req": "^2",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": "cfg(any(target_os = \"linux\", target_os = \"dragonfly\", target_os = \"freebsd\", target_os = \"netbsd\", target_os = \"openbsd\"))",
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39720389,
+          "version_id": 3496909,
+          "crate_id": "windows",
+          "req": "^0.62",
+          "optional": false,
+          "default_features": true,
+          "features": [
+            "Win32_Foundation",
+            "Win32_UI_Shell_Common",
+            "Win32_UI_WindowsAndMessaging",
+            "Win32_System_Com",
+            "Win32_System_Registry",
+            "Win32_Storage_FileSystem"
+          ],
+          "target": "cfg(windows)",
+          "kind": "normal",
+          "downloads": 0
+        },
+        {
+          "id": 39720385,
+          "version_id": 3496909,
+          "crate_id": "zbus",
+          "req": "^5.9",
+          "optional": false,
+          "default_features": true,
+          "features": [],
+          "target": "cfg(any(target_os = \"linux\", target_os = \"dragonfly\", target_os = \"freebsd\", target_os = \"netbsd\", target_os = \"openbsd\"))",
+          "kind": "normal",
+          "downloads": 0
+        }
+      ]
+    }
+  }
+]

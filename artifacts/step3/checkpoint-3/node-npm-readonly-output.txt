@@ -1,0 +1,13 @@
+READ ONLY: explicit Node 24 + existing npm CLI --version; no install
+v24.19.0
+
+10.8.2
+
+
+Algorithm : SHA256
+Hash      : 3602F2BB1A10F2CBAB4C36886218A33C1AB3DB87290E73B033C46C77147D0237
+Path      : C:\Users\Administrator\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe
+
+
+npm package engines.node:
+^18.17.0 || >=20.5.0

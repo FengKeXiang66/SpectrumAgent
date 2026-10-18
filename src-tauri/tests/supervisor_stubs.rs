@@ -242,7 +242,7 @@ fn retry_waits_for_cleanup_and_late_a_exit_cannot_change_b() -> TestResult {
 
 #[test]
 fn absent_executable_immediately_fails_and_does_not_clean_invalid_old_handshake() -> TestResult {
-    let root = prepare()?;
+    let root: PathBuf = prepare()?.components().collect();
     fs::create_dir_all(root.join("run"))?;
     let original = b"{invalid_json";
     fs::write(root.join("run/handshake.json"), original)?;
@@ -260,6 +260,14 @@ fn absent_executable_immediately_fails_and_does_not_clean_invalid_old_handshake(
     let failure = failed.failure.ok_or("failure missing")?;
     assert_eq!(failure.kind, FailureKind::SpawnFailed);
     assert!(failure.preexisting_handshake_invalid.is_some());
+    assert_eq!(
+        failure.handshake_path,
+        running.root.join("run").join("handshake.json")
+    );
+    let displayed_path = failure.handshake_path.to_string_lossy();
+    assert!(displayed_path.ends_with(r"run\handshake.json"));
+    assert!(!displayed_path.contains('/'));
+    println!("FAILURE DISPLAY handshake_path={displayed_path}");
     assert!(matches!(
         failure.exit_reason,
         ExitReason::Win32 { code: 2, .. }

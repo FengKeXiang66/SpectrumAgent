@@ -1,0 +1,11 @@
+   Compiling spectrum-agent v0.1.0 (E:\AI_Agent\src-tauri)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.83s
+     Running tests\supervisor_stubs.rs (src-tauri\target\debug\deps\supervisor_stubs-f1904bb8bb35a89b.exe)
+
+running 1 test
+FAILURE DISPLAY handshake_path=E:\AI_Agent\src-tauri\target\stub-runtime\19148-1792312104237-1\run\handshake.json
+MISSING PATH (constructor injection): kind=SpawnFailed elapsed_ms=11 preexisting_handshake_invalid=retained bytes_unchanged=true
+test absent_executable_immediately_fails_and_does_not_clean_invalid_old_handshake ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.01s
+

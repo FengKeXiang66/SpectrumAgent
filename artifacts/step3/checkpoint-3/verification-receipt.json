@@ -1,0 +1,24 @@
+{
+  "base_head": "8fe6e7b",
+  "sealed_diff_command": "git diff --name-only 8fe6e7b -- backend artifacts/step2 requirements-lock.txt src-tauri/Cargo.toml src-tauri/Cargo.lock",
+  "sealed_diff_stdout": "",
+  "sealed_diff_exit_code": 0,
+  "actual_install_commands_executed": [],
+  "formal_package_json_exists": false,
+  "formal_node_modules_exists": false,
+  "proposed_toolchain_exists": false,
+  "path_regression_passed": 1,
+  "path_regression_failed": 0,
+  "full_20_tests_rerun_this_turn": false,
+  "step2_status": "待实机验证",
+  "exit70_internal_cause": "未验证",
+  "reqwest_scope_still": "only verified loopback /health",
+  "files": {
+    "src-tauri/src/supervisor.rs": "ac6ad51adc72e4b56d5edf76dd11ad4e2ce2cfbac0bb91b96726eab2eed84f34",
+    "src-tauri/tests/supervisor_stubs.rs": "b89103947fe9edb4f5060838a103bba45f27a9edf42423e485dc5fd9b430bde2",
+    "src-tauri/Cargo.lock": "24a4beb3d9a41b6b483da938dc00d28ebd04c7fa2208d0626e863104b07dc51d",
+    "requirements-lock.txt": "58e24b59da34461a17fd942b4047071e42b5120b3d474ba976a7e28535d40bcc",
+    "artifacts/step3/checkpoint-3/package.proposed.json": "01c4bdbbeed2beb22ce869e4bba397a8d62d068e6c8eafdaa7b70ceda6940d92",
+    "artifacts/step3/checkpoint-3/TOOLCHAIN-PROPOSAL.md": "28226788ca5fc38c0d5ccfa95fc9242cefb5880a982d671d8651ff0a9829c0a9"
+  }
+}

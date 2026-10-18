@@ -1,0 +1,27 @@
+{
+  "name": "spectrum-agent",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "npm@10.8.2",
+  "engines": { "node": "24.19.0", "npm": "10.8.2" },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "@tauri-apps/api": "2.12.4"
+  },
+  "devDependencies": {
+    "vite": "8.3.4",
+    "typescript": "5.9.3",
+    "@vitejs/plugin-react": "6.1.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@types/node": "24.10.1",
+    "@tauri-apps/cli": "2.12.3"
+  }
+}

@@ -1,0 +1,2690 @@
+{
+  "fetched_at": "2026-10-18T08:33:32.870623+00:00",
+  "method": "HTTPS GET metadata only",
+  "results": [
+    {
+      "ecosystem": "npm",
+      "name": "react",
+      "url": "https://registry.npmjs.org/react/latest",
+      "raw": {
+        "bugs": {
+          "url": "https://github.com/react/react/issues"
+        },
+        "dist": {
+          "shasum": "26e9523fc36ea06be5050ebb780249a133260ad7",
+          "tarball": "https://registry.npmjs.org/react/-/react-19.3.1.tgz",
+          "fileCount": 27,
+          "integrity": "sha512-QNhWdt7nrgVWWQG58QuGsAR3jv3Hbe4mb4vz7w2csnHavciZJgda1CPNaldF6eVxv90ud3jUXpKlHL69gO38yw==",
+          "signatures": [
+            {
+              "sig": "MEUCIDFKwsaTXLOJNpD3WJ6dy5E7wkTf2QNrZgmlItJn3Cy4AiEAoAvLd5MEj+CHKGO1a81NFTiC79fQLibq7JqAPGvPC0w=",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            },
+            {
+              "sig": "MEQCIG60Jz/rQm93/m8ZTZvxX3fxIhTqB5EnASV642pG4n94AiA8XxzTRyCDS6L54HKPSciJX3l/dcW5MjgnFd4plotjSg==",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            }
+          ],
+          "attestations": {
+            "url": "https://registry.npmjs.org/-/npm/v1/attestations/react@19.3.1",
+            "provenance": {
+              "predicateType": "https://slsa.dev/provenance/v1"
+            }
+          },
+          "unpackedSize": 178663
+        },
+        "main": "index.js",
+        "name": "react",
+        "engines": {
+          "node": ">=0.10.0"
+        },
+        "exports": {
+          ".": {
+            "default": "./index.js",
+            "react-server": "./react.react-server.js"
+          },
+          "./jsx-runtime": {
+            "default": "./jsx-runtime.js",
+            "react-server": "./jsx-runtime.react-server.js"
+          },
+          "./package.json": "./package.json",
+          "./jsx-dev-runtime": {
+            "default": "./jsx-dev-runtime.js",
+            "react-server": "./jsx-dev-runtime.react-server.js"
+          },
+          "./compiler-runtime": {
+            "default": "./compiler-runtime.js",
+            "react-server": "./compiler-runtime.js"
+          }
+        },
+        "gitHead": "61aa00df822d0eb76d0362eb8b6fdd3527693efe",
+        "license": "MIT",
+        "_npmUser": {
+          "name": "GitHub Actions",
+          "email": "npm-oidc-no-reply@github.com",
+          "trustedPublisher": {
+            "id": "github",
+            "oidcConfigId": "19f8086e-9f33-439e-8cce-d73997f53038"
+          }
+        },
+        "homepage": "https://react.dev/",
+        "keywords": [
+          "react"
+        ],
+        "repository": {
+          "url": "git+https://github.com/react/react.git",
+          "type": "git",
+          "directory": "packages/react"
+        },
+        "_npmVersion": "11.19.0",
+        "description": "React is a JavaScript library for building user interfaces.",
+        "directories": {},
+        "maintainers": [
+          {
+            "name": "fb",
+            "email": "opensource+npm@fb.com"
+          },
+          {
+            "name": "react-bot",
+            "email": "react-core@meta.com"
+          }
+        ],
+        "_nodeVersion": "24.21.0",
+        "_hasShrinkwrap": false,
+        "_npmOperationalInternal": {
+          "tmp": "tmp/react_19.3.1_1791996435215_0.328829163279329",
+          "host": "s3://npm-registry-packages-npm-production"
+        },
+        "_id": "react@19.3.1",
+        "version": "19.3.1"
+      },
+      "version": "19.3.1",
+      "engines": {
+        "node": ">=0.10.0"
+      },
+      "peerDependencies": null,
+      "peerDependenciesMeta": null,
+      "dependencies": null,
+      "optionalDependencies": null,
+      "dist": {
+        "shasum": "26e9523fc36ea06be5050ebb780249a133260ad7",
+        "tarball": "https://registry.npmjs.org/react/-/react-19.3.1.tgz",
+        "fileCount": 27,
+        "integrity": "sha512-QNhWdt7nrgVWWQG58QuGsAR3jv3Hbe4mb4vz7w2csnHavciZJgda1CPNaldF6eVxv90ud3jUXpKlHL69gO38yw==",
+        "signatures": [
+          {
+            "sig": "MEUCIDFKwsaTXLOJNpD3WJ6dy5E7wkTf2QNrZgmlItJn3Cy4AiEAoAvLd5MEj+CHKGO1a81NFTiC79fQLibq7JqAPGvPC0w=",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          },
+          {
+            "sig": "MEQCIG60Jz/rQm93/m8ZTZvxX3fxIhTqB5EnASV642pG4n94AiA8XxzTRyCDS6L54HKPSciJX3l/dcW5MjgnFd4plotjSg==",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          }
+        ],
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/react@19.3.1",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        },
+        "unpackedSize": 178663
+      }
+    },
+    {
+      "ecosystem": "npm",
+      "name": "react-dom",
+      "url": "https://registry.npmjs.org/react-dom/latest",
+      "raw": {
+        "bugs": {
+          "url": "https://github.com/react/react/issues"
+        },
+        "dist": {
+          "shasum": "b384c53cfcbe9c2a5d09d863b98455de9d68afe2",
+          "tarball": "https://registry.npmjs.org/react-dom/-/react-dom-19.3.1.tgz",
+          "fileCount": 43,
+          "integrity": "sha512-Y0bARz53lhEC1NMCASs0/j+faB/zqt3R8hpvg1e8+61ZVJ4UL0UdC4cBbXfZMcIuhrfgeILTLe+ZeBCavQPtKQ==",
+          "signatures": [
+            {
+              "sig": "MEYCIQDKhj2WJ0+n7p8mYN1rC0wCt9+cD0S58A7JGp6iSDsusgIhAIzdEcBxzxMDJ5pGXlJ1Qw+Utal8MwAbfud/9Fm04N1N",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            },
+            {
+              "sig": "MEYCIQCVaB5TV8fUMl1DUqtKZxsqf+6v/itdKfx9lY/4yHu8kwIhANkvM3hU52XEwXbe6/xrseK88Q6blbENfk+peCPY6Ih4",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            }
+          ],
+          "attestations": {
+            "url": "https://registry.npmjs.org/-/npm/v1/attestations/react-dom@19.3.1",
+            "provenance": {
+              "predicateType": "https://slsa.dev/provenance/v1"
+            }
+          },
+          "unpackedSize": 8067632
+        },
+        "main": "index.js",
+        "name": "react-dom",
+        "browser": {
+          "./server.js": "./server.browser.js",
+          "./static.js": "./static.browser.js"
+        },
+        "exports": {
+          ".": {
+            "default": "./index.js",
+            "react-server": "./react-dom.react-server.js"
+          },
+          "./client": {
+            "default": "./client.js",
+            "react-server": "./client.react-server.js"
+          },
+          "./server": {
+            "bun": "./server.bun.js",
+            "deno": "./server.node.js",
+            "node": "./server.node.js",
+            "worker": "./server.browser.js",
+            "browser": "./server.browser.js",
+            "default": "./server.node.js",
+            "workerd": "./server.edge.js",
+            "edge-light": "./server.edge.js",
+            "react-server": "./server.react-server.js"
+          },
+          "./static": {
+            "deno": "./static.browser.js",
+            "node": "./static.node.js",
+            "worker": "./static.browser.js",
+            "browser": "./static.browser.js",
+            "default": "./static.node.js",
+            "workerd": "./static.edge.js",
+            "edge-light": "./static.edge.js",
+            "react-server": "./static.react-server.js"
+          },
+          "./profiling": {
+            "default": "./profiling.js",
+            "react-server": "./profiling.react-server.js"
+          },
+          "./server.bun": {
+            "default": "./server.bun.js",
+            "react-server": "./server.react-server.js"
+          },
+          "./test-utils": "./test-utils.js",
+          "./server.edge": {
+            "default": "./server.edge.js",
+            "react-server": "./server.react-server.js"
+          },
+          "./server.node": {
+            "default": "./server.node.js",
+            "react-server": "./server.react-server.js"
+          },
+          "./static.edge": {
+            "default": "./static.edge.js",
+            "react-server": "./static.react-server.js"
+          },
+          "./static.node": {
+            "default": "./static.node.js",
+            "react-server": "./static.react-server.js"
+          },
+          "./package.json": "./package.json",
+          "./server.browser": {
+            "default": "./server.browser.js",
+            "react-server": "./server.react-server.js"
+          },
+          "./static.browser": {
+            "default": "./static.browser.js",
+            "react-server": "./static.react-server.js"
+          }
+        },
+        "gitHead": "61aa00df822d0eb76d0362eb8b6fdd3527693efe",
+        "license": "MIT",
+        "scripts": {
+          "start": "node server.js"
+        },
+        "_npmUser": {
+          "name": "GitHub Actions",
+          "email": "npm-oidc-no-reply@github.com",
+          "trustedPublisher": {
+            "id": "github",
+            "oidcConfigId": "d9cd0825-8595-47d6-b8ae-76fbc589cbd8"
+          }
+        },
+        "homepage": "https://react.dev/",
+        "keywords": [
+          "react"
+        ],
+        "repository": {
+          "url": "git+https://github.com/react/react.git",
+          "type": "git",
+          "directory": "packages/react-dom"
+        },
+        "_npmVersion": "11.19.0",
+        "description": "React package for working with the DOM.",
+        "directories": {},
+        "maintainers": [
+          {
+            "name": "fb",
+            "email": "opensource+npm@fb.com"
+          },
+          {
+            "name": "react-bot",
+            "email": "react-core@meta.com"
+          }
+        ],
+        "_nodeVersion": "24.21.0",
+        "dependencies": {
+          "scheduler": "^0.28.0"
+        },
+        "_hasShrinkwrap": false,
+        "peerDependencies": {
+          "react": "^19.3.1"
+        },
+        "_npmOperationalInternal": {
+          "tmp": "tmp/react-dom_19.3.1_1791996549929_0.009845542040066046",
+          "host": "s3://npm-registry-packages-npm-production"
+        },
+        "_id": "react-dom@19.3.1",
+        "version": "19.3.1"
+      },
+      "version": "19.3.1",
+      "engines": null,
+      "peerDependencies": {
+        "react": "^19.3.1"
+      },
+      "peerDependenciesMeta": null,
+      "dependencies": {
+        "scheduler": "^0.28.0"
+      },
+      "optionalDependencies": null,
+      "dist": {
+        "shasum": "b384c53cfcbe9c2a5d09d863b98455de9d68afe2",
+        "tarball": "https://registry.npmjs.org/react-dom/-/react-dom-19.3.1.tgz",
+        "fileCount": 43,
+        "integrity": "sha512-Y0bARz53lhEC1NMCASs0/j+faB/zqt3R8hpvg1e8+61ZVJ4UL0UdC4cBbXfZMcIuhrfgeILTLe+ZeBCavQPtKQ==",
+        "signatures": [
+          {
+            "sig": "MEYCIQDKhj2WJ0+n7p8mYN1rC0wCt9+cD0S58A7JGp6iSDsusgIhAIzdEcBxzxMDJ5pGXlJ1Qw+Utal8MwAbfud/9Fm04N1N",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          },
+          {
+            "sig": "MEYCIQCVaB5TV8fUMl1DUqtKZxsqf+6v/itdKfx9lY/4yHu8kwIhANkvM3hU52XEwXbe6/xrseK88Q6blbENfk+peCPY6Ih4",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          }
+        ],
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/react-dom@19.3.1",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        },
+        "unpackedSize": 8067632
+      }
+    },
+    {
+      "ecosystem": "npm",
+      "name": "@tauri-apps/api",
+      "url": "https://registry.npmjs.org/%40tauri-apps%2Fapi/latest",
+      "raw": {
+        "bugs": {
+          "url": "https://github.com/tauri-apps/tauri/issues"
+        },
+        "dist": {
+          "shasum": "2bab72b87696ae8dcfb4f4db2119e46a87aeabe0",
+          "tarball": "https://registry.npmjs.org/@tauri-apps/api/-/api-2.12.4.tgz",
+          "fileCount": 68,
+          "integrity": "sha512-pVmfis+4zT8H0Qhp3xPZx9Ju7kpzvA6rr/PSJPyuwfvucTQ8sVt61NYU9KMkK703UFlYadFmjKA4HhybOtN0gg==",
+          "signatures": [
+            {
+              "sig": "MEYCIQDhr5xG+NmlT4Itff79ZfzxFLM9gDxoqCP+oTbrENb8TAIhAJ8oAlIetU9Ps5AYQDqSm1GQMFPbqMpR6Hdi6kXPC0da",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            },
+            {
+              "sig": "MEQCIECsTC/wq0YRNfYKSofeYfcTOhd/k4P6Bdm0rD8dmpnVAiBsCB0XyZMZ0411pPbVm54qoAOkDVZ9C5xayOpyCw/Ozw==",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            }
+          ],
+          "attestations": {
+            "url": "https://registry.npmjs.org/-/npm/v1/attestations/@tauri-apps%2fapi@2.12.4",
+            "provenance": {
+              "predicateType": "https://slsa.dev/provenance/v1"
+            }
+          },
+          "unpackedSize": 892209
+        },
+        "main": "./index.cjs",
+        "name": "@tauri-apps/api",
+        "type": "module",
+        "types": "./index.d.ts",
+        "module": "./index.js",
+        "exports": {
+          ".": {
+            "types": "./index.d.ts",
+            "import": "./index.js",
+            "require": "./index.cjs"
+          },
+          "./*": {
+            "types": "./*.d.ts",
+            "import": "./*.js",
+            "require": "./*.cjs"
+          },
+          "./package.json": "./package.json"
+        },
+        "funding": {
+          "url": "https://opencollective.com/tauri",
+          "type": "opencollective"
+        },
+        "license": "Apache-2.0 OR MIT",
+        "scripts": {
+          "build": "rollup -c --configPlugin typescript",
+          "npm-pack": "pnpm build && cd ./dist && npm pack",
+          "ts:check": "tsc --noEmit",
+          "eslint:fix": "eslint src/**/*.ts --fix",
+          "build:debug": "rollup -c --configPlugin typescript",
+          "npm-publish": "pnpm build && cd ./dist && pnpm publish --access public --loglevel debug --no-git-checks",
+          "eslint:check": "eslint src/**/*.ts"
+        },
+        "_npmUser": {
+          "name": "GitHub Actions",
+          "email": "npm-oidc-no-reply@github.com",
+          "trustedPublisher": {
+            "id": "github",
+            "oidcConfigId": "964e0eb7-ba94-4ca0-b3ad-e400b304ad07"
+          }
+        },
+        "homepage": "https://github.com/tauri-apps/tauri#readme",
+        "repository": {
+          "url": "git+https://github.com/tauri-apps/tauri.git",
+          "type": "git"
+        },
+        "description": "Tauri API definitions",
+        "directories": {},
+        "maintainers": [
+          {
+            "name": "nothingismagick",
+            "email": "denjell@sfosc.org"
+          },
+          {
+            "name": "lucasfernog",
+            "email": "lucasfernandesnog@gmail.com"
+          },
+          {
+            "name": "tauri-apps-ci-user",
+            "email": "drthompsonsmagickindustries+npmtauri@gmail.com"
+          },
+          {
+            "name": "jbolda",
+            "email": "me@jacobbolda.com"
+          },
+          {
+            "name": "fabianlars",
+            "email": "fabianlars@fabianlars.de"
+          },
+          {
+            "name": "amrbashir",
+            "email": "amr.bashir2015@gmail.com"
+          },
+          {
+            "name": "beanow",
+            "email": "beanow@oscp.info"
+          }
+        ],
+        "contributors": [
+          "Tauri Programme within The Commons Conservancy"
+        ],
+        "_hasShrinkwrap": false,
+        "devDependencies": {
+          "tslib": "^2.8.1",
+          "eslint": "^10.0.2",
+          "rollup": "4.62.4",
+          "globals": "^17.4.0",
+          "fast-glob": "3.3.3",
+          "@eslint/js": "^10.0.1",
+          "typescript": "^6.0.3",
+          "@types/node": "^24.11.0",
+          "@types/eslint": "^9.6.1",
+          "typescript-eslint": "^8.58.2",
+          "@rollup/plugin-terser": "1.0.0",
+          "eslint-config-prettier": "10.1.8",
+          "eslint-plugin-security": "4.0.1",
+          "@rollup/plugin-typescript": "12.3.0"
+        },
+        "_npmOperationalInternal": {
+          "tmp": "tmp/api_2.12.4_1792003664822_0.6278353814689361",
+          "host": "s3://npm-registry-packages-npm-production"
+        },
+        "_id": "@tauri-apps/api@2.12.4",
+        "version": "2.12.4"
+      },
+      "version": "2.12.4",
+      "engines": null,
+      "peerDependencies": null,
+      "peerDependenciesMeta": null,
+      "dependencies": null,
+      "optionalDependencies": null,
+      "dist": {
+        "shasum": "2bab72b87696ae8dcfb4f4db2119e46a87aeabe0",
+        "tarball": "https://registry.npmjs.org/@tauri-apps/api/-/api-2.12.4.tgz",
+        "fileCount": 68,
+        "integrity": "sha512-pVmfis+4zT8H0Qhp3xPZx9Ju7kpzvA6rr/PSJPyuwfvucTQ8sVt61NYU9KMkK703UFlYadFmjKA4HhybOtN0gg==",
+        "signatures": [
+          {
+            "sig": "MEYCIQDhr5xG+NmlT4Itff79ZfzxFLM9gDxoqCP+oTbrENb8TAIhAJ8oAlIetU9Ps5AYQDqSm1GQMFPbqMpR6Hdi6kXPC0da",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          },
+          {
+            "sig": "MEQCIECsTC/wq0YRNfYKSofeYfcTOhd/k4P6Bdm0rD8dmpnVAiBsCB0XyZMZ0411pPbVm54qoAOkDVZ9C5xayOpyCw/Ozw==",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          }
+        ],
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@tauri-apps%2fapi@2.12.4",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        },
+        "unpackedSize": 892209
+      }
+    },
+    {
+      "ecosystem": "npm",
+      "name": "vite",
+      "url": "https://registry.npmjs.org/vite/latest",
+      "raw": {
+        "//": "READ CONTRIBUTING.md to understand what to put under deps vs. devDeps!",
+        "bin": {
+          "vite": "bin/vite.js"
+        },
+        "bugs": {
+          "url": "https://github.com/vitejs/vite/issues"
+        },
+        "dist": {
+          "shasum": "ba08678ba41ba53f41c251b1772946c27b1c874e",
+          "tarball": "https://registry.npmjs.org/vite/-/vite-8.3.4.tgz",
+          "fileCount": 37,
+          "integrity": "sha512-IftLE8phJhdNRIGNEV4JCCvfNScoZQVfcXaN8TQropWGJtOHcu+iAB9pHcuGvmEb/kddw0LBe/jS8ztdC6xdiQ==",
+          "signatures": [
+            {
+              "sig": "MEUCIQCeAXB/HwdxpjsWJtL4xB1XW4EQghm8FuRmtk5k3Ok9+AIgIFJBcqIWVFWx5JeaTOpO/Noixu1/SIVjcexDfJ4S5PU=",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            },
+            {
+              "sig": "MEUCIQDtkEePcVc6vZxhoADsFqkp0VBbSgevSPxwgXXoG/UidQIgLb5bHn+iddppIY99rGaeeiM+n0AMTnlfU1QwNL/lwig=",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            }
+          ],
+          "attestations": {
+            "url": "https://registry.npmjs.org/-/npm/v1/attestations/vite@8.3.4",
+            "provenance": {
+              "predicateType": "https://slsa.dev/provenance/v1"
+            }
+          },
+          "unpackedSize": 2376813
+        },
+        "name": "vite",
+        "type": "module",
+        "author": "Evan You",
+        "engines": {
+          "node": "^20.19.0 || >=22.12.0"
+        },
+        "exports": {
+          ".": "./dist/node/index.js",
+          "./client": {
+            "types": "./client.d.ts"
+          },
+          "./types/*": {
+            "types": "./types/*"
+          },
+          "./internal": "./dist/node/internal.js",
+          "./package.json": "./package.json",
+          "./dist/client/*": "./dist/client/*",
+          "./module-runner": "./dist/node/module-runner.js",
+          "./types/internal/*": null
+        },
+        "funding": "https://github.com/vitejs/vite?sponsor=1",
+        "imports": {
+          "#types/*": "./types/*.d.ts",
+          "#dep-types/*": "./src/types/*.d.ts",
+          "#module-sync-enabled": {
+            "default": "./misc/false.js",
+            "module-sync": "./misc/true.js"
+          }
+        },
+        "license": "MIT",
+        "scripts": {
+          "dev": "premove dist && pnpm build-bundle -w",
+          "lint": "eslint --cache --ext .ts src/**",
+          "build": "premove dist && pnpm build-bundle && pnpm build-types",
+          "format": "oxfmt",
+          "typecheck": "tsc && tsc -p src/node && tsc -p src/client && tsc -p src/module-runner && tsc -p src/shared && tsc -p src/node/__tests_dts__ && tsc -p src/module-runner/__tests_dts__",
+          "build-types": "pnpm build-types-roll && pnpm build-types-check",
+          "build-bundle": "rolldown --config rolldown.config.ts",
+          "generate-target": "tsx scripts/generateTarget.ts",
+          "build-types-roll": "rolldown --config rolldown.dts.config.ts",
+          "build-types-check": "tsc --project tsconfig.check.json"
+        },
+        "_npmUser": {
+          "name": "GitHub Actions",
+          "email": "npm-oidc-no-reply@github.com",
+          "trustedPublisher": {
+            "id": "github",
+            "oidcConfigId": "a2e674b1-239b-4e35-a07f-7b43debc0a8c"
+          }
+        },
+        "homepage": "https://vite.dev",
+        "keywords": [
+          "build-tool",
+          "dev-server",
+          "framework",
+          "frontend",
+          "hmr",
+          "vite"
+        ],
+        "repository": {
+          "url": "git+https://github.com/vitejs/vite.git",
+          "type": "git",
+          "directory": "packages/vite"
+        },
+        "description": "Native-ESM powered web dev build tool",
+        "directories": {},
+        "maintainers": [
+          {
+            "name": "yyx990803",
+            "email": "yyx990803@gmail.com"
+          },
+          {
+            "name": "vitebot",
+            "email": "vite@voidzero.dev"
+          }
+        ],
+        "dependencies": {
+          "postcss": "^8.5.29",
+          "rolldown": "~1.2.12",
+          "picomatch": "^4.0.7",
+          "tinyglobby": "^0.2.17",
+          "lightningcss": "^1.33.0"
+        },
+        "_hasShrinkwrap": false,
+        "devDependencies": {
+          "ws": "^8.22.0",
+          "cac": "^7.0.0",
+          "ufo": "^1.6.4",
+          "cors": "^2.8.6",
+          "etag": "^1.8.1",
+          "mlly": "^1.8.2",
+          "obug": "^1.0.2",
+          "open": "^10.2.0",
+          "sass": "^1.105.1",
+          "sirv": "^3.0.2",
+          "pathe": "^2.0.3",
+          "mrmime": "^2.0.1",
+          "nanoid": "^5.1.16",
+          "parse5": "^8.0.1",
+          "rollup": "^4.59.0",
+          "terser": "^5.51.2",
+          "connect": "^3.7.0",
+          "esbuild": "^0.28.2",
+          "premove": "^4.0.0",
+          "chokidar": "^3.6.0",
+          "tinyexec": "^1.3.1",
+          "artichokie": "^0.4.5",
+          "periscopic": "^4.0.3",
+          "picocolors": "^1.1.1",
+          "escape-html": "^1.0.3",
+          "fresh-import": "^0.2.1",
+          "http-proxy-3": "^1.23.3",
+          "magic-string": "^1.4.3",
+          "@babel/parser": "^7.29.9",
+          "@types/pnpapi": "^0.0.5",
+          "@vitest/utils": "^4.1.11",
+          "dotenv-expand": "^13.0.0",
+          "estree-walker": "^3.0.3",
+          "sass-embedded": "^1.105.1",
+          "strip-literal": "^4.0.0",
+          "postcss-import": "^16.2.0",
+          "es-module-lexer": "^2.3.2",
+          "postcss-modules": "^9.0.1",
+          "resolve.exports": "^2.0.3",
+          "@vitejs/devtools": "^0.7.6",
+          "@polka/compression": "^1.0.0-next.25",
+          "@types/escape-html": "^1.0.4",
+          "convert-source-map": "^2.0.0",
+          "@rollup/pluginutils": "^5.4.0",
+          "postcss-load-config": "^6.0.1",
+          "rolldown-plugin-dts": "^0.28.6",
+          "@rollup/plugin-alias": "^6.0.0",
+          "@vercel/detect-agent": "^1.2.5",
+          "@jridgewell/remapping": "^2.3.5",
+          "rollup-plugin-license": "^3.7.1",
+          "baseline-browser-mapping": "^2.11.27",
+          "launch-editor-middleware": "^2.14.2",
+          "@jridgewell/trace-mapping": "^0.3.31",
+          "host-validation-middleware": "^0.1.4",
+          "@voidzero-dev/vite-task-client": "^0.2.0",
+          "@rollup/plugin-dynamic-import-vars": "2.1.4"
+        },
+        "peerDependencies": {
+          "tsx": "^4.8.1",
+          "jiti": ">=1.21.0",
+          "less": "^4.0.0",
+          "sass": "^1.70.0",
+          "yaml": "^2.4.2",
+          "stylus": ">=0.54.8",
+          "terser": "^5.16.0",
+          "esbuild": "^0.27.0 || ^0.28.0",
+          "sugarss": "^5.0.0",
+          "@types/node": "^20.19.0 || >=22.12.0",
+          "sass-embedded": "^1.70.0",
+          "@vitejs/devtools": "^0.7.1"
+        },
+        "optionalDependencies": {
+          "fsevents": "~2.3.3"
+        },
+        "peerDependenciesMeta": {
+          "tsx": {
+            "optional": true
+          },
+          "jiti": {
+            "optional": true
+          },
+          "less": {
+            "optional": true
+          },
+          "sass": {
+            "optional": true
+          },
+          "yaml": {
+            "optional": true
+          },
+          "stylus": {
+            "optional": true
+          },
+          "terser": {
+            "optional": true
+          },
+          "esbuild": {
+            "optional": true
+          },
+          "sugarss": {
+            "optional": true
+          },
+          "@types/node": {
+            "optional": true
+          },
+          "sass-embedded": {
+            "optional": true
+          },
+          "@vitejs/devtools": {
+            "optional": true
+          }
+        },
+        "_npmOperationalInternal": {
+          "tmp": "tmp/vite_8.3.4_1791461224290_0.6120386617728939",
+          "host": "s3://npm-registry-packages-npm-production"
+        },
+        "_id": "vite@8.3.4",
+        "version": "8.3.4"
+      },
+      "version": "8.3.4",
+      "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+      },
+      "peerDependencies": {
+        "tsx": "^4.8.1",
+        "jiti": ">=1.21.0",
+        "less": "^4.0.0",
+        "sass": "^1.70.0",
+        "yaml": "^2.4.2",
+        "stylus": ">=0.54.8",
+        "terser": "^5.16.0",
+        "esbuild": "^0.27.0 || ^0.28.0",
+        "sugarss": "^5.0.0",
+        "@types/node": "^20.19.0 || >=22.12.0",
+        "sass-embedded": "^1.70.0",
+        "@vitejs/devtools": "^0.7.1"
+      },
+      "peerDependenciesMeta": {
+        "tsx": {
+          "optional": true
+        },
+        "jiti": {
+          "optional": true
+        },
+        "less": {
+          "optional": true
+        },
+        "sass": {
+          "optional": true
+        },
+        "yaml": {
+          "optional": true
+        },
+        "stylus": {
+          "optional": true
+        },
+        "terser": {
+          "optional": true
+        },
+        "esbuild": {
+          "optional": true
+        },
+        "sugarss": {
+          "optional": true
+        },
+        "@types/node": {
+          "optional": true
+        },
+        "sass-embedded": {
+          "optional": true
+        },
+        "@vitejs/devtools": {
+          "optional": true
+        }
+      },
+      "dependencies": {
+        "postcss": "^8.5.29",
+        "rolldown": "~1.2.12",
+        "picomatch": "^4.0.7",
+        "tinyglobby": "^0.2.17",
+        "lightningcss": "^1.33.0"
+      },
+      "optionalDependencies": {
+        "fsevents": "~2.3.3"
+      },
+      "dist": {
+        "shasum": "ba08678ba41ba53f41c251b1772946c27b1c874e",
+        "tarball": "https://registry.npmjs.org/vite/-/vite-8.3.4.tgz",
+        "fileCount": 37,
+        "integrity": "sha512-IftLE8phJhdNRIGNEV4JCCvfNScoZQVfcXaN8TQropWGJtOHcu+iAB9pHcuGvmEb/kddw0LBe/jS8ztdC6xdiQ==",
+        "signatures": [
+          {
+            "sig": "MEUCIQCeAXB/HwdxpjsWJtL4xB1XW4EQghm8FuRmtk5k3Ok9+AIgIFJBcqIWVFWx5JeaTOpO/Noixu1/SIVjcexDfJ4S5PU=",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          },
+          {
+            "sig": "MEUCIQDtkEePcVc6vZxhoADsFqkp0VBbSgevSPxwgXXoG/UidQIgLb5bHn+iddppIY99rGaeeiM+n0AMTnlfU1QwNL/lwig=",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          }
+        ],
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/vite@8.3.4",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        },
+        "unpackedSize": 2376813
+      }
+    },
+    {
+      "ecosystem": "npm",
+      "name": "typescript",
+      "url": "https://registry.npmjs.org/typescript/5.9.3",
+      "raw": {
+        "bin": {
+          "tsc": "bin/tsc",
+          "tsserver": "bin/tsserver"
+        },
+        "bugs": {
+          "url": "https://github.com/microsoft/TypeScript/issues"
+        },
+        "dist": {
+          "shasum": "5b4f59e15310ab17a216f5d6cf53ee476ede670f",
+          "tarball": "https://registry.npmjs.org/typescript/-/typescript-5.9.3.tgz",
+          "fileCount": 132,
+          "integrity": "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==",
+          "signatures": [
+            {
+              "sig": "MEYCIQC5ifNi1il+zAZC19ov+Q5oSrhOwlpOpghAaAAXYA0RpAIhAKdcZ6pMNZGuprpke8Zi3OPB1zol9c88KVW+apJNVjTy",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            }
+          ],
+          "unpackedSize": 23625066
+        },
+        "main": "./lib/typescript.js",
+        "name": "typescript",
+        "_from": "file:/mnt/vss/_work/1/tgz/typescript.tgz",
+        "volta": {
+          "npm": "8.19.4",
+          "node": "20.1.0"
+        },
+        "author": {
+          "name": "Microsoft Corp."
+        },
+        "browser": {
+          "fs": false,
+          "os": false,
+          "path": false,
+          "buffer": false,
+          "crypto": false,
+          "inspector": false,
+          "perf_hooks": false,
+          "source-map-support": false
+        },
+        "engines": {
+          "node": ">=14.17"
+        },
+        "gitHead": "c63de15a992d37f0d6cec03ac7631872838602cb",
+        "license": "Apache-2.0",
+        "scripts": {
+          "gulp": "hereby",
+          "knip": "hereby knip",
+          "lint": "hereby lint",
+          "test": "hereby runtests-parallel --light=false",
+          "build": "npm run build:compiler && npm run build:tests",
+          "clean": "hereby clean",
+          "format": "dprint fmt",
+          "build:tests": "hereby tests",
+          "setup-hooks": "node scripts/link-hooks.mjs",
+          "build:compiler": "hereby local",
+          "test:eslint-rules": "hereby run-eslint-rules-tests",
+          "build:tests:notypecheck": "hereby tests --no-typecheck"
+        },
+        "typings": "./lib/typescript.d.ts",
+        "_npmUser": {
+          "name": "typescript-bot",
+          "email": "typescript@microsoft.com"
+        },
+        "homepage": "https://www.typescriptlang.org/",
+        "keywords": [
+          "TypeScript",
+          "Microsoft",
+          "compiler",
+          "language",
+          "javascript"
+        ],
+        "_resolved": "/mnt/vss/_work/1/tgz/typescript.tgz",
+        "overrides": {
+          "typescript@*": "$typescript"
+        },
+        "_integrity": "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==",
+        "repository": {
+          "url": "git+https://github.com/microsoft/TypeScript.git",
+          "type": "git"
+        },
+        "_npmVersion": "10.7.0",
+        "description": "TypeScript is a language for application scale JavaScript development",
+        "directories": {},
+        "maintainers": [
+          {
+            "name": "typescript-bot",
+            "email": "typescript@microsoft.com"
+          },
+          {
+            "name": "weswigham",
+            "email": "wwigham@gmail.com"
+          },
+          {
+            "name": "sanders_n",
+            "email": "nathan@shively-sanders.com"
+          },
+          {
+            "name": "andrewbranch",
+            "email": "andrew@wheream.io"
+          },
+          {
+            "name": "sheetalkamat",
+            "email": "shkamat@microsoft.com"
+          },
+          {
+            "name": "typescript-deploys",
+            "email": "typescript-design@microsoft.com"
+          },
+          {
+            "name": "jakebailey",
+            "email": "jacob.b.bailey@gmail.com"
+          }
+        ],
+        "_nodeVersion": "18.20.3",
+        "_hasShrinkwrap": false,
+        "packageManager": "npm@8.19.4",
+        "devDependencies": {
+          "c8": "^10.1.3",
+          "ms": "^2.1.3",
+          "chai": "^4.5.0",
+          "diff": "^7.0.0",
+          "glob": "^10.4.5",
+          "knip": "^5.44.4",
+          "mocha": "^10.8.2",
+          "tslib": "^2.8.1",
+          "which": "^3.0.1",
+          "dprint": "^0.49.0",
+          "eslint": "^9.20.1",
+          "hereby": "^1.10.0",
+          "esbuild": "^0.25.0",
+          "globals": "^15.15.0",
+          "chokidar": "^4.0.3",
+          "minimist": "^1.2.8",
+          "@types/ms": "^0.7.34",
+          "@eslint/js": "^9.20.0",
+          "picocolors": "^1.1.1",
+          "playwright": "^1.50.1",
+          "typescript": "^5.7.3",
+          "@types/chai": "^4.3.20",
+          "@types/diff": "^7.0.1",
+          "@types/node": "latest",
+          "@types/mocha": "^10.0.10",
+          "@types/which": "^3.0.4",
+          "jsonc-parser": "^3.3.1",
+          "@octokit/rest": "^21.1.1",
+          "@types/minimist": "^1.2.5",
+          "fast-xml-parser": "^4.5.2",
+          "@dprint/formatter": "^0.4.1",
+          "@esfx/canceltoken": "^1.0.0",
+          "typescript-eslint": "^8.24.1",
+          "@dprint/typescript": "0.93.4",
+          "source-map-support": "^0.5.21",
+          "eslint-plugin-regexp": "^2.7.0",
+          "azure-devops-node-api": "^14.1.0",
+          "@typescript-eslint/utils": "^8.24.1",
+          "@types/source-map-support": "^0.5.10",
+          "monocart-coverage-reports": "^2.12.1",
+          "@typescript-eslint/type-utils": "^8.24.1",
+          "@typescript-eslint/rule-tester": "^8.24.1",
+          "mocha-fivemat-progress-reporter": "^0.1.0",
+          "eslint-formatter-autolinkable-stylish": "^1.4.0"
+        },
+        "_npmOperationalInternal": {
+          "tmp": "tmp/typescript_5.9.3_1759267178540_0.2143081415904824",
+          "host": "s3://npm-registry-packages-npm-production"
+        },
+        "_id": "typescript@5.9.3",
+        "version": "5.9.3"
+      },
+      "version": "5.9.3",
+      "engines": {
+        "node": ">=14.17"
+      },
+      "peerDependencies": null,
+      "peerDependenciesMeta": null,
+      "dependencies": null,
+      "optionalDependencies": null,
+      "dist": {
+        "shasum": "5b4f59e15310ab17a216f5d6cf53ee476ede670f",
+        "tarball": "https://registry.npmjs.org/typescript/-/typescript-5.9.3.tgz",
+        "fileCount": 132,
+        "integrity": "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==",
+        "signatures": [
+          {
+            "sig": "MEYCIQC5ifNi1il+zAZC19ov+Q5oSrhOwlpOpghAaAAXYA0RpAIhAKdcZ6pMNZGuprpke8Zi3OPB1zol9c88KVW+apJNVjTy",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          }
+        ],
+        "unpackedSize": 23625066
+      }
+    },
+    {
+      "ecosystem": "npm",
+      "name": "@vitejs/plugin-react",
+      "url": "https://registry.npmjs.org/%40vitejs%2Fplugin-react/latest",
+      "raw": {
+        "bugs": {
+          "url": "https://github.com/vitejs/vite-plugin-react/issues"
+        },
+        "dist": {
+          "shasum": "924d47e890a78cdf2b72f3f41fe8ab98e089b81e",
+          "tarball": "https://registry.npmjs.org/@vitejs/plugin-react/-/plugin-react-6.1.2.tgz",
+          "fileCount": 8,
+          "integrity": "sha512-fhJNGUdscQa4HkI0xFxwonWyhnVReCPDbXI7FH7jmzpnVCrFQI7PRrhWecO263610vOrs9tr2Y4xcf8uAdFxbw==",
+          "signatures": [
+            {
+              "sig": "MEUCIQCgpYsgjqTlOLHoKHGebF/CVGDeZXj631NLMep/SKoPxwIgQWZS4mOR+zKRUVL7FUDOOFDZyuMuywEGKrwry5GdV1Q=",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            },
+            {
+              "sig": "MEUCIQDLH4vCHenzBgP8wEYtZ9kCyKB71ErIPflGwaTlK1x9UwIgD2g6OSfhpU2OeghhDhPrAlwcunG8FMKXva4cki2sYlM=",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            }
+          ],
+          "attestations": {
+            "url": "https://registry.npmjs.org/-/npm/v1/attestations/@vitejs%2fplugin-react@6.1.2",
+            "provenance": {
+              "predicateType": "https://slsa.dev/provenance/v1"
+            }
+          },
+          "unpackedSize": 46296
+        },
+        "name": "@vitejs/plugin-react",
+        "type": "module",
+        "author": {
+          "name": "Evan You"
+        },
+        "engines": {
+          "node": "^20.19.0 || >=22.12.0"
+        },
+        "exports": {
+          ".": "./dist/index.js",
+          "./preamble": "./types/preamble.d.ts"
+        },
+        "gitHead": "ac47648e17674299accb51816e9e33b8a7b07b05",
+        "imports": {
+          "#optionalTypes": "./types/optionalTypes.d.ts"
+        },
+        "license": "MIT",
+        "scripts": {
+          "dev": "tsdown --watch ./src --watch ../common",
+          "build": "tsdown",
+          "test-unit": "vitest run",
+          "prepublishOnly": "npm run build"
+        },
+        "_npmUser": {
+          "name": "GitHub Actions",
+          "email": "npm-oidc-no-reply@github.com",
+          "trustedPublisher": {
+            "id": "github",
+            "oidcConfigId": "edf31d29-a728-45df-ba8b-a16b612e2d5f"
+          }
+        },
+        "homepage": "https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#readme",
+        "keywords": [
+          "fast refresh",
+          "react",
+          "react-refresh",
+          "vite",
+          "vite-plugin"
+        ],
+        "repository": {
+          "url": "git+https://github.com/vitejs/vite-plugin-react.git",
+          "type": "git",
+          "directory": "packages/plugin-react"
+        },
+        "_npmVersion": "11.21.0",
+        "description": "The default Vite plugin for React projects",
+        "directories": {},
+        "maintainers": [
+          {
+            "name": "yyx990803",
+            "email": "yyx990803@gmail.com"
+          },
+          {
+            "name": "vitebot",
+            "email": "vite@voidzero.dev"
+          }
+        ],
+        "_nodeVersion": "24.21.0",
+        "contributors": [
+          {
+            "name": "Alec Larson"
+          },
+          {
+            "name": "Arnaud Barré"
+          }
+        ],
+        "dependencies": {
+          "@rolldown/pluginutils": "^1.0.1"
+        },
+        "_hasShrinkwrap": false,
+        "devDependencies": {
+          "vite": "^8.3.2",
+          "react": "^19.3.0",
+          "tsdown": "^0.23.0",
+          "rolldown": "^1.2.12",
+          "react-dom": "^19.3.0",
+          "oxc-transform-react": "^0.152.0",
+          "@vitejs/react-common": "workspace:*",
+          "@rolldown/plugin-babel": "^0.2.4",
+          "babel-plugin-react-compiler": "^1.0.0"
+        },
+        "peerDependencies": {
+          "vite": "^8.0.0",
+          "oxc-transform-react": "^0.152.0",
+          "@rolldown/plugin-babel": "^0.1.7 || ^0.2.0",
+          "babel-plugin-react-compiler": "^1.0.0"
+        },
+        "compatiblePackages": {
+          "rollup": {
+            "type": "incompatible",
+            "reason": "Uses Rolldown-specific APIs or Vite-specific APIs"
+          },
+          "rolldown": {
+            "note": "You can use Rolldown's built-in feature directly.",
+            "type": "compatible",
+            "versions": "^1.0.0"
+          },
+          "schemaVersion": 1
+        },
+        "peerDependenciesMeta": {
+          "oxc-transform-react": {
+            "optional": true
+          },
+          "@rolldown/plugin-babel": {
+            "optional": true
+          },
+          "babel-plugin-react-compiler": {
+            "optional": true
+          }
+        },
+        "_npmOperationalInternal": {
+          "tmp": "tmp/plugin-react_6.1.2_1791194907068_0.8215568399569912",
+          "host": "s3://npm-registry-packages-npm-production"
+        },
+        "_id": "@vitejs/plugin-react@6.1.2",
+        "version": "6.1.2"
+      },
+      "version": "6.1.2",
+      "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+      },
+      "peerDependencies": {
+        "vite": "^8.0.0",
+        "oxc-transform-react": "^0.152.0",
+        "@rolldown/plugin-babel": "^0.1.7 || ^0.2.0",
+        "babel-plugin-react-compiler": "^1.0.0"
+      },
+      "peerDependenciesMeta": {
+        "oxc-transform-react": {
+          "optional": true
+        },
+        "@rolldown/plugin-babel": {
+          "optional": true
+        },
+        "babel-plugin-react-compiler": {
+          "optional": true
+        }
+      },
+      "dependencies": {
+        "@rolldown/pluginutils": "^1.0.1"
+      },
+      "optionalDependencies": null,
+      "dist": {
+        "shasum": "924d47e890a78cdf2b72f3f41fe8ab98e089b81e",
+        "tarball": "https://registry.npmjs.org/@vitejs/plugin-react/-/plugin-react-6.1.2.tgz",
+        "fileCount": 8,
+        "integrity": "sha512-fhJNGUdscQa4HkI0xFxwonWyhnVReCPDbXI7FH7jmzpnVCrFQI7PRrhWecO263610vOrs9tr2Y4xcf8uAdFxbw==",
+        "signatures": [
+          {
+            "sig": "MEUCIQCgpYsgjqTlOLHoKHGebF/CVGDeZXj631NLMep/SKoPxwIgQWZS4mOR+zKRUVL7FUDOOFDZyuMuywEGKrwry5GdV1Q=",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          },
+          {
+            "sig": "MEUCIQDLH4vCHenzBgP8wEYtZ9kCyKB71ErIPflGwaTlK1x9UwIgD2g6OSfhpU2OeghhDhPrAlwcunG8FMKXva4cki2sYlM=",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          }
+        ],
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@vitejs%2fplugin-react@6.1.2",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        },
+        "unpackedSize": 46296
+      }
+    },
+    {
+      "ecosystem": "npm",
+      "name": "@types/react",
+      "url": "https://registry.npmjs.org/%40types%2Freact/latest",
+      "raw": {
+        "dist": {
+          "shasum": "3b3ce8d8c1627fb5ccd4dadd57ef445c5a153b77",
+          "tarball": "https://registry.npmjs.org/@types/react/-/react-19.3.0.tgz",
+          "fileCount": 18,
+          "integrity": "sha512-N0rFCuH9YoxG9/m61l9MfpJKfmLOVU0em7ipIz6TRgSSkvReLB9vL85GB+yr8Bs5leqpvg96JSwF4ZS1s4viQg==",
+          "signatures": [
+            {
+              "sig": "MEQCICO9E9W9sN+6oHDGno2fJYJ8YEsNOa01MoJJmauunAjGAiAVusL8FBYYoRgnVrnz0RY2KMSjP1OlJ7GunY0YhIr0GA==",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            },
+            {
+              "sig": "MEYCIQCG/2kbQCjMBz9wJNsFnPRUQFtQzxGIbkrwTxQ3ZYlQrwIhAKZAxRpE46wtsHz27OGDgRmXLV83Q5GivNToLaMzF7Q2",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            }
+          ],
+          "unpackedSize": 408108
+        },
+        "main": "",
+        "name": "@types/react",
+        "types": "index.d.ts",
+        "exports": {
+          ".": {
+            "types": {
+              "default": "./index.d.ts"
+            },
+            "types@<=5.0": {
+              "default": "./ts5.0/index.d.ts"
+            }
+          },
+          "./canary": {
+            "types": {
+              "default": "./canary.d.ts"
+            },
+            "types@<=5.0": {
+              "default": "./ts5.0/canary.d.ts"
+            }
+          },
+          "./jsx-runtime": {
+            "types": {
+              "default": "./jsx-runtime.d.ts"
+            },
+            "types@<=5.0": {
+              "default": "./ts5.0/jsx-runtime.d.ts"
+            }
+          },
+          "./experimental": {
+            "types": {
+              "default": "./experimental.d.ts"
+            },
+            "types@<=5.0": {
+              "default": "./ts5.0/experimental.d.ts"
+            }
+          },
+          "./package.json": "./package.json",
+          "./jsx-dev-runtime": {
+            "types": {
+              "default": "./jsx-dev-runtime.d.ts"
+            },
+            "types@<=5.0": {
+              "default": "./ts5.0/jsx-dev-runtime.d.ts"
+            }
+          },
+          "./compiler-runtime": {
+            "types": {
+              "default": "./compiler-runtime.d.ts"
+            }
+          }
+        },
+        "license": "MIT",
+        "scripts": {},
+        "_npmUser": {
+          "name": "types",
+          "email": "ts-npm-types@microsoft.com"
+        },
+        "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/react",
+        "repository": {
+          "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+          "type": "git",
+          "directory": "types/react"
+        },
+        "description": "TypeScript definitions for react",
+        "directories": {},
+        "maintainers": [
+          {
+            "name": "types",
+            "email": "ts-npm-types@microsoft.com"
+          }
+        ],
+        "_nodeVersion": "24.20.0",
+        "contributors": [
+          {
+            "url": "https://asana.com",
+            "name": "Asana"
+          },
+          {
+            "url": "http://www.assuresign.com",
+            "name": "AssureSign"
+          },
+          {
+            "url": "https://microsoft.com",
+            "name": "Microsoft"
+          },
+          {
+            "url": "https://github.com/johnnyreilly",
+            "name": "John Reilly",
+            "githubUsername": "johnnyreilly"
+          },
+          {
+            "url": "https://github.com/bbenezech",
+            "name": "Benoit Benezech",
+            "githubUsername": "bbenezech"
+          },
+          {
+            "url": "https://github.com/pzavolinsky",
+            "name": "Patricio Zavolinsky",
+            "githubUsername": "pzavolinsky"
+          },
+          {
+            "url": "https://github.com/ericanderson",
+            "name": "Eric Anderson",
+            "githubUsername": "ericanderson"
+          },
+          {
+            "url": "https://github.com/DovydasNavickas",
+            "name": "Dovydas Navickas",
+            "githubUsername": "DovydasNavickas"
+          },
+          {
+            "url": "https://github.com/theruther4d",
+            "name": "Josh Rutherford",
+            "githubUsername": "theruther4d"
+          },
+          {
+            "url": "https://github.com/guilhermehubner",
+            "name": "Guilherme Hübner",
+            "githubUsername": "guilhermehubner"
+          },
+          {
+            "url": "https://github.com/ferdaber",
+            "name": "Ferdy Budhidharma",
+            "githubUsername": "ferdaber"
+          },
+          {
+            "url": "https://github.com/jrakotoharisoa",
+            "name": "Johann Rakotoharisoa",
+            "githubUsername": "jrakotoharisoa"
+          },
+          {
+            "url": "https://github.com/pascaloliv",
+            "name": "Olivier Pascal",
+            "githubUsername": "pascaloliv"
+          },
+          {
+            "url": "https://github.com/hotell",
+            "name": "Martin Hochel",
+            "githubUsername": "hotell"
+          },
+          {
+            "url": "https://github.com/franklixuefei",
+            "name": "Frank Li",
+            "githubUsername": "franklixuefei"
+          },
+          {
+            "url": "https://github.com/Jessidhia",
+            "name": "Jessica Franco",
+            "githubUsername": "Jessidhia"
+          },
+          {
+            "url": "https://github.com/saranshkataria",
+            "name": "Saransh Kataria",
+            "githubUsername": "saranshkataria"
+          },
+          {
+            "url": "https://github.com/lukyth",
+            "name": "Kanitkorn Sujautra",
+            "githubUsername": "lukyth"
+          },
+          {
+            "url": "https://github.com/eps1lon",
+            "name": "Sebastian Silbermann",
+            "githubUsername": "eps1lon"
+          },
+          {
+            "url": "https://github.com/zieka",
+            "name": "Kyle Scully",
+            "githubUsername": "zieka"
+          },
+          {
+            "url": "https://github.com/dancerphil",
+            "name": "Cong Zhang",
+            "githubUsername": "dancerphil"
+          },
+          {
+            "url": "https://github.com/dimitropoulos",
+            "name": "Dimitri Mitropoulos",
+            "githubUsername": "dimitropoulos"
+          },
+          {
+            "url": "https://github.com/disjukr",
+            "name": "JongChan Choi",
+            "githubUsername": "disjukr"
+          },
+          {
+            "url": "https://github.com/vhfmag",
+            "name": "Victor Magalhães",
+            "githubUsername": "vhfmag"
+          },
+          {
+            "url": "https://github.com/priyanshurav",
+            "name": "Priyanshu Rav",
+            "githubUsername": "priyanshurav"
+          },
+          {
+            "url": "https://github.com/Semigradsky",
+            "name": "Dmitry Semigradsky",
+            "githubUsername": "Semigradsky"
+          },
+          {
+            "url": "https://github.com/mattpocock",
+            "name": "Matt Pocock",
+            "githubUsername": "mattpocock"
+          }
+        ],
+        "dependencies": {
+          "csstype": "^3.2.2"
+        },
+        "typesVersions": {
+          "<=5.0": {
+            "*": [
+              "ts5.0/*"
+            ]
+          }
+        },
+        "_hasShrinkwrap": false,
+        "peerDependencies": {},
+        "typeScriptVersion": "5.6",
+        "_npmOperationalInternal": {
+          "tmp": "tmp/react_19.3.0_1788977329666_0.02040962383132161",
+          "host": "s3://npm-registry-packages-npm-production"
+        },
+        "typesPublisherContentHash": "86ea5f223efc88fcaa71962f0f031a623142285e331499ee981e201dc8d2a77e",
+        "_id": "@types/react@19.3.0",
+        "version": "19.3.0"
+      },
+      "version": "19.3.0",
+      "engines": null,
+      "peerDependencies": {},
+      "peerDependenciesMeta": null,
+      "dependencies": {
+        "csstype": "^3.2.2"
+      },
+      "optionalDependencies": null,
+      "dist": {
+        "shasum": "3b3ce8d8c1627fb5ccd4dadd57ef445c5a153b77",
+        "tarball": "https://registry.npmjs.org/@types/react/-/react-19.3.0.tgz",
+        "fileCount": 18,
+        "integrity": "sha512-N0rFCuH9YoxG9/m61l9MfpJKfmLOVU0em7ipIz6TRgSSkvReLB9vL85GB+yr8Bs5leqpvg96JSwF4ZS1s4viQg==",
+        "signatures": [
+          {
+            "sig": "MEQCICO9E9W9sN+6oHDGno2fJYJ8YEsNOa01MoJJmauunAjGAiAVusL8FBYYoRgnVrnz0RY2KMSjP1OlJ7GunY0YhIr0GA==",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          },
+          {
+            "sig": "MEYCIQCG/2kbQCjMBz9wJNsFnPRUQFtQzxGIbkrwTxQ3ZYlQrwIhAKZAxRpE46wtsHz27OGDgRmXLV83Q5GivNToLaMzF7Q2",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          }
+        ],
+        "unpackedSize": 408108
+      }
+    },
+    {
+      "ecosystem": "npm",
+      "name": "@types/react-dom",
+      "url": "https://registry.npmjs.org/%40types%2Freact-dom/latest",
+      "raw": {
+        "dist": {
+          "shasum": "90294a9266efd928a5266f2110d60d5dba5015d2",
+          "tarball": "https://registry.npmjs.org/@types/react-dom/-/react-dom-19.3.0.tgz",
+          "fileCount": 19,
+          "integrity": "sha512-ZI7bU42mZXXKHn/qNLEw2IrbiINU7X5+vfgdixBHkCNpYWXjKgfQ/P+uyGb5CjOLB9UcnTeg3rylQtV2hym44Q==",
+          "signatures": [
+            {
+              "sig": "MEYCIQDeggFlao9be7yHQ/b9bEJ/aNUgA9ewpLiMScDNunzitAIhAKh8Ct2ZYAjnfZI/KeuIMkZ0Qz2vlOS1C1PkdT2UacvQ",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            },
+            {
+              "sig": "MEYCIQDfRDroOzjwBEz1yqXRbBWKCYOt7p/DKB+WIMPoMWCfUAIhAMPChj/cPQOALZVIGvV0h+QYQERrlQ5RJZb3dptWvQFV",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            }
+          ],
+          "unpackedSize": 32862
+        },
+        "main": "",
+        "name": "@types/react-dom",
+        "types": "index.d.ts",
+        "exports": {
+          ".": {
+            "types": {
+              "default": "./index.d.ts"
+            }
+          },
+          "./canary": {
+            "types": {
+              "default": "./canary.d.ts"
+            }
+          },
+          "./client": {
+            "types": {
+              "default": "./client.d.ts"
+            }
+          },
+          "./server": {
+            "types": {
+              "default": "./server.d.ts"
+            }
+          },
+          "./static": {
+            "types": {
+              "default": "./static.d.ts"
+            }
+          },
+          "./server.bun": {
+            "types": {
+              "default": "./server.bun.d.ts"
+            }
+          },
+          "./test-utils": {
+            "types": {
+              "default": "./test-utils/index.d.ts"
+            }
+          },
+          "./server.edge": {
+            "types": {
+              "default": "./server.edge.d.ts"
+            }
+          },
+          "./server.node": {
+            "types": {
+              "default": "./server.node.d.ts"
+            }
+          },
+          "./static.edge": {
+            "types": {
+              "default": "./static.edge.d.ts"
+            }
+          },
+          "./static.node": {
+            "types": {
+              "default": "./static.node.d.ts"
+            }
+          },
+          "./experimental": {
+            "types": {
+              "default": "./experimental.d.ts"
+            }
+          },
+          "./package.json": "./package.json",
+          "./server.browser": {
+            "types": {
+              "default": "./server.browser.d.ts"
+            }
+          },
+          "./static.browser": {
+            "types": {
+              "default": "./static.browser.d.ts"
+            }
+          }
+        },
+        "license": "MIT",
+        "scripts": {},
+        "_npmUser": {
+          "name": "types",
+          "email": "ts-npm-types@microsoft.com"
+        },
+        "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/react-dom",
+        "repository": {
+          "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+          "type": "git",
+          "directory": "types/react-dom"
+        },
+        "description": "TypeScript definitions for react-dom",
+        "directories": {},
+        "maintainers": [
+          {
+            "name": "types",
+            "email": "ts-npm-types@microsoft.com"
+          }
+        ],
+        "_nodeVersion": "24.20.0",
+        "contributors": [
+          {
+            "url": "https://asana.com",
+            "name": "Asana"
+          },
+          {
+            "url": "http://www.assuresign.com",
+            "name": "AssureSign"
+          },
+          {
+            "url": "https://microsoft.com",
+            "name": "Microsoft"
+          },
+          {
+            "url": "https://github.com/MartynasZilinskas",
+            "name": "MartynasZilinskas",
+            "githubUsername": "MartynasZilinskas"
+          },
+          {
+            "url": "https://github.com/theruther4d",
+            "name": "Josh Rutherford",
+            "githubUsername": "theruther4d"
+          },
+          {
+            "url": "https://github.com/Jessidhia",
+            "name": "Jessica Franco",
+            "githubUsername": "Jessidhia"
+          },
+          {
+            "url": "https://github.com/eps1lon",
+            "name": "Sebastian Silbermann",
+            "githubUsername": "eps1lon"
+          }
+        ],
+        "dependencies": {},
+        "_hasShrinkwrap": false,
+        "peerDependencies": {
+          "@types/react": "^19.3.0"
+        },
+        "typeScriptVersion": "5.6",
+        "_npmOperationalInternal": {
+          "tmp": "tmp/react-dom_19.3.0_1788977271772_0.8048079603249982",
+          "host": "s3://npm-registry-packages-npm-production"
+        },
+        "typesPublisherContentHash": "345e361651b67ba93e5757949902dbca94f299c8328b8d01937dc05b5e487d8f",
+        "_id": "@types/react-dom@19.3.0",
+        "version": "19.3.0"
+      },
+      "version": "19.3.0",
+      "engines": null,
+      "peerDependencies": {
+        "@types/react": "^19.3.0"
+      },
+      "peerDependenciesMeta": null,
+      "dependencies": {},
+      "optionalDependencies": null,
+      "dist": {
+        "shasum": "90294a9266efd928a5266f2110d60d5dba5015d2",
+        "tarball": "https://registry.npmjs.org/@types/react-dom/-/react-dom-19.3.0.tgz",
+        "fileCount": 19,
+        "integrity": "sha512-ZI7bU42mZXXKHn/qNLEw2IrbiINU7X5+vfgdixBHkCNpYWXjKgfQ/P+uyGb5CjOLB9UcnTeg3rylQtV2hym44Q==",
+        "signatures": [
+          {
+            "sig": "MEYCIQDeggFlao9be7yHQ/b9bEJ/aNUgA9ewpLiMScDNunzitAIhAKh8Ct2ZYAjnfZI/KeuIMkZ0Qz2vlOS1C1PkdT2UacvQ",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          },
+          {
+            "sig": "MEYCIQDfRDroOzjwBEz1yqXRbBWKCYOt7p/DKB+WIMPoMWCfUAIhAMPChj/cPQOALZVIGvV0h+QYQERrlQ5RJZb3dptWvQFV",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          }
+        ],
+        "unpackedSize": 32862
+      }
+    },
+    {
+      "ecosystem": "npm",
+      "name": "@types/node",
+      "url": "https://registry.npmjs.org/%40types%2Fnode/24.10.1",
+      "raw": {
+        "dist": {
+          "shasum": "91e92182c93db8bd6224fca031e2370cef9a8f01",
+          "tarball": "https://registry.npmjs.org/@types/node/-/node-24.10.1.tgz",
+          "fileCount": 88,
+          "integrity": "sha512-GNWcUTRBgIRJD5zj+Tq0fKOJ5XZajIiBroOF0yvj2bSU1WvNdYS/dn9UxwsujGW4JX06dnHyjV2y9rRaybH0iQ==",
+          "signatures": [
+            {
+              "sig": "MEYCIQCpgl9Lqf33Ja2+k9kUfJurHJElWiv2+uBqZk7yUZAWzwIhANLDpyC5o23Kzvv8rnko97AA6XQoFf3nS+Na6vVyym7H",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            }
+          ],
+          "unpackedSize": 2518994
+        },
+        "main": "",
+        "name": "@types/node",
+        "types": "index.d.ts",
+        "license": "MIT",
+        "scripts": {},
+        "_npmUser": {
+          "name": "types",
+          "email": "ts-npm-types@microsoft.com"
+        },
+        "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/node",
+        "repository": {
+          "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+          "type": "git",
+          "directory": "types/node"
+        },
+        "description": "TypeScript definitions for node",
+        "directories": {},
+        "maintainers": [
+          {
+            "name": "types",
+            "email": "ts-npm-types@microsoft.com"
+          }
+        ],
+        "contributors": [
+          {
+            "url": "https://github.com/Microsoft",
+            "name": "Microsoft TypeScript",
+            "githubUsername": "Microsoft"
+          },
+          {
+            "url": "https://github.com/jkomyno",
+            "name": "Alberto Schiabel",
+            "githubUsername": "jkomyno"
+          },
+          {
+            "url": "https://github.com/r3nya",
+            "name": "Andrew Makarov",
+            "githubUsername": "r3nya"
+          },
+          {
+            "url": "https://github.com/btoueg",
+            "name": "Benjamin Toueg",
+            "githubUsername": "btoueg"
+          },
+          {
+            "url": "https://github.com/touffy",
+            "name": "David Junger",
+            "githubUsername": "touffy"
+          },
+          {
+            "url": "https://github.com/mohsen1",
+            "name": "Mohsen Azimi",
+            "githubUsername": "mohsen1"
+          },
+          {
+            "url": "https://github.com/galkin",
+            "name": "Nikita Galkin",
+            "githubUsername": "galkin"
+          },
+          {
+            "url": "https://github.com/eps1lon",
+            "name": "Sebastian Silbermann",
+            "githubUsername": "eps1lon"
+          },
+          {
+            "url": "https://github.com/WilcoBakker",
+            "name": "Wilco Bakker",
+            "githubUsername": "WilcoBakker"
+          },
+          {
+            "url": "https://github.com/chyzwar",
+            "name": "Marcin Kopacz",
+            "githubUsername": "chyzwar"
+          },
+          {
+            "url": "https://github.com/trivikr",
+            "name": "Trivikram Kamat",
+            "githubUsername": "trivikr"
+          },
+          {
+            "url": "https://github.com/yoursunny",
+            "name": "Junxiao Shi",
+            "githubUsername": "yoursunny"
+          },
+          {
+            "url": "https://github.com/qwelias",
+            "name": "Ilia Baryshnikov",
+            "githubUsername": "qwelias"
+          },
+          {
+            "url": "https://github.com/ExE-Boss",
+            "name": "ExE Boss",
+            "githubUsername": "ExE-Boss"
+          },
+          {
+            "url": "https://github.com/peterblazejewicz",
+            "name": "Piotr Błażejewicz",
+            "githubUsername": "peterblazejewicz"
+          },
+          {
+            "url": "https://github.com/addaleax",
+            "name": "Anna Henningsen",
+            "githubUsername": "addaleax"
+          },
+          {
+            "url": "https://github.com/victorperin",
+            "name": "Victor Perin",
+            "githubUsername": "victorperin"
+          },
+          {
+            "url": "https://github.com/NodeJS",
+            "name": "NodeJS Contributors",
+            "githubUsername": "NodeJS"
+          },
+          {
+            "url": "https://github.com/LinusU",
+            "name": "Linus Unnebäck",
+            "githubUsername": "LinusU"
+          },
+          {
+            "url": "https://github.com/wafuwafu13",
+            "name": "wafuwafu13",
+            "githubUsername": "wafuwafu13"
+          },
+          {
+            "url": "https://github.com/mcollina",
+            "name": "Matteo Collina",
+            "githubUsername": "mcollina"
+          },
+          {
+            "url": "https://github.com/Semigradsky",
+            "name": "Dmitry Semigradsky",
+            "githubUsername": "Semigradsky"
+          },
+          {
+            "url": "https://github.com/Renegade334",
+            "name": "René",
+            "githubUsername": "Renegade334"
+          },
+          {
+            "url": "https://github.com/anonrig",
+            "name": "Yagiz Nizipli",
+            "githubUsername": "anonrig"
+          }
+        ],
+        "dependencies": {
+          "undici-types": "~7.16.0"
+        },
+        "typesVersions": {
+          "<=5.6": {
+            "*": [
+              "ts5.6/*"
+            ]
+          },
+          "<=5.7": {
+            "*": [
+              "ts5.7/*"
+            ]
+          }
+        },
+        "_hasShrinkwrap": false,
+        "peerDependencies": {},
+        "typeScriptVersion": "5.2",
+        "_npmOperationalInternal": {
+          "tmp": "tmp/node_24.10.1_1762903995087_0.340724998461184",
+          "host": "s3://npm-registry-packages-npm-production"
+        },
+        "typesPublisherContentHash": "bf541e42e173a984f57b649839d3371001c98469b0e8944f7762074aed2acd2f",
+        "_id": "@types/node@24.10.1",
+        "version": "24.10.1"
+      },
+      "version": "24.10.1",
+      "engines": null,
+      "peerDependencies": {},
+      "peerDependenciesMeta": null,
+      "dependencies": {
+        "undici-types": "~7.16.0"
+      },
+      "optionalDependencies": null,
+      "dist": {
+        "shasum": "91e92182c93db8bd6224fca031e2370cef9a8f01",
+        "tarball": "https://registry.npmjs.org/@types/node/-/node-24.10.1.tgz",
+        "fileCount": 88,
+        "integrity": "sha512-GNWcUTRBgIRJD5zj+Tq0fKOJ5XZajIiBroOF0yvj2bSU1WvNdYS/dn9UxwsujGW4JX06dnHyjV2y9rRaybH0iQ==",
+        "signatures": [
+          {
+            "sig": "MEYCIQCpgl9Lqf33Ja2+k9kUfJurHJElWiv2+uBqZk7yUZAWzwIhANLDpyC5o23Kzvv8rnko97AA6XQoFf3nS+Na6vVyym7H",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          }
+        ],
+        "unpackedSize": 2518994
+      }
+    },
+    {
+      "ecosystem": "npm",
+      "name": "@tauri-apps/cli",
+      "url": "https://registry.npmjs.org/%40tauri-apps%2Fcli/latest",
+      "raw": {
+        "bin": {
+          "tauri": "tauri.js"
+        },
+        "bugs": {
+          "url": "https://github.com/tauri-apps/tauri/issues"
+        },
+        "dist": {
+          "shasum": "1817e3db64f011d8c73264682c80eb4a33d65f25",
+          "tarball": "https://registry.npmjs.org/@tauri-apps/cli/-/cli-2.12.3.tgz",
+          "fileCount": 12,
+          "integrity": "sha512-f7/LsY74SVb1ChmOPw1ajOpxii0GSzDAgmWHRci8JUYuuai04rXsSbFobpmB0sP2DdlvMD/B5ZotEn8GOGMRUg==",
+          "signatures": [
+            {
+              "sig": "MEQCICUY1PcTC+rLVK2rQRgviXKsnhLb7ohqaRxg35BsnJExAiALCuJG8+2f7a2WI8jWejayOsq0mJMU0w1jDiENKDE5Ow==",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            },
+            {
+              "sig": "MEUCIQDBPnEZxlfoxwxcmwbb/KnnrxJpXKdNVDKaxoYogZHT3gIgV5SdR/PvEoPT6915tcG9aO33BpWy/PqI+Bg8VCSRlLo=",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            }
+          ],
+          "attestations": {
+            "url": "https://registry.npmjs.org/-/npm/v1/attestations/@tauri-apps%2fcli@2.12.3",
+            "provenance": {
+              "predicateType": "https://slsa.dev/provenance/v1"
+            }
+          },
+          "unpackedSize": 431217
+        },
+        "main": "main.js",
+        "name": "@tauri-apps/cli",
+        "napi": {
+          "targets": [
+            "x86_64-unknown-linux-gnu",
+            "x86_64-pc-windows-msvc",
+            "x86_64-apple-darwin",
+            "aarch64-apple-darwin",
+            "aarch64-unknown-linux-gnu",
+            "aarch64-unknown-linux-musl",
+            "armv7-unknown-linux-gnueabihf",
+            "x86_64-unknown-linux-musl",
+            "riscv64gc-unknown-linux-gnu",
+            "i686-pc-windows-msvc",
+            "aarch64-pc-windows-msvc"
+          ],
+          "binaryName": "cli"
+        },
+        "type": "commonjs",
+        "types": "main.d.ts",
+        "engines": {
+          "node": ">= 10"
+        },
+        "funding": {
+          "url": "https://opencollective.com/tauri",
+          "type": "opencollective"
+        },
+        "gitHead": "59b63ab500da9859f12d8888c3298bc29bba0b92",
+        "license": "Apache-2.0 OR MIT",
+        "scripts": {
+          "test": "vitest run",
+          "build": "cross-env TARGET=node napi build --platform --profile release-size-optimized",
+          "tauri": "node ./tauri.js",
+          "prepack": "cp ../../crates/tauri-schema-generator/schemas/config.schema.json .",
+          "version": "napi version",
+          "artifacts": "napi artifacts",
+          "postbuild": "node append-headers.js",
+          "build:debug": "cross-env TARGET=node napi build --platform",
+          "prepublishOnly": "napi prepublish -t npm --gh-release-id $RELEASE_ID",
+          "postbuild:debug": "node append-headers.js"
+        },
+        "_npmUser": {
+          "name": "GitHub Actions",
+          "email": "npm-oidc-no-reply@github.com",
+          "trustedPublisher": {
+            "id": "github",
+            "oidcConfigId": "2d4e4735-5606-4c97-bdf1-7701e2485417"
+          }
+        },
+        "homepage": "https://github.com/tauri-apps/tauri#readme",
+        "repository": {
+          "url": "git+https://github.com/tauri-apps/tauri.git",
+          "type": "git"
+        },
+        "_npmVersion": "11.19.0",
+        "description": "Command line interface for building Tauri apps",
+        "directories": {},
+        "maintainers": [
+          {
+            "name": "nothingismagick",
+            "email": "denjell@sfosc.org"
+          },
+          {
+            "name": "lucasfernog",
+            "email": "lucasfernandesnog@gmail.com"
+          },
+          {
+            "name": "tauri-apps-ci-user",
+            "email": "drthompsonsmagickindustries+npmtauri@gmail.com"
+          },
+          {
+            "name": "jbolda",
+            "email": "me@jacobbolda.com"
+          },
+          {
+            "name": "fabianlars",
+            "email": "fabianlars@fabianlars.de"
+          },
+          {
+            "name": "amrbashir",
+            "email": "amr.bashir2015@gmail.com"
+          },
+          {
+            "name": "beanow",
+            "email": "beanow@oscp.info"
+          }
+        ],
+        "_nodeVersion": "24.21.0",
+        "contributors": [
+          {
+            "name": "Tauri Programme within The Commons Conservancy"
+          }
+        ],
+        "publishConfig": {
+          "access": "public"
+        },
+        "_hasShrinkwrap": false,
+        "devDependencies": {
+          "vitest": "^5.0.0",
+          "cross-env": "10.1.0",
+          "@types/node": "^24.11.0",
+          "@napi-rs/cli": "3.9.0"
+        },
+        "optionalDependencies": {
+          "@tauri-apps/cli-darwin-x64": "2.12.3",
+          "@tauri-apps/cli-darwin-arm64": "2.12.3",
+          "@tauri-apps/cli-linux-x64-gnu": "2.12.3",
+          "@tauri-apps/cli-linux-x64-musl": "2.12.3",
+          "@tauri-apps/cli-win32-x64-msvc": "2.12.3",
+          "@tauri-apps/cli-linux-arm64-gnu": "2.12.3",
+          "@tauri-apps/cli-win32-ia32-msvc": "2.12.3",
+          "@tauri-apps/cli-linux-arm64-musl": "2.12.3",
+          "@tauri-apps/cli-win32-arm64-msvc": "2.12.3",
+          "@tauri-apps/cli-linux-riscv64-gnu": "2.12.3",
+          "@tauri-apps/cli-linux-arm-gnueabihf": "2.12.3"
+        },
+        "_npmOperationalInternal": {
+          "tmp": "tmp/cli_2.12.3_1792007425403_0.781135904937228",
+          "host": "s3://npm-registry-packages-npm-production"
+        },
+        "_id": "@tauri-apps/cli@2.12.3",
+        "version": "2.12.3"
+      },
+      "version": "2.12.3",
+      "engines": {
+        "node": ">= 10"
+      },
+      "peerDependencies": null,
+      "peerDependenciesMeta": null,
+      "dependencies": null,
+      "optionalDependencies": {
+        "@tauri-apps/cli-darwin-x64": "2.12.3",
+        "@tauri-apps/cli-darwin-arm64": "2.12.3",
+        "@tauri-apps/cli-linux-x64-gnu": "2.12.3",
+        "@tauri-apps/cli-linux-x64-musl": "2.12.3",
+        "@tauri-apps/cli-win32-x64-msvc": "2.12.3",
+        "@tauri-apps/cli-linux-arm64-gnu": "2.12.3",
+        "@tauri-apps/cli-win32-ia32-msvc": "2.12.3",
+        "@tauri-apps/cli-linux-arm64-musl": "2.12.3",
+        "@tauri-apps/cli-win32-arm64-msvc": "2.12.3",
+        "@tauri-apps/cli-linux-riscv64-gnu": "2.12.3",
+        "@tauri-apps/cli-linux-arm-gnueabihf": "2.12.3"
+      },
+      "dist": {
+        "shasum": "1817e3db64f011d8c73264682c80eb4a33d65f25",
+        "tarball": "https://registry.npmjs.org/@tauri-apps/cli/-/cli-2.12.3.tgz",
+        "fileCount": 12,
+        "integrity": "sha512-f7/LsY74SVb1ChmOPw1ajOpxii0GSzDAgmWHRci8JUYuuai04rXsSbFobpmB0sP2DdlvMD/B5ZotEn8GOGMRUg==",
+        "signatures": [
+          {
+            "sig": "MEQCICUY1PcTC+rLVK2rQRgviXKsnhLb7ohqaRxg35BsnJExAiALCuJG8+2f7a2WI8jWejayOsq0mJMU0w1jDiENKDE5Ow==",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          },
+          {
+            "sig": "MEUCIQDBPnEZxlfoxwxcmwbb/KnnrxJpXKdNVDKaxoYogZHT3gIgV5SdR/PvEoPT6915tcG9aO33BpWy/PqI+Bg8VCSRlLo=",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          }
+        ],
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@tauri-apps%2fcli@2.12.3",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        },
+        "unpackedSize": 431217
+      }
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "tauri",
+      "url": "https://crates.io/api/v1/crates/tauri/2.12.4",
+      "raw": {
+        "version": {
+          "id": 3496724,
+          "crate": "tauri",
+          "num": "2.12.4",
+          "dl_path": "/api/v1/crates/tauri/2.12.4/download",
+          "readme_path": "/api/v1/crates/tauri/2.12.4/readme",
+          "updated_at": "2026-10-14T18:52:10.735395Z",
+          "created_at": "2026-10-14T18:52:10.735395Z",
+          "downloads": 153599,
+          "features": {
+            "common-controls-v6": [
+              "tray-icon?/muda-common-controls-v6",
+              "muda/common-controls-v6",
+              "tauri-runtime-wry?/common-controls-v6"
+            ],
+            "compression": [
+              "tauri-macros/compression",
+              "tauri-utils/compression"
+            ],
+            "config-json5": [
+              "tauri-macros/config-json5"
+            ],
+            "config-toml": [
+              "tauri-macros/config-toml"
+            ],
+            "custom-protocol": [
+              "tauri-macros/custom-protocol"
+            ],
+            "dbus": [
+              "tauri-runtime-wry?/dbus"
+            ],
+            "default": [
+              "wry",
+              "compression",
+              "common-controls-v6",
+              "dynamic-acl",
+              "x11",
+              "dbus"
+            ],
+            "devtools": [
+              "tauri-runtime/devtools",
+              "tauri-runtime-wry?/devtools"
+            ],
+            "dynamic-acl": [],
+            "image-ico": [
+              "image/ico"
+            ],
+            "image-png": [
+              "image/png"
+            ],
+            "isolation": [
+              "tauri-utils/isolation",
+              "tauri-macros/isolation",
+              "uuid"
+            ],
+            "linux-libxdo": [
+              "tray-icon/muda-libxdo",
+              "muda/libxdo"
+            ],
+            "macos-private-api": [
+              "tauri-runtime/macos-private-api",
+              "tauri-runtime-wry?/macos-private-api"
+            ],
+            "macos-proxy": [
+              "tauri-runtime-wry?/macos-proxy"
+            ],
+            "native-tls": [
+              "reqwest/native-tls"
+            ],
+            "native-tls-vendored": [
+              "reqwest/native-tls-vendored"
+            ],
+            "objc-exception": [],
+            "process-relaunch-dangerous-allow-symlink-macos": [
+              "tauri-utils/process-relaunch-dangerous-allow-symlink-macos"
+            ],
+            "protocol-asset": [
+              "http-range"
+            ],
+            "rustls-tls": [
+              "reqwest/rustls-no-provider",
+              "dep:rustls"
+            ],
+            "specta": [
+              "dep:specta"
+            ],
+            "test": [],
+            "tracing": [
+              "dep:tracing",
+              "tauri-macros/tracing",
+              "tauri-runtime-wry?/tracing"
+            ],
+            "tray-icon": [
+              "dep:tray-icon"
+            ],
+            "unstable": [
+              "tauri-runtime-wry?/unstable"
+            ],
+            "webview-data-url": [
+              "data-url",
+              "tauri-utils/html-manipulation-2"
+            ],
+            "wry": [
+              "webview2-com",
+              "webkit2gtk",
+              "tauri-runtime-wry"
+            ],
+            "x11": [
+              "tauri-runtime-wry?/x11"
+            ]
+          },
+          "yanked": false,
+          "yank_message": null,
+          "lib_links": "Tauri",
+          "license": "Apache-2.0 OR MIT",
+          "links": {
+            "dependencies": "/api/v1/crates/tauri/2.12.4/dependencies",
+            "version_downloads": "/api/v1/crates/tauri/2.12.4/downloads",
+            "authors": "/api/v1/crates/tauri/2.12.4/authors"
+          },
+          "crate_size": 329333,
+          "published_by": {
+            "id": 95389,
+            "login": "tauri-bot",
+            "name": "tauri",
+            "avatar": "https://avatars.githubusercontent.com/u/67875262?v=4",
+            "url": "https://github.com/tauri-bot",
+            "github_username_matches": true,
+            "created_at": "2020-07-05T19:08:07Z"
+          },
+          "audit_actions": [
+            {
+              "action": "publish",
+              "user": {
+                "id": 95389,
+                "login": "tauri-bot",
+                "name": "tauri",
+                "avatar": "https://avatars.githubusercontent.com/u/67875262?v=4",
+                "url": "https://github.com/tauri-bot",
+                "github_username_matches": true,
+                "created_at": "2020-07-05T19:08:07Z"
+              },
+              "time": "2026-10-14T18:52:10.735395Z"
+            }
+          ],
+          "checksum": "f316751027fc2644221d1a448564d519efb07067fda584879d9cda966391d212",
+          "rust_version": "1.90",
+          "has_lib": true,
+          "bin_names": [],
+          "edition": "2024",
+          "description": "Make tiny, secure apps for all desktop platforms with Tauri",
+          "homepage": "https://tauri.app/",
+          "documentation": null,
+          "repository": "https://github.com/tauri-apps/tauri",
+          "trustpub_data": null,
+          "linecounts": {
+            "languages": {
+              "JavaScript": {
+                "code_lines": 520,
+                "comment_lines": 141,
+                "files": 15
+              },
+              "Kotlin": {
+                "code_lines": 1552,
+                "comment_lines": 339,
+                "files": 25
+              },
+              "Prolog": {
+                "code_lines": 36,
+                "comment_lines": 0,
+                "files": 2
+              },
+              "Rust": {
+                "code_lines": 23751,
+                "comment_lines": 613,
+                "files": 65
+              },
+              "Swift": {
+                "code_lines": 637,
+                "comment_lines": 45,
+                "files": 9
+              }
+            },
+            "total_code_lines": 26496,
+            "total_comment_lines": 1138
+          }
+        }
+      },
+      "version": "2.12.4",
+      "rust_version": "1.90",
+      "features": {
+        "common-controls-v6": [
+          "tray-icon?/muda-common-controls-v6",
+          "muda/common-controls-v6",
+          "tauri-runtime-wry?/common-controls-v6"
+        ],
+        "compression": [
+          "tauri-macros/compression",
+          "tauri-utils/compression"
+        ],
+        "config-json5": [
+          "tauri-macros/config-json5"
+        ],
+        "config-toml": [
+          "tauri-macros/config-toml"
+        ],
+        "custom-protocol": [
+          "tauri-macros/custom-protocol"
+        ],
+        "dbus": [
+          "tauri-runtime-wry?/dbus"
+        ],
+        "default": [
+          "wry",
+          "compression",
+          "common-controls-v6",
+          "dynamic-acl",
+          "x11",
+          "dbus"
+        ],
+        "devtools": [
+          "tauri-runtime/devtools",
+          "tauri-runtime-wry?/devtools"
+        ],
+        "dynamic-acl": [],
+        "image-ico": [
+          "image/ico"
+        ],
+        "image-png": [
+          "image/png"
+        ],
+        "isolation": [
+          "tauri-utils/isolation",
+          "tauri-macros/isolation",
+          "uuid"
+        ],
+        "linux-libxdo": [
+          "tray-icon/muda-libxdo",
+          "muda/libxdo"
+        ],
+        "macos-private-api": [
+          "tauri-runtime/macos-private-api",
+          "tauri-runtime-wry?/macos-private-api"
+        ],
+        "macos-proxy": [
+          "tauri-runtime-wry?/macos-proxy"
+        ],
+        "native-tls": [
+          "reqwest/native-tls"
+        ],
+        "native-tls-vendored": [
+          "reqwest/native-tls-vendored"
+        ],
+        "objc-exception": [],
+        "process-relaunch-dangerous-allow-symlink-macos": [
+          "tauri-utils/process-relaunch-dangerous-allow-symlink-macos"
+        ],
+        "protocol-asset": [
+          "http-range"
+        ],
+        "rustls-tls": [
+          "reqwest/rustls-no-provider",
+          "dep:rustls"
+        ],
+        "specta": [
+          "dep:specta"
+        ],
+        "test": [],
+        "tracing": [
+          "dep:tracing",
+          "tauri-macros/tracing",
+          "tauri-runtime-wry?/tracing"
+        ],
+        "tray-icon": [
+          "dep:tray-icon"
+        ],
+        "unstable": [
+          "tauri-runtime-wry?/unstable"
+        ],
+        "webview-data-url": [
+          "data-url",
+          "tauri-utils/html-manipulation-2"
+        ],
+        "wry": [
+          "webview2-com",
+          "webkit2gtk",
+          "tauri-runtime-wry"
+        ],
+        "x11": [
+          "tauri-runtime-wry?/x11"
+        ]
+      },
+      "checksum": "f316751027fc2644221d1a448564d519efb07067fda584879d9cda966391d212"
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "tauri-build",
+      "url": "https://crates.io/api/v1/crates/tauri-build/2.7.3",
+      "raw": {
+        "version": {
+          "id": 3496720,
+          "crate": "tauri-build",
+          "num": "2.7.3",
+          "dl_path": "/api/v1/crates/tauri-build/2.7.3/download",
+          "readme_path": "/api/v1/crates/tauri-build/2.7.3/readme",
+          "updated_at": "2026-10-14T18:51:08.630528Z",
+          "created_at": "2026-10-14T18:51:08.630528Z",
+          "downloads": 161721,
+          "features": {
+            "codegen": [
+              "tauri-codegen",
+              "quote"
+            ],
+            "config-json": [],
+            "config-json5": [
+              "tauri-utils/config-json5"
+            ],
+            "config-toml": [
+              "tauri-utils/config-toml"
+            ],
+            "default": [
+              "config-json"
+            ],
+            "isolation": [
+              "tauri-codegen/isolation",
+              "tauri-utils/isolation"
+            ]
+          },
+          "yanked": false,
+          "yank_message": null,
+          "lib_links": null,
+          "license": "Apache-2.0 OR MIT",
+          "links": {
+            "dependencies": "/api/v1/crates/tauri-build/2.7.3/dependencies",
+            "version_downloads": "/api/v1/crates/tauri-build/2.7.3/downloads",
+            "authors": "/api/v1/crates/tauri-build/2.7.3/authors"
+          },
+          "crate_size": 44852,
+          "published_by": {
+            "id": 95389,
+            "login": "tauri-bot",
+            "name": "tauri",
+            "avatar": "https://avatars.githubusercontent.com/u/67875262?v=4",
+            "url": "https://github.com/tauri-bot",
+            "github_username_matches": true,
+            "created_at": "2020-07-05T19:08:07Z"
+          },
+          "audit_actions": [
+            {
+              "action": "publish",
+              "user": {
+                "id": 95389,
+                "login": "tauri-bot",
+                "name": "tauri",
+                "avatar": "https://avatars.githubusercontent.com/u/67875262?v=4",
+                "url": "https://github.com/tauri-bot",
+                "github_username_matches": true,
+                "created_at": "2020-07-05T19:08:07Z"
+              },
+              "time": "2026-10-14T18:51:08.630528Z"
+            }
+          ],
+          "checksum": "641dd5fd297c99ab92717b0428cca5b9c6f960b2ac96ca131b3eebc9d70b8ddc",
+          "rust_version": "1.90",
+          "has_lib": true,
+          "bin_names": [],
+          "edition": "2024",
+          "description": "build time code to pair with https://crates.io/crates/tauri",
+          "homepage": "https://tauri.app/",
+          "documentation": null,
+          "repository": "https://github.com/tauri-apps/tauri",
+          "trustpub_data": null,
+          "linecounts": {
+            "languages": {
+              "Rust": {
+                "code_lines": 1753,
+                "comment_lines": 83,
+                "files": 6
+              }
+            },
+            "total_code_lines": 1753,
+            "total_comment_lines": 83
+          }
+        }
+      },
+      "version": "2.7.3",
+      "rust_version": "1.90",
+      "features": {
+        "codegen": [
+          "tauri-codegen",
+          "quote"
+        ],
+        "config-json": [],
+        "config-json5": [
+          "tauri-utils/config-json5"
+        ],
+        "config-toml": [
+          "tauri-utils/config-toml"
+        ],
+        "default": [
+          "config-json"
+        ],
+        "isolation": [
+          "tauri-codegen/isolation",
+          "tauri-utils/isolation"
+        ]
+      },
+      "checksum": "641dd5fd297c99ab92717b0428cca5b9c6f960b2ac96ca131b3eebc9d70b8ddc"
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "tauri-plugin-single-instance",
+      "url": "https://crates.io/api/v1/crates/tauri-plugin-single-instance/2.5.4",
+      "raw": {
+        "version": {
+          "id": 3496919,
+          "crate": "tauri-plugin-single-instance",
+          "num": "2.5.4",
+          "dl_path": "/api/v1/crates/tauri-plugin-single-instance/2.5.4/download",
+          "readme_path": "/api/v1/crates/tauri-plugin-single-instance/2.5.4/readme",
+          "updated_at": "2026-10-14T19:17:28.226500Z",
+          "created_at": "2026-10-14T19:17:28.226500Z",
+          "downloads": 39206,
+          "features": {
+            "deep-link": [
+              "dep:tauri-plugin-deep-link"
+            ],
+            "semver": [
+              "dep:semver"
+            ]
+          },
+          "yanked": false,
+          "yank_message": null,
+          "lib_links": null,
+          "license": "Apache-2.0 OR MIT",
+          "links": {
+            "dependencies": "/api/v1/crates/tauri-plugin-single-instance/2.5.4/dependencies",
+            "version_downloads": "/api/v1/crates/tauri-plugin-single-instance/2.5.4/downloads",
+            "authors": "/api/v1/crates/tauri-plugin-single-instance/2.5.4/authors"
+          },
+          "crate_size": 50336,
+          "published_by": {
+            "id": 95389,
+            "login": "tauri-bot",
+            "name": "tauri",
+            "avatar": "https://avatars.githubusercontent.com/u/67875262?v=4",
+            "url": "https://github.com/tauri-bot",
+            "github_username_matches": true,
+            "created_at": "2020-07-05T19:08:07Z"
+          },
+          "audit_actions": [
+            {
+              "action": "publish",
+              "user": {
+                "id": 95389,
+                "login": "tauri-bot",
+                "name": "tauri",
+                "avatar": "https://avatars.githubusercontent.com/u/67875262?v=4",
+                "url": "https://github.com/tauri-bot",
+                "github_username_matches": true,
+                "created_at": "2020-07-05T19:08:07Z"
+              },
+              "time": "2026-10-14T19:17:28.226500Z"
+            }
+          ],
+          "checksum": "561cd99484561bc39c954768e7b41a66cebbe1ac3d9d081c34361f740c489e2c",
+          "rust_version": "1.90",
+          "has_lib": true,
+          "bin_names": [],
+          "edition": "2024",
+          "description": "Ensure a single instance of your tauri app is running.",
+          "homepage": null,
+          "documentation": null,
+          "repository": "https://github.com/tauri-apps/plugins-workspace",
+          "trustpub_data": null,
+          "linecounts": {
+            "languages": {
+              "Rust": {
+                "code_lines": 558,
+                "comment_lines": 40,
+                "files": 5
+              }
+            },
+            "total_code_lines": 558,
+            "total_comment_lines": 40
+          }
+        }
+      },
+      "version": "2.5.4",
+      "rust_version": "1.90",
+      "features": {
+        "deep-link": [
+          "dep:tauri-plugin-deep-link"
+        ],
+        "semver": [
+          "dep:semver"
+        ]
+      },
+      "checksum": "561cd99484561bc39c954768e7b41a66cebbe1ac3d9d081c34361f740c489e2c"
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "tauri-plugin-opener",
+      "url": "https://crates.io/api/v1/crates/tauri-plugin-opener/2.7.2",
+      "raw": {
+        "version": {
+          "id": 3496909,
+          "crate": "tauri-plugin-opener",
+          "num": "2.7.2",
+          "dl_path": "/api/v1/crates/tauri-plugin-opener/2.7.2/download",
+          "readme_path": "/api/v1/crates/tauri-plugin-opener/2.7.2/readme",
+          "updated_at": "2026-10-14T19:16:35.055012Z",
+          "created_at": "2026-10-14T19:16:35.055012Z",
+          "downloads": 59548,
+          "features": {},
+          "yanked": false,
+          "yank_message": null,
+          "lib_links": "tauri-plugin-opener",
+          "license": "Apache-2.0 OR MIT",
+          "links": {
+            "dependencies": "/api/v1/crates/tauri-plugin-opener/2.7.2/dependencies",
+            "version_downloads": "/api/v1/crates/tauri-plugin-opener/2.7.2/downloads",
+            "authors": "/api/v1/crates/tauri-plugin-opener/2.7.2/authors"
+          },
+          "crate_size": 58648,
+          "published_by": {
+            "id": 95389,
+            "login": "tauri-bot",
+            "name": "tauri",
+            "avatar": "https://avatars.githubusercontent.com/u/67875262?v=4",
+            "url": "https://github.com/tauri-bot",
+            "github_username_matches": true,
+            "created_at": "2020-07-05T19:08:07Z"
+          },
+          "audit_actions": [
+            {
+              "action": "publish",
+              "user": {
+                "id": 95389,
+                "login": "tauri-bot",
+                "name": "tauri",
+                "avatar": "https://avatars.githubusercontent.com/u/67875262?v=4",
+                "url": "https://github.com/tauri-bot",
+                "github_username_matches": true,
+                "created_at": "2020-07-05T19:08:07Z"
+              },
+              "time": "2026-10-14T19:16:35.055012Z"
+            }
+          ],
+          "checksum": "53810be1b4fed22bb6ac3f4cab5a2b80d9391d1af436bda145607532bc0bb219",
+          "rust_version": "1.90",
+          "has_lib": true,
+          "bin_names": [],
+          "edition": "2024",
+          "description": "Open files and URLs using their default application.",
+          "homepage": null,
+          "documentation": null,
+          "repository": "https://github.com/tauri-apps/plugins-workspace",
+          "trustpub_data": null,
+          "linecounts": {
+            "languages": {
+              "JavaScript": {
+                "code_lines": 2,
+                "comment_lines": 0,
+                "files": 2
+              },
+              "Kotlin": {
+                "code_lines": 65,
+                "comment_lines": 3,
+                "files": 2
+              },
+              "Prolog": {
+                "code_lines": 18,
+                "comment_lines": 0,
+                "files": 1
+              },
+              "Rust": {
+                "code_lines": 982,
+                "comment_lines": 63,
+                "files": 10
+              },
+              "Swift": {
+                "code_lines": 63,
+                "comment_lines": 10,
+                "files": 2
+              }
+            },
+            "total_code_lines": 1130,
+            "total_comment_lines": 76
+          }
+        }
+      },
+      "version": "2.7.2",
+      "rust_version": "1.90",
+      "features": {},
+      "checksum": "53810be1b4fed22bb6ac3f4cab5a2b80d9391d1af436bda145607532bc0bb219"
+    }
+  ]
+}

@@ -327,7 +327,7 @@ impl Actor {
             exit_reason,
             preexisting_handshake_invalid: self.preexisting.clone(),
             engine_error,
-            handshake_path: self.config.data_root.join("run/handshake.json"),
+            handshake_path: self.config.data_root.join("run").join("handshake.json"),
             log_path: self
                 .log
                 .directory()
@@ -365,7 +365,8 @@ impl Actor {
             json!({"generation_id":generation,"exe":self.config.process.exe,"selection_source":self.selection_source}),
         );
         let mut old_identity = None;
-        self.preexisting = match fs::read(self.config.data_root.join("run/handshake.json")) {
+        self.preexisting = match fs::read(self.config.data_root.join("run").join("handshake.json"))
+        {
             Ok(bytes) => match handshake::parse(&bytes) {
                 Ok(old) => {
                     old_identity = Some(
@@ -484,7 +485,7 @@ impl Actor {
             }
         };
         let tx = self.tx.clone();
-        let path = self.config.data_root.join("run/handshake.json");
+        let path = self.config.data_root.join("run").join("handshake.json");
         let pid = attempt.child.pid;
         let created = attempt.child.created_at_ms;
         let log = self.log.clone();
