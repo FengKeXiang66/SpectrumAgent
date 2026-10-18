@@ -19,7 +19,8 @@ const READ_DOCUMENT: &str = r#"(() => {
       () => window.__spectrumAcceptanceInvoke = {ok:false});
   }
   const storage = s => Array.from({length:s.length},(_,i)=>s.key(i)).sort().map(k=>[k,s.getItem(k)]);
-  return {html:document.documentElement.outerHTML,
+  return {url:window.location.href,scripts:Array.from(document.scripts).map(s=>s.src),
+    html:document.documentElement.outerHTML,
     fields:Array.from(document.querySelectorAll('input,textarea,select')).map(e=>({id:e.id,value:e.value,disabled:e.disabled})),
     localStorage:storage(localStorage),sessionStorage:storage(sessionStorage),
     phase:document.querySelector('[data-phase]')?.getAttribute('data-phase') ?? 'Starting',

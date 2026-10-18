@@ -54,3 +54,5 @@ localStorage/sessionStorage。实际握手 token 仅在 Rust 内存用于扫描�
 测试 stub 无参入口只用于真实宿主夹具，由显式 SPECTRUM_STUB_MODE 选择；
 产品资源始终使用正式冻结 app.exe，不包含该 stub。
 第 2 步 VM 项保持“待实机验证”，旧 exit code=70 内部原因仍为“未验证”。
+
+生产外壳必须显式 `--features custom-protocol`；features=[] 的历史release构建不能当作发布态UI证据。当前修正批次先重新编译外壳并实测--no-bundle，再以相同特性bundle；外壳新SHA重新绑定，引擎批次不动。NSIS模板与升级纪律见 `nsis/README.md`，默认程序目录为 `%LOCALAPPDATA%\Programs\SpectrumAgent`，数据根不变。验收探针额外记录真实文档URL/script来源；仅启用探针时清理后留350ms关闭观察窗口供捕获Stopping DOM，普通启动无延迟。新证据见 checkpoint-4/release-custom-protocol-20261018/。

@@ -11,6 +11,7 @@ path = "src/main.rs"
 
 [features]
 test-probes = []
+# Managed explicitly by the CLI: production builds must enable custom-protocol.
 custom-protocol = ["tauri/custom-protocol"]
 
 [[bin]]

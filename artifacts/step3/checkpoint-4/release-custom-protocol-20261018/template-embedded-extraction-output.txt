@@ -1,0 +1,22 @@
+{
+  "reference_url": "https://raw.githubusercontent.com/tauri-apps/tauri/tauri-cli-v2.12.3/crates/tauri-bundler/src/bundle/windows/nsis/installer.nsi",
+  "source": "exact installed CLI embedded installer.nsi bytes; online GET failed with ECONNRESET",
+  "online_full_byte_comparison": "UNVERIFIED",
+  "cli_version": "2.12.3",
+  "upstream_bytes": 33780,
+  "upstream_sha256": "c36f2746493870577c584db49ca99cf5ee77ab211d893ff6851ccc4375866cf3",
+  "native_cli_path": "E:\\AI_Agent\\node_modules\\@tauri-apps\\cli-win32-x64-msvc\\cli.win32-x64-msvc.node",
+  "native_cli_sha256": "96b97801111a86b78811fee887e4e361c37b57239509a002f0fad493a6da12a5",
+  "full_upstream_template_embedded_byte_offset": 12279896,
+  "template_path": "E:\\AI_Agent\\src-tauri\\nsis\\installer.nsi",
+  "template_bytes": 33789,
+  "template_sha256": "e78b55ce753c8ef4ff99554a9fd4f8b29c287cda890b5aad64ee8ee3e9205a89",
+  "changed_line": 524,
+  "changed_lines": 1,
+  "old_line": "      StrCpy $INSTDIR \"$LOCALAPPDATA\\${PRODUCTNAME}\"",
+  "new_line": "      StrCpy $INSTDIR \"$LOCALAPPDATA\\Programs\\${PRODUCTNAME}\"",
+  "perMachine_unchanged": true,
+  "placeholder_guard_unchanged": true,
+  "uninstaller_unchanged": true,
+  "tls_verification_disabled": false
+}

@@ -1,0 +1,56 @@
+COMMAND: fingerprint JSON files for spectrum-agent in release
+E:\AI_Agent\src-tauri\target\release\.fingerprint\spectrum-agent-1501bea1a55bbd2a\run-build-script-build-script-build.json
+{"rustc":222933465615791797,"features":"","declared_features":"","target":0,"profile":0,"path":0,"deps":[[7057899838653257008,"build_script_build",false,9845619297321000835],[7102883790009483138,"build_script_build",false,2891692466700439578],[9477436350722826549,"build_script_build",false,692966860553541005]],"local":[{"RerunIfChanged":{"output":"release\\build\\spectrum-agent-1501bea1a55bbd2a\\output","paths":["tauri.conf.json","permissions","capabilities","resources\\backend"]}},{"RerunIfEnvChanged":{"var":"TAURI_CONFIG","val":null}},{"RerunIfEnvChanged":{"var":"REMOVE_UNUSED_COMMANDS","val":null}}],"rustflags":[],"config":0,"compile_kind":0}
+E:\AI_Agent\src-tauri\target\release\.fingerprint\spectrum-agent-48494918c7080322\lib-spectrum_agent.json
+{"rustc":222933465615791797,"features":"[]","declared_features":"[\"custom-protocol\", \"test-probes\"]","target":2862124891048517366,"profile":5585871892529064040,"path":10763286916239946207,"deps":[[6557439603276904804,"serde",false,14286790417395013755],[6568467691589961976,"windows_sys",false,10089495826754376398],[7057899838653257008,"build_script_build",false,15928604782958274467],[7102883790009483138,"tauri",false,7905770285646193729],[8160210889872729633,"serde_json",false,11498244372024972556],[9477436350722826549,"tauri_plugin_opener",false,18276765718076533285],[13196351783047880178,"reqwest",false,10453295229116006491],[13242183202771126592,"tauri_plugin_single_instance",false,17692128294280103973],[16117757646811882223,"chrono",false,2032549988034398795]],"local":[{"CheckDepInfo":{"dep_info":"release\\.fingerprint\\spectrum-agent-48494918c7080322\\dep-lib-spectrum_agent","checksum":false}}],"rustflags":[],"config":9396254390672932401,"compile_kind":0}
+E:\AI_Agent\src-tauri\target\release\.fingerprint\spectrum-agent-bb630cf0aa04a44b\build-script-build-script-build.json
+{"rustc":222933465615791797,"features":"[]","declared_features":"[\"custom-protocol\", \"test-probes\"]","target":2835126046236718539,"profile":14728096039640814685,"path":13767053534773805487,"deps":[[3193973027333350079,"tauri_build",false,3632788939628220026]],"local":[{"CheckDepInfo":{"dep_info":"release\\.fingerprint\\spectrum-agent-bb630cf0aa04a44b\\dep-build-script-build-script-build","checksum":false}}],"rustflags":[],"config":9396254390672932401,"compile_kind":0}
+E:\AI_Agent\src-tauri\target\release\.fingerprint\spectrum-agent-c40864bf6e45df4b\bin-spectrum-agent.json
+{"rustc":222933465615791797,"features":"[]","declared_features":"[\"custom-protocol\", \"test-probes\"]","target":17430140133399687574,"profile":5585871892529064040,"path":4942398508502643691,"deps":[[6557439603276904804,"serde",false,14286790417395013755],[6568467691589961976,"windows_sys",false,10089495826754376398],[7057899838653257008,"spectrum_agent",false,6097442787634764673],[7057899838653257008,"build_script_build",false,15928604782958274467],[7102883790009483138,"tauri",false,7905770285646193729],[8160210889872729633,"serde_json",false,11498244372024972556],[9477436350722826549,"tauri_plugin_opener",false,18276765718076533285],[13196351783047880178,"reqwest",false,10453295229116006491],[13242183202771126592,"tauri_plugin_single_instance",false,17692128294280103973],[16117757646811882223,"chrono",false,2032549988034398795]],"local":[{"CheckDepInfo":{"dep_info":"release\\.fingerprint\\spectrum-agent-c40864bf6e45df4b\\dep-bin-spectrum-agent","checksum":false}}],"rustflags":[],"config":9396254390672932401,"compile_kind":0}
+E:\AI_Agent\src-tauri\target\release\.fingerprint\spectrum-agent-c40864bf6e45df4b\bin-supervisor-probe.json
+{"rustc":222933465615791797,"features":"[\"test-probes\"]","declared_features":"[\"test-probes\"]","target":464816526281964073,"profile":5585871892529064040,"path":12283730313760927524,"deps":[[6557439603276904804,"serde",false,9858788579220603987],[6568467691589961976,"windows_sys",false,12742163362637989907],[7057899838653257008,"spectrum_agent",false,7963729665636934043],[8160210889872729633,"serde_json",false,5325161732013418884],[13196351783047880178,"reqwest",false,17613707675030716390],[16117757646811882223,"chrono",false,2032549988034398795]],"local":[{"CheckDepInfo":{"dep_info":"release\\.fingerprint\\spectrum-agent-c40864bf6e45df4b\\dep-bin-supervisor-probe","checksum":false}}],"rustflags":[],"config":9396254390672932401,"compile_kind":0}
+E:\AI_Agent\src-tauri\target\release\.fingerprint\spectrum-agent-d28ad2b1e3bc1208\lib-spectrum_agent.json
+{"rustc":222933465615791797,"features":"[\"test-probes\"]","declared_features":"[\"test-probes\"]","target":2862124891048517366,"profile":5585871892529064040,"path":10763286916239946207,"deps":[[6557439603276904804,"serde",false,9858788579220603987],[6568467691589961976,"windows_sys",false,12742163362637989907],[8160210889872729633,"serde_json",false,5325161732013418884],[13196351783047880178,"reqwest",false,17613707675030716390],[16117757646811882223,"chrono",false,2032549988034398795]],"local":[{"CheckDepInfo":{"dep_info":"release\\.fingerprint\\spectrum-agent-d28ad2b1e3bc1208\\dep-lib-spectrum_agent","checksum":false}}],"rustflags":[],"config":9396254390672932401,"compile_kind":0}
+COMMAND: local tauri source is_dev/custom-protocol
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\wry-0.57.0\src\lib.rs-2178-  /// ## Platform-specific
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\wry-0.57.0\src\lib.rs-2179-  ///
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\wry-0.57.0\src\lib.rs-2180-  /// - **Windows / Android / iOS:** Not supported.
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\wry-0.57.0\src\lib.rs-2181-  #[cfg(any(debug_assertions, feature = "devtools"))]
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\wry-0.57.0\src\lib.rs:2182:  pub fn is_devtools_open(&self) -> bool {
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\wry-0.57.0\src\lib.rs-2183-    self.webview.is_devtools_open()
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\wry-0.57.0\src\lib.rs-2184-  }
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\wry-0.57.0\src\lib.rs-2185-
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\wry-0.57.0\src\lib.rs-2186-  /// Set the webview zoom level
+--
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\tauri-build-2.7.3\src\lib.rs-602-/// it does not depend on a `tauri` version that emits the `cargo:dev` instruction.
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\tauri-build-2.7.3\src\lib.rs-603-/// Update the `tauri` dependency to the latest version to fix it.
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\tauri-build-2.7.3\src\lib.rs-604-///
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\tauri-build-2.7.3\src\lib.rs-605-/// [cfg alias]: https://doc.rust-lang.org/cargo/reference/build-scripts.html#cargorustc-cfgkeyvalue
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\tauri-build-2.7.3\src\lib.rs:606:pub fn is_dev() -> bool {
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\tauri-build-2.7.3\src\lib.rs-607-  env::var_os("DEP_TAURI_DEV")
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\tauri-build-2.7.3\src\lib.rs-608-    .expect("missing `cargo:dev` instruction, please update tauri to latest")
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\tauri-build-2.7.3\src\lib.rs-609-    == "true"
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\tauri-build-2.7.3\src\lib.rs-610-}
+--
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\tauri-2.12.4\src\lib.rs-313-
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\tauri-2.12.4\src\lib.rs-314-pub use pattern::Pattern;
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\tauri-2.12.4\src\lib.rs-315-
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\tauri-2.12.4\src\lib.rs-316-/// Whether we are running in development mode or not.
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\tauri-2.12.4\src\lib.rs:317:pub const fn is_dev() -> bool {
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\tauri-2.12.4\src\lib.rs:318:  !cfg!(feature = "custom-protocol")
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\tauri-2.12.4\src\lib.rs-319-}
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\tauri-2.12.4\src\lib.rs-320-
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\tauri-2.12.4\src\lib.rs-321-/// Represents a container of file assets that are retrievable during runtime.
+.cargo-home/registry/src\index.crates.io-1949cf8c6b5b557f\tauri-2.12.4\src\lib.rs-322-pub trait Assets<R: Runtime>: Send + Sync + 'static {
+COMMAND: exact lock / existing shell hashes
+E:\AI_Agent\requirements-lock.txt 58E24B59DA34461A17FD942B4047071E42B5120B3D474BA976A7E28535D40BCC
+E:\AI_Agent\package-lock.json 5122B8E2DBD8B84CE2D7365088D01E657DE7C178037533194AB17504EB7ECB14
+E:\AI_Agent\src-tauri\Cargo.lock 19677A37D746C188184F4948D8BC5739759BE755E3AFEAA2C9F58471FEC13B12
+E:\AI_Agent\src-tauri\target\release\spectrum-agent.exe 36FBC3DF1D220D51C2A1B9E6D347A0EBDB99EB6FA6318D20A18F82D1B9DA713F
+COMMAND: disk free space
+
+Name         Used         Free
+----         ----         ----
+C    145488596992  15869419520
+E    151801806848 872406331392
+

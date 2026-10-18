@@ -73,6 +73,15 @@ fn begin_shutdown(app: &tauri::AppHandle) {
             let _ = state
                 .log
                 .event("host_cleanup_completed", json!({"success":result.is_ok()}));
+            // Opt-in acceptance only: let the existing bounded observer capture
+            // React's Stopping DOM after engine cleanup, without blocking the UI.
+            if acceptance::enabled() {
+                let _ = state.log.event(
+                    "acceptance_close_capture_window",
+                    json!({"duration_ms":350}),
+                );
+                std::thread::sleep(std::time::Duration::from_millis(350));
+            }
             state.exit_allowed.store(true, Ordering::Release);
         }
         app.exit(if result.is_ok() { 0 } else { 1 });

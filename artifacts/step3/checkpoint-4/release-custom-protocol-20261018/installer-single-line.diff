@@ -1,0 +1,5 @@
+--- upstream/tauri-cli-v2.12.3/installer.nsi
++++ src-tauri/nsis/installer.nsi
+@@ -524,1 +524,1 @@
+-      StrCpy $INSTDIR "$LOCALAPPDATA\${PRODUCTNAME}"
++      StrCpy $INSTDIR "$LOCALAPPDATA\Programs\${PRODUCTNAME}"
