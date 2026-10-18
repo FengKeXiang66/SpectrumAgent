@@ -4,8 +4,9 @@ use std::{
     fs::{self, OpenOptions},
     io::{self, Write},
     path::{Path, PathBuf},
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, OnceLock},
 };
+static PROCESS_LOG_LOCK: OnceLock<Arc<Mutex<()>>> = OnceLock::new();
 
 #[derive(Clone)]
 pub struct ShellLog {
@@ -19,7 +20,9 @@ impl ShellLog {
         fs::create_dir_all(&directory)?;
         let log = Self {
             directory,
-            lock: Arc::new(Mutex::new(())),
+            lock: PROCESS_LOG_LOCK
+                .get_or_init(|| Arc::new(Mutex::new(())))
+                .clone(),
         };
         log.event("shell_log_started", json!({}))?;
         Ok(log)

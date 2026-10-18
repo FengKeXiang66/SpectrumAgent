@@ -12,6 +12,7 @@ use std::{
 use windows_sys::Win32::System::Threading::GetCurrentProcess;
 
 fn serve_health(connection: &mut TcpStream, mode: &str) -> std::io::Result<bool> {
+    connection.set_nonblocking(false)?;
     connection.set_read_timeout(Some(Duration::from_secs(1)))?;
     connection.set_write_timeout(Some(Duration::from_secs(1)))?;
     let mut request = Vec::new();
@@ -23,7 +24,8 @@ fn serve_health(connection: &mut TcpStream, mode: &str) -> std::io::Result<bool>
         }
         request.extend_from_slice(&chunk[..count]);
     }
-    if !request.starts_with(b"GET /health ") {
+    let smoke = request.starts_with(b"GET /smoke ");
+    if !smoke && !request.starts_with(b"GET /health ") {
         return Ok(false);
     }
     let boot_id = if mode == "wrong-boot" {
@@ -31,10 +33,55 @@ fn serve_health(connection: &mut TcpStream, mode: &str) -> std::io::Result<bool>
     } else {
         "1234abcd"
     };
-    let body=json!({"status":"ok","boot_id":boot_id,"pid":std::process::id(),"version":"0.1.0","uptime_s":0.1}).to_string();
+    let body = if smoke {
+        let authorized = String::from_utf8_lossy(&request).lines().any(|line| {
+            line.split_once(':').is_some_and(|(name, value)| {
+                name.eq_ignore_ascii_case("authorization")
+                    && value.trim() == "Bearer abcdef0123456789abcdef0123456789"
+            })
+        });
+        if !authorized {
+            return Err(std::io::Error::other("smoke authorization absent"));
+        }
+        json!({"nan_ratio":0.0,"reflectance_range":[-1.0,1.0],"bands":8,"shape":[8,8,8],"elapsed_ms":0.1}).to_string()
+    } else {
+        json!({"status":"ok","boot_id":boot_id,"pid":std::process::id(),"version":"0.1.0","uptime_s":0.1}).to_string()
+    };
+    let mut headers = String::new();
+    let status = if smoke && mode == "smoke-auth-failure" {
+        401
+    } else if smoke && mode == "smoke-no-headers" {
+        500
+    } else if smoke && mode == "smoke-http-failure" {
+        409
+    } else if smoke && mode == "smoke-redirect" {
+        302
+    } else {
+        200
+    };
+    if smoke && !matches!(mode, "smoke-no-headers" | "smoke-auth-failure") {
+        let boot = match mode {
+            "smoke-wrong-boot" => "deadbeef",
+            "smoke-bad-boot" => "INVALID!",
+            _ => "1234abcd",
+        };
+        // Intentionally mixed-case names: clients must honor HTTP case-insensitivity.
+        headers.push_str(&format!("x-SpEcTrUmAgEnT-bOoT-iD: {boot}\r\n"));
+        if mode != "smoke-no-pid" {
+            let pid = match mode {
+                "smoke-wrong-pid" => "1".to_owned(),
+                "smoke-bad-pid" => "+1".to_owned(),
+                _ => std::process::id().to_string(),
+            };
+            headers.push_str(&format!("X-sPeCtRuMaGeNt-PiD: {pid}\r\n"));
+        }
+        if mode == "smoke-redirect" {
+            headers.push_str("Location: http://127.0.0.1:1/third-path\r\n");
+        }
+    }
     write!(
         connection,
-        "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nConnection: close\r\nContent-Length: {}\r\n\r\n{}",
+        "HTTP/1.1 {status} Fixture\r\n{headers}Content-Type: application/json\r\nConnection: close\r\nContent-Length: {}\r\n\r\n{}",
         body.len(),
         body
     )?;

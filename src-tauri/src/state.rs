@@ -18,6 +18,7 @@ pub enum FailureKind {
     HandshakeInvalid,
     StartupTimeout,
     HealthIdentityMismatch,
+    SmokeIdentityMismatch,
     EngineExitedAfterReady,
 }
 

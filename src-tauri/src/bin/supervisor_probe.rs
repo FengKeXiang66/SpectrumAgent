@@ -54,6 +54,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             match line?.as_str() {
                 "retry" => handle.retry()?,
                 "status" => emit(&json!({"snapshot":handle.snapshot()?}))?,
+                "smoke" => emit(&json!({"smoke":handle.run_smoke()}))?,
                 "stop" => break,
                 _ => return Err("unknown probe command".into()),
             }

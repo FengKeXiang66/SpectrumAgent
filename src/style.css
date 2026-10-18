@@ -1,0 +1,12 @@
+:root { font-family: "Microsoft YaHei", sans-serif; color: #222; background: #fafafa; }
+body { margin: 0; }
+.app { min-height: 100vh; display: flex; flex-direction: column; }
+main { padding: 24px; flex: 1; overflow-wrap: anywhere; }
+h1 { font-size: 22px; } h2 { font-size: 18px; }
+pre { white-space: pre-wrap; }
+footer { padding: 16px 24px; border-top: 1px solid #ccc; background: white; position: sticky; bottom: 0; }
+form { display: flex; align-items: center; gap: 10px; }
+input { flex: 1; min-width: 100px; padding: 8px; }
+button { margin-right: 8px; padding: 8px 12px; cursor: pointer; }
+button:disabled { cursor: default; }
+code { font-family: Consolas, monospace; }

@@ -2,7 +2,7 @@ use crate::{
     causality::EngineLogCursor,
     engine_path::EngineSelection,
     handshake::{self, Handshake, HandshakeIssue},
-    health::{HealthClient, HealthResult},
+    health::{HealthClient, HealthResult, SmokeFailure, SmokeMetrics},
     logging::ShellLog,
     process::ManagedProcess,
     state::{FailureKind, Phase, StateMachine},
@@ -71,6 +71,12 @@ enum Message {
     Retry,
     Stop,
     Activate,
+    Smoke(Sender<Result<SmokeMetrics, SmokeFailure>>),
+    SmokeComplete {
+        generation: u64,
+        reply: Sender<Result<SmokeMetrics, SmokeFailure>>,
+        result: Result<SmokeMetrics, SmokeFailure>,
+    },
     Health {
         generation: u64,
         result: Result<Handshake, &'static str>,
@@ -94,6 +100,16 @@ pub struct SupervisorHandle {
 }
 
 impl SupervisorHandle {
+    /// No caller inputs. Blocking channel wait must run on a worker, never the UI thread.
+    pub fn run_smoke(&self) -> Result<SmokeMetrics, SmokeFailure> {
+        let (reply, response) = mpsc::channel();
+        self.tx
+            .send(Message::Smoke(reply))
+            .map_err(|_| SmokeFailure::NotReady)?;
+        response
+            .recv_timeout(Duration::from_secs(22))
+            .map_err(|_| SmokeFailure::Transport)?
+    }
     pub fn snapshot(&self) -> Result<Snapshot, String> {
         self.snapshot
             .lock()
@@ -260,6 +276,7 @@ impl EngineSupervisor {
             attempt: None,
             preexisting: None,
             verified: None,
+            smoke_generation: None,
             pending_cleanup_errors: Vec::new(),
             invalid_shape,
             selection_source,
@@ -292,7 +309,8 @@ struct Actor {
     rx: Receiver<Message>,
     attempt: Option<Attempt>,
     preexisting: Option<HandshakeIssue>,
-    verified: Option<Handshake>,
+    verified: Option<Arc<Handshake>>,
+    smoke_generation: Option<u64>,
     pending_cleanup_errors: Vec<WinError>,
 }
 
@@ -344,6 +362,7 @@ impl Actor {
     }
     fn cleanup(&mut self) {
         self.verified.take();
+        self.smoke_generation = None;
         let mut errors: Vec<String> = std::mem::take(&mut self.pending_cleanup_errors)
             .into_iter()
             .map(|e| format!("{}:{}", e.api, e.code))
@@ -546,6 +565,68 @@ impl Actor {
                 Err(RecvTimeoutError::Disconnected) => Message::Stop,
             };
             match message {
+                Message::Smoke(reply) => {
+                    let Some(identity) = self
+                        .verified
+                        .as_ref()
+                        .filter(|_| self.machine.phase() == Phase::Ready)
+                        .cloned()
+                    else {
+                        let _ = reply.send(Err(SmokeFailure::NotReady));
+                        continue;
+                    };
+                    if self.smoke_generation.is_some() {
+                        let _ = reply.send(Err(SmokeFailure::Busy));
+                        continue;
+                    }
+                    let generation = self.view.generation_id;
+                    self.smoke_generation = Some(generation);
+                    self.log("smoke_requested", json!({"generation_id":generation}));
+                    let tx = self.tx.clone();
+                    let on_spawn_failure = reply.clone();
+                    if thread::Builder::new()
+                        .name(format!("engine-smoke-{generation}"))
+                        .spawn(move || {
+                            let result = HealthClient::new()
+                                .map_err(|_| SmokeFailure::Transport)
+                                .and_then(|client| client.smoke(&identity));
+                            let _ = tx.send(Message::SmokeComplete {
+                                generation,
+                                reply,
+                                result,
+                            });
+                        })
+                        .is_err()
+                    {
+                        self.smoke_generation = None;
+                        let _ = on_spawn_failure.send(Err(SmokeFailure::Transport));
+                    }
+                }
+                Message::SmokeComplete {
+                    generation,
+                    reply,
+                    result,
+                } => {
+                    if generation != self.view.generation_id || self.machine.phase() != Phase::Ready
+                    {
+                        let _ = reply.send(Err(SmokeFailure::StaleGeneration));
+                        self.log("stale_smoke_result_discarded", json!({"generation_id":self.view.generation_id,"result_generation":generation}));
+                        continue;
+                    }
+                    self.smoke_generation = None;
+                    self.log(
+                        "smoke_finished",
+                        json!({"generation_id":generation,"result":result}),
+                    );
+                    if let Err(SmokeFailure::IdentityMismatch { layer }) = &result {
+                        self.fail(
+                            FailureKind::SmokeIdentityMismatch,
+                            ExitReason::IdentityMismatch { layer },
+                            None,
+                        );
+                    }
+                    let _ = reply.send(result);
+                }
                 Message::Stop => {
                     self.transition(Phase::Stopping, "application_close");
                     self.cleanup();
@@ -595,7 +676,7 @@ impl Actor {
                             self.view.port = Some(handshake.port);
                             self.view.boot_id = Some(handshake.boot_id.clone());
                             self.log("health_verified",json!({"generation_id":generation,"pid":handshake.pid,"port":handshake.port}));
-                            self.verified = Some(handshake);
+                            self.verified = Some(Arc::new(handshake));
                             self.transition(Phase::Ready, "health_identity_matched");
                         }
                         Err(layer) => self.fail(

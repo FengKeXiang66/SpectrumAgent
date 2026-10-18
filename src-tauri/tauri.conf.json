@@ -1,0 +1,22 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "SpectrumAgent",
+  "version": "0.1.0",
+  "identifier": "com.spectrumagent.desktop",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devUrl": "http://127.0.0.1:1420",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [{"label": "main", "title": "光谱数据 AI Agent", "visible": false}],
+    "security": {"csp": "default-src 'self'; connect-src ipc: http://ipc.localhost; style-src 'self'"}
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "resources": {"resources/backend/": "resources/backend/"},
+    "windows": {"webviewInstallMode": {"type": "offlineInstaller"}, "nsis": {"installMode": "currentUser"}}
+  }
+}

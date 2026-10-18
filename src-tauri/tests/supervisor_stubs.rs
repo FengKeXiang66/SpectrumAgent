@@ -18,6 +18,48 @@ use std::{
 static NEXT: AtomicU64 = AtomicU64::new(1);
 type TestResult = Result<(), Box<dyn std::error::Error>>;
 
+#[test]
+fn smoke_headers_are_checked_before_status_and_never_leak_token() -> TestResult {
+    use spectrum_agent::health::SmokeFailure;
+    let cases = [
+        ("smoke-no-headers", Some("smoke_boot_id")),
+        ("smoke-auth-failure", Some("smoke_boot_id")),
+        ("smoke-wrong-boot", Some("smoke_boot_id")),
+        ("smoke-bad-boot", Some("smoke_boot_id")),
+        ("smoke-no-pid", Some("smoke_pid")),
+        ("smoke-wrong-pid", Some("smoke_pid")),
+        ("smoke-bad-pid", Some("smoke_pid")),
+        ("ready", None),
+        ("smoke-http-failure", None),
+        ("smoke-redirect", None),
+    ];
+    for (mode, layer) in cases {
+        let running = start(prepare()?, mode)?;
+        wait(&running, Phase::Ready, Duration::from_secs(5))?;
+        let result = running.handle.run_smoke(); // current test worker, never a UI callback
+        assert!(!serde_json::to_string(&result)?.contains("abcdef0123456789abcdef0123456789"));
+        if let Some(layer) = layer {
+            assert_eq!(result.err(), Some(SmokeFailure::IdentityMismatch { layer }));
+            let failed = wait(&running, Phase::Failed, Duration::from_secs(5))?;
+            assert_eq!(
+                failed.failure.ok_or("failure missing")?.kind,
+                FailureKind::SmokeIdentityMismatch
+            );
+        } else if mode == "smoke-http-failure" {
+            assert_eq!(result.err(), Some(SmokeFailure::Http { status: 409 }));
+            assert_eq!(running.handle.snapshot()?.phase, Phase::Ready);
+        } else if mode == "smoke-redirect" {
+            assert_eq!(result.err(), Some(SmokeFailure::Http { status: 302 }));
+        } else {
+            assert_eq!(result.map_err(|e| format!("{e:?}"))?.shape, [8, 8, 8]);
+        }
+        running.handle.shutdown_and_join()?;
+        logs(&running)?; // Scan actual source log, not a redacted archive.
+        println!("SMOKE STUB {mode}: response_identity_checked_before_status=true token_leaks=0");
+    }
+    Ok(())
+}
+
 struct Running {
     handle: SupervisorHandle,
     root: PathBuf,

@@ -3,8 +3,15 @@ name = "spectrum-agent"
 version = "0.1.0"
 edition = "2024"
 publish = false
+default-run = "spectrum-agent"
+
+[[bin]]
+name = "spectrum-agent"
+path = "src/main.rs"
+
 [features]
 test-probes = []
+custom-protocol = ["tauri/custom-protocol"]
 
 [[bin]]
 name = "supervisor-stub"

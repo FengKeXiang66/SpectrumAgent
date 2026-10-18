@@ -15,5 +15,10 @@ $env:TEMP = Join-Path $PSScriptRoot 'artifacts\step3\checkpoint-3\temp'
 $env:TMP = $env:TEMP
 if ($env:NODE_TLS_REJECT_UNAUTHORIZED -eq '0') { throw '现有环境禁用了 TLS 校验，拒绝继续' }
 Set-Location -LiteralPath $PSScriptRoot
+# PowerShell can consume an unquoted -- at the script boundary. npm needs its
+# own delimiter to forward flags such as --no-watch/--help to package scripts.
+if ($NpmArguments.Count -gt 2 -and $NpmArguments[0] -eq 'run' -and $NpmArguments[2] -ne '--') {
+    $NpmArguments = @($NpmArguments[0], $NpmArguments[1], '--') + $NpmArguments[2..($NpmArguments.Count - 1)]
+}
 & $nodeExe $npmCli @NpmArguments
 exit $LASTEXITCODE
