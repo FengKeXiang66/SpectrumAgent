@@ -1,0 +1,242 @@
+   Compiling cfg-if v1.0.5
+   Compiling siphasher v1.0.4
+   Compiling scopeguard v1.2.0
+   Compiling num-conv v0.2.2
+   Compiling time-core v0.1.9
+   Compiling winnow v1.0.4
+   Compiling serde_core v1.0.229
+   Compiling powerfmt v0.2.1
+   Compiling deranged v0.5.9
+   Compiling windows-sys v0.61.2
+   Compiling toml_writer v1.1.3+spec-1.1.0
+   Compiling typeid v1.0.3
+   Compiling aho-corasick v1.1.5
+   Compiling fnv v1.0.7
+   Compiling web-time v1.1.0
+   Compiling zerofrom v0.1.8
+   Compiling thiserror v2.0.21
+   Compiling regex-syntax v0.8.11
+   Compiling equivalent v1.0.3
+   Compiling lock_api v0.4.14
+   Compiling parking_lot_core v0.9.12
+   Compiling phf_shared v0.13.1
+   Compiling yoke v0.8.3
+   Compiling dunce v1.0.5
+   Compiling alloc-no-stdlib v3.0.0
+   Compiling hashbrown v0.17.1
+   Compiling quick-xml v0.42.0
+   Compiling getrandom v0.4.3
+   Compiling serde_json v1.0.154
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling alloc-stdlib v0.3.0
+   Compiling parking_lot v0.12.5
+   Compiling phf_generator v0.13.1
+   Compiling zerovec v0.11.8
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling zerotrie v0.2.5
+   Compiling brotli-decompressor v6.0.1
+   Compiling serde_spanned v1.1.2
+   Compiling form_urlencoded v1.2.2
+   Compiling phf_codegen v0.13.1
+   Compiling string_cache_codegen v0.6.1
+   Compiling phf_macros v0.13.1
+   Compiling string_cache v0.9.0
+   Compiling selectors v0.38.0
+   Compiling uuid v1.28.0
+   Compiling indexmap v2.14.2
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling anyhow v1.0.104
+   Compiling ctor v1.0.13
+   Compiling tinystr v0.8.4
+   Compiling potential_utf v0.1.6
+   Compiling glob v0.3.4
+   Compiling icu_collections v2.3.0
+   Compiling web_atoms v0.2.6
+   Compiling icu_locale_core v2.3.0
+   Compiling brotli v9.0.0
+   Compiling jsonptr v0.7.1
+   Compiling time v0.3.55
+   Compiling phf v0.13.1
+   Compiling cfb v0.14.0
+   Compiling cssparser v0.37.0
+   Compiling erased-serde v0.4.10
+   Compiling regex-automata v0.4.18
+   Compiling cargo_metadata v0.19.2
+   Compiling json-patch v4.2.0
+   Compiling serde_with v3.24.0
+   Compiling windows-result v0.4.1
+   Compiling icu_provider v2.3.1
+   Compiling serde v1.0.229
+   Compiling icu_normalizer v2.3.0
+   Compiling icu_properties v2.3.0
+   Compiling serde-untagged v0.1.9
+   Compiling infer v0.22.0
+   Compiling markup5ever v0.39.0
+   Compiling windows-strings v0.5.1
+   Compiling option-ext v0.2.0
+   Compiling html5ever v0.39.0
+   Compiling windows-core v0.62.2
+   Compiling vswhom-sys v0.1.3
+   Compiling windows-threading v0.2.1
+   Compiling vswhom v0.1.0
+   Compiling time-macros v0.2.32
+   Compiling heck v0.5.0
+   Compiling crc32fast v1.5.2
+   Compiling plist v1.10.1
+   Compiling bitflags v2.13.2
+   Compiling cargo_toml v1.0.1
+   Compiling windows-collections v0.3.2
+   Compiling windows-numerics v0.3.1
+   Compiling idna_adapter v1.2.2
+   Compiling windows-future v0.3.2
+   Compiling regex v1.13.1
+   Compiling webview2-com-sys v0.39.1
+   Compiling idna v1.1.0
+   Compiling dom_query v0.28.0
+   Compiling raw-window-handle v0.6.2
+   Compiling flate2 v1.1.10
+   Compiling dpi v0.1.2
+   Compiling url v2.5.8
+   Compiling windows v0.62.2
+   Compiling tracing v0.1.44
+   Compiling winapi-util v0.1.11
+   Compiling winreg v0.56.0
+   Compiling dirs-sys v0.5.0
+   Compiling socket2 v0.6.5
+   Compiling mio v1.2.4
+   Compiling same-file v1.0.6
+   Compiling dirs v7.0.0
+   Compiling schemars v0.8.22
+   Compiling walkdir v2.5.0
+   Compiling urlpattern v0.6.0
+   Compiling embed-resource v3.0.12
+   Compiling tauri-winres v0.3.6
+   Compiling tokio v1.53.3
+   Compiling crossbeam-utils v0.8.23
+   Compiling windows-version v0.1.7
+   Compiling png v0.17.16
+   Compiling crossbeam-channel v0.5.17
+   Compiling tauri-utils v2.10.2
+   Compiling semver v1.0.28
+   Compiling sha2 v0.10.9
+   Compiling ico v0.5.0
+   Compiling png v0.18.1
+   Compiling unicode-segmentation v1.13.3
+   Compiling softbuffer v0.4.8
+   Compiling keyboard-types v0.8.3
+   Compiling serialize-to-javascript v0.1.2
+   Compiling getrandom v0.3.4
+   Compiling window-vibrancy v0.8.1
+   Compiling mime v0.3.17
+   Compiling open v5.4.4
+   Compiling cookie v0.18.2
+   Compiling muda v0.20.0
+   Compiling hyper v1.12.0
+   Compiling tower v0.5.3
+   Compiling tower-http v0.6.11
+   Compiling hyper-util v0.1.21
+   Compiling reqwest v0.13.5
+   Compiling tauri-build v2.7.3
+   Compiling tauri-codegen v2.7.3
+   Compiling tauri-plugin v2.7.2
+   Compiling tauri v2.12.4
+   Compiling tauri-macros v2.7.3
+   Compiling tauri-plugin-opener v2.7.2
+   Compiling spectrum-agent v0.1.0 (E:\AI_Agent\src-tauri)
+   Compiling tao v0.37.1
+   Compiling webview2-com v0.39.1
+   Compiling wry v0.57.0
+   Compiling tauri-runtime v2.12.2
+   Compiling tauri-runtime-wry v2.12.2
+   Compiling tauri-plugin-single-instance v2.5.4
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 52.99s
+     Running unittests src\lib.rs (src-tauri\target\debug\deps\spectrum_agent-c477ec76ae2918b9.exe)
+
+running 1 test
+test health::route_tests::closed_routes_always_use_numeric_loopback_and_literal_paths ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\main.rs (src-tauri\target\debug\deps\spectrum_agent-2f4eea3e6411e3bc.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\bin\supervisor_probe.rs (src-tauri\target\debug\deps\supervisor_probe-e5972fdf66b07d82.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\bin\supervisor_stub.rs (src-tauri\target\debug\deps\supervisor_stub-92b167030e8b4127.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\causality.rs (src-tauri\target\debug\deps\causality-5ce90b31cbeef505.exe)
+
+running 2 tests
+test midnight_files_and_preexisting_partial_line_are_handled_without_fallback ... CAUSALITY pure function: launch/exit day files tracked, existing partial line excluded, no engine_boot/boot_id PID fallback
+ok
+test only_new_complete_lines_with_own_integer_pid_in_utc_window_can_be_cause ... CAUSALITY pure function: old/missing/wrong/noninteger PID, wrong logger/event/code, out-of-window, partial JSON excluded; own new complete line accepted
+ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running tests\contracts.rs (src-tauri\target\debug\deps\contracts-418554dd67b2e116.exe)
+
+running 6 tests
+test all_transition_pairs_and_stopping_terminal_rule ... ok
+test exact_fields_and_top_level_are_enforced ... ok
+test late_generation_and_expected_exit_cannot_fail_current_attempt ... ok
+test metadata_types_bounds_and_exact_strings_are_enforced ... ok
+test times_reject_nonexistent_dates_leap_seconds_and_non_millisecond_formats ... ok
+test valid_handshake_values_and_integer_utc_comparison ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\engine_path.rs (src-tauri\target\debug\deps\engine_path-7ba756e0a2f48fa3.exe)
+
+running 1 test
+test constructor_precedes_resource_and_rejects_non_engine_or_relative_paths ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\supervisor_stubs.rs (src-tauri\target\debug\deps\supervisor_stubs-0a179e3b2adfdd5c.exe)
+
+running 9 tests
+test absent_executable_immediately_fails_and_does_not_clean_invalid_old_handshake ... FAILURE DISPLAY handshake_path=E:\AI_Agent\src-tauri\target\stub-runtime\23152-1792315709392-1\run\handshake.json
+MISSING PATH (constructor injection): kind=SpawnFailed elapsed_ms=21 preexisting_handshake_invalid=retained bytes_unchanged=true
+ok
+test retry_waits_for_cleanup_and_late_a_exit_cannot_change_b ... STUB retry: A_generation=1 B_generation=2 late_A_exit=discarded B=Ready
+ok
+
+thread 'smoke_headers_are_checked_before_status_and_never_leak_token' (27180) panicked at tests\supervisor_stubs.rs:42:13:
+assertion `left == right` failed
+  left: Some(Transport)
+ right: Some(IdentityMismatch { layer: "smoke_boot_id" })
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test smoke_headers_are_checked_before_status_and_never_leak_token ... FAILED
+test stub_alive_without_handshake_times_out_after_actual_30_seconds ... STUB no-handshake: pid=Some(7516) kind=StartupTimeout elapsed_ms=30045 pending_activation=true
+ok
+test stub_exit_after_ready_produces_exactly_one_failure_transition ... STUB ready-exit: pid=Some(25636) Ready->Failed(EngineExitedAfterReady) count=1
+ok
+test stub_immediate_exit_reports_actual_exit_code ... STUB immediate-exit: pid=Some(15428) code=23 kind=ExitedBeforeReady elapsed_ms=63
+ok
+test stub_ready_then_stop_has_no_listening_port_and_separate_app_exit ... STUB ready/stop: pid=Some(14840) port=56864 phase=Stopping port_absent=true app_exit=1 token_leaks=0
+ok
+test stub_tolerates_disconnected_health_client ... STUB transport: client disconnected without a request; stub remains Ready
+ok
+test stub_wrong_health_boot_id_fails_only_after_child_identity_validation ... STUB mismatch: pid=Some(21080) child_pid_and_created_at=verified failure_layer=health_boot_id kind=HealthIdentityMismatch
+ok
+
+failures:
+
+failures:
+    smoke_headers_are_checked_before_status_and_never_leak_token
+
+test result: FAILED. 8 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 33.24s
+
+error: test failed, to rerun pass `--test supervisor_stubs`

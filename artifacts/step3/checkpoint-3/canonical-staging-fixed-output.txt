@@ -1,0 +1,2 @@
+validated_absolute_target=E:\AI_Agent\src-tauri\resources\backend source=E:\AI_Agent\artifacts\step2\revision-20261018-smoke-headers\dist\app mode=Canonical
+report=E:\AI_Agent\artifacts\step3\staging-reports\20261018T092532286Z-Canonical-24969269.json matched_files=544 fault_fixture=False source_unchanged=true

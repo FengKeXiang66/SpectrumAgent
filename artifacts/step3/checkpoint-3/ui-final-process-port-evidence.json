@@ -1,0 +1,52 @@
+{
+  "checks": [
+    {
+      "pid": 23856,
+      "port": 64094,
+      "pid_absent": true,
+      "port_absent": true
+    },
+    {
+      "pid": 17444,
+      "port": 62929,
+      "pid_absent": true,
+      "port_absent": true
+    },
+    {
+      "pid": 17540,
+      "port": 54183,
+      "pid_absent": true,
+      "port_absent": true
+    },
+    {
+      "pid": 17880,
+      "port": 63814,
+      "pid_absent": true,
+      "port_absent": true
+    },
+    {
+      "pid": 17580,
+      "port": 61000,
+      "pid_absent": true,
+      "port_absent": true
+    },
+    {
+      "pid": 22664,
+      "port": 56086,
+      "pid_absent": true,
+      "port_absent": true
+    }
+  ],
+  "handshake_exists": true,
+  "residual_handshake": {
+    "boot_id": "885a547a",
+    "pid": 22664,
+    "process_created_at": "2026-10-18T09:42:33.162Z",
+    "port": 56086,
+    "token": "<redacted>",
+    "protocol": 1,
+    "version": "0.1.0",
+    "started_at": "2026-10-18T09:42:33.804Z"
+  },
+  "interpretation": "Job termination does not claim graceful engine handshake cleanup; shell never deletes handshake; next engine owns stale recovery"
+}

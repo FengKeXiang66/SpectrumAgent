@@ -1,0 +1,7 @@
+[
+  {
+    "app": "process:C:\\Windows\\explorer.exe",
+    "id": 6753680,
+    "title": "SpectrumAgent - 文件资源管理器"
+  }
+]

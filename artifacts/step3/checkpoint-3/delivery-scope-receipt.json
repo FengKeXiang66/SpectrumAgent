@@ -1,0 +1,24 @@
+{
+  "implementation_commit": "c8d35f0b3d9a6024d4eaf8b8e91b803ba4a1908e",
+  "lock_sha256": {
+    "requirements-lock.txt": "58e24b59da34461a17fd942b4047071e42b5120b3d474ba976a7e28535d40bcc",
+    "package-lock.json": "5122b8e2dbd8b84ce2d7365088d01e657de7c178037533194ab17504eb7ecb14",
+    "src-tauri/Cargo.lock": "19677a37d746c188184f4948d8bc5739759be755e3afeaa2c9f58471fec13b12"
+  },
+  "old_frozen_manifest_all_files_match": true,
+  "old_frozen_files": 544,
+  "dev_server_port_1420_absent": true,
+  "source_sha256": {
+    "src/App.tsx": "13e476dc070af7c2d29812b9f547bcb7fd1be6691a6137d6491978638d99a080",
+    "src/main.tsx": "860c0759d3a087356e32887b15ef30ae7f24d4613c6c056b65eed4b65be7b430",
+    "src/status.ts": "08dcb573a89abe018a12ead51ac33d810facef11e2b28043a54930245eb34d0c",
+    "src/style.css": "e685ea67591cac25e1fde03e0fa5cb65b4695ddb5c9083221828a84e8f7f2f5d",
+    "src-tauri/src/main.rs": "f62e5665ab117a62705274b0288596f974c88d67773f8d02749477e062564f1d",
+    "src-tauri/src/health.rs": "fde531ed1b486dde23fbcadc70881d4cd3d83a5d487d63d4ccfd8258c9ede946",
+    "src-tauri/src/supervisor.rs": "e6f51471f08bc51687be8ac4625baab25227cdaa1f4de28e1df4e85c79770378"
+  },
+  "new_frozen_manifest": "artifacts/step2/revision-20261018-smoke-headers/product-manifest.json",
+  "step2_VM": "\u5f85\u5b9e\u673a\u9a8c\u8bc1",
+  "old_exit_code_70_cause": "\u672a\u9a8c\u8bc1",
+  "debug_binary_binding": "UI\u8fd0\u884c\u671f\u95f4\u672a\u8bb0\u5f55\u5916\u58f3\u4e8c\u8fdb\u5236SHA\uff1b\u540e\u7eedcargo test\u53ef\u80fd\u91cd\u5efadebug exe\uff0c\u4e0d\u7528\u4e8e\u6700\u7ec8release\u7ed1\u5b9a\u8bc1\u660e"
+}

@@ -1,0 +1,22 @@
+
+> spectrum-agent@0.1.0 tauri
+> tauri dev --no-watch
+
+     Running BeforeDevCommand (`npm run dev`)
+
+> spectrum-agent@0.1.0 dev
+> vite
+
+2026-10-18T09:34:51.831Z vite:deps (client) Hash is consistent. Skipping. Use --force to override.
+
+  VITE v8.3.4  ready in 302 ms
+
+  ➜  Local:   http://127.0.0.1:1420/
+     Running DevCommand (`cargo  run --no-default-features --color always --`)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.77s
+     Running `target\debug\spectrum-agent.exe`
+17:39:16 [vite] (client) hmr update /src/main.tsx
+17:39:16 [vite] (client) [console.error] You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it.
+17:39:16 [vite] (client) hmr invalidate /src/main.tsx No exports
+17:39:16 [vite] (client) page reload src/main.tsx
+[1018/173917.739:ERROR:ui\gfx\win\window_impl.cc:172] Failed to unregister class Chrome_WidgetWin_0. Error = 1412

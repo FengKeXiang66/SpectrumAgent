@@ -1,0 +1,50 @@
+{
+  "actual_tokens_count": 6,
+  "original_source_log_files": [
+    {
+      "source": "C:/Users/Administrator/AppData/Local/SpectrumAgent/logs/engine-20261018.jsonl",
+      "name": "engine-20261018.jsonl",
+      "bytes": 869554,
+      "json_lines": 4921,
+      "sha256": "ffd73b10e68ec00ca6a1c716d86d1f3b62e017a5fee8b7b340f29591f675ad78",
+      "actual_token_leaks": 0,
+      "source_equals_archive": true
+    },
+    {
+      "source": "C:/Users/Administrator/AppData/Local/SpectrumAgent/logs/shell-20261018.log",
+      "name": "shell-20261018.log",
+      "bytes": 101117,
+      "json_lines": 723,
+      "sha256": "c49104aa7b0ec6530bb8a81622eaf9bdbe3af1458c238d27a00d22dfe6290299",
+      "actual_token_leaks": 0,
+      "source_equals_archive": true
+    }
+  ],
+  "original_source_token_leaks": 0,
+  "ui_accessibility_files": [
+    "ui-cold-optimizer-ready.txt",
+    "ui-ctrl-k-focus.txt",
+    "ui-engine-exit-failed-settled.txt",
+    "ui-engine-exit-failed.txt",
+    "ui-engine-exit-taskkill-output.txt",
+    "ui-final-engine-exit-taskkill-output.txt",
+    "ui-final-retry-ready.txt",
+    "ui-final-smoke-complete.txt",
+    "ui-open-data-directory.txt",
+    "ui-ready-initial.txt",
+    "ui-ready-watch-filtered.txt",
+    "ui-retry-ready.txt",
+    "ui-smoke-keyboard-complete.txt",
+    "ui-smoke-keyboard.txt",
+    "ui-smoke-send-button-complete.txt",
+    "ui-smoke-send-button.txt",
+    "ui-unknown-input.txt"
+  ],
+  "ui_accessibility_token_leaks": 0,
+  "frontend_bundle_files": [
+    "index-BVBpdjoe.js"
+  ],
+  "frontend_bundle_token_leaks": 0,
+  "dom_and_localStorage": "未验证：未进行浏览器 DOM / localStorage 完整导出，不能用可见文本代替",
+  "scope": "actual tokens scanned in original source logs BEFORE archival; no redaction used as pass evidence"
+}

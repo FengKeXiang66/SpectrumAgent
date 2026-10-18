@@ -1,0 +1,35 @@
+
+> spectrum-agent@0.1.0 tauri
+> tauri dev --no-watch
+
+     Running BeforeDevCommand (`npm run dev`)
+
+> spectrum-agent@0.1.0 dev
+> vite
+
+2026-10-18T09:33:37.355Z vite:deps (client) removing old cache dir E:/AI_Agent/node_modules/.vite/deps
+2026-10-18T09:33:37.384Z vite:deps scanning for dependencies...
+
+  VITE v8.3.4  ready in 208 ms
+
+  ➜  Local:   http://127.0.0.1:1420/
+2026-10-18T09:33:37.392Z vite:deps Crawling dependencies using entries: 
+  E:/AI_Agent/index.html
+     Running DevCommand (`cargo  run --no-default-features --color always --`)
+2026-10-18T09:33:37.442Z vite:deps static imports crawl ended
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.59s
+     Running `target\debug\spectrum-agent.exe`
+17:33:46 [vite] (client) [optimizer] scanning dependencies...
+2026-10-18T09:33:46.442Z vite:deps Scan completed in 9058.38ms: 
+  @tauri-apps/api/core -> E:/AI_Agent/node_modules/@tauri-apps/api/core.js
+  @tauri-apps/api/event -> E:/AI_Agent/node_modules/@tauri-apps/api/event.js
+  react -> E:/AI_Agent/node_modules/react/index.js
+  react-dom/client -> E:/AI_Agent/node_modules/react-dom/client.js
+  react/jsx-dev-runtime -> E:/AI_Agent/node_modules/react/jsx-dev-runtime.js
+2026-10-18T09:33:46.443Z vite:deps creating package.json in E:/AI_Agent/node_modules/.vite/deps_temp_eb713e9c
+17:34:29 [vite] (client) [optimizer] bundling dependencies...
+2026-10-18T09:34:29.815Z vite:deps Dependencies bundled in 43371.47ms
+2026-10-18T09:34:29.815Z vite:deps using post-scan optimizer result, the scanner found every used dependency
+2026-10-18T09:34:29.816Z vite:deps creating _metadata.json in E:/AI_Agent/node_modules/.vite/deps_temp_eb713e9c
+2026-10-18T09:34:29.817Z vite:deps renaming E:/AI_Agent/node_modules/.vite/deps_temp_eb713e9c to E:/AI_Agent/node_modules/.vite/deps
+[1018/173446.523:ERROR:ui\gfx\win\window_impl.cc:172] Failed to unregister class Chrome_WidgetWin_0. Error = 1412
