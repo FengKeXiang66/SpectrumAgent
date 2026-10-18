@@ -1,0 +1,7 @@
+{
+  "CARGO_HOME": "E:\\AI_Agent\\.cargo-home",
+  "CARGO_TARGET_DIR": "E:\\AI_Agent\\src-tauri\\target",
+  "TEMP": "E:\\AI_Agent\\artifacts\\step3\\checkpoint-3\\temp",
+  "target": "x86_64-pc-windows-msvc",
+  "previous_all_target_fetch": "stopped by controller after 437 cached packages; same Cargo.lock preserved"
+}

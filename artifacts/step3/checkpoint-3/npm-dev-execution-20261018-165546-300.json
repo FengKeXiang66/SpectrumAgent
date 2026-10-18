@@ -1,0 +1,22 @@
+{
+  "command": [
+    "E:\\AI_Agent\\.toolchains\\node24.19.0-npm10.8.2\\node.exe",
+    "E:\\AI_Agent\\.toolchains\\node24.19.0-npm10.8.2\\node_modules\\npm\\bin\\npm-cli.js",
+    "install",
+    "--save-dev",
+    "--save-exact",
+    "--engine-strict",
+    "vite@8.3.4",
+    "typescript@5.9.3",
+    "@vitejs/plugin-react@6.1.2",
+    "@types/react@19.3.0",
+    "@types/react-dom@19.3.0",
+    "@types/node@24.10.1",
+    "@tauri-apps/cli@2.12.3"
+  ],
+  "exit_code": 0,
+  "strict_ssl": "true",
+  "user_PATH_unchanged": true,
+  "machine_PATH_unchanged": true,
+  "output_file": "E:\\AI_Agent\\artifacts\\step3\\checkpoint-3\\npm-dev-install-20261018-165546-300.txt"
+}

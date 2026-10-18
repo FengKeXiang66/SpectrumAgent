@@ -1,0 +1,17 @@
+{
+  "command": [
+    "E:\\AI_Agent\\.toolchains\\node24.19.0-npm10.8.2\\node.exe",
+    "E:\\AI_Agent\\.toolchains\\node24.19.0-npm10.8.2\\node_modules\\npm\\bin\\npm-cli.js",
+    "install",
+    "--save-exact",
+    "--engine-strict",
+    "react@19.3.1",
+    "react-dom@19.3.1",
+    "@tauri-apps/api@2.12.4"
+  ],
+  "exit_code": 0,
+  "strict_ssl": "true",
+  "user_PATH_unchanged": true,
+  "machine_PATH_unchanged": true,
+  "output_file": "E:\\AI_Agent\\artifacts\\step3\\checkpoint-3\\npm-runtime-install-20261018-165546-300.txt"
+}

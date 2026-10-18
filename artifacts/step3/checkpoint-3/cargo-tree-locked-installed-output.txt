@@ -1,0 +1,5 @@
+    Blocking waiting for file lock on package cache
+error: failed to download `webview2-com-sys v0.39.1`
+
+Caused by:
+  attempting to make an HTTP request, but --offline was specified

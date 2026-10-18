@@ -1,0 +1,12 @@
+{
+  "mode": "copy",
+  "target": "E:\\AI_Agent\\.toolchains\\node24.19.0-npm10.8.2",
+  "node_version": "v24.19.0",
+  "npm_version": "10.8.2",
+  "node_sha256_before": "3602f2bb1a10f2cbab4c36886218a33c1ab3db87290e73b033c46c77147d0237",
+  "node_sha256_after": "3602f2bb1a10f2cbab4c36886218a33c1ab3db87290e73b033c46c77147d0237",
+  "all_files_equal": true,
+  "files": 1898,
+  "user_system_PATH_modified": false
+}
+receipt=E:\AI_Agent\artifacts\step3\checkpoint-3\toolchain-copy-20261018-165421-172398.json

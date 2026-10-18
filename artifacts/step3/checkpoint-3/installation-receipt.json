@@ -1,0 +1,22 @@
+{
+  "direct_crates": {
+    "chrono": "0.4.45",
+    "reqwest": "0.13.5",
+    "serde": "1.0.229",
+    "serde_json": "1.0.154",
+    "tauri": "2.12.4",
+    "tauri-build": "2.7.3",
+    "tauri-plugin-opener": "2.7.2",
+    "tauri-plugin-single-instance": "2.5.4",
+    "windows-sys": "0.61.2"
+  },
+  "node_sha256": "3602f2bb1a10f2cbab4c36886218a33c1ab3db87290e73b033c46c77147d0237",
+  "python_lock_unchanged": "58e24b59da34461a17fd942b4047071e42b5120b3d474ba976a7e28535d40bcc",
+  "lock_files": {
+    "package-lock.json": "5122b8e2dbd8b84ce2d7365088d01e657de7c178037533194ab17504eb7ecb14",
+    "src-tauri\\Cargo.lock": "19677a37d746c188184f4948d8bc5739759be755e3afeaa2c9f58471fec13b12"
+  },
+  "cargo_home": "E:/AI_Agent/.cargo-home",
+  "cargo_target_dir": "E:/AI_Agent/src-tauri/target",
+  "scope": "Windows x64 dependency installation; host runtime still unverified"
+}
