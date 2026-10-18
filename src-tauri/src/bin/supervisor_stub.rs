@@ -91,12 +91,20 @@ fn serve_health(connection: &mut TcpStream, mode: &str) -> std::io::Result<bool>
 
 fn run() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = std::env::args_os().skip(1);
-    let mode = args
-        .next()
-        .ok_or("missing stub mode")?
-        .to_string_lossy()
-        .into_owned();
-    let root = PathBuf::from(args.next().ok_or("missing stub data root")?);
+    // A renamed app.exe fixture lets the real Tauri host exercise its no-argument
+    // CreateProcessW path. This binary exists only with test-probes enabled.
+    let (mode, root) = if let Some(mode) = args.next() {
+        (
+            mode.to_string_lossy().into_owned(),
+            PathBuf::from(args.next().ok_or("missing stub data root")?),
+        )
+    } else {
+        (
+            std::env::var("SPECTRUM_STUB_MODE")?,
+            PathBuf::from(std::env::var_os("LOCALAPPDATA").ok_or("missing LOCALAPPDATA")?)
+                .join("SpectrumAgent"),
+        )
+    };
     let mode = if mode == "from-file" {
         fs::read_to_string(root.join("mode.txt"))?.trim().to_owned()
     } else {

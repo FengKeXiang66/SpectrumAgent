@@ -54,6 +54,9 @@ artifacts/step3/checkpoint-1/temp/
 !artifacts/step3/checkpoint-2/*
 !artifacts/step3/checkpoint-3/
 !artifacts/step3/checkpoint-3/*
+!artifacts/step3/checkpoint-4/
+!artifacts/step3/checkpoint-4/*
+artifacts/step3/checkpoint-4/temp/
 artifacts/step3/checkpoint-3/temp/
 artifacts/step3/checkpoint-2/temp/
 artifacts/step3/checkpoint-2/runs/

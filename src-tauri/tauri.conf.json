@@ -15,6 +15,7 @@
   },
   "bundle": {
     "active": true,
+    "useLocalToolsDir": true,
     "targets": ["nsis"],
     "resources": {"resources/backend/": "resources/backend/"},
     "windows": {"webviewInstallMode": {"type": "offlineInstaller"}, "nsis": {"installMode": "currentUser"}}

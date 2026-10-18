@@ -1,5 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod acceptance;
+
 use serde_json::json;
 use spectrum_agent::{
     engine_path::EngineSelection,
@@ -125,6 +127,9 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             let (handle, events) = EngineSupervisor::start_selected(selection, root.clone(), Arc::new(NativeWin32))?;
             app.manage(Desktop { supervisor: handle.clone(), data_root: root,
                 log: setup_log.clone(), closing: AtomicBool::new(false), exit_allowed: AtomicBool::new(false) });
+            if let Some(state) = app.try_state::<Desktop>() {
+                acceptance::start(app.handle().clone(), state.data_root.clone(), setup_log.clone(), started)?;
+            }
             if pending_activation.load(Ordering::Acquire) { let _ = handle.activate(); }
             let host = app.handle().clone();
             let event_log = setup_log.clone();

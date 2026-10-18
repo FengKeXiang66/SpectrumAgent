@@ -43,7 +43,14 @@ capabilities 仅四个固定命令及事件订阅，不开放通用 opener。新
 并重建新冻结批次，确认 manifest 后再暂存；不得从残缺或未知产物目录直接构建。
 
 开发态已实测 Ready/Failed 页面、启动和重试时隐藏、重试恢复、Ready 单实例激活、
-快捷键/未知输入/真实冒烟及正常关窗清理。最终 release 的资源 resolver、FaultFixture /
-Canonical 双模式、10 轮强杀矩阵、两 exe manifest 提取仍未验证；DOM/localStorage
-完整审计也未验证，不能由可见文本与编译前端的零泄漏倒推。
+快捷键/未知输入/真实冒烟及正常关窗清理。最终 release 验收另见
+`artifacts/step3/checkpoint-4/`，以逐项状态为准。
+
+`SPECTRUM_ACCEPTANCE_PROBE=1` 仅在验收时显式启用 45 秒有界诊断：主循环心跳、
+固定无参 engine_status 内部 invoke、原生 eval_with_callback 读回完整 DOM、表单值及
+localStorage/sessionStorage。实际握手 token 仅在 Rust 内存用于扫描原始回调串，
+命中即拒绝归档；通过的完整快照写在应用数据根的 acceptance/，不写资源或安装目录。
+不增加 JS 命令、capability、依赖或网络路径；普通启动不启用定时探针。
+测试 stub 无参入口只用于真实宿主夹具，由显式 SPECTRUM_STUB_MODE 选择；
+产品资源始终使用正式冻结 app.exe，不包含该 stub。
 第 2 步 VM 项保持“待实机验证”，旧 exit code=70 内部原因仍为“未验证”。
