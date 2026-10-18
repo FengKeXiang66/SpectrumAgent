@@ -1,0 +1,20 @@
+COMMAND: & 'E:\AI_Agent\artifacts\step2\generate_product_manifest.ps1'
+warning: unable to access 'C:\Users\Administrator/.config/git/ignore': Permission denied
+{
+  "event": "product_manifest_generated",
+  "artifact_source_commit": "d218262",
+  "manifest_generator_commit": "f44e68320b00cfaddcb40be377df339129204daa",
+  "exe_bytes": 16771126,
+  "exe_sha256": "0877ed3e11f0d247ddb929352104fa1745f9f690a968d98c6b93b797cec83e37",
+  "internal_files": 543,
+  "internal_bytes": 238793334,
+  "python312_exists": true,
+  "rasterio_libs_dll": 36,
+  "rasterio_pyd": 15,
+  "experimental_residue": 0,
+  "total_files": 544,
+  "product_manifest_sha256": "f2249ed595ae3a584ddc17d150024fa2e77d34159ee50bb01faed779217b17e7"
+}
+COMMAND: explicit venv Python independent full path/size/SHA256 + original pytest blob verification
+warning: unable to access 'C:\Users\Administrator/.config/git/ignore': Permission denied
+{"event": "independent_manifest_verification", "files_verified": 544, "bytes_verified": 255564460, "path_size_sha256_mismatches": 0, "empty_directories": [], "old_pytest_outputs_unchanged_from_d218262": 4, "backend_lock_spec_diff_from_d218262": false}
