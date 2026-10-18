@@ -1,0 +1,18 @@
+[
+  {
+    "path": "VM-BUILD-Win11Clean.md",
+    "sha256": "63ef563344b6eefe6f65a2961180b0f98b1bab530d8626c96ca31ee9e06d4ffc"
+  },
+  {
+    "path": "build-vm.ps1",
+    "sha256": "459f610aada5b4c9040bfa57cd511624867a12d068fc0f32b721bf7889ca1401"
+  },
+  {
+    "path": "vm-ops.ps1",
+    "sha256": "2aceebc86ce9926513fbb6111bc124f25604702958a1f2919758e68e91f717f2"
+  },
+  {
+    "path": "deploy-win11-vhdx.ps1",
+    "sha256": "8d7df26f4b5e28fc03690fecfa91400f5cceac80dda54f43cd5ff5a7c77b0c7d"
+  }
+]

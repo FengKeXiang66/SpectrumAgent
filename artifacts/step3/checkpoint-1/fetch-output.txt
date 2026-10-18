@@ -1,0 +1,46 @@
+**********************
+PowerShell transcript start
+Start time: 20261018145858
+Username: WIN-RTKE72PB5BE\Administrator
+RunAs User: WIN-RTKE72PB5BE\Administrator
+Configuration Name: 
+Machine: WIN-RTKE72PB5BE (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Users\Administrator\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\powershell\pwsh.dll -Command try { [Console]::OutputEncoding=[System.Text.Encoding]::UTF8 } catch {}
+$ErrorActionPreference = 'Stop'
+$env:CARGO_HOME = 'E:\AI_Agent\.cargo-home'
+$env:CARGO_TARGET_DIR = 'E:\AI_Agent\src-tauri\target'
+New-Item -ItemType Directory -Path $env:CARGO_HOME,$env:CARGO_TARGET_DIR,'E:\AI_Agent\artifacts\step3\checkpoint-1' -Force | Out-Null
+$logPath = 'E:\AI_Agent\artifacts\step3\checkpoint-1\fetch-output.txt'
+if (Test-Path -LiteralPath $logPath) { throw 'Refusing to overwrite fetch output' }
+Start-Transcript -Path $logPath | Out-Host
+try {
+  Get-Item -LiteralPath Env:CARGO_HOME,Env:CARGO_TARGET_DIR | Format-List Name,Value
+  'COMMAND: cargo fetch --manifest-path E:\AI_Agent\src-tauri\Cargo.toml'
+  & 'C:\Users\Administrator\.cargo\bin\cargo.exe' fetch --manifest-path 'E:\AI_Agent\src-tauri\Cargo.toml'
+  if ($LASTEXITCODE -ne 0) { throw "cargo fetch exit=$LASTEXITCODE" }
+} finally { Stop-Transcript | Out-Host }
+Process ID: 22084
+PSVersion: 7.6.5
+PSEdition: Core
+GitCommitId: 7.6.5
+OS: Microsoft Windows 10.0.26100
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.4
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+Transcript started, output file is E:\AI_Agent\artifacts\step3\checkpoint-1\fetch-output.txt
+
+Name  : CARGO_HOME
+Value : E:\AI_Agent\.cargo-home
+
+Name  : CARGO_TARGET_DIR
+Value : E:\AI_Agent\src-tauri\target
+
+COMMAND: cargo fetch --manifest-path E:\AI_Agent\src-tauri\Cargo.toml
+
+**********************
+PowerShell transcript end
+End time: 20261018150928
+**********************

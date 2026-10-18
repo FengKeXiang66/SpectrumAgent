@@ -1,0 +1,51 @@
+**********************
+PowerShell transcript start
+Start time: 20261018151809
+Username: WIN-RTKE72PB5BE\Administrator
+RunAs User: WIN-RTKE72PB5BE\Administrator
+Configuration Name: 
+Machine: WIN-RTKE72PB5BE (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Users\Administrator\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\powershell\pwsh.dll -Command try { [Console]::OutputEncoding=[System.Text.Encoding]::UTF8 } catch {}
+$ErrorActionPreference = 'Stop'
+Start-Transcript -Path 'E:\AI_Agent\artifacts\step3\checkpoint-1\final-inventory-output.txt' | Out-Host
+try {
+  Get-Content -LiteralPath 'artifacts/step3/checkpoint-1/verification-receipt.json' -Raw | ConvertFrom-Json | Select-Object cargo_home,cargo_target_dir,resolved_target_directory,default_c_registry_exists,lock_bytes,lock_sha256,resolved_package_count_including_root,total_tests | Format-List
+  'COMMAND: Get-CimInstance Win32_Process -Filter Name=supervisor-stub.exe (test fixture PID/path inventory)'
+  $stubProcesses = @(Get-CimInstance Win32_Process -Filter "Name = 'supervisor-stub.exe'" | Where-Object { $_.ExecutablePath -eq 'E:\AI_Agent\src-tauri\target\debug\supervisor-stub.exe' })
+  $stubProcesses | Select-Object ProcessId,ExecutablePath | Format-List
+  'MATCHING_STUB_PROCESS_COUNT: ' + $stubProcesses.Count
+  if ($stubProcesses.Count) { throw 'Stub process remains after tests' }
+  git diff --quiet 7b59a05 -- backend requirements-lock.txt artifacts/step2 TASK-01-地基演示.md
+  if ($LASTEXITCODE -ne 0) { throw 'Step-2 baseline changed' }
+  'STEP2_BASELINE_DIFF: empty'
+} finally { Stop-Transcript | Out-Host }
+Process ID: 19472
+PSVersion: 7.6.5
+PSEdition: Core
+GitCommitId: 7.6.5
+OS: Microsoft Windows 10.0.26100
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.4
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+Transcript started, output file is E:\AI_Agent\artifacts\step3\checkpoint-1\final-inventory-output.txt
+
+cargo_home                            : E:\AI_Agent\.cargo-home
+cargo_target_dir                      : E:\AI_Agent\src-tauri\target
+resolved_target_directory             : E:\AI_Agent\src-tauri\target
+default_c_registry_exists             : False
+lock_bytes                            : 25117
+lock_sha256                           : 24a4beb3d9a41b6b483da938dc00d28ebd04c7fa2208d0626e863104b07dc51d
+resolved_package_count_including_root : 104
+total_tests                           : 18
+
+COMMAND: Get-CimInstance Win32_Process -Filter Name=supervisor-stub.exe (test fixture PID/path inventory)
+MATCHING_STUB_PROCESS_COUNT: 0
+
+STEP2_BASELINE_DIFF: empty
+**********************
+PowerShell transcript end
+End time: 20261018151810
+**********************

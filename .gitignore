@@ -33,3 +33,15 @@ build/
 dist/
 node_modules/
 src-tauri/target/
+.cargo-home/
+src-tauri/resources/
+!artifacts/step3/
+artifacts/step3/*
+!artifacts/step3/prompt-final.md
+!artifacts/step3/preflight/
+!artifacts/step3/preflight/*
+!artifacts/step3/checkpoint-1/
+!artifacts/step3/checkpoint-1/*
+artifacts/step3/checkpoint-1/temp/
+!artifacts/step3/staging-reports/
+!artifacts/step3/staging-reports/*

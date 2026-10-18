@@ -1,0 +1,124 @@
+**********************
+PowerShell transcript start
+Start time: 20261018151304
+Username: WIN-RTKE72PB5BE\Administrator
+RunAs User: WIN-RTKE72PB5BE\Administrator
+Configuration Name: 
+Machine: WIN-RTKE72PB5BE (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Users\Administrator\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\powershell\pwsh.dll -Command try { [Console]::OutputEncoding=[System.Text.Encoding]::UTF8 } catch {}
+$ErrorActionPreference = 'Stop'
+$dir = 'E:\AI_Agent\artifacts\step3\preflight'
+New-Item -ItemType Directory -Path $dir -Force | Out-Null
+$path = Join-Path $dir 'environment-current-output.txt'
+if (Test-Path -LiteralPath $path) { throw 'Refusing to overwrite current environment evidence' }
+Start-Transcript -Path $path | Out-Host
+try {
+  'READ-ONLY SNAPSHOT UTC: ' + [DateTime]::UtcNow.ToString('o')
+  Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V | Format-List FeatureName,State
+  Get-Service vmms | Format-List Name,Status
+  Import-Module Hyper-V
+  'COMMANDS: Get-VM / Get-VMMemory / Get-VMSecurity / Get-VMFirmware / Get-VMIntegrationService / Get-VMCheckpoint, all -ComputerName localhost -VMName Win11'
+  Get-VM -ComputerName localhost -Name 'Win11' | Select-Object Name,State,Generation,ProcessorCount,MemoryStartup | Format-List
+  Get-VMMemory -ComputerName localhost -VMName 'Win11' | Select-Object DynamicMemoryEnabled,Minimum,Startup,Maximum | Format-List
+  Get-VMSecurity -ComputerName localhost -VMName 'Win11' | Format-List *
+  Get-VMFirmware -ComputerName localhost -VMName 'Win11' | Select-Object SecureBoot,SecureBootTemplate | Format-List
+  Get-VMIntegrationService -ComputerName localhost -VMName 'Win11' | Select-Object Name,Enabled | Format-Table -AutoSize
+  Get-VMCheckpoint -ComputerName localhost -VMName 'Win11' -Name pristine | Select-Object Name,Id,CreationTime | Format-List
+  Get-VMHardDiskDrive -ComputerName localhost -VMName 'Win11' | Select-Object Path | Format-List
+  'COMMAND: cargo --version; rustc --version; rustup component list --installed'
+  & 'C:\Users\Administrator\.cargo\bin\cargo.exe' --version
+  & 'C:\Users\Administrator\.cargo\bin\rustc.exe' --version
+  & 'C:\Users\Administrator\.cargo\bin\rustup.exe' component list --installed
+  'DEFAULT PATH NODE/NPM (frontend not installed or selected in checkpoint 1)'
+  & 'D:\Install\nvm\nodejs\node.exe' --version
+  & 'D:\Install\nvm\nodejs\npm.cmd' --version
+  'BUNDLED NODE (read-only discovery)'
+  & 'C:\Users\Administrator\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' --version
+  'DEFAULT C CARGO REGISTRY EXISTS: ' + (Test-Path -LiteralPath 'C:\Users\Administrator\.cargo\registry')
+  'E CARGO REGISTRY EXISTS: ' + (Test-Path -LiteralPath 'E:\AI_Agent\.cargo-home\registry')
+  'E CARGO TARGET EXISTS: ' + (Test-Path -LiteralPath 'E:\AI_Agent\src-tauri\target')
+} finally { Stop-Transcript | Out-Host }
+Process ID: 20884
+PSVersion: 7.6.5
+PSEdition: Core
+GitCommitId: 7.6.5
+OS: Microsoft Windows 10.0.26100
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.4
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+Transcript started, output file is E:\AI_Agent\artifacts\step3\preflight\environment-current-output.txt
+READ-ONLY SNAPSHOT UTC: 2026-10-18T07:13:04.8438583Z
+
+FeatureName : Microsoft-Hyper-V
+State       : Enabled
+
+
+Name   : vmms
+Status : Running
+
+COMMANDS: Get-VM / Get-VMMemory / Get-VMSecurity / Get-VMFirmware / Get-VMIntegrationService / Get-VMCheckpoint, all -ComputerName localhost -VMName Win11
+
+Name           : Win11
+State          : Off
+Generation     : 2
+ProcessorCount : 10
+MemoryStartup  : 8589934592
+
+
+DynamicMemoryEnabled : True
+Minimum              : 536870912
+Startup              : 8589934592
+Maximum              : 1099511627776
+
+
+TpmEnabled                        : False
+KsdEnabled                        : False
+Shielded                          : False
+EncryptStateAndVmMigrationTraffic : False
+VirtualizationBasedSecurityOptOut : False
+BindToHostTpm                     : False
+CimSession                        : CimSession: .
+ComputerName                      : WIN-RTKE72PB5BE
+IsDeleted                         : False
+
+
+SecureBoot         : On
+SecureBootTemplate : MicrosoftWindows
+
+
+Name         Enabled
+----         -------
+来宾服务接口    True
+检测信号        True
+键值对交换      True
+关闭            True
+时间同步        True
+VSS             True
+
+
+Name         : pristine
+Id           : bb3d1cac-a20d-4a60-b5ba-4090353333d7
+CreationTime : 2026/10/18 14:32:24
+
+
+Path : E:\Hyper-V\Win11\Virtual Hard Disks\disk_553FE1A8-886C-47D5-9F2F-B125CAF5FE36.avhdx
+
+COMMAND: cargo --version; rustc --version; rustup component list --installed
+
+
+
+DEFAULT PATH NODE/NPM (frontend not installed or selected in checkpoint 1)
+
+
+BUNDLED NODE (read-only discovery)
+
+DEFAULT C CARGO REGISTRY EXISTS: False
+E CARGO REGISTRY EXISTS: True
+E CARGO TARGET EXISTS: True
+**********************
+PowerShell transcript end
+End time: 20261018151307
+**********************

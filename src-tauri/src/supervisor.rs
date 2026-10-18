@@ -1,0 +1,603 @@
+use crate::{
+    causality::EngineLogCursor,
+    handshake::{self, Handshake, HandshakeIssue},
+    health::{HealthClient, HealthResult},
+    logging::ShellLog,
+    process::ManagedProcess,
+    state::{FailureKind, Phase, StateMachine},
+    win32::{SpawnRequest, WaitResult, Win32, WinError},
+};
+use chrono::{Local, Utc};
+use serde::Serialize;
+use serde_json::json;
+use std::{
+    fs, io,
+    path::PathBuf,
+    sync::{
+        Arc, Mutex,
+        atomic::{AtomicBool, Ordering},
+        mpsc::{self, Receiver, RecvTimeoutError, Sender},
+    },
+    thread::{self, JoinHandle},
+    time::{Duration, Instant},
+};
+
+#[derive(Clone)]
+pub struct SupervisorConfig {
+    pub process: SpawnRequest,
+    pub data_root: PathBuf,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub enum ExitReason {
+    Win32 { api: &'static str, code: u32 },
+    ProcessExit { code: u32 },
+    StartupDeadline,
+    IdentityMismatch { layer: &'static str },
+    WorkerUnavailable,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct Failure {
+    pub kind: FailureKind,
+    pub exit_reason: ExitReason,
+    pub preexisting_handshake_invalid: Option<HandshakeIssue>,
+    pub engine_error: Option<String>,
+    pub handshake_path: PathBuf,
+    pub log_path: PathBuf,
+    pub data_directory: PathBuf,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct Snapshot {
+    pub generation_id: u64,
+    pub phase: Phase,
+    pub pid: Option<u32>,
+    pub port: Option<u16>,
+    pub boot_id: Option<String>,
+    pub failure: Option<Failure>,
+    pub cleanup_complete: bool,
+    pub pending_activation: bool,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub enum SupervisorEvent {
+    Status(Box<Snapshot>),
+    AppExit,
+}
+
+enum Message {
+    Retry,
+    Stop,
+    Activate,
+    Health {
+        generation: u64,
+        result: Result<Handshake, &'static str>,
+    },
+    Exit {
+        generation: u64,
+        result: Result<u32, WinError>,
+        observed_ms: i64,
+        day: String,
+    },
+    WorkerFailed {
+        generation: u64,
+    },
+}
+
+#[derive(Clone)]
+pub struct SupervisorHandle {
+    tx: Sender<Message>,
+    snapshot: Arc<Mutex<Snapshot>>,
+    join: Arc<Mutex<Option<JoinHandle<()>>>>,
+}
+
+impl SupervisorHandle {
+    pub fn snapshot(&self) -> Result<Snapshot, String> {
+        self.snapshot
+            .lock()
+            .map(|s| s.clone())
+            .map_err(|_| "supervisor status lock poisoned".to_owned())
+    }
+    pub fn retry(&self) -> Result<(), String> {
+        self.tx
+            .send(Message::Retry)
+            .map_err(|_| "supervisor stopped".to_owned())
+    }
+    pub fn activate(&self) -> Result<(), String> {
+        self.tx
+            .send(Message::Activate)
+            .map_err(|_| "supervisor stopped".to_owned())
+    }
+    pub fn stop(&self) -> Result<(), String> {
+        self.tx
+            .send(Message::Stop)
+            .map_err(|_| "supervisor stopped".to_owned())
+    }
+    /// Blocking: call only on a worker thread, never a desktop event-loop callback.
+    pub fn shutdown_and_join(&self) -> Result<(), String> {
+        let _ = self.stop();
+        let join = self
+            .join
+            .lock()
+            .map_err(|_| "join lock poisoned".to_owned())?
+            .take();
+        if let Some(join) = join {
+            join.join()
+                .map_err(|_| "supervisor thread failed".to_owned())?;
+        }
+        Ok(())
+    }
+    #[cfg(feature = "test-probes")]
+    pub fn inject_old_exit_for_test(&self, generation: u64) -> Result<(), String> {
+        self.tx
+            .send(Message::Exit {
+                generation,
+                result: Ok(99),
+                observed_ms: Utc::now().timestamp_millis(),
+                day: Local::now().format("%Y%m%d").to_string(),
+            })
+            .map_err(|_| "supervisor stopped".to_owned())
+    }
+}
+
+impl Drop for SupervisorHandle {
+    fn drop(&mut self) {
+        if Arc::strong_count(&self.join) == 1 {
+            let _ = self.tx.send(Message::Stop);
+        }
+    }
+}
+
+struct Attempt {
+    child: ManagedProcess,
+    waiter: Option<JoinHandle<Result<u32, WinError>>>,
+    poller: Option<JoinHandle<()>>,
+    cancelled: Arc<AtomicBool>,
+    cursor: EngineLogCursor,
+    deadline: Instant,
+}
+
+impl Attempt {
+    fn cleanup(&mut self) -> Vec<String> {
+        self.cancelled.store(true, Ordering::Release);
+        let mut errors = Vec::new();
+        if let Some(waiter) = self.waiter.take() {
+            if let Err(error) = self.child.request_termination() {
+                errors.push(format!("{}:{}", error.api, error.code));
+            }
+            match waiter.join() {
+                Ok(Ok(_)) => self.child.mark_reaped(),
+                Ok(Err(error)) => errors.push(format!("{}:{}", error.api, error.code)),
+                Err(_) => errors.push("exit_waiter_join".to_owned()),
+            }
+            // Confirm exit after the waiter has finished before closing the process handle.
+        }
+        if let Some(poller) = self.poller.take()
+            && poller.join().is_err()
+        {
+            errors.push("health_poller_join".to_owned());
+        }
+        errors.extend(
+            self.child
+                .cleanup()
+                .into_iter()
+                .map(|e| format!("{}:{}", e.api, e.code)),
+        );
+        errors
+    }
+}
+
+impl Drop for Attempt {
+    fn drop(&mut self) {
+        let _ = self.cleanup();
+    }
+}
+
+pub struct EngineSupervisor;
+impl EngineSupervisor {
+    /// Host precondition: the Tauri single-instance plugin has acquired the application lock.
+    /// No product mutex or handshake lifecycle operation is implemented in this core.
+    pub fn start(
+        config: SupervisorConfig,
+        api: Arc<dyn Win32>,
+    ) -> io::Result<(SupervisorHandle, Receiver<SupervisorEvent>)> {
+        let log = ShellLog::new(&config.data_root)?;
+        let initial = Snapshot {
+            generation_id: 1,
+            phase: Phase::Starting,
+            pid: None,
+            port: None,
+            boot_id: None,
+            failure: None,
+            cleanup_complete: false,
+            pending_activation: false,
+        };
+        let snapshot = Arc::new(Mutex::new(initial.clone()));
+        let (tx, rx) = mpsc::channel();
+        let (events, event_rx) = mpsc::channel();
+        let mut actor = Actor {
+            config,
+            api,
+            log,
+            machine: StateMachine::default(),
+            snapshot: snapshot.clone(),
+            view: initial,
+            events,
+            tx: tx.clone(),
+            rx,
+            attempt: None,
+            preexisting: None,
+            verified: None,
+            pending_cleanup_errors: Vec::new(),
+        };
+        let join = thread::Builder::new()
+            .name("engine-supervisor".to_owned())
+            .spawn(move || actor.run())?;
+        Ok((
+            SupervisorHandle {
+                tx,
+                snapshot,
+                join: Arc::new(Mutex::new(Some(join))),
+            },
+            event_rx,
+        ))
+    }
+}
+
+struct Actor {
+    config: SupervisorConfig,
+    api: Arc<dyn Win32>,
+    log: ShellLog,
+    machine: StateMachine,
+    snapshot: Arc<Mutex<Snapshot>>,
+    view: Snapshot,
+    events: Sender<SupervisorEvent>,
+    tx: Sender<Message>,
+    rx: Receiver<Message>,
+    attempt: Option<Attempt>,
+    preexisting: Option<HandshakeIssue>,
+    verified: Option<Handshake>,
+    pending_cleanup_errors: Vec<WinError>,
+}
+
+impl Actor {
+    fn log(&self, event: &str, fields: serde_json::Value) {
+        if self.log.event(event, fields).is_err() {
+            eprintln!("SpectrumAgent: shell log write failed");
+        }
+    }
+    fn publish(&self) {
+        if let Ok(mut snapshot) = self.snapshot.lock() {
+            *snapshot = self.view.clone();
+        }
+        let _ = self
+            .events
+            .send(SupervisorEvent::Status(Box::new(self.view.clone())));
+    }
+    fn transition(&mut self, to: Phase, reason: &str) -> bool {
+        match self.machine.transition(self.view.generation_id, to, reason) {
+            Ok(Some(transition)) => {
+                self.log("state_transition",json!({"generation_id":transition.generation_id,"from":transition.from,"to":transition.to,"reason":transition.reason}));
+                self.view.phase = to;
+                self.publish();
+                true
+            }
+            _ => false,
+        }
+    }
+    fn fail(&mut self, kind: FailureKind, exit_reason: ExitReason, engine_error: Option<String>) {
+        self.view.failure = Some(Failure {
+            kind,
+            exit_reason,
+            preexisting_handshake_invalid: self.preexisting.clone(),
+            engine_error,
+            handshake_path: self.config.data_root.join("run/handshake.json"),
+            log_path: self
+                .log
+                .directory()
+                .join(format!("engine-{}.jsonl", Local::now().format("%Y%m%d"))),
+            data_directory: self.config.data_root.clone(),
+        });
+        if self.transition(Phase::Failed, "engine_failure") {
+            self.log(
+                "engine_failure",
+                json!({"generation_id":self.view.generation_id,"failure":self.view.failure}),
+            );
+        }
+        self.cleanup();
+    }
+    fn cleanup(&mut self) {
+        self.verified.take();
+        let mut errors: Vec<String> = std::mem::take(&mut self.pending_cleanup_errors)
+            .into_iter()
+            .map(|e| format!("{}:{}", e.api, e.code))
+            .collect();
+        errors.extend(
+            self.attempt
+                .take()
+                .map(|mut attempt| attempt.cleanup())
+                .unwrap_or_default(),
+        );
+        self.view.cleanup_complete = errors.is_empty();
+        self.log("generation_cleanup",json!({"generation_id":self.view.generation_id,"errors":errors,"complete":self.view.cleanup_complete}));
+        self.publish();
+    }
+    fn start_attempt(&mut self) {
+        let generation = self.view.generation_id;
+        self.log(
+            "engine_start_attempt",
+            json!({"generation_id":generation,"exe":self.config.process.exe}),
+        );
+        self.preexisting = match fs::read(self.config.data_root.join("run/handshake.json")) {
+            Ok(bytes) => handshake::parse(&bytes).err(),
+            Err(e) if e.kind() == io::ErrorKind::NotFound => None,
+            Err(_) => Some(HandshakeIssue::ReadFailed),
+        };
+        self.log(
+            "preexisting_handshake_snapshot",
+            json!({"generation_id":generation,"preexisting_handshake_invalid":self.preexisting}),
+        );
+        let cursor = match EngineLogCursor::capture(
+            self.log.directory(),
+            Local::now().format("%Y%m%d").to_string(),
+        ) {
+            Ok(cursor) => cursor,
+            Err(_) => {
+                self.fail(
+                    FailureKind::SpawnFailed,
+                    ExitReason::WorkerUnavailable,
+                    None,
+                );
+                return;
+            }
+        };
+        let started = Instant::now();
+        let child = ManagedProcess::launch_observed(
+            self.api.clone(),
+            &self.config.process,
+            |event, pid| self.log(event, json!({"generation_id":generation,"pid":pid})),
+        );
+        let child = match child {
+            Ok(child) => child,
+            Err(failure) => {
+                self.view.pid = failure.pid;
+                self.pending_cleanup_errors = failure.cleanup_errors;
+                self.fail(
+                    failure.kind,
+                    ExitReason::Win32 {
+                        api: failure.error.api,
+                        code: failure.error.code,
+                    },
+                    None,
+                );
+                return;
+            }
+        };
+        self.view.pid = Some(child.pid);
+        let cancelled = Arc::new(AtomicBool::new(false));
+        let mut attempt = Attempt {
+            child,
+            waiter: None,
+            poller: None,
+            cancelled: cancelled.clone(),
+            cursor,
+            deadline: started + Duration::from_secs(30),
+        };
+        let Some(raw) = attempt.child.raw() else {
+            self.attempt = Some(attempt);
+            self.fail(
+                FailureKind::ProcessIdentityFailed,
+                ExitReason::WorkerUnavailable,
+                None,
+            );
+            return;
+        };
+        let api = self.api.clone();
+        let tx = self.tx.clone();
+        let exit_log = self.log.clone();
+        let exit_pid = attempt.child.pid;
+        attempt.waiter = match thread::Builder::new()
+            .name(format!("engine-exit-{generation}"))
+            .spawn(move || {
+                let result = api.wait(raw, None).and_then(|wait| match wait {
+                    WaitResult::Exited => api.exit_code(raw),
+                    WaitResult::Timeout => Err(WinError {
+                        api: "WaitForSingleObject",
+                        code: 258,
+                    }),
+                });
+                let _=exit_log.event("engine_process_exit",json!({"generation_id":generation,"pid":exit_pid,"exit_code":result.as_ref().ok(),"wait_error":result.as_ref().err()}));
+                let _ = tx.send(Message::Exit {
+                    generation,
+                    result: result.clone(),
+                    observed_ms: Utc::now().timestamp_millis(),
+                    day: Local::now().format("%Y%m%d").to_string(),
+                });
+                result
+            }) {
+            Ok(waiter) => Some(waiter),
+            Err(_) => {
+                self.attempt = Some(attempt);
+                self.fail(
+                    FailureKind::SpawnFailed,
+                    ExitReason::WorkerUnavailable,
+                    None,
+                );
+                return;
+            }
+        };
+        let tx = self.tx.clone();
+        let path = self.config.data_root.join("run/handshake.json");
+        let pid = attempt.child.pid;
+        let created = attempt.child.created_at_ms;
+        let log = self.log.clone();
+        attempt.poller=match thread::Builder::new().name(format!("engine-health-{generation}")).spawn(move || {
+            let client=match HealthClient::new() {Ok(client)=>client,Err(_)=>{let _=tx.send(Message::WorkerFailed {generation});return;}};
+            let mut last_issue=None;
+            while !cancelled.load(Ordering::Acquire) {
+                match fs::read(&path).ok().and_then(|bytes|handshake::parse(&bytes).ok()) {
+                    Some(handshake) if handshake.pid==pid && handshake.process_created_at_ms==created => {
+                        let _=log.event("handshake_identity_verified",json!({"generation_id":generation,"pid":pid,"boot_id":handshake.boot_id,"process_created_at_ms":created}));
+                        match client.check(&handshake) {
+                            HealthResult::Matching=>{let _=tx.send(Message::Health {generation,result:Ok(handshake)});return;},
+                            HealthResult::IdentityMismatch(layer)=>{let _=tx.send(Message::Health {generation,result:Err(layer)});return;},
+                            HealthResult::Pending=>{}
+                        }
+                    },
+                    Some(_) => {if last_issue!=Some("foreign_identity") {let _=log.event("handshake_ignored",json!({"generation_id":generation,"reason":"foreign_identity"}));last_issue=Some("foreign_identity");}},
+                    None => {if last_issue!=Some("not_valid_yet") {let _=log.event("handshake_wait",json!({"generation_id":generation,"reason":"not_valid_yet"}));last_issue=Some("not_valid_yet");}},
+                }
+                thread::sleep(Duration::from_millis(40));
+            }
+        }) {Ok(poller)=>Some(poller),Err(_)=>{self.attempt=Some(attempt);self.fail(FailureKind::SpawnFailed,ExitReason::WorkerUnavailable,None);return;}};
+        self.attempt = Some(attempt);
+        self.publish();
+    }
+    fn run(&mut self) {
+        self.start_attempt();
+        loop {
+            if self.machine.phase() == Phase::Starting
+                && self
+                    .attempt
+                    .as_ref()
+                    .is_some_and(|attempt| Instant::now() >= attempt.deadline)
+            {
+                self.fail(
+                    FailureKind::StartupTimeout,
+                    ExitReason::StartupDeadline,
+                    None,
+                );
+            }
+            let message = match self.rx.recv_timeout(Duration::from_millis(20)) {
+                Ok(message) => message,
+                Err(RecvTimeoutError::Timeout) => {
+                    if self.machine.phase() == Phase::Starting
+                        && self
+                            .attempt
+                            .as_ref()
+                            .is_some_and(|attempt| Instant::now() >= attempt.deadline)
+                    {
+                        self.fail(
+                            FailureKind::StartupTimeout,
+                            ExitReason::StartupDeadline,
+                            None,
+                        );
+                    }
+                    continue;
+                }
+                Err(RecvTimeoutError::Disconnected) => Message::Stop,
+            };
+            match message {
+                Message::Stop => {
+                    self.transition(Phase::Stopping, "application_close");
+                    self.cleanup();
+                    self.log("app_exit", json!({"generation_id":self.view.generation_id}));
+                    let _ = self.events.send(SupervisorEvent::AppExit);
+                    return;
+                }
+                Message::Activate => {
+                    self.view.pending_activation = true;
+                    self.log("activation_requested",json!({"generation_id":self.view.generation_id,"phase":self.view.phase,"pending_activation":true}));
+                    self.publish();
+                }
+                Message::Retry
+                    if self.machine.phase() == Phase::Failed && self.view.cleanup_complete =>
+                {
+                    if let Ok(transition) = self.machine.retry_after_cleanup() {
+                        self.log("state_transition",json!({"generation_id":transition.generation_id,"from":transition.from,"to":transition.to,"reason":transition.reason}));
+                        self.view.generation_id = transition.generation_id;
+                        self.view.phase = Phase::Starting;
+                        self.view.failure = None;
+                        self.view.pid = None;
+                        self.view.port = None;
+                        self.view.boot_id = None;
+                        self.view.cleanup_complete = false;
+                        self.publish();
+                        self.start_attempt();
+                    }
+                }
+                Message::Retry => {}
+                Message::Health { generation, result }
+                    if generation == self.view.generation_id
+                        && self.machine.phase() == Phase::Starting =>
+                {
+                    // The blocking waiter is independent; reject a health response if exit is already observable.
+                    let alive = self
+                        .attempt
+                        .as_ref()
+                        .and_then(|a| a.child.raw())
+                        .is_some_and(|raw| {
+                            matches!(self.api.wait(raw, Some(0)), Ok(WaitResult::Timeout))
+                        });
+                    if !alive {
+                        continue;
+                    }
+                    match result {
+                        Ok(handshake) => {
+                            self.view.port = Some(handshake.port);
+                            self.view.boot_id = Some(handshake.boot_id.clone());
+                            self.log("health_verified",json!({"generation_id":generation,"pid":handshake.pid,"port":handshake.port}));
+                            self.verified = Some(handshake);
+                            self.transition(Phase::Ready, "health_identity_matched");
+                        }
+                        Err(layer) => self.fail(
+                            FailureKind::HealthIdentityMismatch,
+                            ExitReason::IdentityMismatch { layer },
+                            None,
+                        ),
+                    }
+                }
+                Message::Exit {
+                    generation,
+                    result,
+                    observed_ms,
+                    day,
+                } if generation == self.view.generation_id => {
+                    let Some(mut kind) = self.machine.exit_failure(generation) else {
+                        continue;
+                    };
+                    let reason = match result {
+                        Ok(code) => ExitReason::ProcessExit { code },
+                        Err(error) => ExitReason::Win32 {
+                            api: error.api,
+                            code: error.code,
+                        },
+                    };
+                    let mut engine_error = None;
+                    if let Some(attempt) = self.attempt.as_mut() {
+                        if matches!(reason, ExitReason::ProcessExit { .. }) {
+                            attempt.child.mark_reaped();
+                        }
+                        if kind == FailureKind::ExitedBeforeReady
+                            && let Ok(Some(code)) = attempt.cursor.find_cause(
+                                attempt.child.pid,
+                                attempt.child.created_at_ms,
+                                observed_ms,
+                                &day,
+                            )
+                        {
+                            kind = FailureKind::HandshakeInvalid;
+                            engine_error = Some(code);
+                        }
+                    }
+                    self.fail(kind, reason, engine_error);
+                }
+                Message::WorkerFailed { generation }
+                    if generation == self.view.generation_id
+                        && self.machine.phase() == Phase::Starting =>
+                {
+                    self.fail(
+                        FailureKind::SpawnFailed,
+                        ExitReason::WorkerUnavailable,
+                        None,
+                    )
+                }
+                _ => self.log(
+                    "stale_generation_result_discarded",
+                    json!({"generation_id":self.view.generation_id}),
+                ),
+            }
+        }
+    }
+}
