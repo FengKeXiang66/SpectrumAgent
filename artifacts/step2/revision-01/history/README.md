@@ -1,4 +1,28 @@
-# 第 2 步：PyInstaller onedir
+# 历史证据索引（2026-10-18 关账准备）
+
+本目录下方保留的旧版说明属于历史记录，不是当前验收入口。正式回归入口只有受版本控制的
+`artifacts/step2/lifecycle_regression.py` 与 `artifacts/step2/selfcheck_step2.ps1`。
+
+`revision-01/` 中四份既有 pytest 原始输出均保持原字节，不回改测试数量：
+
+| 本机时间 | 文件 | 原始结果 | 定位 |
+|---|---|---|---|
+| 08:42 | `pytest-output.txt` | 25 passed | 开发期中间态 |
+| 08:50 | `pytest-final-output.txt` | 26 passed | 开发期中间态 |
+| 08:53 | `pytest-release-output.txt` | 26 passed | 开发期中间态 |
+| 08:59 | `pytest-transaction-output.txt` | 27 passed | 提交前最后一次全量 |
+
+前三份圆点数和用例数递增源于开发期逐加用例；文件名中的 final/release 不表示最终依据。
+最终依据是从 HEAD `d218262` 使用 REPORT 原命令新跑的 `revision-01/pytest-head-output.txt`：
+`27 passed, 10 warnings in 1.85s`。命令、HEAD 与四份旧输出的 SHA256 见
+`revision-01/pytest-head-receipt.json`；原始输出一份未改。
+
+以下旧版说明原文作为历史保留，其中 Ctrl+C、握手清理和旧验收通过的口径已被当前
+`artifacts/step2/REPORT.md` 与 `STATUS.md` 撤回或澄清，不得用它代替当前规范。
+
+---
+
+# 第 2 步：PyInstaller onedir（旧版原文）
 
 正式源文件：本目录 `build.spec`、`selfcheck_step2.ps1`、`NativeConsole.cs`，
 以及代码根 `backend/diagnostics.py` 和 `backend/__main__.py`。

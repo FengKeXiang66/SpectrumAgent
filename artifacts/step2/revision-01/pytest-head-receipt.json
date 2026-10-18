@@ -1,0 +1,24 @@
+{
+  "tested_head": "d218262e7b70c6f54e0b8722b59b1b84ce7a7803",
+  "command": "& 'E:\\AI_Agent\\.venv\\Scripts\\python.exe' -m pytest backend/tests -q -p no:cacheprovider --basetemp E:\\AI_Agent\\artifacts\\step2\\revision-01\\pytest-tmp-transaction",
+  "output": "artifacts/step2/revision-01/pytest-head-output.txt",
+  "result": "27 passed, 10 warnings in 1.85s",
+  "original_outputs": [
+    {
+      "path": "artifacts/step2/revision-01/pytest-output.txt",
+      "sha256": "74b53cb9cc8c7db58a0a13f3c4409be22894265c686d526eefcf9e4c0fef84d8"
+    },
+    {
+      "path": "artifacts/step2/revision-01/pytest-final-output.txt",
+      "sha256": "efa90fbb6172fb7d165cfbee7996d4b9246a6667ca0f8fd4039e8de64b9dd6dd"
+    },
+    {
+      "path": "artifacts/step2/revision-01/pytest-release-output.txt",
+      "sha256": "9d9812a70622486ee6441c949f0d4a8755f65825377b0edcf201bae6b7e706d5"
+    },
+    {
+      "path": "artifacts/step2/revision-01/pytest-transaction-output.txt",
+      "sha256": "e5462e27b1a03dd300962e7ad5088f23a042d0315c0b53cfe0650ccc71e2cde2"
+    }
+  ]
+}
