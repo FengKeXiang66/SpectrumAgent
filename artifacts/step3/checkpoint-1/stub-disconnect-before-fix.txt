@@ -1,0 +1,23 @@
+COMMAND: cargo test --all-features --locked --offline --test supervisor_stubs stub_tolerates_disconnected_health_client -- --exact --nocapture
+   Compiling spectrum-agent v0.1.0 (E:\AI_Agent\src-tauri)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.94s
+     Running tests\supervisor_stubs.rs (src-tauri\target\debug\deps\supervisor_stubs-4547224912d4d370.exe)
+
+running 1 test
+
+thread 'stub_tolerates_disconnected_health_client' (16996) panicked at tests\supervisor_stubs.rs:94:5:
+assertion `left == right` failed
+  left: Failed
+ right: Ready
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test stub_tolerates_disconnected_health_client ... FAILED
+
+failures:
+
+failures:
+    stub_tolerates_disconnected_health_client
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.33s
+
+error: test failed, to rerun pass `--test supervisor_stubs`
+EXIT_CODE: 101

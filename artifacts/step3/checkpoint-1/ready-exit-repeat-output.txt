@@ -1,0 +1,111 @@
+PURPOSE: reproduce the previously unstable ready-exit stub after transport handling and explicit parent Ready acknowledgement; this is not a release-shell kill matrix.
+ROUND: 1 COMMAND: cargo test --all-features --locked --offline --test supervisor_stubs stub_exit_after_ready_produces_exactly_one_failure_transition -- --exact --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.08s
+     Running tests\supervisor_stubs.rs (src-tauri\target\debug\deps\supervisor_stubs-4547224912d4d370.exe)
+
+running 1 test
+STUB ready-exit: pid=Some(20824) Ready->Failed(EngineExitedAfterReady) count=1
+test stub_exit_after_ready_produces_exactly_one_failure_transition ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.22s
+
+EXIT_CODE: 0
+ROUND: 2 COMMAND: cargo test --all-features --locked --offline --test supervisor_stubs stub_exit_after_ready_produces_exactly_one_failure_transition -- --exact --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests\supervisor_stubs.rs (src-tauri\target\debug\deps\supervisor_stubs-4547224912d4d370.exe)
+
+running 1 test
+STUB ready-exit: pid=Some(18672) Ready->Failed(EngineExitedAfterReady) count=1
+test stub_exit_after_ready_produces_exactly_one_failure_transition ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.20s
+
+EXIT_CODE: 0
+ROUND: 3 COMMAND: cargo test --all-features --locked --offline --test supervisor_stubs stub_exit_after_ready_produces_exactly_one_failure_transition -- --exact --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests\supervisor_stubs.rs (src-tauri\target\debug\deps\supervisor_stubs-4547224912d4d370.exe)
+
+running 1 test
+STUB ready-exit: pid=Some(20348) Ready->Failed(EngineExitedAfterReady) count=1
+test stub_exit_after_ready_produces_exactly_one_failure_transition ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.20s
+
+EXIT_CODE: 0
+ROUND: 4 COMMAND: cargo test --all-features --locked --offline --test supervisor_stubs stub_exit_after_ready_produces_exactly_one_failure_transition -- --exact --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.08s
+     Running tests\supervisor_stubs.rs (src-tauri\target\debug\deps\supervisor_stubs-4547224912d4d370.exe)
+
+running 1 test
+STUB ready-exit: pid=Some(21576) Ready->Failed(EngineExitedAfterReady) count=1
+test stub_exit_after_ready_produces_exactly_one_failure_transition ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.20s
+
+EXIT_CODE: 0
+ROUND: 5 COMMAND: cargo test --all-features --locked --offline --test supervisor_stubs stub_exit_after_ready_produces_exactly_one_failure_transition -- --exact --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.08s
+     Running tests\supervisor_stubs.rs (src-tauri\target\debug\deps\supervisor_stubs-4547224912d4d370.exe)
+
+running 1 test
+STUB ready-exit: pid=Some(20024) Ready->Failed(EngineExitedAfterReady) count=1
+test stub_exit_after_ready_produces_exactly_one_failure_transition ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.20s
+
+EXIT_CODE: 0
+ROUND: 6 COMMAND: cargo test --all-features --locked --offline --test supervisor_stubs stub_exit_after_ready_produces_exactly_one_failure_transition -- --exact --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.08s
+     Running tests\supervisor_stubs.rs (src-tauri\target\debug\deps\supervisor_stubs-4547224912d4d370.exe)
+
+running 1 test
+STUB ready-exit: pid=Some(19216) Ready->Failed(EngineExitedAfterReady) count=1
+test stub_exit_after_ready_produces_exactly_one_failure_transition ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.21s
+
+EXIT_CODE: 0
+ROUND: 7 COMMAND: cargo test --all-features --locked --offline --test supervisor_stubs stub_exit_after_ready_produces_exactly_one_failure_transition -- --exact --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests\supervisor_stubs.rs (src-tauri\target\debug\deps\supervisor_stubs-4547224912d4d370.exe)
+
+running 1 test
+STUB ready-exit: pid=Some(17656) Ready->Failed(EngineExitedAfterReady) count=1
+test stub_exit_after_ready_produces_exactly_one_failure_transition ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.19s
+
+EXIT_CODE: 0
+ROUND: 8 COMMAND: cargo test --all-features --locked --offline --test supervisor_stubs stub_exit_after_ready_produces_exactly_one_failure_transition -- --exact --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.08s
+     Running tests\supervisor_stubs.rs (src-tauri\target\debug\deps\supervisor_stubs-4547224912d4d370.exe)
+
+running 1 test
+STUB ready-exit: pid=Some(11440) Ready->Failed(EngineExitedAfterReady) count=1
+test stub_exit_after_ready_produces_exactly_one_failure_transition ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.20s
+
+EXIT_CODE: 0
+ROUND: 9 COMMAND: cargo test --all-features --locked --offline --test supervisor_stubs stub_exit_after_ready_produces_exactly_one_failure_transition -- --exact --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests\supervisor_stubs.rs (src-tauri\target\debug\deps\supervisor_stubs-4547224912d4d370.exe)
+
+running 1 test
+STUB ready-exit: pid=Some(22440) Ready->Failed(EngineExitedAfterReady) count=1
+test stub_exit_after_ready_produces_exactly_one_failure_transition ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.20s
+
+EXIT_CODE: 0
+ROUND: 10 COMMAND: cargo test --all-features --locked --offline --test supervisor_stubs stub_exit_after_ready_produces_exactly_one_failure_transition -- --exact --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests\supervisor_stubs.rs (src-tauri\target\debug\deps\supervisor_stubs-4547224912d4d370.exe)
+
+running 1 test
+STUB ready-exit: pid=Some(552) Ready->Failed(EngineExitedAfterReady) count=1
+test stub_exit_after_ready_produces_exactly_one_failure_transition ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.19s
+
+EXIT_CODE: 0

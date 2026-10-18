@@ -1,0 +1,69 @@
+SOURCE_HEAD: 0b56bd6aac7b73784acdfde22090c53f5188e48e CARGO_HOME: E:\AI_Agent\.cargo-home CARGO_TARGET_DIR: E:\AI_Agent\src-tauri\target TEMP: E:\AI_Agent\artifacts\step3\checkpoint-1\temp
+COMMAND: C:\Users\Administrator\.cargo\bin\cargo.exe fmt --manifest-path E:\AI_Agent\src-tauri\Cargo.toml --check
+EXIT_CODE: 0
+COMMAND: C:\Users\Administrator\.cargo\bin\cargo.exe clippy --manifest-path E:\AI_Agent\src-tauri\Cargo.toml --all-targets --all-features --locked --offline -- -D warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.16s
+EXIT_CODE: 0
+COMMAND: C:\Users\Administrator\.cargo\bin\cargo.exe test --manifest-path E:\AI_Agent\src-tauri\Cargo.toml --all-features --locked --offline -- --nocapture --test-threads=1
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.14s
+     Running unittests src\lib.rs (src-tauri\target\debug\deps\spectrum_agent-b6001364c889b023.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\bin\supervisor_stub.rs (src-tauri\target\debug\deps\supervisor_stub-adcb0492630f654f.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\causality.rs (src-tauri\target\debug\deps\causality-f2e3024024108ae0.exe)
+
+running 2 tests
+test midnight_files_and_preexisting_partial_line_are_handled_without_fallback ... CAUSALITY pure function: launch/exit day files tracked, existing partial line excluded, no engine_boot/boot_id PID fallback
+ok
+test only_new_complete_lines_with_own_integer_pid_in_utc_window_can_be_cause ... CAUSALITY pure function: old/missing/wrong/noninteger PID, wrong logger/event/code, out-of-window, partial JSON excluded; own new complete line accepted
+ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests\contracts.rs (src-tauri\target\debug\deps\contracts-e5d78a5d06b21f39.exe)
+
+running 6 tests
+test all_transition_pairs_and_stopping_terminal_rule ... ok
+test exact_fields_and_top_level_are_enforced ... ok
+test late_generation_and_expected_exit_cannot_fail_current_attempt ... ok
+test metadata_types_bounds_and_exact_strings_are_enforced ... ok
+test times_reject_nonexistent_dates_leap_seconds_and_non_millisecond_formats ... ok
+test valid_handshake_values_and_integer_utc_comparison ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\supervisor_stubs.rs (src-tauri\target\debug\deps\supervisor_stubs-4547224912d4d370.exe)
+
+running 7 tests
+test absent_executable_immediately_fails_and_does_not_clean_invalid_old_handshake ... MISSING PATH (constructor injection): kind=SpawnFailed elapsed_ms=11 preexisting_handshake_invalid=retained bytes_unchanged=true
+ok
+test retry_waits_for_cleanup_and_late_a_exit_cannot_change_b ... STUB retry: A_generation=1 B_generation=2 late_A_exit=discarded B=Ready
+ok
+test stub_alive_without_handshake_times_out_after_actual_30_seconds ... STUB no-handshake: pid=Some(22232) kind=StartupTimeout elapsed_ms=30053 pending_activation=true
+ok
+Error: "state wait expired: wanted=Ready, observed=Snapshot { generation_id: 1, phase: Failed, pid: Some(20448), port: None, boot_id: None, failure: Some(Failure { kind: ExitedBeforeReady, exit_reason: ProcessExit { code: 70 }, preexisting_handshake_invalid: None, engine_error: None, handshake_path: \"E:\\\\AI_Agent\\\\src-tauri\\\\target/stub-runtime\\\\17736-1792308155667-4\\\\run/handshake.json\", log_path: \"E:\\\\AI_Agent\\\\src-tauri\\\\target/stub-runtime\\\\17736-1792308155667-4\\\\logs\\\\engine-20261018.jsonl\", data_directory: \"E:\\\\AI_Agent\\\\src-tauri\\\\target/stub-runtime\\\\17736-1792308155667-4\" }), cleanup_complete: true, pending_activation: false }"
+test stub_exit_after_ready_produces_exactly_one_failure_transition ... FAILED
+test stub_immediate_exit_reports_actual_exit_code ... STUB immediate-exit: pid=Some(22452) code=23 kind=ExitedBeforeReady elapsed_ms=62
+ok
+test stub_ready_then_stop_has_no_listening_port_and_separate_app_exit ... STUB ready/stop: pid=Some(22356) port=55859 phase=Stopping port_absent=true app_exit=1 token_leaks=0
+ok
+test stub_wrong_health_boot_id_fails_only_after_child_identity_validation ... STUB mismatch: pid=Some(21836) child_pid_and_created_at=verified failure_layer=health_boot_id kind=HealthIdentityMismatch
+ok
+
+failures:
+
+failures:
+    stub_exit_after_ready_produces_exactly_one_failure_transition
+
+test result: FAILED. 6 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 37.52s
+
+error: test failed, to rerun pass `--test supervisor_stubs`
+EXIT_CODE: 101

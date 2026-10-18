@@ -1,0 +1,141 @@
+{
+  "recorded_utc": "2026-10-18T07:27:20.2504097Z",
+  "cargo_home": "E:\\AI_Agent\\.cargo-home",
+  "cargo_target_dir": "E:\\AI_Agent\\src-tauri\\target",
+  "resolved_target_directory": "E:\\AI_Agent\\src-tauri\\target",
+  "default_c_registry_exists": false,
+  "lock_path": "src-tauri/Cargo.lock",
+  "lock_bytes": 25117,
+  "lock_sha256": "24a4beb3d9a41b6b483da938dc00d28ebd04c7fa2208d0626e863104b07dc51d",
+  "resolved_package_count_including_root": 104,
+  "direct_dependencies": [
+    {
+      "name": "chrono",
+      "req": "=0.4.45",
+      "uses_default_features": false,
+      "features": [
+        "std",
+        "clock"
+      ]
+    },
+    {
+      "name": "reqwest",
+      "req": "=0.13.5",
+      "uses_default_features": false,
+      "features": [
+        "blocking",
+        "json"
+      ]
+    },
+    {
+      "name": "serde",
+      "req": "=1.0.229",
+      "uses_default_features": true,
+      "features": [
+        "derive"
+      ]
+    },
+    {
+      "name": "serde_json",
+      "req": "=1.0.154",
+      "uses_default_features": true,
+      "features": []
+    },
+    {
+      "name": "windows-sys",
+      "req": "=0.61.2",
+      "uses_default_features": true,
+      "features": [
+        "Win32_Foundation",
+        "Win32_Security",
+        "Win32_System_JobObjects",
+        "Win32_System_Threading"
+      ]
+    }
+  ],
+  "regression_groups": {
+    "causality": 2,
+    "contracts": 6,
+    "supervisor_stubs": 8,
+    "win32_failures": 3
+  },
+  "total_tests": 19,
+  "source_sha256": [
+    {
+      "path": "src-tauri/src/causality.rs",
+      "sha256": "268bb7ef6b4cadf453ba34fa01f7456aaf806f1ec53c11309000c2f9a7e4ff55"
+    },
+    {
+      "path": "src-tauri/src/handshake.rs",
+      "sha256": "2d4ebbdbc05b00ad0a07cf233f4e161ec9fa6bfbf16735875202e55d5de308bb"
+    },
+    {
+      "path": "src-tauri/src/health.rs",
+      "sha256": "98a9a872db62510003b1354c999e7e9271e371dcb0a2ea5951496dd0787b57cb"
+    },
+    {
+      "path": "src-tauri/src/lib.rs",
+      "sha256": "851a844c3184568f9d473d2dc475e4df95f9dc19ce543c4d303c0a9e16f2bee2"
+    },
+    {
+      "path": "src-tauri/src/logging.rs",
+      "sha256": "4abcc6e5efff7c021c96655259386a6fa135dad1af6ba826021592ea1bc58a5c"
+    },
+    {
+      "path": "src-tauri/src/process.rs",
+      "sha256": "d091ca75c79bab8a6937b87770f80db745d66df8361d24d39dfbecc40029ad43"
+    },
+    {
+      "path": "src-tauri/src/state.rs",
+      "sha256": "be74cfe6a81c443634bf8b34086fbb5acfb401ba80f817af166a7079588bbaee"
+    },
+    {
+      "path": "src-tauri/src/supervisor.rs",
+      "sha256": "faa24cfc9787b69d40f2696bd34c2d489d63d6833ca2542125eee3e779460409"
+    },
+    {
+      "path": "src-tauri/src/win32.rs",
+      "sha256": "411220564ba2f0a50a03a5481f6400ec09b8552b9bf0bb53b10eaaf7f4b50d56"
+    },
+    {
+      "path": "src-tauri/src/bin/supervisor_stub.rs",
+      "sha256": "91f167030d07a21f6ded2e4b6d25a6a6b9af6b09ba12c0dbe949290afa1670bd"
+    },
+    {
+      "path": "src-tauri/tests/causality.rs",
+      "sha256": "edbd82bda2c6779bdb1ab961895fe43b0652a0d534a115110128875c97940545"
+    },
+    {
+      "path": "src-tauri/tests/contracts.rs",
+      "sha256": "cc7e1f1170185d38ef2f9709460c81ee5201bc741000dd17e5e8a4dac908ca6c"
+    },
+    {
+      "path": "src-tauri/tests/supervisor_stubs.rs",
+      "sha256": "a227a970b6f424c47de0f12a0aae3a6889b4119c8bc38017e1d6d6cdea9c9b53"
+    },
+    {
+      "path": "src-tauri/tests/win32_failures.rs",
+      "sha256": "034a0061e4b89747fcea97960cb41bf48ee7634f5cea343384036acfb1f5bb06"
+    },
+    {
+      "path": "src-tauri/Cargo.toml",
+      "sha256": "0971d385e522a8e1f5ca9a719c175e3c3526245df8941f317d3895653f3dba98"
+    }
+  ],
+  "native_evidence": {
+    "path": "artifacts/step3/checkpoint-1/acceptance-native-fixed-output.txt",
+    "sha256": "4b97d3a642cb9616e1a1806e7a7a25d47cc1d7129481f9305372b07541efeb3a",
+    "commands_with_zero_exit": 5,
+    "captured_passed_tests": 19,
+    "ready_exit_repeat_passed": 10
+  },
+  "final_audit": {
+    "stub_logs_scanned": 40,
+    "actual_unique_handshake_tokens": 1,
+    "exact_token_hits": 0,
+    "authorization_bearer_hits": 0,
+    "full_handshake_hits": 0,
+    "matching_stub_processes": 0,
+    "initial_exit_70_internal_cause": "unverified"
+  }
+}

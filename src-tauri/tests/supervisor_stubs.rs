@@ -85,6 +85,18 @@ fn logs(running: &Running) -> Result<Vec<serde_json::Value>, Box<dyn std::error:
 }
 
 #[test]
+fn stub_tolerates_disconnected_health_client() -> TestResult {
+    let running = start(prepare()?, "ready")?;
+    let ready = wait(&running, Phase::Ready, Duration::from_secs(5))?;
+    let port = ready.port.ok_or("port missing")?;
+    drop(TcpStream::connect(("127.0.0.1", port))?);
+    std::thread::sleep(Duration::from_millis(250));
+    assert_eq!(running.handle.snapshot()?.phase, Phase::Ready);
+    println!("STUB transport: client disconnected without a request; stub remains Ready");
+    Ok(())
+}
+
+#[test]
 fn stub_ready_then_stop_has_no_listening_port_and_separate_app_exit() -> TestResult {
     let running = start(prepare()?, "ready")?;
     let ready = wait(&running, Phase::Ready, Duration::from_secs(5))?;
@@ -175,7 +187,16 @@ fn stub_wrong_health_boot_id_fails_only_after_child_identity_validation() -> Tes
 fn stub_exit_after_ready_produces_exactly_one_failure_transition() -> TestResult {
     let running = start(prepare()?, "ready-exit")?;
     wait(&running, Phase::Ready, Duration::from_secs(5))?;
+    fs::write(running.root.join("ready-ack"), b"parent_observed_Ready")?;
     let failed = wait(&running, Phase::Failed, Duration::from_secs(5))?;
+    assert!(matches!(
+        failed
+            .failure
+            .as_ref()
+            .ok_or("failure missing")?
+            .exit_reason,
+        ExitReason::ProcessExit { code: 24 }
+    ));
     assert_eq!(
         failed.failure.ok_or("failure missing")?.kind,
         FailureKind::EngineExitedAfterReady

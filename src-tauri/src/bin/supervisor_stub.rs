@@ -3,13 +3,44 @@ use chrono::{DateTime, SecondsFormat, Utc};
 use serde_json::json;
 use spectrum_agent::win32::{NativeWin32, Win32};
 use std::{
-    fs,
+    fs::{self, OpenOptions},
     io::{Read, Write},
-    net::TcpListener,
+    net::{TcpListener, TcpStream},
     path::PathBuf,
     time::{Duration, Instant},
 };
 use windows_sys::Win32::System::Threading::GetCurrentProcess;
+
+fn serve_health(connection: &mut TcpStream, mode: &str) -> std::io::Result<bool> {
+    connection.set_read_timeout(Some(Duration::from_secs(1)))?;
+    connection.set_write_timeout(Some(Duration::from_secs(1)))?;
+    let mut request = Vec::new();
+    while request.len() < 4096 && !request.windows(4).any(|bytes| bytes == b"\r\n\r\n") {
+        let mut chunk = [0; 512];
+        let count = connection.read(&mut chunk)?;
+        if count == 0 {
+            return Ok(false);
+        }
+        request.extend_from_slice(&chunk[..count]);
+    }
+    if !request.starts_with(b"GET /health ") {
+        return Ok(false);
+    }
+    let boot_id = if mode == "wrong-boot" {
+        "deadbeef"
+    } else {
+        "1234abcd"
+    };
+    let body=json!({"status":"ok","boot_id":boot_id,"pid":std::process::id(),"version":"0.1.0","uptime_s":0.1}).to_string();
+    write!(
+        connection,
+        "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nConnection: close\r\nContent-Length: {}\r\n\r\n{}",
+        body.len(),
+        body
+    )?;
+    connection.flush()?;
+    Ok(true)
+}
 
 fn run() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = std::env::args_os().skip(1);
@@ -52,36 +83,31 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         root.join("run/handshake.json.tmp"),
         root.join("run/handshake.json"),
     )?;
-    let mut health_served = None;
+    let mut health_served = false;
+    let mut ready_ack = None;
     loop {
-        if mode == "ready-exit"
-            && health_served
-                .is_some_and(|start: Instant| start.elapsed() > Duration::from_millis(600))
-        {
+        if mode == "ready-exit" && health_served && root.join("ready-ack").is_file() {
+            ready_ack.get_or_insert_with(Instant::now);
+        }
+        if ready_ack.is_some_and(|start: Instant| start.elapsed() > Duration::from_millis(100)) {
             std::process::exit(24);
         }
         match listener.accept() {
             Ok((mut connection, _)) => {
-                connection.set_read_timeout(Some(Duration::from_secs(1)))?;
-                let mut request = [0_u8; 4096];
-                let count = connection.read(&mut request)?;
-                if !request[..count].starts_with(b"GET /health ") {
-                    return Err("stub received a non-health request".into());
+                let result = serve_health(&mut connection, &mode);
+                if matches!(result, Ok(true)) {
+                    health_served = true;
                 }
-                let boot_id = if mode == "wrong-boot" {
-                    "deadbeef"
-                } else {
-                    "1234abcd"
-                };
-                let body=json!({"status":"ok","boot_id":boot_id,"pid":std::process::id(),"version":"0.1.0","uptime_s":0.1}).to_string();
-                write!(
-                    connection,
-                    "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nConnection: close\r\nContent-Length: {}\r\n\r\n{}",
-                    body.len(),
-                    body
+                // A cancelled/timed-out health request is a connection event, not a process failure.
+                let mut events = OpenOptions::new()
+                    .create(true)
+                    .append(true)
+                    .open(root.join("connection-events.jsonl"))?;
+                writeln!(
+                    events,
+                    "{}",
+                    json!({"served":result.as_ref().ok(),"error":result.as_ref().err().map(ToString::to_string)})
                 )?;
-                connection.flush()?;
-                health_served.get_or_insert_with(Instant::now);
             }
             Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
                 std::thread::sleep(Duration::from_millis(5))
@@ -93,6 +119,12 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
 
 fn main() {
     if let Err(error) = run() {
+        if let Some(root) = std::env::args_os().nth(2) {
+            let _ = fs::write(
+                PathBuf::from(root).join("stub-error.txt"),
+                error.to_string(),
+            );
+        }
         eprintln!("supervisor test stub failed: {error}");
         std::process::exit(70);
     }
