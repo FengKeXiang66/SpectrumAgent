@@ -22,6 +22,7 @@ artifacts/step2/*
 !artifacts/step2/rasterio-dll-inventory.json
 !artifacts/step2/startup-measurements.json
 !artifacts/step2/source-manifest.json
+!artifacts/step2/product-manifest.json
 !artifacts/step2/environment-final-output.txt
 !artifacts/step2/pytest-output.txt
 !artifacts/step2/build-output.log
