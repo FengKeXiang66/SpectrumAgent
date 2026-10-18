@@ -1,10 +1,10 @@
 # Win11 干净 VM 建机与验收手册（阶段一验收 1/2/3/4 解锁）
 
-**状态（2026-10-18 14:35 实机核查）：干净 Win11 装机完成，pristine 底座已就位。**
+**当前状态（负责人 2026-10-18 15:41 更新）：干净 Win11 装机完成，pristine 底座已就位；安装验收仍待 VM 实机。**
 
 本轮实机已完成：
 - Win11 专业版装成（经 WIM 直部部署，见第 3.5 步），OOBE 走 `oobe\bypassnro` → 本地账户 `test` → 桌面正常
-- **pristine 检查点已创建**（`bb3d1cac-a20d-4a60-b5ba-4090353333d7`，2026-10-18 14:32:24）
+- **当前 pristine 检查点**（`f7ea81cf-6c3a-4823-9a7b-5fe77f4c2300`，2026-10-18 15:41:03）；旧 `bb3d1cac` 已作废删除，不得恢复或引用为当前底座。
 - Secure Boot 已开回 **On**（与客户机常见配置对齐）
 - 来宾服务接口已启用；**Copy-VMFile 送文件验证通过**（探针 `artifacts\vm-probe.txt`，源 SHA256 `FBE533AF...9AED`，VM 内 `Get-FileHash` 回读一致；注意 VM 重启后需等来宾服务就绪约 30 秒再发，否则报 0x800710DF「设备未就绪」）。VM 内本地账户实际名 `fkx`（非 test，无碍）
 - VM：Running，磁盘 15.88GB，8GB 内存
@@ -18,7 +18,7 @@
 本次脚本修复：创建本地 Key Protector 后才 Enable-VMTPM；显式打开 Secure Boot；
 建机与 send 路径均启用 Guest Service Interface；送文件使用 `-FileSource Host`，
 而非不存在的 `-FileSourceHost` 参数。新 VM 显式添加 DVD 并设为首启动设备。
-这些 API 已核对微软文档，宿主机缺模块，**本机实际调用仍未验证**：
+这些 API 的文档依据如下；负责人已启用 Hyper-V 并重启，现为 Enabled、vmms 运行、模块可用，不再使用旧“缺模块”探针作当前结论。建机/送文件已有负责人实测，restore 恢复验证仍待后续正式验收：
 [Set-VMKeyProtector](https://learn.microsoft.com/en-us/powershell/module/hyper-v/set-vmkeyprotector)、
 [Integration Services](https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/manage/manage-hyper-v-integration-services)、
 [Copy-VMFile](https://learn.microsoft.com/en-us/powershell/module/hyper-v/copy-vmfile)、
@@ -29,7 +29,7 @@
 
 ## 第 1 步：启用 Hyper-V（管理员 PowerShell，跑完重启）
 
-以下是待确认的系统功能安装与重启命令；本轮尚未执行。按项目纪律先获负责人确认。
+以下为历史建机说明。负责人已手动执行并重启，当前不需要再次执行：
 
 ```powershell
 Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All -NoRestart
@@ -96,6 +96,10 @@ Set-ExecutionPolicy -Scope Process Bypass -Force   # 仅当前窗口，允许跑
 | 验收 3 断网安装 | 禁网卡 → 桌面双击 setup.exe → 看 WebView2 是否随包离线装上 |
 | 验收 2 无残留 | VM 内任务管理器：正常关窗 + 强杀外壳各看进程组 |
 | 验收 4 断网 `/smoke` | 保持禁网卡启动应用走一遍冒烟 |
+| 默认安装目录（待 VM 实机） | 恢复当前 pristine，首次安装时不传 `/D=`；从 NSIS 界面/日志及 HKCU 卸载项 InstallLocation 取证，必须为 `%LOCALAPPDATA%\Programs\SpectrumAgent`，不得与数据根重叠。 |
+| 卸载保留用户数据（待 VM 实机） | 卸载前记录 `%LOCALAPPDATA%\SpectrumAgent` 下 run/logs/testdata 的文件名、大小与 SHA256，并放置本轮测试标记；卸载后确认 Programs 下程序目录已移除、数据根与这些内容逐项完好。程序运行阶段自身的握手生命周期不混入卸载比较。 |
+
+安装配置固定 currentUser（无需管理员）、WebView2 offlineInstaller；仅 NSIS 模板 currentUser 默认目录一行变更，保留 `/D=` 优先守卫、不改卸载逻辑、不用 installerHooks。模板来源与单行字节差异见 `artifacts/step3/checkpoint-4/release-custom-protocol-20261018/`。这两项未实测前，安装/卸载验收保持“待 VM 实机”，不得用宿主机测试替代。
 
 ## 空间与卫生纪律
 
