@@ -1,4 +1,4 @@
-param([Parameter(ValueFromRemainingArguments=$true)][string[]]$NpmArguments)
+﻿param([Parameter(ValueFromRemainingArguments=$true)][string[]]$NpmArguments)
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
 $toolchainDir = Join-Path $PSScriptRoot '.toolchains\node24.19.0-npm10.8.2'

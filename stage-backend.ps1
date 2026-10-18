@@ -1,4 +1,4 @@
-param(
+﻿param(
     [ValidateSet('Canonical','FaultFixture')][string]$Mode='Canonical',
     [string]$Source,
     [string]$Manifest
