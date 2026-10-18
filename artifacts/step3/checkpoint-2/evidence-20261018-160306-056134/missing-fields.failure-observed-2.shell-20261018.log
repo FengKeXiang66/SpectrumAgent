@@ -1,0 +1,12 @@
+{"event":"shell_log_started","timestamp":"2026-10-18T08:03:21.392Z"}
+{"event":"engine_start_attempt","exe":"E:\\AI_Agent\\artifacts\\step2\\dist\\app\\app.exe","generation_id":1,"selection_source":"development_override","timestamp":"2026-10-18T08:03:21.393Z"}
+{"event":"preexisting_handshake_snapshot","generation_id":1,"old_identity":null,"preexisting_handshake_invalid":"InvalidFields","timestamp":"2026-10-18T08:03:21.394Z"}
+{"event":"process_created_suspended","generation_id":1,"pid":1448,"timestamp":"2026-10-18T08:03:21.400Z"}
+{"event":"job_assigned","generation_id":1,"pid":1448,"timestamp":"2026-10-18T08:03:21.400Z"}
+{"event":"thread_resumed_and_closed","generation_id":1,"pid":1448,"timestamp":"2026-10-18T08:03:21.400Z"}
+{"event":"process_identity_recorded","generation_id":1,"pid":1448,"process_created_at_ms":1792310601396,"timestamp":"2026-10-18T08:03:21.400Z"}
+{"event":"handshake_wait","generation_id":1,"reason":"not_valid_yet","timestamp":"2026-10-18T08:03:21.401Z"}
+{"event":"engine_process_exit","exit_code":1,"generation_id":1,"pid":1448,"timestamp":"2026-10-18T08:03:21.984Z","wait_error":null}
+{"event":"state_transition","from":"Starting","generation_id":1,"reason":"engine_failure","timestamp":"2026-10-18T08:03:21.985Z","to":"Failed"}
+{"event":"engine_failure","failure":{"data_directory":"C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent","engine_error":"HANDSHAKE_INVALID_FIELDS","exit_reason":{"ProcessExit":{"code":1}},"handshake_path":"C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\run/handshake.json","kind":"HandshakeInvalid","log_path":"C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\engine-20261018.jsonl","preexisting_handshake_invalid":"InvalidFields"},"generation_id":1,"timestamp":"2026-10-18T08:03:21.985Z"}
+{"complete":true,"errors":[],"event":"generation_cleanup","generation_id":1,"timestamp":"2026-10-18T08:03:22.011Z"}

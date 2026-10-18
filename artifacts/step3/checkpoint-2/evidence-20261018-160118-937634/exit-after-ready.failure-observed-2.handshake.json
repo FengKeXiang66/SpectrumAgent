@@ -1,0 +1,10 @@
+{
+  "boot_id": "e76e11c4",
+  "pid": 11588,
+  "process_created_at": "2026-10-18T08:01:48.053Z",
+  "port": 57678,
+  "token": "<redacted>",
+  "protocol": 1,
+  "version": "0.1.0",
+  "started_at": "2026-10-18T08:01:48.609Z"
+}

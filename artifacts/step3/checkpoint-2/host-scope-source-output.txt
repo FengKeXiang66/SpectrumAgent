@@ -1,0 +1,6 @@
+src-tauri/src\engine_path.rs:21:        if let Some(exe) = std::env::var_os("SPECTRUM_ENGINE_EXE") {
+src-tauri/src\health.rs:2:use reqwest::blocking::Client;
+src-tauri/src\health.rs:16:    pub fn new() -> Result<Self, reqwest::Error> {
+src-tauri/src\health.rs:20:                .redirect(reqwest::redirect::Policy::none())
+src-tauri/src\health.rs:27:    // The only reqwest request in this crate: numeric loopback and fixed /health.
+src-tauri/src\health.rs:32:            .get(format!("http://127.0.0.1:{}/health", handshake.port))

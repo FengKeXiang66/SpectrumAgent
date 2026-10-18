@@ -1,0 +1,5 @@
+输出目录=E:\AI_Agent\artifacts\step3\checkpoint-2\evidence-20261018-155624-671746
+python=E:\AI_Agent\.venv\Scripts\python.exe
+CARGO_HOME=E:\AI_Agent\.cargo-home
+CARGO_TARGET_DIR=E:\AI_Agent\src-tauri\target
+检查失败：preflight；内部错误/原始证据先落盘：E:\AI_Agent\artifacts\step3\checkpoint-2\evidence-20261018-155624-671746。

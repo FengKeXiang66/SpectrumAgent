@@ -1,0 +1,6 @@
+{"debug_assertions":true,"probe_pid":8928,"selection":{"exe":"E:\\AI_Agent\\artifacts\\step2\\dist\\app\\app.exe","source":"development_override"}}
+{"Status":{"generation_id":1,"phase":"Starting","pid":20832,"port":null,"boot_id":null,"failure":null,"cleanup_complete":false,"pending_activation":false}}
+{"Status":{"generation_id":1,"phase":"Ready","pid":20832,"port":52951,"boot_id":"a3412e8a","failure":null,"cleanup_complete":false,"pending_activation":false}}
+{"Status":{"generation_id":1,"phase":"Stopping","pid":20832,"port":52951,"boot_id":"a3412e8a","failure":null,"cleanup_complete":false,"pending_activation":false}}
+{"Status":{"generation_id":1,"phase":"Stopping","pid":20832,"port":52951,"boot_id":"a3412e8a","failure":null,"cleanup_complete":true,"pending_activation":false}}
+"AppExit"

@@ -1,0 +1,6 @@
+{
+  "stdout_base64": "",
+  "stderr_base64": "W1BZSS0xNjIwMDpFUlJPUl0gRmFpbGVkIHRvIGxvYWQgUHl0aG9uIERMTCAnRTpcQUlfQWdlbnRcc3JjLXRhdXJpXHRhcmdldFxjaGVja3BvaW50Mi1maXh0dXJlc1wyMDI2MTAxOC0xNjAzMDYtMDU2MTM0XGFwcFxfaW50ZXJuYWxccHl0aG9uMzEyLmRsbCcuDQpMb2FkTGlicmFyeTogPz8/Pz8/Pz8/DQ0K",
+  "exit_code": 4294967295,
+  "capture_scope": "independent control launch, not the supervisor launch stderr"
+}

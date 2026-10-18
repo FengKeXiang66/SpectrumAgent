@@ -1,0 +1,5 @@
+{
+  "command": "cargo fmt --manifest-path src-tauri/Cargo.toml --check",
+  "exit_code": 0,
+  "stdout_stderr_lines": 0
+}

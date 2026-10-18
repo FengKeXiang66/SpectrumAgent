@@ -1,0 +1,14 @@
+{
+  "result": "passed",
+  "canonical_file_count": 544,
+  "canonical_bytes": 255564460,
+  "canonical_manifest_match_before_and_after": true,
+  "actual_tokens_scanned": 5,
+  "token_leaks": 0,
+  "probe_residual_count": 0,
+  "handshake_absent_after_test_hygiene": true,
+  "step2_status": "待实机验证",
+  "initial_stub_exit70_internal_cause": "未验证",
+  "tauri_resource_layout_and_ui": "未验证",
+  "dev_ready_elapsed_ms_probe_to_snapshot": 699.099
+}

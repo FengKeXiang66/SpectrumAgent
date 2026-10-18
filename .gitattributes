@@ -14,4 +14,7 @@ src-tauri/Cargo.lock text eol=lf
 artifacts/step3/**/*.txt -text -whitespace
 artifacts/step3/**/*.json -text -whitespace
 artifacts/step3/**/*.jsonl -text -whitespace
+artifacts/step3/**/*.log -text -whitespace
 artifacts/step3/checkpoint-1/REPORT.md -text -whitespace
+artifacts/step3/checkpoint-2/REPORT.md -text -whitespace
+artifacts/step3/checkpoint-2/*.ps1 text eol=lf

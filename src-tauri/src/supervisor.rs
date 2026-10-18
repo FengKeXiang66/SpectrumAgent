@@ -1,5 +1,6 @@
 use crate::{
     causality::EngineLogCursor,
+    engine_path::EngineSelection,
     handshake::{self, Handshake, HandshakeIssue},
     health::{HealthClient, HealthResult},
     logging::ShellLog,
@@ -196,11 +197,41 @@ impl Drop for Attempt {
 
 pub struct EngineSupervisor;
 impl EngineSupervisor {
+    pub fn start_selected(
+        selection: EngineSelection,
+        data_root: PathBuf,
+        api: Arc<dyn Win32>,
+    ) -> io::Result<(SupervisorHandle, Receiver<SupervisorEvent>)> {
+        let invalid_shape = !selection.valid_shape();
+        let source = selection.source;
+        Self::start_inner(
+            SupervisorConfig {
+                process: SpawnRequest {
+                    exe: selection.exe,
+                    args: vec![],
+                },
+                data_root,
+            },
+            api,
+            invalid_shape,
+            source,
+        )
+    }
+
     /// Host precondition: the Tauri single-instance plugin has acquired the application lock.
     /// No product mutex or handshake lifecycle operation is implemented in this core.
     pub fn start(
         config: SupervisorConfig,
         api: Arc<dyn Win32>,
+    ) -> io::Result<(SupervisorHandle, Receiver<SupervisorEvent>)> {
+        Self::start_inner(config, api, false, "constructor_injection")
+    }
+
+    fn start_inner(
+        config: SupervisorConfig,
+        api: Arc<dyn Win32>,
+        invalid_shape: bool,
+        selection_source: &'static str,
     ) -> io::Result<(SupervisorHandle, Receiver<SupervisorEvent>)> {
         let log = ShellLog::new(&config.data_root)?;
         let initial = Snapshot {
@@ -230,6 +261,8 @@ impl EngineSupervisor {
             preexisting: None,
             verified: None,
             pending_cleanup_errors: Vec::new(),
+            invalid_shape,
+            selection_source,
         };
         let join = thread::Builder::new()
             .name("engine-supervisor".to_owned())
@@ -246,6 +279,8 @@ impl EngineSupervisor {
 }
 
 struct Actor {
+    invalid_shape: bool,
+    selection_source: &'static str,
     config: SupervisorConfig,
     api: Arc<dyn Win32>,
     log: ShellLog,
@@ -327,17 +362,37 @@ impl Actor {
         let generation = self.view.generation_id;
         self.log(
             "engine_start_attempt",
-            json!({"generation_id":generation,"exe":self.config.process.exe}),
+            json!({"generation_id":generation,"exe":self.config.process.exe,"selection_source":self.selection_source}),
         );
+        let mut old_identity = None;
         self.preexisting = match fs::read(self.config.data_root.join("run/handshake.json")) {
-            Ok(bytes) => handshake::parse(&bytes).err(),
+            Ok(bytes) => match handshake::parse(&bytes) {
+                Ok(old) => {
+                    old_identity = Some(
+                        json!({"pid":old.pid,"boot_id":old.boot_id,"port":old.port,"process_created_at_ms":old.process_created_at_ms}),
+                    );
+                    None
+                }
+                Err(issue) => Some(issue),
+            },
             Err(e) if e.kind() == io::ErrorKind::NotFound => None,
             Err(_) => Some(HandshakeIssue::ReadFailed),
         };
         self.log(
             "preexisting_handshake_snapshot",
-            json!({"generation_id":generation,"preexisting_handshake_invalid":self.preexisting}),
+            json!({"generation_id":generation,"preexisting_handshake_invalid":self.preexisting,"old_identity":old_identity}),
         );
+        if self.invalid_shape {
+            self.fail(
+                FailureKind::SpawnFailed,
+                ExitReason::Win32 {
+                    api: "EnginePathValidation",
+                    code: 87,
+                },
+                None,
+            );
+            return;
+        }
         let cursor = match EngineLogCursor::capture(
             self.log.directory(),
             Local::now().format("%Y%m%d").to_string(),
@@ -375,6 +430,7 @@ impl Actor {
             }
         };
         self.view.pid = Some(child.pid);
+        self.log("process_identity_recorded", json!({"generation_id":generation,"pid":child.pid,"process_created_at_ms":child.created_at_ms}));
         let cancelled = Arc::new(AtomicBool::new(false));
         let mut attempt = Attempt {
             child,

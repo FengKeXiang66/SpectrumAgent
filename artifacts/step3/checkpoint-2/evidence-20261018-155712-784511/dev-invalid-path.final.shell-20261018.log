@@ -1,0 +1,9 @@
+{"event":"shell_log_started","timestamp":"2026-10-18T07:57:20.394Z"}
+{"event":"engine_start_attempt","exe":"E:\\AI_Agent\\src-tauri\\target\\checkpoint2-absent\\app.exe","generation_id":1,"selection_source":"development_override","timestamp":"2026-10-18T07:57:20.395Z"}
+{"event":"preexisting_handshake_snapshot","generation_id":1,"old_identity":null,"preexisting_handshake_invalid":null,"timestamp":"2026-10-18T07:57:20.395Z"}
+{"event":"state_transition","from":"Starting","generation_id":1,"reason":"engine_failure","timestamp":"2026-10-18T07:57:20.396Z","to":"Failed"}
+{"event":"engine_failure","failure":{"data_directory":"C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent","engine_error":null,"exit_reason":{"Win32":{"api":"CreateProcessW","code":2}},"handshake_path":"C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\run/handshake.json","kind":"SpawnFailed","log_path":"C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\engine-20261018.jsonl","preexisting_handshake_invalid":null},"generation_id":1,"timestamp":"2026-10-18T07:57:20.396Z"}
+{"complete":true,"errors":[],"event":"generation_cleanup","generation_id":1,"timestamp":"2026-10-18T07:57:20.397Z"}
+{"event":"state_transition","from":"Failed","generation_id":1,"reason":"application_close","timestamp":"2026-10-18T07:57:20.426Z","to":"Stopping"}
+{"complete":true,"errors":[],"event":"generation_cleanup","generation_id":1,"timestamp":"2026-10-18T07:57:20.426Z"}
+{"event":"app_exit","generation_id":1,"timestamp":"2026-10-18T07:57:20.426Z"}

@@ -1,0 +1,37 @@
+{
+  "exact_original_segment_count": 16,
+  "all_exact": true,
+  "original_increment_checks": {
+    "engine-20261018.jsonl": {
+      "start": 699739,
+      "end": 713476,
+      "bytes": 13737,
+      "lines": 75,
+      "sha256": "89f746d7fd14159f6f1b5168871d133538b73993ca80d93eba8286632e6f984b",
+      "receipt_match": true,
+      "hex32_token_pattern_count": 0,
+      "literal_token_key_count": 0
+    },
+    "shell-20261018.log": {
+      "start": 61878,
+      "end": 82484,
+      "bytes": 20606,
+      "lines": 145,
+      "sha256": "81d442a4ab367454a59121f35138c8eb1dd2f85f034a1b0316dc78b21b530abc",
+      "receipt_match": true,
+      "hex32_token_pattern_count": 0,
+      "literal_token_key_count": 0
+    }
+  },
+  "observed_engine_exit_codes": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    4294967295,
+    1
+  ]
+}

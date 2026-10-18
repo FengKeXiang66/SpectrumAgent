@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "<stdin>", line 5, in <module>
+  File "C:\Users\Administrator\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\pathlib.py", line 1028, in read_text
+    return f.read()
+           ^^^^^^^^
+UnicodeDecodeError: 'gbk' codec can't decode byte 0x81 in position 1124: illegal multibyte sequence

@@ -1,0 +1,16 @@
+{"pid": 20832, "event": "engine_boot", "logger": "engine", "level": "info", "timestamp": "2026-10-18T07:59:30.257311Z"}
+{"event": "Started server process [20832]", "pid": 20832, "boot_id": "a3412e8a", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T07:59:30.549804Z"}
+{"event": "Waiting for application startup.", "pid": 20832, "boot_id": "a3412e8a", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T07:59:30.550205Z"}
+{"event": "Application startup complete.", "pid": 20832, "boot_id": "a3412e8a", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T07:59:30.571583Z"}
+{"event": "Uvicorn running on http://127.0.0.1:52951 (Press CTRL+C to quit)", "pid": 20832, "boot_id": "a3412e8a", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T07:59:30.572303Z"}
+{"event": "127.0.0.1:52952 - \"GET /health HTTP/1.1\" 200", "pid": 20832, "boot_id": "a3412e8a", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T07:59:30.600582Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:52951/health \"HTTP/1.1 200 OK\"", "pid": 20832, "boot_id": "a3412e8a", "logger": "httpx", "level": "info", "timestamp": "2026-10-18T07:59:30.601482Z"}
+{"boot_id": "a3412e8a", "pid": 20832, "port": 52951, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T07:59:30.607435Z"}
+{"event": "127.0.0.1:52953 - \"GET /health HTTP/1.1\" 200", "pid": 20832, "boot_id": "a3412e8a", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T07:59:30.646458Z"}
+{"event": "127.0.0.1:52955 - \"GET /health HTTP/1.1\" 200", "pid": 20832, "boot_id": "a3412e8a", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T07:59:31.113274Z"}
+{"path": "/smoke", "event": "authentication_rejected", "pid": 20832, "boot_id": "a3412e8a", "logger": "engine.http", "level": "warning", "timestamp": "2026-10-18T07:59:31.149524Z"}
+{"event": "127.0.0.1:52956 - \"GET /smoke HTTP/1.1\" 401", "pid": 20832, "boot_id": "a3412e8a", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T07:59:31.150140Z"}
+{"blocks": 1, "nan_ratio": 0.0, "reflectance_range": [-1.5275289241381491, 1.5275289241381491], "bands": 8, "shape": [8, 8, 8], "elapsed_ms": 92.433, "event": "smoke_completed", "pid": 20832, "boot_id": "a3412e8a", "logger": "engine.http", "level": "info", "timestamp": "2026-10-18T07:59:31.272665Z"}
+{"event": "127.0.0.1:52957 - \"GET /smoke HTTP/1.1\" 200", "pid": 20832, "boot_id": "a3412e8a", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T07:59:31.273282Z"}
+{"blocks": 8, "nan_ratio": 0.0, "reflectance_range": [-1.5275289241381491, 1.5275289241381491], "bands": 8, "shape": [8, 8, 8], "elapsed_ms": 203.669, "event": "smoke_completed", "pid": 20832, "boot_id": "a3412e8a", "logger": "engine.http", "level": "info", "timestamp": "2026-10-18T07:59:31.487643Z"}
+{"event": "127.0.0.1:52958 - \"GET /smoke?blocks=8 HTTP/1.1\" 200", "pid": 20832, "boot_id": "a3412e8a", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T07:59:31.488159Z"}

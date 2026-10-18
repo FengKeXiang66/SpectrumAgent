@@ -1,0 +1,6 @@
+{"pid": 1448, "event": "engine_boot", "logger": "engine", "level": "info", "timestamp": "2026-10-18T08:03:21.619735Z"}
+{"event": "Started server process [1448]", "pid": 1448, "boot_id": "c3bfe04d", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T08:03:21.919638Z"}
+{"error": "HANDSHAKE_INVALID_FIELDS", "phase": "startup", "event": "handshake_error", "pid": 1448, "boot_id": "c3bfe04d", "logger": "engine.handshake", "level": "error", "timestamp": "2026-10-18T08:03:21.920571Z"}
+{"error": "HANDSHAKE_INVALID_FIELDS", "phase": "finally", "event": "handshake_error", "pid": 1448, "boot_id": "c3bfe04d", "logger": "engine.handshake", "level": "error", "timestamp": "2026-10-18T08:03:21.920849Z"}
+{"error": "HANDSHAKE_INVALID_FIELDS", "event": "engine_final_cleanup_failed", "pid": 1448, "boot_id": "c3bfe04d", "logger": "engine", "level": "error", "timestamp": "2026-10-18T08:03:21.921442Z"}
+{"error": "HANDSHAKE_INVALID_FIELDS", "event": "engine_start_failed", "pid": 1448, "boot_id": "c3bfe04d", "logger": "engine", "level": "error", "timestamp": "2026-10-18T08:03:21.922031Z"}

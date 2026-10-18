@@ -1,0 +1,18 @@
+[
+  {
+    "generation_id": 1,
+    "pid": 16416,
+    "to": "Ready",
+    "process_created_at_ms": 1792310615468,
+    "transition_at_ms": 1792310616124,
+    "spawn_to_transition_ms": 656
+  },
+  {
+    "generation_id": 1,
+    "pid": 16416,
+    "to": "Failed",
+    "process_created_at_ms": 1792310615468,
+    "transition_at_ms": 1792310616709,
+    "spawn_to_transition_ms": 1241
+  }
+]

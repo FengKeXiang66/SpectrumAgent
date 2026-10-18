@@ -1,0 +1,16 @@
+{"event":"shell_log_started","timestamp":"2026-10-18T08:03:10.005Z"}
+{"event":"engine_start_attempt","exe":"E:\\AI_Agent\\artifacts\\step2\\dist\\app\\app.exe","generation_id":1,"selection_source":"development_override","timestamp":"2026-10-18T08:03:10.006Z"}
+{"event":"preexisting_handshake_snapshot","generation_id":1,"old_identity":{"boot_id":"ca80b7eb","pid":22124,"port":57854,"process_created_at_ms":1792310586367},"preexisting_handshake_invalid":null,"timestamp":"2026-10-18T08:03:10.007Z"}
+{"event":"process_created_suspended","generation_id":1,"pid":17472,"timestamp":"2026-10-18T08:03:10.013Z"}
+{"event":"job_assigned","generation_id":1,"pid":17472,"timestamp":"2026-10-18T08:03:10.013Z"}
+{"event":"thread_resumed_and_closed","generation_id":1,"pid":17472,"timestamp":"2026-10-18T08:03:10.014Z"}
+{"event":"process_identity_recorded","generation_id":1,"pid":17472,"process_created_at_ms":1792310590008,"timestamp":"2026-10-18T08:03:10.014Z"}
+{"event":"handshake_ignored","generation_id":1,"reason":"foreign_identity","timestamp":"2026-10-18T08:03:10.015Z"}
+{"event":"handshake_wait","generation_id":1,"reason":"not_valid_yet","timestamp":"2026-10-18T08:03:10.584Z"}
+{"boot_id":"b11fe604","event":"handshake_identity_verified","generation_id":1,"pid":17472,"process_created_at_ms":1792310590008,"timestamp":"2026-10-18T08:03:10.638Z"}
+{"event":"health_verified","generation_id":1,"pid":17472,"port":57875,"timestamp":"2026-10-18T08:03:10.642Z"}
+{"event":"state_transition","from":"Starting","generation_id":1,"reason":"health_identity_matched","timestamp":"2026-10-18T08:03:10.642Z","to":"Ready"}
+{"event":"state_transition","from":"Ready","generation_id":1,"reason":"application_close","timestamp":"2026-10-18T08:03:11.138Z","to":"Stopping"}
+{"event":"engine_process_exit","exit_code":1,"generation_id":1,"pid":17472,"timestamp":"2026-10-18T08:03:11.147Z","wait_error":null}
+{"complete":true,"errors":[],"event":"generation_cleanup","generation_id":1,"timestamp":"2026-10-18T08:03:11.148Z"}
+{"event":"app_exit","generation_id":1,"timestamp":"2026-10-18T08:03:11.148Z"}

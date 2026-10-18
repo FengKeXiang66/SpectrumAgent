@@ -1,0 +1,12 @@
+{"pid": 19240, "event": "engine_boot", "logger": "engine", "level": "info", "timestamp": "2026-10-18T07:59:43.860234Z"}
+{"event": "Started server process [19240]", "pid": 19240, "boot_id": "1f0742b1", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T07:59:44.186170Z"}
+{"error": "HANDSHAKE_INVALID_JSON", "phase": "startup", "event": "handshake_error", "pid": 19240, "boot_id": "1f0742b1", "logger": "engine.handshake", "level": "error", "timestamp": "2026-10-18T07:59:44.187275Z"}
+{"error": "HANDSHAKE_INVALID_JSON", "phase": "finally", "event": "handshake_error", "pid": 19240, "boot_id": "1f0742b1", "logger": "engine.handshake", "level": "error", "timestamp": "2026-10-18T07:59:44.188488Z"}
+{"error": "HANDSHAKE_INVALID_JSON", "event": "engine_final_cleanup_failed", "pid": 19240, "boot_id": "1f0742b1", "logger": "engine", "level": "error", "timestamp": "2026-10-18T07:59:44.188488Z"}
+{"error": "HANDSHAKE_INVALID_JSON", "event": "engine_start_failed", "pid": 19240, "boot_id": "1f0742b1", "logger": "engine", "level": "error", "timestamp": "2026-10-18T07:59:44.188488Z"}
+{"pid": 21040, "event": "engine_boot", "logger": "engine", "level": "info", "timestamp": "2026-10-18T07:59:44.535882Z"}
+{"event": "Started server process [21040]", "boot_id": "37031382", "pid": 21040, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T07:59:44.848016Z"}
+{"error": "HANDSHAKE_INVALID_JSON", "phase": "startup", "event": "handshake_error", "boot_id": "37031382", "pid": 21040, "logger": "engine.handshake", "level": "error", "timestamp": "2026-10-18T07:59:44.849015Z"}
+{"error": "HANDSHAKE_INVALID_JSON", "phase": "finally", "event": "handshake_error", "boot_id": "37031382", "pid": 21040, "logger": "engine.handshake", "level": "error", "timestamp": "2026-10-18T07:59:44.850019Z"}
+{"error": "HANDSHAKE_INVALID_JSON", "event": "engine_final_cleanup_failed", "boot_id": "37031382", "pid": 21040, "logger": "engine", "level": "error", "timestamp": "2026-10-18T07:59:44.850019Z"}
+{"error": "HANDSHAKE_INVALID_JSON", "event": "engine_start_failed", "boot_id": "37031382", "pid": 21040, "logger": "engine", "level": "error", "timestamp": "2026-10-18T07:59:44.850019Z"}

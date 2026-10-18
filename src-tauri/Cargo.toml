@@ -12,6 +12,11 @@ name = "supervisor-stub"
 path = "src/bin/supervisor_stub.rs"
 required-features = ["test-probes"]
 
+[[bin]]
+name = "supervisor-probe"
+path = "src/bin/supervisor_probe.rs"
+required-features = ["test-probes"]
+
 [lib]
 name = "spectrum_agent"
 path = "src/lib.rs"

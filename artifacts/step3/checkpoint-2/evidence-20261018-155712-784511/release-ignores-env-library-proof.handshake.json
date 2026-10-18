@@ -1,0 +1,10 @@
+{
+  "boot_id": "cb6fcb28",
+  "pid": 22144,
+  "process_created_at": "2026-10-18T07:57:23.637Z",
+  "port": 52611,
+  "token": "<redacted>",
+  "protocol": 1,
+  "version": "0.1.0",
+  "started_at": "2026-10-18T07:57:24.214Z"
+}

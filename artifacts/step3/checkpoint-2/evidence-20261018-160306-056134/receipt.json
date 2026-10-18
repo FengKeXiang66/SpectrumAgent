@@ -1,0 +1,32 @@
+{
+  "result": "passed",
+  "canonical_file_count": 544,
+  "canonical_bytes": 255564460,
+  "canonical_manifest_match_before_and_after": true,
+  "actual_tokens_scanned": 5,
+  "token_leaks": 0,
+  "actual_token_sha256": [
+    "2e882c33a4dc0296c82fb4f8911646dfdf1b1d658311e2325d1a6f7945271e8d",
+    "6efb236f3459e4a40cfca0494ea3f348d862c8953c6b2970330a8e94f17527eb",
+    "7b69fe51e2d24f96468d24a00a9110ccd1ba241a1f90787bb88e8b816028559f",
+    "d4622fb622cfe0080e48e88f4957d5f15ff390cbf0412d8e5bd8c2ee72e10b89",
+    "fd079a6ce6ee46f4e44182574561769b724e8bcd15b0c771d2024530066555b0"
+  ],
+  "original_runtime_log_token_leaks": 0,
+  "original_runtime_logs_scanned": [
+    "engine-20261018.jsonl",
+    "shell-20261018.log"
+  ],
+  "original_runtime_append_sha256": {
+    "engine-20261018.jsonl": "89f746d7fd14159f6f1b5168871d133538b73993ca80d93eba8286632e6f984b",
+    "shell-20261018.log": "81d442a4ab367454a59121f35138c8eb1dd2f85f034a1b0316dc78b21b530abc"
+  },
+  "shell_json_lines_valid": true,
+  "shell_token_key_count": 0,
+  "probe_residual_count": 0,
+  "handshake_absent_after_test_hygiene": true,
+  "step2_status": "待实机验证",
+  "initial_stub_exit70_internal_cause": "未验证",
+  "tauri_resource_layout_and_ui": "未验证",
+  "dev_ready_elapsed_ms_probe_to_snapshot": 627.11
+}

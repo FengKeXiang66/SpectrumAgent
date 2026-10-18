@@ -1,0 +1,11 @@
+{"event":"shell_log_started","timestamp":"2026-10-18T07:57:13.099Z"}
+{"event":"engine_start_attempt","exe":"E:\\AI_Agent\\artifacts\\step2\\dist\\app\\app.exe","generation_id":1,"selection_source":"development_override","timestamp":"2026-10-18T07:57:13.100Z"}
+{"event":"preexisting_handshake_snapshot","generation_id":1,"old_identity":null,"preexisting_handshake_invalid":null,"timestamp":"2026-10-18T07:57:13.101Z"}
+{"event":"process_created_suspended","generation_id":1,"pid":20512,"timestamp":"2026-10-18T07:57:13.119Z"}
+{"event":"job_assigned","generation_id":1,"pid":20512,"timestamp":"2026-10-18T07:57:13.119Z"}
+{"event":"thread_resumed_and_closed","generation_id":1,"pid":20512,"timestamp":"2026-10-18T07:57:13.120Z"}
+{"event":"process_identity_recorded","generation_id":1,"pid":20512,"process_created_at_ms":1792310233109,"timestamp":"2026-10-18T07:57:13.120Z"}
+{"event":"handshake_wait","generation_id":1,"reason":"not_valid_yet","timestamp":"2026-10-18T07:57:13.121Z"}
+{"boot_id":"61541fe3","event":"handshake_identity_verified","generation_id":1,"pid":20512,"process_created_at_ms":1792310233109,"timestamp":"2026-10-18T07:57:13.770Z"}
+{"event":"health_verified","generation_id":1,"pid":20512,"port":52566,"timestamp":"2026-10-18T07:57:13.775Z"}
+{"event":"state_transition","from":"Starting","generation_id":1,"reason":"health_identity_matched","timestamp":"2026-10-18T07:57:13.775Z","to":"Ready"}

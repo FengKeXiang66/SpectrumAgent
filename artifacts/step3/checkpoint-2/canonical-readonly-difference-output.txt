@@ -1,0 +1,12 @@
+{
+  "expected_count": 544,
+  "actual_count": 544,
+  "missing": [],
+  "extra": [],
+  "changed": [],
+  "first_order_difference": [
+    0,
+    "_internal/PIL/_avif.cp312-win_amd64.pyd",
+    "_internal/_asyncio.pyd"
+  ]
+}

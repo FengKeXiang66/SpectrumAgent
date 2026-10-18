@@ -1,0 +1,47 @@
+{
+  "base_head": "9312a96",
+  "source_sha256": {
+    "artifacts/step3/checkpoint-2/audit_evidence.py": "b1991c891aab2275717a9911eba49b311013f97b531011c2de47ca17838a739d",
+    "artifacts/step3/checkpoint-2/selfcheck_checkpoint2.ps1": "3d74da26ff75857ca2894918f97b1a332fbcf049597595cb0061355d62f80d06",
+    "artifacts/step3/checkpoint-2/selfcheck_checkpoint2.py": "ce7c60cbd4c465f8b7d03b88be51cbabbd730736a0565611e42cefd7144ca927",
+    "requirements-lock.txt": "58e24b59da34461a17fd942b4047071e42b5120b3d474ba976a7e28535d40bcc",
+    "src-tauri/Cargo.lock": "24a4beb3d9a41b6b483da938dc00d28ebd04c7fa2208d0626e863104b07dc51d",
+    "src-tauri/Cargo.toml": "49c76d34721777e9a476b32395eab06574ef2ce73ee5e3a6713a6ac2e883c69d",
+    "src-tauri/src/bin/supervisor_probe.rs": "9e969d754fa23fffc365d12245dfe5de4f5948a380689255bd9c420a896a7d7c",
+    "src-tauri/src/bin/supervisor_stub.rs": "91f167030d07a21f6ded2e4b6d25a6a6b9af6b09ba12c0dbe949290afa1670bd",
+    "src-tauri/src/causality.rs": "268bb7ef6b4cadf453ba34fa01f7456aaf806f1ec53c11309000c2f9a7e4ff55",
+    "src-tauri/src/engine_path.rs": "f7808cd7675e0ef204036825fef10c8ac6a8fa3ba4b59be3893ba995e43963c6",
+    "src-tauri/src/handshake.rs": "2d4ebbdbc05b00ad0a07cf233f4e161ec9fa6bfbf16735875202e55d5de308bb",
+    "src-tauri/src/health.rs": "98a9a872db62510003b1354c999e7e9271e371dcb0a2ea5951496dd0787b57cb",
+    "src-tauri/src/lib.rs": "4f9aac8e4ce03420bbe8e5df7f305487f00231036dbb7e8e7c3cc9d58e8bb74a",
+    "src-tauri/src/logging.rs": "4abcc6e5efff7c021c96655259386a6fa135dad1af6ba826021592ea1bc58a5c",
+    "src-tauri/src/process.rs": "d091ca75c79bab8a6937b87770f80db745d66df8361d24d39dfbecc40029ad43",
+    "src-tauri/src/state.rs": "be74cfe6a81c443634bf8b34086fbb5acfb401ba80f817af166a7079588bbaee",
+    "src-tauri/src/supervisor.rs": "e3c84843eb8a32a989841ef3bdfdf66bf5c9ef4aad3efc101baef6040cca99c3",
+    "src-tauri/src/win32.rs": "411220564ba2f0a50a03a5481f6400ec09b8552b9bf0bb53b10eaaf7f4b50d56",
+    "src-tauri/tests/causality.rs": "edbd82bda2c6779bdb1ab961895fe43b0652a0d534a115110128875c97940545",
+    "src-tauri/tests/contracts.rs": "cc7e1f1170185d38ef2f9709460c81ee5201bc741000dd17e5e8a4dac908ca6c",
+    "src-tauri/tests/engine_path.rs": "26002d1d21817adbc57eba9c74819b3bafed3d2fd53ab8b34e3e8d82c910203f",
+    "src-tauri/tests/supervisor_stubs.rs": "a227a970b6f424c47de0f12a0aae3a6889b4119c8bc38017e1d6d6cdea9c9b53",
+    "src-tauri/tests/win32_failures.rs": "034a0061e4b89747fcea97960cb41bf48ee7634f5cea343384036acfb1f5bb06"
+  },
+  "executables": {
+    "E:\\AI_Agent\\src-tauri\\target\\debug\\supervisor-probe.exe": {
+      "bytes": 4268544,
+      "sha256": "5c97f948cc6d6b9e219f0ccd10de99ba6def2bec54684df285687dca8c62e713"
+    },
+    "E:\\AI_Agent\\src-tauri\\target\\release\\supervisor-probe.exe": {
+      "bytes": 2141184,
+      "sha256": "bc6ab9a8f8d98300878890c0e5dec1beb0d3d7930955bde4bc511758a20579c2"
+    },
+    "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\app.exe": {
+      "bytes": 16771126,
+      "sha256": "0877ed3e11f0d247ddb929352104fa1745f9f690a968d98c6b93b797cec83e37"
+    }
+  },
+  "authoritative_evidence": "evidence-20261018-160306-056134",
+  "tests_passed": 20,
+  "tests_failed": 0,
+  "step2_status": "待实机验证",
+  "initial_stub_exit70_internal_cause": "未验证"
+}

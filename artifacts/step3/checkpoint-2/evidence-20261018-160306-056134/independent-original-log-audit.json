@@ -1,0 +1,149 @@
+{
+  "exact_original_segments": [
+    {
+      "case": "dev-invalid-path",
+      "log": "shell-20261018.log",
+      "baseline": 65838,
+      "bytes": 1528,
+      "exact_original_segment": true
+    },
+    {
+      "case": "dev-ready",
+      "log": "engine-20261018.jsonl",
+      "baseline": 699739,
+      "bytes": 3111,
+      "exact_original_segment": true
+    },
+    {
+      "case": "dev-ready",
+      "log": "shell-20261018.log",
+      "baseline": 61878,
+      "bytes": 1882,
+      "exact_original_segment": true
+    },
+    {
+      "case": "exit-after-ready",
+      "log": "engine-20261018.jsonl",
+      "baseline": 711720,
+      "bytes": 1756,
+      "exact_original_segment": true
+    },
+    {
+      "case": "exit-after-ready",
+      "log": "shell-20261018.log",
+      "baseline": 79850,
+      "bytes": 2634,
+      "exact_original_segment": true
+    },
+    {
+      "case": "injection-precedes-env",
+      "log": "engine-20261018.jsonl",
+      "baseline": 704912,
+      "bytes": 1756,
+      "exact_original_segment": true
+    },
+    {
+      "case": "injection-precedes-env",
+      "log": "shell-20261018.log",
+      "baseline": 67366,
+      "bytes": 1883,
+      "exact_original_segment": true
+    },
+    {
+      "case": "invalid-json",
+      "log": "engine-20261018.jsonl",
+      "baseline": 708424,
+      "bytes": 2192,
+      "exact_original_segment": true
+    },
+    {
+      "case": "invalid-json",
+      "log": "shell-20261018.log",
+      "baseline": 71128,
+      "bytes": 4207,
+      "exact_original_segment": true
+    },
+    {
+      "case": "missing-dll-with-invalid-old-handshake",
+      "log": "shell-20261018.log",
+      "baseline": 77575,
+      "bytes": 2275,
+      "exact_original_segment": true
+    },
+    {
+      "case": "missing-fields",
+      "log": "engine-20261018.jsonl",
+      "baseline": 710616,
+      "bytes": 1104,
+      "exact_original_segment": true
+    },
+    {
+      "case": "missing-fields",
+      "log": "shell-20261018.log",
+      "baseline": 75335,
+      "bytes": 2240,
+      "exact_original_segment": true
+    },
+    {
+      "case": "release-ignores-env-library-proof",
+      "log": "engine-20261018.jsonl",
+      "baseline": 706668,
+      "bytes": 1756,
+      "exact_original_segment": true
+    },
+    {
+      "case": "release-ignores-env-library-proof",
+      "log": "shell-20261018.log",
+      "baseline": 69249,
+      "bytes": 1879,
+      "exact_original_segment": true
+    },
+    {
+      "case": "stale-recovery",
+      "log": "engine-20261018.jsonl",
+      "baseline": 702850,
+      "bytes": 2062,
+      "exact_original_segment": true
+    },
+    {
+      "case": "stale-recovery",
+      "log": "shell-20261018.log",
+      "baseline": 63760,
+      "bytes": 2078,
+      "exact_original_segment": true
+    }
+  ],
+  "original_increment_checks": {
+    "engine-20261018.jsonl": {
+      "start": 699739,
+      "end": 713476,
+      "bytes": 13737,
+      "lines": 75,
+      "sha256": "89f746d7fd14159f6f1b5168871d133538b73993ca80d93eba8286632e6f984b",
+      "receipt_match": true,
+      "hex32_token_pattern_count": 0,
+      "literal_token_key_count": 0
+    },
+    "shell-20261018.log": {
+      "start": 61878,
+      "end": 82484,
+      "bytes": 20606,
+      "lines": 145,
+      "sha256": "81d442a4ab367454a59121f35138c8eb1dd2f85f034a1b0316dc78b21b530abc",
+      "receipt_match": true,
+      "hex32_token_pattern_count": 0,
+      "literal_token_key_count": 0
+    }
+  },
+  "observed_engine_exit_codes": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    4294967295,
+    1
+  ]
+}

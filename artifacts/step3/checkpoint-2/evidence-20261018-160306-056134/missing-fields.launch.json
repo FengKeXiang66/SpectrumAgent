@@ -1,0 +1,14 @@
+{
+  "command": [
+    "E:\\AI_Agent\\src-tauri\\target\\debug\\supervisor-probe.exe",
+    "--resource-exe",
+    "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\app.exe"
+  ],
+  "shell": false,
+  "probe_pid": 12836,
+  "SPECTRUM_ENGINE_EXE": "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\app.exe",
+  "log_baseline_offsets": {
+    "engine-20261018.jsonl": 710616,
+    "shell-20261018.log": 75335
+  }
+}

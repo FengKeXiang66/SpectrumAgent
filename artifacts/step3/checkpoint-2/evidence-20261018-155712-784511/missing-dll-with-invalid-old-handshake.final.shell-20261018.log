@@ -1,0 +1,15 @@
+{"event":"shell_log_started","timestamp":"2026-10-18T07:57:41.814Z"}
+{"event":"engine_start_attempt","exe":"E:\\AI_Agent\\src-tauri\\target\\checkpoint2-fixtures\\20261018-155712-784511\\app\\app.exe","generation_id":1,"selection_source":"constructor_injection","timestamp":"2026-10-18T07:57:41.815Z"}
+{"event":"preexisting_handshake_snapshot","generation_id":1,"old_identity":null,"preexisting_handshake_invalid":"InvalidJson","timestamp":"2026-10-18T07:57:41.817Z"}
+{"event":"process_created_suspended","generation_id":1,"pid":20796,"timestamp":"2026-10-18T07:57:41.825Z"}
+{"event":"job_assigned","generation_id":1,"pid":20796,"timestamp":"2026-10-18T07:57:41.825Z"}
+{"event":"thread_resumed_and_closed","generation_id":1,"pid":20796,"timestamp":"2026-10-18T07:57:41.825Z"}
+{"event":"process_identity_recorded","generation_id":1,"pid":20796,"process_created_at_ms":1792310261818,"timestamp":"2026-10-18T07:57:41.826Z"}
+{"event":"handshake_wait","generation_id":1,"reason":"not_valid_yet","timestamp":"2026-10-18T07:57:41.827Z"}
+{"event":"engine_process_exit","exit_code":4294967295,"generation_id":1,"pid":20796,"timestamp":"2026-10-18T07:57:41.850Z","wait_error":null}
+{"event":"state_transition","from":"Starting","generation_id":1,"reason":"engine_failure","timestamp":"2026-10-18T07:57:41.850Z","to":"Failed"}
+{"event":"engine_failure","failure":{"data_directory":"C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent","engine_error":null,"exit_reason":{"ProcessExit":{"code":4294967295}},"handshake_path":"C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\run/handshake.json","kind":"ExitedBeforeReady","log_path":"C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\engine-20261018.jsonl","preexisting_handshake_invalid":"InvalidJson"},"generation_id":1,"timestamp":"2026-10-18T07:57:41.851Z"}
+{"complete":true,"errors":[],"event":"generation_cleanup","generation_id":1,"timestamp":"2026-10-18T07:57:41.868Z"}
+{"event":"state_transition","from":"Failed","generation_id":1,"reason":"application_close","timestamp":"2026-10-18T07:57:41.892Z","to":"Stopping"}
+{"complete":true,"errors":[],"event":"generation_cleanup","generation_id":1,"timestamp":"2026-10-18T07:57:41.893Z"}
+{"event":"app_exit","generation_id":1,"timestamp":"2026-10-18T07:57:41.893Z"}

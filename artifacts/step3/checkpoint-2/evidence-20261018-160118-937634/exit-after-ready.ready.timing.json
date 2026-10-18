@@ -1,0 +1,10 @@
+[
+  {
+    "generation_id": 1,
+    "pid": 11588,
+    "to": "Ready",
+    "process_created_at_ms": 1792310508053,
+    "transition_at_ms": 1792310508633,
+    "spawn_to_transition_ms": 580
+  }
+]

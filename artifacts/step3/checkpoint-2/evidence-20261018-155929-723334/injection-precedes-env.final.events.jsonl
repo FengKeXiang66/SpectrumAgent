@@ -1,0 +1,6 @@
+{"debug_assertions":true,"probe_pid":22020,"selection":{"exe":"E:\\AI_Agent\\artifacts\\step2\\dist\\app\\app.exe","source":"constructor_injection"}}
+{"Status":{"generation_id":1,"phase":"Starting","pid":18720,"port":null,"boot_id":null,"failure":null,"cleanup_complete":false,"pending_activation":false}}
+{"Status":{"generation_id":1,"phase":"Ready","pid":18720,"port":52985,"boot_id":"da1f7987","failure":null,"cleanup_complete":false,"pending_activation":false}}
+{"Status":{"generation_id":1,"phase":"Stopping","pid":18720,"port":52985,"boot_id":"da1f7987","failure":null,"cleanup_complete":false,"pending_activation":false}}
+{"Status":{"generation_id":1,"phase":"Stopping","pid":18720,"port":52985,"boot_id":"da1f7987","failure":null,"cleanup_complete":true,"pending_activation":false}}
+"AppExit"

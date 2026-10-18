@@ -1,0 +1,11 @@
+{"pid": 20384, "event": "engine_boot", "logger": "engine", "level": "info", "timestamp": "2026-10-18T07:59:33.841492Z"}
+{"event": "Started server process [20384]", "boot_id": "50ae3bb3", "pid": 20384, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T07:59:34.139360Z"}
+{"reason": "dead_pid", "old_boot_id": "a3412e8a", "old_pid": 20832, "old_process_created_at": "2026-10-18T07:59:30.031Z", "old_port": 52951, "event": "stale_handshake_removed", "boot_id": "50ae3bb3", "pid": 20384, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T07:59:34.141957Z"}
+{"event": "Waiting for application startup.", "boot_id": "50ae3bb3", "pid": 20384, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T07:59:34.142365Z"}
+{"event": "Application startup complete.", "boot_id": "50ae3bb3", "pid": 20384, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T07:59:34.159914Z"}
+{"event": "Uvicorn running on http://127.0.0.1:52969 (Press CTRL+C to quit)", "boot_id": "50ae3bb3", "pid": 20384, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T07:59:34.160414Z"}
+{"event": "127.0.0.1:52970 - \"GET /health HTTP/1.1\" 200", "boot_id": "50ae3bb3", "pid": 20384, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T07:59:34.189308Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:52969/health \"HTTP/1.1 200 OK\"", "boot_id": "50ae3bb3", "pid": 20384, "logger": "httpx", "level": "info", "timestamp": "2026-10-18T07:59:34.190487Z"}
+{"boot_id": "50ae3bb3", "pid": 20384, "port": 52969, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T07:59:34.197519Z"}
+{"event": "127.0.0.1:52971 - \"GET /health HTTP/1.1\" 200", "boot_id": "50ae3bb3", "pid": 20384, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T07:59:34.262878Z"}
+{"event": "127.0.0.1:52972 - \"GET /health HTTP/1.1\" 200", "boot_id": "50ae3bb3", "pid": 20384, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T07:59:34.695870Z"}

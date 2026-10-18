@@ -1,0 +1,28 @@
+{
+  "result": "passed",
+  "canonical_file_count": 544,
+  "canonical_bytes": 255564460,
+  "canonical_manifest_match_before_and_after": true,
+  "actual_tokens_scanned": 5,
+  "token_leaks": 0,
+  "actual_token_sha256": [
+    "376d72800ab263c72f4cb57bba684febd9fb8390b4b3f382df291d4b9bf88964",
+    "4a46705d4d3acde5aecaf50cd1cb81c8986edea46efd40ec5191d7f6589f9b76",
+    "5dc9eae751a6cf1183fbf1d66f78da846d92799ac32673368240731ceb46e07c",
+    "8ba4282ee76bed58f78bf3c53c2ad8d0de73bfcd757c2e8a1df85f431af82d1b",
+    "f8e93b4953021b1ca9d3c63548c7ab1d663189b12b968f1b448829f9879c9083"
+  ],
+  "original_runtime_log_token_leaks": 0,
+  "original_runtime_logs_scanned": [
+    "engine-20261018.jsonl",
+    "shell-20261018.log"
+  ],
+  "shell_json_lines_valid": true,
+  "shell_token_key_count": 0,
+  "probe_residual_count": 0,
+  "handshake_absent_after_test_hygiene": true,
+  "step2_status": "待实机验证",
+  "initial_stub_exit70_internal_cause": "未验证",
+  "tauri_resource_layout_and_ui": "未验证",
+  "dev_ready_elapsed_ms_probe_to_snapshot": 631.409
+}

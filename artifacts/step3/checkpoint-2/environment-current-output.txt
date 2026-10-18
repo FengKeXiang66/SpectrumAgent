@@ -1,0 +1,54 @@
+Command: Get-Service vmms; Get-VM/Get-VMMemory/Get-VMSecurity/Get-VMSnapshot -ComputerName localhost
+
+Name   : vmms
+Status : Running
+
+
+
+Name           : Win11
+State          : Running
+Generation     : 2
+ProcessorCount : 4
+MemoryStartup  : 8589934592
+
+
+
+DynamicMemoryEnabled : True
+Minimum              : 4294967296
+Startup              : 8589934592
+Maximum              : 10737418240
+
+
+
+TpmEnabled : True
+
+
+
+Name         : pristine
+Id           : f7ea81cf-6c3a-4823-9a7b-5fe77f4c2300
+CreationTime : 2026/10/18 15:41:03
+
+
+Command: Get-FileHash src-tauri/Cargo.lock, requirements-lock.txt; explicit cache and target paths
+
+Algorithm : SHA256
+Hash      : 24A4BEB3D9A41B6B483DA938DC00D28EBD04C7FA2208D0626E863104B07DC51D
+Path      : E:\AI_Agent\src-tauri\Cargo.lock
+
+Algorithm : SHA256
+Hash      : 58E24B59DA34461A17FD942B4047071E42B5120B3D474BA976A7E28535D40BCC
+Path      : E:\AI_Agent\requirements-lock.txt
+
+
+
+FullName   : E:\AI_Agent\.cargo-home
+Attributes : Directory
+LinkType   : 
+Target     : 
+
+FullName   : E:\AI_Agent\src-tauri\target
+Attributes : Directory
+LinkType   : 
+Target     : 
+
+

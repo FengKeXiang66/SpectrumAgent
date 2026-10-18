@@ -1,0 +1,7 @@
+Command: Get-CimInstance Win32_Process -Filter "Name = 'app.exe' OR Name = 'supervisor-probe.exe'"
+workspace_engine_or_probe_process_count=0
+Command: tasklist /FI "IMAGENAME eq app.exe"
+INFO: No tasks are running which match the specified criteria.
+
+handshake_present_after_test_hygiene=False
+Above handshake absence is TEST HYGIENE, not engine cleanup evidence.

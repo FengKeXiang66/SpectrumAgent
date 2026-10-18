@@ -1,0 +1,10 @@
+{"pid": 22144, "event": "engine_boot", "logger": "engine", "level": "info", "timestamp": "2026-10-18T07:57:23.867541Z"}
+{"event": "Started server process [22144]", "pid": 22144, "boot_id": "cb6fcb28", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T07:57:24.166967Z"}
+{"event": "Waiting for application startup.", "pid": 22144, "boot_id": "cb6fcb28", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T07:57:24.166967Z"}
+{"event": "Application startup complete.", "pid": 22144, "boot_id": "cb6fcb28", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T07:57:24.183520Z"}
+{"event": "Uvicorn running on http://127.0.0.1:52611 (Press CTRL+C to quit)", "pid": 22144, "boot_id": "cb6fcb28", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T07:57:24.184018Z"}
+{"event": "127.0.0.1:52612 - \"GET /health HTTP/1.1\" 200", "pid": 22144, "boot_id": "cb6fcb28", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T07:57:24.211834Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:52611/health \"HTTP/1.1 200 OK\"", "pid": 22144, "boot_id": "cb6fcb28", "logger": "httpx", "level": "info", "timestamp": "2026-10-18T07:57:24.213335Z"}
+{"boot_id": "cb6fcb28", "pid": 22144, "port": 52611, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T07:57:24.217942Z"}
+{"event": "127.0.0.1:52613 - \"GET /health HTTP/1.1\" 200", "pid": 22144, "boot_id": "cb6fcb28", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T07:57:24.252741Z"}
+{"event": "127.0.0.1:52615 - \"GET /health HTTP/1.1\" 200", "pid": 22144, "boot_id": "cb6fcb28", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T07:57:24.717492Z"}

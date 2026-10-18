@@ -1,0 +1,184 @@
+输出目录=E:\AI_Agent\artifacts\step3\checkpoint-2\evidence-20261018-160118-937634
+python=E:\AI_Agent\.venv\Scripts\python.exe
+CARGO_HOME=E:\AI_Agent\.cargo-home
+CARGO_TARGET_DIR=E:\AI_Agent\src-tauri\target
+
+[dev-ready] command=E:\AI_Agent\src-tauri\target\debug\supervisor-probe.exe --resource-exe E:\AI_Agent\artifacts\step2\dist\app\app.exe
+SPECTRUM_ENGINE_EXE=E:\AI_Agent\artifacts\step2\dist\app\app.exe probe_pid=19616
+{"elapsed_ms": 631.409, "snapshot": {"generation_id": 1, "phase": "Ready", "pid": 18140, "port": 57573, "boot_id": "a4e391ed", "failure": null, "cleanup_complete": false, "pending_activation": false}}
+Get-CimInstance:
+{"ProcessId":18140,"ParentProcessId":19616,"ExecutablePath":"E:\\AI_Agent\\artifacts\\step2\\dist\\app\\app.exe"}
+
+
+Image Name                     PID Session Name        Session#    Mem Usage
+========================= ======== ================ =========== ============
+app.exe                      18140 Console                    1     77,328 K
+
+GetProcessTimes UTC ms=1792310479239; handshake UTC ms=1792310479239; pid/boot/created_at=matched
+curl.exe /health auth=False (token 经 stdin 配置传入)
+{"status":"ok","boot_id":"a4e391ed","pid":18140,"version":"0.1.0","uptime_s":0.578}
+HTTP_STATUS=200
+
+curl.exe /smoke auth=False (token 经 stdin 配置传入)
+{"error":"UNAUTHORIZED","detail":"需要本次引擎握手中的 Bearer token。"}
+HTTP_STATUS=401
+
+curl.exe /smoke auth=True (token 经 stdin 配置传入)
+{"nan_ratio":0.0,"reflectance_range":[-1.5275289241381491,1.5275289241381491],"bands":8,"shape":[8,8,8],"elapsed_ms":166.993}
+HTTP_STATUS=200
+
+curl.exe /smoke?blocks=8 auth=True (token 经 stdin 配置传入)
+{"nan_ratio":0.0,"reflectance_range":[-1.5275289241381491,1.5275289241381491],"bands":8,"shape":[8,8,8],"elapsed_ms":121.765}
+HTTP_STATUS=200
+
+判断前状态：pid=18140 absent=true port=57573 closed=true handshake_present=True
+curl.exe /health auth=False (token 经 stdin 配置传入)
+{"status": "ok", "boot_id": "a4e391ed", "pid": 18140, "version": "0.1.0"}
+HTTP_STATUS=200
+
+
+[stale-recovery] command=E:\AI_Agent\src-tauri\target\debug\supervisor-probe.exe --resource-exe E:\AI_Agent\artifacts\step2\dist\app\app.exe
+SPECTRUM_ENGINE_EXE=E:\AI_Agent\artifacts\step2\dist\app\app.exe probe_pid=17736
+{"elapsed_ms": 598.436, "snapshot": {"generation_id": 1, "phase": "Ready", "pid": 13424, "port": 57590, "boot_id": "5805236d", "failure": null, "cleanup_complete": false, "pending_activation": false}}
+Get-CimInstance:
+{"ProcessId":13424,"ParentProcessId":17736,"ExecutablePath":"E:\\AI_Agent\\artifacts\\step2\\dist\\app\\app.exe"}
+
+
+Image Name                     PID Session Name        Session#    Mem Usage
+========================= ======== ================ =========== ============
+app.exe                      13424 Console                    1     77,264 K
+
+GetProcessTimes UTC ms=1792310482810; handshake UTC ms=1792310482810; pid/boot/created_at=matched
+curl.exe /health auth=False (token 经 stdin 配置传入)
+{"status":"ok","boot_id":"5805236d","pid":13424,"version":"0.1.0","uptime_s":0.547}
+HTTP_STATUS=200
+
+陈旧恢复：old_pid=18140 old_boot=a4e391ed old_port=57573; new_pid=13424 new_boot=5805236d new_port=57590; fake_old_health_calls_delta=0
+判断前状态：pid=13424 absent=true port=57590 closed=true handshake_present=True
+测试卫生（不作为通过依据）：移除本脚本已存档且 owner 已退出的握手/故障夹具。
+
+[dev-invalid-path] command=E:\AI_Agent\src-tauri\target\debug\supervisor-probe.exe --resource-exe E:\AI_Agent\artifacts\step2\dist\app\app.exe
+SPECTRUM_ENGINE_EXE=E:\AI_Agent\src-tauri\target\checkpoint2-absent\app.exe probe_pid=13268
+{"elapsed_ms": 37.492, "snapshot": {"generation_id": 1, "phase": "Failed", "pid": null, "port": null, "boot_id": null, "failure": {"kind": "SpawnFailed", "exit_reason": {"Win32": {"api": "CreateProcessW", "code": 2}}, "preexisting_handshake_invalid": null, "engine_error": null, "handshake_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\run/handshake.json", "log_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\engine-20261018.jsonl", "data_directory": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent"}, "cleanup_complete": true, "pending_activation": false}}
+
+[injection-precedes-env] command=E:\AI_Agent\src-tauri\target\debug\supervisor-probe.exe --resource-exe E:\AI_Agent\artifacts\step2\dist\app\app.exe --injected-exe E:\AI_Agent\artifacts\step2\dist\app\app.exe
+SPECTRUM_ENGINE_EXE=E:\AI_Agent\src-tauri\target\checkpoint2-absent\app.exe probe_pid=3176
+{"elapsed_ms": 628.432, "snapshot": {"generation_id": 1, "phase": "Ready", "pid": 22188, "port": 57607, "boot_id": "2c5c4213", "failure": null, "cleanup_complete": false, "pending_activation": false}}
+Get-CimInstance:
+{"ProcessId":22188,"ParentProcessId":3176,"ExecutablePath":"E:\\AI_Agent\\artifacts\\step2\\dist\\app\\app.exe"}
+
+
+Image Name                     PID Session Name        Session#    Mem Usage
+========================= ======== ================ =========== ============
+app.exe                      22188 Console                    1     77,092 K
+
+GetProcessTimes UTC ms=1792310486420; handshake UTC ms=1792310486420; pid/boot/created_at=matched
+curl.exe /health auth=False (token 经 stdin 配置传入)
+{"status":"ok","boot_id":"2c5c4213","pid":22188,"version":"0.1.0","uptime_s":0.594}
+HTTP_STATUS=200
+
+判断前状态：pid=22188 absent=true port=57607 closed=true handshake_present=True
+测试卫生（不作为通过依据）：移除本脚本已存档且 owner 已退出的握手/故障夹具。
+
+[release-ignores-env-library-proof] command=E:\AI_Agent\src-tauri\target\release\supervisor-probe.exe --resource-exe E:\AI_Agent\artifacts\step2\dist\app\app.exe
+SPECTRUM_ENGINE_EXE=E:\AI_Agent\src-tauri\target\checkpoint2-absent\app.exe probe_pid=20536
+{"elapsed_ms": 625.768, "snapshot": {"generation_id": 1, "phase": "Ready", "pid": 22284, "port": 57622, "boot_id": "4b21e57a", "failure": null, "cleanup_complete": false, "pending_activation": false}}
+Get-CimInstance:
+{"ProcessId":22284,"ParentProcessId":20536,"ExecutablePath":"E:\\AI_Agent\\artifacts\\step2\\dist\\app\\app.exe"}
+
+
+Image Name                     PID Session Name        Session#    Mem Usage
+========================= ======== ================ =========== ============
+app.exe                      22284 Console                    1     77,184 K
+
+GetProcessTimes UTC ms=1792310489620; handshake UTC ms=1792310489620; pid/boot/created_at=matched
+curl.exe /health auth=False (token 经 stdin 配置传入)
+{"status":"ok","boot_id":"4b21e57a","pid":22284,"version":"0.1.0","uptime_s":0.563}
+HTTP_STATUS=200
+
+判断前状态：pid=22284 absent=true port=57622 closed=true handshake_present=True
+测试卫生（不作为通过依据）：移除本脚本已存档且 owner 已退出的握手/故障夹具。
+边界：release probe 验证库的编译分支；Tauri resource resolver/--no-bundle 布局尚未验证。
+测试夹具准备：handshake bytes=13 sha256=3c9a3d00c28047c837fa501562738163270e06d0317befb1f87ade5a5b244742
+
+[invalid-json] command=E:\AI_Agent\src-tauri\target\debug\supervisor-probe.exe --resource-exe E:\AI_Agent\artifacts\step2\dist\app\app.exe
+SPECTRUM_ENGINE_EXE=E:\AI_Agent\artifacts\step2\dist\app\app.exe probe_pid=19116
+{"elapsed_ms": 690.629, "snapshot": {"generation_id": 1, "phase": "Failed", "pid": 19452, "port": null, "boot_id": null, "failure": {"kind": "HandshakeInvalid", "exit_reason": {"ProcessExit": {"code": 1}}, "preexisting_handshake_invalid": "InvalidJson", "engine_error": "HANDSHAKE_INVALID_JSON", "handshake_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\run/handshake.json", "log_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\engine-20261018.jsonl", "data_directory": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent"}, "cleanup_complete": true, "pending_activation": false}}
+本代 handshake_error 原始行：
+{"error": "HANDSHAKE_INVALID_JSON", "phase": "startup", "event": "handshake_error", "boot_id": "9e90aba3", "pid": 19452, "logger": "engine.handshake", "level": "error", "timestamp": "2026-10-18T08:01:33.336133Z"}
+{"error": "HANDSHAKE_INVALID_JSON", "phase": "finally", "event": "handshake_error", "boot_id": "9e90aba3", "pid": 19452, "logger": "engine.handshake", "level": "error", "timestamp": "2026-10-18T08:01:33.337089Z"}
+{"elapsed_ms": 1325.991, "snapshot": {"generation_id": 2, "phase": "Failed", "pid": 20668, "port": null, "boot_id": null, "failure": {"kind": "HandshakeInvalid", "exit_reason": {"ProcessExit": {"code": 1}}, "preexisting_handshake_invalid": "InvalidJson", "engine_error": "HANDSHAKE_INVALID_JSON", "handshake_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\run/handshake.json", "log_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\engine-20261018.jsonl", "data_directory": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent"}, "cleanup_complete": true, "pending_activation": false}}
+非法握手原字节未变：sha256=3c9a3d00c28047c837fa501562738163270e06d0317befb1f87ade5a5b244742
+测试卫生（不作为通过依据）：移除本脚本已存档且 owner 已退出的握手/故障夹具。
+测试夹具准备：handshake bytes=22 sha256=b9dba9ed71303bed1f0a6c64909c6ca4993d16eb2d48b79c5c4f5f0e498e55da
+
+[missing-fields] command=E:\AI_Agent\src-tauri\target\debug\supervisor-probe.exe --resource-exe E:\AI_Agent\artifacts\step2\dist\app\app.exe
+SPECTRUM_ENGINE_EXE=E:\AI_Agent\artifacts\step2\dist\app\app.exe probe_pid=11960
+{"elapsed_ms": 650.056, "snapshot": {"generation_id": 1, "phase": "Failed", "pid": 19288, "port": null, "boot_id": null, "failure": {"kind": "HandshakeInvalid", "exit_reason": {"ProcessExit": {"code": 1}}, "preexisting_handshake_invalid": "InvalidFields", "engine_error": "HANDSHAKE_INVALID_FIELDS", "handshake_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\run/handshake.json", "log_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\engine-20261018.jsonl", "data_directory": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent"}, "cleanup_complete": true, "pending_activation": false}}
+本代 handshake_error 原始行：
+{"error": "HANDSHAKE_INVALID_FIELDS", "phase": "startup", "event": "handshake_error", "boot_id": "be0f004e", "pid": 19288, "logger": "engine.handshake", "level": "error", "timestamp": "2026-10-18T08:01:34.664481Z"}
+{"error": "HANDSHAKE_INVALID_FIELDS", "phase": "finally", "event": "handshake_error", "boot_id": "be0f004e", "pid": 19288, "logger": "engine.handshake", "level": "error", "timestamp": "2026-10-18T08:01:34.665224Z"}
+非法握手原字节未变：sha256=b9dba9ed71303bed1f0a6c64909c6ca4993d16eb2d48b79c5c4f5f0e498e55da
+测试卫生（不作为通过依据）：移除本脚本已存档且 owner 已退出的握手/故障夹具。
+测试夹具准备：handshake bytes=13 sha256=3c9a3d00c28047c837fa501562738163270e06d0317befb1f87ade5a5b244742
+
+[missing-dll-with-invalid-old-handshake] command=E:\AI_Agent\src-tauri\target\debug\supervisor-probe.exe --resource-exe E:\AI_Agent\artifacts\step2\dist\app\app.exe --injected-exe E:\AI_Agent\src-tauri\target\checkpoint2-fixtures\20261018-160118-937634\app\app.exe
+SPECTRUM_ENGINE_EXE=None probe_pid=288
+{"elapsed_ms": 91.529, "snapshot": {"generation_id": 1, "phase": "Failed", "pid": 12420, "port": null, "boot_id": null, "failure": {"kind": "ExitedBeforeReady", "exit_reason": {"ProcessExit": {"code": 4294967295}}, "preexisting_handshake_invalid": "InvalidJson", "engine_error": null, "handshake_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\run/handshake.json", "log_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\engine-20261018.jsonl", "data_directory": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent"}, "cleanup_complete": true, "pending_activation": false}}
+缺 DLL 独立对照（非监督器原次 stderr）：exit_code=4294967295
+[PYI-15104:ERROR] Failed to load Python DLL 'E:\AI_Agent\src-tauri\target\checkpoint2-fixtures\20261018-160118-937634\app\_internal\python312.dll'.
+LoadLibrary: ?????????
+
+测试卫生（不作为通过依据）：移除本脚本已存档且 owner 已退出的握手/故障夹具。
+
+[exit-after-ready] command=E:\AI_Agent\src-tauri\target\debug\supervisor-probe.exe --resource-exe E:\AI_Agent\artifacts\step2\dist\app\app.exe
+SPECTRUM_ENGINE_EXE=E:\AI_Agent\artifacts\step2\dist\app\app.exe probe_pid=20992
+{"elapsed_ms": 587.958, "snapshot": {"generation_id": 1, "phase": "Ready", "pid": 11588, "port": 57678, "boot_id": "e76e11c4", "failure": null, "cleanup_complete": false, "pending_activation": false}}
+Get-CimInstance:
+{"ProcessId":11588,"ParentProcessId":20992,"ExecutablePath":"E:\\AI_Agent\\artifacts\\step2\\dist\\app\\app.exe"}
+
+
+Image Name                     PID Session Name        Session#    Mem Usage
+========================= ======== ================ =========== ============
+app.exe                      11588 Console                    1     77,432 K
+
+GetProcessTimes UTC ms=1792310508053; handshake UTC ms=1792310508053; pid/boot/created_at=matched
+curl.exe /health auth=False (token 经 stdin 配置传入)
+{"status":"ok","boot_id":"e76e11c4","pid":11588,"version":"0.1.0","uptime_s":0.578}
+HTTP_STATUS=200
+
+taskkill /F /PID 11588
+SUCCESS: The process with PID 11588 has been terminated.
+
+{"elapsed_ms": 1248.041, "snapshot": {"generation_id": 1, "phase": "Failed", "pid": 11588, "port": 57678, "boot_id": "e76e11c4", "failure": {"kind": "EngineExitedAfterReady", "exit_reason": {"ProcessExit": {"code": 1}}, "preexisting_handshake_invalid": null, "engine_error": null, "handshake_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\run/handshake.json", "log_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\engine-20261018.jsonl", "data_directory": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent"}, "cleanup_complete": true, "pending_activation": false}}
+判断前状态：pid=11588 absent=true port=57678 closed=true handshake_present=True
+测试卫生（不作为通过依据）：移除本脚本已存档且 owner 已退出的握手/故障夹具。
+{
+  "result": "passed",
+  "canonical_file_count": 544,
+  "canonical_bytes": 255564460,
+  "canonical_manifest_match_before_and_after": true,
+  "actual_tokens_scanned": 5,
+  "token_leaks": 0,
+  "actual_token_sha256": [
+    "376d72800ab263c72f4cb57bba684febd9fb8390b4b3f382df291d4b9bf88964",
+    "4a46705d4d3acde5aecaf50cd1cb81c8986edea46efd40ec5191d7f6589f9b76",
+    "5dc9eae751a6cf1183fbf1d66f78da846d92799ac32673368240731ceb46e07c",
+    "8ba4282ee76bed58f78bf3c53c2ad8d0de73bfcd757c2e8a1df85f431af82d1b",
+    "f8e93b4953021b1ca9d3c63548c7ab1d663189b12b968f1b448829f9879c9083"
+  ],
+  "original_runtime_log_token_leaks": 0,
+  "original_runtime_logs_scanned": [
+    "engine-20261018.jsonl",
+    "shell-20261018.log"
+  ],
+  "shell_json_lines_valid": true,
+  "shell_token_key_count": 0,
+  "probe_residual_count": 0,
+  "handshake_absent_after_test_hygiene": true,
+  "step2_status": "待实机验证",
+  "initial_stub_exit70_internal_cause": "未验证",
+  "tauri_resource_layout_and_ui": "未验证",
+  "dev_ready_elapsed_ms_probe_to_snapshot": 631.409
+}
+测试卫生（不作为通过依据）：删除本轮 target 内的 DLL 故障副本。

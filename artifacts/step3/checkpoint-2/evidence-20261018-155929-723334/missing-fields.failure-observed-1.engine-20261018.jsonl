@@ -1,0 +1,6 @@
+{"pid": 13248, "event": "engine_boot", "logger": "engine", "level": "info", "timestamp": "2026-10-18T07:59:45.223718Z"}
+{"event": "Started server process [13248]", "pid": 13248, "boot_id": "680caafd", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T07:59:45.559990Z"}
+{"error": "HANDSHAKE_INVALID_FIELDS", "phase": "startup", "event": "handshake_error", "pid": 13248, "boot_id": "680caafd", "logger": "engine.handshake", "level": "error", "timestamp": "2026-10-18T07:59:45.559990Z"}
+{"error": "HANDSHAKE_INVALID_FIELDS", "phase": "finally", "event": "handshake_error", "pid": 13248, "boot_id": "680caafd", "logger": "engine.handshake", "level": "error", "timestamp": "2026-10-18T07:59:45.561509Z"}
+{"error": "HANDSHAKE_INVALID_FIELDS", "event": "engine_final_cleanup_failed", "pid": 13248, "boot_id": "680caafd", "logger": "engine", "level": "error", "timestamp": "2026-10-18T07:59:45.561509Z"}
+{"error": "HANDSHAKE_INVALID_FIELDS", "event": "engine_start_failed", "pid": 13248, "boot_id": "680caafd", "logger": "engine", "level": "error", "timestamp": "2026-10-18T07:59:45.562001Z"}

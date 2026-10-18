@@ -1,0 +1,2 @@
+{"status":"ok","boot_id":"905c5afb","pid":19652,"version":"0.1.0","uptime_s":0.578}
+HTTP_STATUS=200

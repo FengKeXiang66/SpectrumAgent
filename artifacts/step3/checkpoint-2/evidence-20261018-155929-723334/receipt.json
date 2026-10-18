@@ -1,0 +1,23 @@
+{
+  "result": "passed",
+  "canonical_file_count": 544,
+  "canonical_bytes": 255564460,
+  "canonical_manifest_match_before_and_after": true,
+  "actual_tokens_scanned": 5,
+  "token_leaks": 0,
+  "actual_token_sha256": [
+    "23113882576c4e48035a854d586c64e5e1f69d15fe0da46806f78fd3eacaaf81",
+    "464f136c52d3a881eb7baace24dc1827a54ddfdc27ce9009243d50984dcbfe0f",
+    "4e3cf4e207b277abee65b47fa382db47e0d85f31058714a0cbbe02b0d91a78da",
+    "8787723c270b896cf2f8d6b0b19d585458bdd7f4a744651a8dcd28ef5a8065af",
+    "8cfff4f8128303987cd250c87ee67191cde2658429decc41a68a143a4587eddb"
+  ],
+  "shell_json_lines_valid": true,
+  "shell_token_key_count": 0,
+  "probe_residual_count": 0,
+  "handshake_absent_after_test_hygiene": true,
+  "step2_status": "待实机验证",
+  "initial_stub_exit70_internal_cause": "未验证",
+  "tauri_resource_layout_and_ui": "未验证",
+  "dev_ready_elapsed_ms_probe_to_snapshot": 629.013
+}

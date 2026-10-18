@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "E:\AI_Agent\artifacts\step3\checkpoint-2\selfcheck_checkpoint2.py", line 461, in <module>
+    main()
+  File "E:\AI_Agent\artifacts\step3\checkpoint-2\selfcheck_checkpoint2.py", line 296, in main
+    check(before == manifest['files'], 'canonical differs from authoritative manifest')
+  File "E:\AI_Agent\artifacts\step3\checkpoint-2\selfcheck_checkpoint2.py", line 59, in check
+    raise AssertionError(f'{CURRENT}: {message}')
+AssertionError: preflight: canonical differs from authoritative manifest

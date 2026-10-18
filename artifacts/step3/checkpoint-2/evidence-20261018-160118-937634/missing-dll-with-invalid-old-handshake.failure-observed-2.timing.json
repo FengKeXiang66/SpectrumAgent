@@ -1,0 +1,10 @@
+[
+  {
+    "generation_id": 1,
+    "pid": 12420,
+    "to": "Failed",
+    "process_created_at_ms": 1792310507929,
+    "transition_at_ms": 1792310507962,
+    "spawn_to_transition_ms": 33
+  }
+]

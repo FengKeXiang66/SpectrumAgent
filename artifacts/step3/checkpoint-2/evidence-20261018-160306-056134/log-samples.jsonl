@@ -1,0 +1,3 @@
+{"event": "Started server process [22124]", "boot_id": "ca80b7eb", "pid": 22124, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T08:03:06.912705Z"}
+{"event": "Waiting for application startup.", "boot_id": "ca80b7eb", "pid": 22124, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T08:03:06.913205Z"}
+{"event": "Application startup complete.", "boot_id": "ca80b7eb", "pid": 22124, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T08:03:06.934491Z"}

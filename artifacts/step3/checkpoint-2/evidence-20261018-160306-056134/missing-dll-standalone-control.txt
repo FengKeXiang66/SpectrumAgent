@@ -1,0 +1,3 @@
+exit_code=4294967295
+[PYI-16200:ERROR] Failed to load Python DLL 'E:\AI_Agent\src-tauri\target\checkpoint2-fixtures\20261018-160306-056134\app\_internal\python312.dll'.
+LoadLibrary: ?????????

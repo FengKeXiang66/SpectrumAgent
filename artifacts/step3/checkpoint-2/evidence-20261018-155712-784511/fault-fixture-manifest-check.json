@@ -1,0 +1,9 @@
+{
+  "fixture": "E:\\AI_Agent\\src-tauri\\target\\checkpoint2-fixtures\\20261018-155712-784511\\app",
+  "missing": [
+    "_internal/python312.dll"
+  ],
+  "extra": [],
+  "changed": [],
+  "other_files_exact": true
+}
