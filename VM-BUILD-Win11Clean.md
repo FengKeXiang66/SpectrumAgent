@@ -1,18 +1,15 @@
 # Win11 干净 VM 建机与验收手册（阶段一验收 1/2/3/4 解锁）
 
-**状态：待实机验证。第 2 步不得关闭，第 3 步不得开始。**
+**状态（2026-10-18 14:35 实机核查）：干净 Win11 装机完成，pristine 底座已就位。**
 
-2026-10-18 关账只读探针见 `artifacts/step2/revision-01/vm/host-probe-output.txt`：
-Hyper-V 功能 `Disabled`；HypervisorPresent=True；Hyper-V 模块命令和 vmms 服务不存在。
-ISO 文件长度为 9,112,440,832 字节。HypervisorPresent 不等于 Hyper-V 管理功能已安装。
-尚未创建/启动 VM，TPM、Secure Boot、Copy-VMFile、pristine 创建/恢复全部**未验证**。
-PowerShell 语法解析结果只证明脚本可解析，不能替代这些实机结果。
+本轮实机已完成：
+- Win11 专业版装成（经 WIM 直部部署，见第 3.5 步），OOBE 走 `oobe\bypassnro` → 本地账户 `test` → 桌面正常
+- **pristine 检查点已创建**（`bb3d1cac-a20d-4a60-b5ba-4090353333d7`，2026-10-18 14:32:24）
+- Secure Boot 已开回 **On**（与客户机常见配置对齐）
+- 来宾服务接口已启用；**Copy-VMFile 送文件验证通过**（探针 `artifacts\vm-probe.txt`，源 SHA256 `FBE533AF...9AED`，VM 内 `Get-FileHash` 回读一致；注意 VM 重启后需等来宾服务就绪约 30 秒再发，否则报 0x800710DF「设备未就绪」）。VM 内本地账户实际名 `fkx`（非 test，无碍）
+- VM：Running，磁盘 15.88GB，8GB 内存
 
-原状态快照（2026-10-18 09:19，容量信息未在本轮重测）：
-- ISO 已就位：`E:\ISO\Windows11_Client_x64_zh-cn_26300_9457.iso`（8.49 GB ✅）
-- E 盘空闲 893.3 GB（足够）；**C 盘仅剩 15.4 GB，凡 VM 产物一律落 E 盘**
-- Hyper-V 功能当前 **Disabled**，需管理员启用 + 重启
-- 当时记录 `HypervisorPresent=True`；不能据此宣称建机或来宾功能已经验证。
+**仍未做（正式验收时才需要）**：restore pristine 的恢复验证、三段冷启动计时、断网安装验收 3/4。
 
 两个脚本（管理员 PowerShell 跑）：
 - `build-vm.ps1` —— 建 VM（Gen2 / 动态内存 4–10GB / 4 vCPU / 80GB VHDX 在 E 盘 / 开 TPM / 挂 ISO / 关自动检查点）
@@ -56,8 +53,23 @@ Set-ExecutionPolicy -Scope Process Bypass -Force   # 仅当前窗口，允许跑
 1. 产品密钥界面 → **我没有产品密钥**
 2. 版本选 **专业版**（与宿主机一致；multi-edition ISO 可选）
 3. 自定义安装，磁盘直接下一步（默认未分配）
-4. 按实际 ISO 的 OOBE 流程建测试账户；此 ISO 下离线账户入口、`oobe\bypassnro` 可用性**未验证**，不可保证旧版绕过命令有效。
+4. 按实际 ISO 的 OOBE 流程建测试账户（本地账户，如 `test`）：网络界面先试 **Shift+F10 → `oobe\bypassnro`** 回车，VM 重启后走“我没有 Internet”；若该 build 已封掉 bypassnro，改试 Shift+F10 → `start ms-cxh:localonly`。**具体走哪条路径要记录实际结果**——这正是本 build（26300）的未验证项。
 5. 装完只做一件事：设置 → 系统 → 关于，确认 Win11 专业版。**先别装任何软件、先别开 Windows Update**
+
+## 第 3.5 步（实际采用）：ISO 引导失败 → WIM 直部部署
+
+**实测结论（2026-10-18）**：本 ISO 在 VM 固件下无法引导——Secure Boot 开/关都报 `SCSI DVD (0,1) The boot loader failed`，退网卡、退磁盘、无系统。
+- ISO 本身可读：宿主持载成功；`dism /Get-WimInfo` 完整读出 6 个版本（专业版=索引 4）；`bootmgfw.efi` 与 `bootx64.efi` SHA256 一致（启动文件完好）。
+- 但 ISO 带非官方痕迹（根目录 `__chunk_data`，内容是构建机目录清单 `F:\wd\out\zh-cn_CMI_CLIENTSKU\...`），判定为拼装 ISO，其 El Torito 引导目录固件不认。
+- **决策：绕过 ISO 引导链**，用 `deploy-win11-vhdx.ps1` 把 `install.wim` 索引 4 直接 dism 部署到 VM 磁盘（dism 是系统安装的规范化路径）。
+
+```powershell
+# 管理员 PowerShell，约 5-10 分钟
+.\deploy-win11-vhdx.ps1
+```
+
+脚本自动：停 VM → 挂载 ISO/VHDX → 建 GPT 分区（ESP/ MSR/ Windows）→ `dism /Apply-Image /Index:4` → `bcdboot /f UEFI` → 卸载 → 设磁盘为首启动 → 开机。之后 OOBE 流程与第 3 步相同（本地账户 test）。
+**注意**：部署期间 Secure Boot 是 Off 的；OOBE 完成后按脚本末尾提示开回 On，再打 pristine 检查点（与客户机 SB=On 的常见配置对齐）。若你对拼装 ISO 的 WIM 来源不放心，可在正式验收前用官方 ISO 重做一次 pristine——脚本同样适用（改 `-IsoPath` 即可）。
 
 ## 第 4 步：打 pristine 检查点（这台 VM 的核心资产）
 

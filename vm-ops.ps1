@@ -14,7 +14,7 @@ param(
     [string]$Action,
     [string]$Name,
     [string]$SourcePath,
-    [string]$VmName = "Win11Clean"
+    [string]$VmName = "Win11"
 )
 
 $ErrorActionPreference = "Stop"
@@ -39,10 +39,17 @@ switch ($Action) {
     "send" {
         if (-not $SourcePath) { throw "send requires -SourcePath" }
         if (-not (Test-Path -LiteralPath $SourcePath -PathType Leaf)) { throw "file not found: $SourcePath" }
-        Enable-VMIntegrationService -VMName $VmName -Name "Guest Service Interface"
+        # Localized-safe match: EN "Guest Service Interface" or zh-CN guest-service name.
+        # Use \uXXXX escapes so this file stays pure ASCII (PS 5.1 reads .ps1 as GBK).
+        $gs = Get-VMIntegrationService -VMName $VmName |
+              Where-Object { $_.Name -match '^(Guest Service Interface|\u6765\u5bbe\u670d\u52a1\u63a5\u53e3)$' }
+        if (-not $gs) { throw "Guest Service Interface not found on $VmName" }
+        Enable-VMIntegrationService -VMName $VmName -Name $gs.Name
         $dest = "C:\Users\Public\Desktop\" + (Split-Path $SourcePath -Leaf)
         Copy-VMFile -VMName $VmName -SourcePath $SourcePath -DestinationPath $dest -FileSource Host -CreateFullPath -Force
-        Write-Host "Copied to VM: $dest"
+        $h = Get-FileHash -LiteralPath $SourcePath -Algorithm SHA256
+        Write-Host "Copied to VM: $dest  (source SHA256: $($h.Hash))"
+        Write-Host "Verify in guest: Get-FileHash 'C:\Users\Public\Desktop\$(Split-Path $SourcePath -Leaf)' -Algorithm SHA256"
     }
 
     "status" {

@@ -18,42 +18,62 @@ $ErrorActionPreference = "Stop"
 Import-Module Hyper-V -ErrorAction Stop
 
 if (-not (Test-Path -LiteralPath $IsoPath -PathType Leaf)) { throw "ISO not found: $IsoPath" }
-if (Get-VM -Name $VmName -ErrorAction SilentlyContinue) { throw "VM already exists; refusing to replace it: $VmName" }
 $VmRoot = [System.IO.Path]::GetFullPath($VmRoot)
-if (-not $VmRoot.StartsWith('E:\', [StringComparison]::OrdinalIgnoreCase)) {
-    throw "VM storage must stay on E: $VmRoot"
-}
-if ((Test-Path -LiteralPath $VmRoot) -and @(Get-ChildItem -LiteralPath $VmRoot -Force).Count -gt 0) {
-    throw "VM directory is not empty; refusing to reuse it: $VmRoot"
-}
-New-Item -ItemType Directory -Path $VmRoot -Force | Out-Null
 
-# --- Network switch: prefer "Default Switch" (NAT), fall back to Internal VMNet ---
-$switch = Get-VMSwitch -Name "Default Switch" -ErrorAction SilentlyContinue
-if (-not $switch) {
-    $switch = Get-VMSwitch -Name "VMNet" -ErrorAction SilentlyContinue
-    if (-not $switch) {
-        Write-Host "Default Switch missing -> creating Internal switch 'VMNet'"
-        $switch = New-VMSwitch -Name "VMNet" -SwitchType Internal
+# --- Idempotent: create only if missing; if it exists, just (re)apply the config below ---
+$existing = Get-VM -Name $VmName -ErrorAction SilentlyContinue
+if ($existing) {
+    Write-Host "VM '$VmName' already exists -> skipping creation, applying remaining config."
+} else {
+    if (-not $VmRoot.StartsWith('E:\', [StringComparison]::OrdinalIgnoreCase)) {
+        throw "VM storage must stay on E: $VmRoot"
     }
-}
-Write-Host "Using switch: $($switch.Name)"
+    if ((Test-Path -LiteralPath $VmRoot) -and @(Get-ChildItem -LiteralPath $VmRoot -Force).Count -gt 0) {
+        throw "VM directory is not empty; refusing to reuse it: $VmRoot"
+    }
+    New-Item -ItemType Directory -Path $VmRoot -Force | Out-Null
 
-# --- VM (Gen2, dynamic memory 4-10GB, 4 vCPU, 80GB VHDX on E:) ---
-New-VM -Name $VmName -Generation 2 `
-       -MemoryStartupBytes 6GB `
-       -NewVHDPath "$VmRoot\disk.vhdx" -NewVHDSizeBytes 80GB `
-       -SwitchName $switch.Name -Path $VmRoot
+    # --- Network switch: prefer "Default Switch" (NAT), fall back to Internal VMNet ---
+    $switch = Get-VMSwitch -Name "Default Switch" -ErrorAction SilentlyContinue
+    if (-not $switch) {
+        $switch = Get-VMSwitch -Name "VMNet" -ErrorAction SilentlyContinue
+        if (-not $switch) {
+            Write-Host "Default Switch missing -> creating Internal switch 'VMNet'"
+            $switch = New-VMSwitch -Name "VMNet" -SwitchType Internal
+        }
+    }
+    Write-Host "Using switch: $($switch.Name)"
+
+    # --- VM (Gen2, dynamic memory 4-10GB, 4 vCPU, 80GB VHDX on E:) ---
+    New-VM -Name $VmName -Generation 2 `
+           -MemoryStartupBytes 6GB `
+           -NewVHDPath "$VmRoot\disk.vhdx" -NewVHDSizeBytes 80GB `
+           -SwitchName $switch.Name -Path $VmRoot
+}
 
 Set-VMMemory   -VMName $VmName -DynamicMemoryEnabled $true -MinimumBytes 4GB -MaximumBytes 10GB
 Set-VMProcessor -VMName $VmName -Count 4
 Set-VMKeyProtector -VMName $VmName -NewLocalKeyProtector
 Enable-VMTPM   -VMName $VmName
 Set-VMFirmware -VMName $VmName -EnableSecureBoot On
-Enable-VMIntegrationService -VMName $VmName -Name "Guest Service Interface"
+# NOTE: localized-safe match via \uXXXX escapes so this file stays pure ASCII
+# (PS 5.1 reads .ps1 as GBK without BOM - Chinese literals would break matching).
+$gs = Get-VMIntegrationService -VMName $VmName |
+      Where-Object { $_.Name -match '^(Guest Service Interface|\u6765\u5bbe\u670d\u52a1\u63a5\u53e3)$' }
+if ($gs) {
+    Enable-VMIntegrationService -VMName $VmName -Name $gs.Name
+    Write-Host "Guest Service Interface enabled ($($gs.Name))."
+} else {
+    Write-Warning "Guest Service Interface not found; Copy-VMFile delivery will need a fallback."
+}
 Set-VM         -VMName $VmName -AutomaticCheckpointsEnabled $false   # manual checkpoints only
-$dvd = Add-VMDvdDrive -VMName $VmName -Path $IsoPath -Passthru
-Set-VMFirmware -VMName $VmName -FirstBootDevice $dvd
+if (-not (Get-VMDvdDrive -VMName $VmName | Where-Object { $_.Path -eq $IsoPath })) {
+    $dvd = Add-VMDvdDrive -VMName $VmName -Path $IsoPath -Passthru
+    Set-VMFirmware -VMName $VmName -FirstBootDevice $dvd
+    Write-Host "ISO attached and set as first boot device."
+} else {
+    Write-Host "ISO already attached."
+}
 
 Write-Host ""
 Write-Host "VM '$VmName' created at $VmRoot"
