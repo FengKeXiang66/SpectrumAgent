@@ -1,0 +1,132 @@
+   Compiling spectrum-agent v0.1.0 (E:\AI_Agent\src-tauri)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 10.63s
+     Running unittests src\lib.rs (src-tauri\target\debug\deps\spectrum_agent-c477ec76ae2918b9.exe)
+
+running 1 test
+test health::route_tests::closed_routes_always_use_numeric_loopback_and_literal_paths ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\main.rs (src-tauri\target\debug\deps\spectrum_agent-2f4eea3e6411e3bc.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\bin\supervisor_probe.rs (src-tauri\target\debug\deps\supervisor_probe-e5972fdf66b07d82.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\bin\supervisor_stub.rs (src-tauri\target\debug\deps\supervisor_stub-92b167030e8b4127.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\causality.rs (src-tauri\target\debug\deps\causality-5ce90b31cbeef505.exe)
+
+running 2 tests
+test midnight_files_and_preexisting_partial_line_are_handled_without_fallback ... CAUSALITY pure function: launch/exit day files tracked, existing partial line excluded, no engine_boot/boot_id PID fallback
+ok
+test only_new_complete_lines_with_own_integer_pid_in_utc_window_can_be_cause ... CAUSALITY pure function: old/missing/wrong/noninteger PID, wrong logger/event/code, out-of-window, partial JSON excluded; own new complete line accepted
+ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests\contracts.rs (src-tauri\target\debug\deps\contracts-418554dd67b2e116.exe)
+
+running 6 tests
+test all_transition_pairs_and_stopping_terminal_rule ... ok
+test exact_fields_and_top_level_are_enforced ... ok
+test late_generation_and_expected_exit_cannot_fail_current_attempt ... ok
+test metadata_types_bounds_and_exact_strings_are_enforced ... ok
+test times_reject_nonexistent_dates_leap_seconds_and_non_millisecond_formats ... ok
+test valid_handshake_values_and_integer_utc_comparison ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\engine_path.rs (src-tauri\target\debug\deps\engine_path-7ba756e0a2f48fa3.exe)
+
+running 1 test
+test constructor_precedes_resource_and_rejects_non_engine_or_relative_paths ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\supervisor_stubs.rs (src-tauri\target\debug\deps\supervisor_stubs-0a179e3b2adfdd5c.exe)
+
+running 9 tests
+test absent_executable_immediately_fails_and_does_not_clean_invalid_old_handshake ... FAILURE DISPLAY handshake_path=E:\AI_Agent\src-tauri\target\stub-runtime\20568-1792319594209-1\run\handshake.json
+MISSING PATH (constructor injection): kind=SpawnFailed elapsed_ms=21 preexisting_handshake_invalid=retained bytes_unchanged=true
+ok
+test retry_waits_for_cleanup_and_late_a_exit_cannot_change_b ... STUB retry: A_generation=1 B_generation=2 late_A_exit=discarded B=Ready
+ok
+test smoke_headers_are_checked_before_status_and_never_leak_token ... SMOKE STUB smoke-no-headers: response_identity_checked_before_status=true token_leaks=0
+SMOKE STUB smoke-auth-failure: response_identity_checked_before_status=true token_leaks=0
+SMOKE STUB smoke-wrong-boot: response_identity_checked_before_status=true token_leaks=0
+SMOKE STUB smoke-bad-boot: response_identity_checked_before_status=true token_leaks=0
+SMOKE STUB smoke-no-pid: response_identity_checked_before_status=true token_leaks=0
+SMOKE STUB smoke-wrong-pid: response_identity_checked_before_status=true token_leaks=0
+SMOKE STUB smoke-bad-pid: response_identity_checked_before_status=true token_leaks=0
+SMOKE STUB ready: response_identity_checked_before_status=true token_leaks=0
+SMOKE STUB smoke-http-failure: response_identity_checked_before_status=true token_leaks=0
+SMOKE STUB smoke-redirect: response_identity_checked_before_status=true token_leaks=0
+ok
+test stub_alive_without_handshake_times_out_after_actual_30_seconds ... STUB no-handshake: pid=Some(22132) kind=StartupTimeout elapsed_ms=30041 pending_activation=true
+ok
+test stub_exit_after_ready_produces_exactly_one_failure_transition ... STUB ready-exit: pid=Some(27016) Ready->Failed(EngineExitedAfterReady) count=1
+ok
+test stub_immediate_exit_reports_actual_exit_code ... STUB immediate-exit: pid=Some(24508) code=23 kind=ExitedBeforeReady elapsed_ms=52
+ok
+test stub_ready_then_stop_has_no_listening_port_and_separate_app_exit ... STUB ready/stop: pid=Some(21612) port=61922 phase=Stopping port_absent=true app_exit=1 token_leaks=0
+ok
+test stub_tolerates_disconnected_health_client ... STUB transport: client disconnected without a request; stub remains Ready
+ok
+test stub_wrong_health_boot_id_fails_only_after_child_identity_validation ... STUB mismatch: pid=Some(4104) child_pid_and_created_at=verified failure_layer=health_boot_id kind=HealthIdentityMismatch
+ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 33.91s
+
+     Running tests\win32_failures.rs (src-tauri\target\debug\deps\win32_failures-0c118d460e970771.exe)
+
+running 3 tests
+test five_injected_failures_use_correct_termination_wait_and_exact_handle_counts ... INJECT CreateProcessW: ["CreateProcessW(exe=E:\\bundle\\app.exe,cwd=E:\\bundle,inherit=0,flags=0x08000004,mutable_utf16=[34, 69, 58, 92, 98, 117, 110, 100, 108, 101, 92, 97, 112, 112, 46, 101, 120, 101, 34, 0])"]
+INJECT CreateJobObjectW: ["CreateProcessW(exe=E:\\bundle\\app.exe,cwd=E:\\bundle,inherit=0,flags=0x08000004,mutable_utf16=[34, 69, 58, 92, 98, 117, 110, 100, 108, 101, 92, 97, 112, 112, 46, 101, 120, 101, 34, 0])","CreateJobObjectW(security=NULL)","TerminateProcess(101)","WaitForSingleObject(101,None)","CloseHandle(102)","CloseHandle(101)"]
+INJECT SetInformationJobObject: ["CreateProcessW(exe=E:\\bundle\\app.exe,cwd=E:\\bundle,inherit=0,flags=0x08000004,mutable_utf16=[34, 69, 58, 92, 98, 117, 110, 100, 108, 101, 92, 97, 112, 112, 46, 101, 120, 101, 34, 0])","CreateJobObjectW(security=NULL)","SetInformationJobObject(103,KILL_ON_JOB_CLOSE)","TerminateProcess(101)","WaitForSingleObject(101,None)","CloseHandle(102)","CloseHandle(101)","CloseHandle(103)"]
+INJECT AssignProcessToJobObject: ["CreateProcessW(exe=E:\\bundle\\app.exe,cwd=E:\\bundle,inherit=0,flags=0x08000004,mutable_utf16=[34, 69, 58, 92, 98, 117, 110, 100, 108, 101, 92, 97, 112, 112, 46, 101, 120, 101, 34, 0])","CreateJobObjectW(security=NULL)","SetInformationJobObject(103,KILL_ON_JOB_CLOSE)","AssignProcessToJobObject(103,101)","TerminateProcess(101)","WaitForSingleObject(101,None)","CloseHandle(102)","CloseHandle(101)","CloseHandle(103)"]
+INJECT ResumeThread: ["CreateProcessW(exe=E:\\bundle\\app.exe,cwd=E:\\bundle,inherit=0,flags=0x08000004,mutable_utf16=[34, 69, 58, 92, 98, 117, 110, 100, 108, 101, 92, 97, 112, 112, 46, 101, 120, 101, 34, 0])","CreateJobObjectW(security=NULL)","SetInformationJobObject(103,KILL_ON_JOB_CLOSE)","AssignProcessToJobObject(103,101)","ResumeThread(102)","TerminateJobObject(103)","WaitForSingleObject(101,None)","CloseHandle(102)","CloseHandle(101)","CloseHandle(103)"]
+ok
+test success_closes_thread_immediately_and_cleanup_is_idempotent ... SUCCESS/CLEANUP: ["CreateProcessW(exe=E:\\bundle\\app.exe,cwd=E:\\bundle,inherit=0,flags=0x08000004,mutable_utf16=[34, 69, 58, 92, 98, 117, 110, 100, 108, 101, 92, 97, 112, 112, 46, 101, 120, 101, 34, 0])","CreateJobObjectW(security=NULL)","SetInformationJobObject(103,KILL_ON_JOB_CLOSE)","AssignProcessToJobObject(103,101)","ResumeThread(102)","CloseHandle(102)","GetProcessTimes(101)","TerminateJobObject(103)","WaitForSingleObject(101,None)","CloseHandle(101)","CloseHandle(103)"]
+ok
+test unconfirmed_cleanup_is_preserved_and_blocks_retry ... CLEANUP FAILURE: WaitForSingleObject error retained; cleanup_complete=false; retry blocked at generation=1
+ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+   Doc-tests spectrum_agent
+
+running 1 test
+error[E0308]: mismatched types
+   --> src\health.rs:105:18
+    |
+105 |     client.smoke("http://127.0.0.1:1234/third-path");
+    |            ----- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&Handshake`, found `&str`
+    |            |
+    |            arguments to this method are incorrect
+    |
+    = note: expected reference `&Handshake`
+               found reference `&'static str`
+note: method defined here
+   --> src\health.rs:107:12
+    |
+107 |     pub fn smoke(&self, handshake: &Handshake) -> Result<SmokeMetrics, SmokeFailure> {
+    |            ^^^^^
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0308`.
+test src\health.rs - health::HealthClient::smoke (line 101) - compile fail ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+

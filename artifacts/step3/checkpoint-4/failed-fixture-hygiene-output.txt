@@ -1,0 +1,1 @@
+TEST_HYGIENE_ONLY: removed exact invalid-json fixture left by the failed test; not engine automatic cleanup; prior stale handshake was not byte-restored.

@@ -1,0 +1,12 @@
+{
+  "shell_source_commit": "83e8c37",
+  "shell_sha256": "36fbc3df1d220d51c2a1b9e6d347a0ebdb99eb6fa6318d20a18f82d1b9da713f",
+  "shell_bytes": 10785792,
+  "canonical_backup": "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\temp\\canonical-36fbc3df",
+  "resource_files": 544,
+  "resource_full_manifest_match": true,
+  "engine_manifest": "artifacts/step2/revision-20261018-smoke-headers/product-manifest.json",
+  "engine_artifact_source_commit": "3acd979f3b5a94ad32283eb1608c95f0b8721696",
+  "engine_manifest_generator_commit": "e7c3c9d90f83d23639a4ee54832c8b4bc75bf706",
+  "fault_fixture": false
+}

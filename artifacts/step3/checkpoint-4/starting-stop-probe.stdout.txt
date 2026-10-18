@@ -1,0 +1,5 @@
+{"debug_assertions":true,"probe_pid":26200,"selection":{"exe":"E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\temp\\timeout-stub\\app.exe","source":"constructor_injection"}}
+{"Status":{"generation_id":1,"phase":"Starting","pid":17768,"port":null,"boot_id":null,"failure":null,"cleanup_complete":false,"pending_activation":false}}
+{"Status":{"generation_id":1,"phase":"Stopping","pid":17768,"port":null,"boot_id":null,"failure":null,"cleanup_complete":false,"pending_activation":false}}
+{"Status":{"generation_id":1,"phase":"Stopping","pid":17768,"port":null,"boot_id":null,"failure":null,"cleanup_complete":true,"pending_activation":false}}
+"AppExit"

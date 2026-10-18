@@ -1,0 +1,24 @@
+{"event": "shell_started", "pid": 22192, "timestamp": "2026-10-18T10:31:58.079Z"}
+{"event": "single_instance_lock_acquired", "timestamp": "2026-10-18T10:31:58.726Z"}
+{"event": "shell_log_started", "timestamp": "2026-10-18T10:31:58.727Z"}
+{"event": "engine_start_attempt", "exe": "\\\\?\\E:\\AI_Agent\\src-tauri\\target\\release\\resources\\backend\\app.exe", "generation_id": 1, "selection_source": "resolved_resource", "timestamp": "2026-10-18T10:31:58.727Z"}
+{"event": "preexisting_handshake_snapshot", "generation_id": 1, "old_identity": {"boot_id": "885a547a", "pid": 22664, "port": 56086, "process_created_at_ms": 1792316553162}, "preexisting_handshake_invalid": null, "timestamp": "2026-10-18T10:31:58.728Z"}
+{"event": "process_created_suspended", "generation_id": 1, "pid": 21284, "timestamp": "2026-10-18T10:31:58.736Z"}
+{"event": "job_assigned", "generation_id": 1, "pid": 21284, "timestamp": "2026-10-18T10:31:58.737Z"}
+{"event": "thread_resumed_and_closed", "generation_id": 1, "pid": 21284, "timestamp": "2026-10-18T10:31:58.737Z"}
+{"event": "process_identity_recorded", "generation_id": 1, "pid": 21284, "process_created_at_ms": 1792319518730, "timestamp": "2026-10-18T10:31:58.737Z"}
+{"event": "handshake_ignored", "generation_id": 1, "reason": "foreign_identity", "timestamp": "2026-10-18T10:31:58.738Z"}
+{"event": "window_hidden", "generation_id": 1, "success": true, "timestamp": "2026-10-18T10:31:58.740Z", "visible": false}
+{"event": "engine_process_exit", "exit_code": 4294967295, "generation_id": 1, "pid": 21284, "timestamp": "2026-10-18T10:31:58.760Z", "wait_error": null}
+{"event": "state_transition", "from": "Starting", "generation_id": 1, "reason": "engine_failure", "timestamp": "2026-10-18T10:31:58.761Z", "to": "Failed"}
+{"event": "engine_failure", "failure": {"data_directory": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent", "engine_error": null, "exit_reason": {"ProcessExit": {"code": 4294967295}}, "handshake_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\run\\handshake.json", "kind": "ExitedBeforeReady", "log_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\engine-20261018.jsonl", "preexisting_handshake_invalid": null}, "generation_id": 1, "timestamp": "2026-10-18T10:31:58.761Z"}
+{"activated": true, "event": "window_shown", "generation_id": 1, "success": true, "timestamp": "2026-10-18T10:31:58.765Z", "visible": true}
+{"elapsed_ms": 687, "event": "desktop_presented", "generation_id": 1, "phase": "Failed", "timestamp": "2026-10-18T10:31:58.765Z"}
+{"complete": true, "errors": [], "event": "generation_cleanup", "generation_id": 1, "timestamp": "2026-10-18T10:31:58.779Z"}
+{"event": "shell_log_started", "timestamp": "2026-10-18T10:32:27.107Z"}
+{"event": "shell_started", "pid": 25560, "timestamp": "2026-10-18T10:32:27.107Z"}
+{"event": "single_instance_activation", "timestamp": "2026-10-18T10:32:27.114Z"}
+{"event": "activation_requested", "generation_id": 1, "pending_activation": true, "phase": "Failed", "timestamp": "2026-10-18T10:32:27.114Z"}
+{"activated": true, "event": "window_shown", "generation_id": 1, "success": true, "timestamp": "2026-10-18T10:32:27.115Z", "visible": true}
+{"activated": true, "event": "window_shown", "generation_id": 1, "success": true, "timestamp": "2026-10-18T10:32:27.115Z", "visible": true}
+{"elapsed_ms": 29038, "event": "desktop_presented", "generation_id": 1, "phase": "Failed", "timestamp": "2026-10-18T10:32:27.116Z"}

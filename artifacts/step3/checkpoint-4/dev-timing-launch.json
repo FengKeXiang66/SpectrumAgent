@@ -1,0 +1,6 @@
+{
+  "command": "frontend.ps1 run tauri -- dev --no-watch --config E:\\AI_Agent\\artifacts\\step3\\checkpoint-3\\cold-dev-config.json",
+  "launch_utc": "2026-10-18T13:50:33.1443236Z",
+  "cold_definition": "Vite --force dependency optimizer; new WebView user data directory; OS file cache not purged",
+  "engine": "E:\\AI_Agent\\artifacts\\step2\\revision-20261018-smoke-headers\\dist\\app\\app.exe"
+}

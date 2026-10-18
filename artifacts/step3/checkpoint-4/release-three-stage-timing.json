@@ -1,0 +1,42 @@
+{
+  "mode": "release",
+  "launch": {
+    "launch_before_utc": "2026-10-18T13:58:08.2367738Z",
+    "pid": 26856,
+    "process_created_utc": "2026-10-18T13:58:08.3395773Z",
+    "spawn_return_ms": 106,
+    "shell_sha256": "A7FC07B6ACC9EFF87B205823814CCB8CCA032BE19146206DB17A0A2117B6F486",
+    "cold_definition": "new WebView profile; OS file cache not purged",
+    "invalid_engine_override": "E:\\AI_Agent\\deliberately-invalid-release-override\\app.exe"
+  },
+  "engine_pid": 8328,
+  "port": 51701,
+  "engine_ready_from_pre_spawn_ms": 1354.227,
+  "interactive_from_pre_spawn_ms": 1402.2269999999999,
+  "interactive_from_host_ms": 1288,
+  "first_smoke_from_pre_spawn_ms": 23797.227,
+  "manual_wait_before_smoke_ms": 22152.0,
+  "smoke_round_trip_ms": 243.0,
+  "smoke": {
+    "event": "smoke_finished",
+    "generation_id": 1,
+    "result": {
+      "Ok": {
+        "bands": 8,
+        "elapsed_ms": 216.652,
+        "nan_ratio": 0.0,
+        "reflectance_range": [
+          -1.5275289241381491,
+          1.5275289241381491
+        ],
+        "shape": [
+          8,
+          8,
+          8
+        ]
+      }
+    },
+    "timestamp": "2026-10-18T13:58:32.034Z"
+  },
+  "clean_vm": false
+}

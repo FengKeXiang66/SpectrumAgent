@@ -1,0 +1,1 @@
+{"fault_source": "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\temp\\fault-source", "files": 543, "missing_only": "_internal/python312.dll", "canonical_untouched": true}

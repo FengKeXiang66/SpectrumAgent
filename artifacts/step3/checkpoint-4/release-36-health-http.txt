@@ -1,0 +1,7 @@
+HTTP/1.1 200 OK
+date: Sun, 18 Oct 2026 14:37:13 GMT
+server: uvicorn
+content-length: 83
+content-type: application/json
+
+{"status":"ok","boot_id":"05b2e4ab","pid":9252,"version":"0.1.0","uptime_s":40.375}

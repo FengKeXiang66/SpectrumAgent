@@ -1,0 +1,20 @@
+{
+  "label": "tool",
+  "pid": 576,
+  "parent_pid": 21268,
+  "package_api_result": 15700,
+  "package": "",
+  "localappdata": "C:\\Users\\Administrator\\AppData\\Local",
+  "handshake": {
+    "boot_id": "31035c84",
+    "pid": 19548,
+    "process_created_at": "2026-10-18T10:40:09.561Z",
+    "port": 51607,
+    "token": "[REDACTED]",
+    "protocol": 1,
+    "version": "0.1.0",
+    "started_at": "2026-10-18T10:40:10.166Z"
+  },
+  "shell_log_bytes": 1035330,
+  "shell_log_sha256": "E3400968149C773BD9F47BC987ACCB874B163B7BACB874F11DAC5A42B3AC978F"
+}

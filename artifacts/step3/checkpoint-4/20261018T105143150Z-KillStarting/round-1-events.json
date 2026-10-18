@@ -1,0 +1,76 @@
+﻿[
+    {
+        "event":  "shell_log_started",
+        "timestamp":  "2026-10-18T10:51:43.650Z"
+    },
+    {
+        "event":  "shell_started",
+        "pid":  19836,
+        "timestamp":  "2026-10-18T10:51:43.651Z"
+    },
+    {
+        "event":  "single_instance_lock_acquired",
+        "timestamp":  "2026-10-18T10:51:44.148Z"
+    },
+    {
+        "event":  "shell_log_started",
+        "timestamp":  "2026-10-18T10:51:44.148Z"
+    },
+    {
+        "event":  "engine_start_attempt",
+        "exe":  "\\\\?\\E:\\AI_Agent\\src-tauri\\target\\release\\resources\\backend\\app.exe",
+        "generation_id":  1,
+        "selection_source":  "resolved_resource",
+        "timestamp":  "2026-10-18T10:51:44.149Z"
+    },
+    {
+        "event":  "preexisting_handshake_snapshot",
+        "generation_id":  1,
+        "old_identity":  {
+                             "boot_id":  "cf045ef0",
+                             "pid":  25772,
+                             "port":  60541,
+                             "process_created_at_ms":  1792320648447
+                         },
+        "preexisting_handshake_invalid":  null,
+        "timestamp":  "2026-10-18T10:51:44.149Z"
+    },
+    {
+        "event":  "process_created_suspended",
+        "generation_id":  1,
+        "pid":  17528,
+        "timestamp":  "2026-10-18T10:51:44.162Z"
+    },
+    {
+        "event":  "job_assigned",
+        "generation_id":  1,
+        "pid":  17528,
+        "timestamp":  "2026-10-18T10:51:44.162Z"
+    },
+    {
+        "event":  "thread_resumed_and_closed",
+        "generation_id":  1,
+        "pid":  17528,
+        "timestamp":  "2026-10-18T10:51:44.162Z"
+    },
+    {
+        "event":  "process_identity_recorded",
+        "generation_id":  1,
+        "pid":  17528,
+        "process_created_at_ms":  1792320704158,
+        "timestamp":  "2026-10-18T10:51:44.162Z"
+    },
+    {
+        "event":  "handshake_ignored",
+        "generation_id":  1,
+        "reason":  "foreign_identity",
+        "timestamp":  "2026-10-18T10:51:44.163Z"
+    },
+    {
+        "event":  "window_hidden",
+        "generation_id":  1,
+        "success":  true,
+        "timestamp":  "2026-10-18T10:51:44.167Z",
+        "visible":  false
+    }
+]

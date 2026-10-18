@@ -1,0 +1,23 @@
+
+> spectrum-agent@0.1.0 tauri
+> tauri dev --no-watch --config E:\AI_Agent\artifacts\step3\checkpoint-3\cold-dev-config.json
+
+     Running BeforeDevCommand (`npm run dev -- --force`)
+
+> spectrum-agent@0.1.0 dev
+> vite --force
+
+21:50:35 [vite] (client) Forced re-optimization of dependencies
+
+  VITE v8.3.4  ready in 382 ms
+
+  ➜  Local:   http://127.0.0.1:1420/
+     Running DevCommand (`cargo  run --no-default-features --color always --`)
+   Compiling spectrum-agent v0.1.0 (E:\AI_Agent\src-tauri)
+    Building [=======================> ] 382/385: spectru…
+    Building [=======================> ] 383/385: spectru…
+    Building [=======================> ] 384/385: spectru…
+                                                            
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 12.86s
+     Running `target\debug\spectrum-agent.exe`
+[1018/215235.302:ERROR:ui\gfx\win\window_impl.cc:172] Failed to unregister class Chrome_WidgetWin_0. Error = 1412

@@ -1,0 +1,5 @@
+{
+  "command": "C:\\Users\\Administrator\\.cargo\\bin\\cargo.exe fmt --manifest-path E:\\AI_Agent\\src-tauri\\Cargo.toml --check",
+  "exit_code": 0,
+  "stdout_bytes": 0
+}

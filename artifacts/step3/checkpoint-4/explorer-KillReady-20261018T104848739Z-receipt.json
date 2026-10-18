@@ -1,0 +1,8 @@
+﻿{
+    "mode":  "KillReady",
+    "rounds":  1,
+    "runner_pid":  25548,
+    "console":  "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\explorer-KillReady-20261018T104848739Z-console.txt",
+    "status":  "failed",
+    "error":  "Round 1: spawn identity not observed"
+}

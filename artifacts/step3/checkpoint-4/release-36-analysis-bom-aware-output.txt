@@ -1,0 +1,83 @@
+{
+  "analysis": "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-36-analysis-20261018T145509238414Z.json",
+  "shell_sha256": "36fbc3df1d220d51c2a1b9e6d347a0ebdb99eb6fa6318d20a18f82d1b9da713f",
+  "matrix": {
+    "KillReady": 10,
+    "KillStarting": 10,
+    "Close": 10
+  },
+  "documents": [
+    {
+      "path": "artifacts\\step3\\checkpoint-4\\release-36-source-snapshot\\dom-11612.jsonl",
+      "callback_records": 2,
+      "complete_documents": 2,
+      "phases": {
+        "Starting": 1,
+        "Failed": 1
+      },
+      "max_localStorage_entries": 0,
+      "max_sessionStorage_entries": 0,
+      "has_real_smoke_metrics": false
+    },
+    {
+      "path": "artifacts\\step3\\checkpoint-4\\release-36-source-snapshot\\dom-14352.jsonl",
+      "callback_records": 450,
+      "complete_documents": 450,
+      "phases": {
+        "Starting": 7,
+        "Ready": 443
+      },
+      "max_localStorage_entries": 0,
+      "max_sessionStorage_entries": 0,
+      "has_real_smoke_metrics": true
+    },
+    {
+      "path": "artifacts\\step3\\checkpoint-4\\release-36-source-snapshot\\dom-19480.jsonl",
+      "callback_records": 9,
+      "complete_documents": 9,
+      "phases": {
+        "Starting": 8,
+        "Failed": 1
+      },
+      "max_localStorage_entries": 0,
+      "max_sessionStorage_entries": 0,
+      "has_real_smoke_metrics": false
+    },
+    {
+      "path": "artifacts\\step3\\checkpoint-4\\release-36-source-snapshot\\dom-21520.jsonl",
+      "callback_records": 8,
+      "complete_documents": 8,
+      "phases": {
+        "Starting": 7,
+        "Failed": 1
+      },
+      "max_localStorage_entries": 0,
+      "max_sessionStorage_entries": 0,
+      "has_real_smoke_metrics": false
+    }
+  ],
+  "timing": {
+    "engine_ready_from_pre_spawn_ms": 1353.161,
+    "interactive_from_pre_spawn_ms": 1400.161,
+    "first_smoke_from_pre_spawn_ms": 35917.161,
+    "manual_wait_before_smoke_ms": 34386.0,
+    "smoke_round_trip_ms": 131.0,
+    "metrics": {
+      "bands": 8,
+      "elapsed_ms": 125.013,
+      "nan_ratio": 0.0,
+      "reflectance_range": [
+        -1.5275289241381491,
+        1.5275289241381491
+      ],
+      "shape": [
+        8,
+        8,
+        8
+      ]
+    },
+    "cold_definition": "new WebView profile; OS file cache not purged",
+    "clean_vm": false
+  },
+  "all_allowed_transition_pairs": 7
+}

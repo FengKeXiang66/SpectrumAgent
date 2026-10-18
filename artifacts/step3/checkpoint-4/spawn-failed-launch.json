@@ -1,0 +1,7 @@
+{
+  "pid": 27528,
+  "engine_override": "E:\\AI_Agent\\missing-test-engine\\app.exe",
+  "shell_sha256": "1B404D821392F42C068B25138DE9BF3C4E7D7926916764AC0F4D0FE75CD7B101",
+  "build": "debug all-features/custom-protocol test host",
+  "working_directory": "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\temp"
+}

@@ -1,0 +1,9 @@
+{
+  "launch_before_utc": "2026-10-18T14:36:32.3718390Z",
+  "pid": 14352,
+  "process_created_utc": "2026-10-18T14:36:32.4855098Z",
+  "shell_sha256": "36FBC3DF1D220D51C2A1B9E6D347A0EBDB99EB6FA6318D20A18F82D1B9DA713F",
+  "working_directory": "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\temp",
+  "invalid_engine_override": "E:\\AI_Agent\\invalid-final-release-override\\app.exe",
+  "cold_definition": "new WebView profile; OS file cache not purged"
+}

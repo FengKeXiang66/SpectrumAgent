@@ -1,0 +1,10 @@
+{
+  "starting_heartbeats": 299,
+  "max_queue_ms": 9,
+  "max_heartbeat_gap_ms": 103,
+  "starting_visible_true": 0,
+  "internal_invoke_returned_starting": true,
+  "pending_activation_starting": true,
+  "timeout_transition": "2026-10-18T10:39:29.582Z",
+  "all_audit_token_hits": 0
+}

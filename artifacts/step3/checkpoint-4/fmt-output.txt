@@ -1,0 +1,19 @@
+Diff in \\?\E:\AI_Agent\src-tauri\src\bin\supervisor_stub.rs:94:
+     // A renamed app.exe fixture lets the real Tauri host exercise its no-argument
+     // CreateProcessW path. This binary exists only with test-probes enabled.
+     let (mode, root) = if let Some(mode) = args.next() {
+-        (mode.to_string_lossy().into_owned(), PathBuf::from(args.next().ok_or("missing stub data root")?))
++        (
++            mode.to_string_lossy().into_owned(),
++            PathBuf::from(args.next().ok_or("missing stub data root")?),
++        )
+     } else {
+-        (std::env::var("SPECTRUM_STUB_MODE")?, PathBuf::from(std::env::var_os("LOCALAPPDATA").ok_or("missing LOCALAPPDATA")?).join("SpectrumAgent"))
++        (
++            std::env::var("SPECTRUM_STUB_MODE")?,
++            PathBuf::from(std::env::var_os("LOCALAPPDATA").ok_or("missing LOCALAPPDATA")?)
++                .join("SpectrumAgent"),
++        )
+     };
+     let mode = if mode == "from-file" {
+         fs::read_to_string(root.join("mode.txt"))?.trim().to_owned()

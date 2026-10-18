@@ -1,0 +1,25 @@
+{
+  "case": "missing-dll-plus-invalid-json",
+  "shell_pid": 21624,
+  "shell_sha256": "a7fc07b6acc9eff87b205823814ccb8cca032be19146206db17a0a2117b6f486",
+  "engine_pid": 19160,
+  "failure": {
+    "data_directory": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent",
+    "engine_error": null,
+    "exit_reason": {
+      "ProcessExit": {
+        "code": 4294967295
+      }
+    },
+    "handshake_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\run\\handshake.json",
+    "kind": "ExitedBeforeReady",
+    "log_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\engine-20261018.jsonl",
+    "preexisting_handshake_invalid": "InvalidJson"
+  },
+  "causal_rows": [],
+  "fixture_bytes_unchanged": true,
+  "failure_page_observed": true,
+  "elapsed_ms_to_dom_observation": 736.937,
+  "fault_fixture": true,
+  "fault_fixture_resource_files": 543
+}

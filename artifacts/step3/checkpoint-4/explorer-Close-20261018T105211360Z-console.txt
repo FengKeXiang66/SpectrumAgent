@@ -1,0 +1,24 @@
+﻿{"round":1,"mode":"Close","shell_pid":17080,"shell_path":"E:\\AI_Agent\\src-tauri\\target\\release\\spectrum-agent.exe","shell_cim_path":"E:\\AI_Agent\\src-tauri\\target\\release\\spectrum-agent.exe","parent_pid":8292,"parent_path":"C:\\Windows\\explorer.exe","parent_cim_path":"C:\\Windows\\Explorer.EXE","parent_in_job":false,"engine_pid":20024,"engine_path":"E:\\AI_Agent\\src-tauri\\target\\release\\resources\\backend\\app.exe","engine_cim_path":"\\\\?\\E:\\AI_Agent\\src-tauri\\target\\release\\resources\\backend\\app.exe","port":59540,"boot_id":"2c327773","handshake_published":true,"elapsed_ms":1378}
+WAITING_FOR_WINDOW_CLOSE round=1 shell_pid=17080 engine_pid=20024 port=59540
+{"round":1,"mode":"Close","shell_pid":17080,"shell_path":"E:\\AI_Agent\\src-tauri\\target\\release\\spectrum-agent.exe","shell_cim_path":"E:\\AI_Agent\\src-tauri\\target\\release\\spectrum-agent.exe","parent_pid":8292,"parent_path":"C:\\Windows\\explorer.exe","parent_cim_path":"C:\\Windows\\Explorer.EXE","parent_in_job":false,"engine_pid":20024,"engine_path":"E:\\AI_Agent\\src-tauri\\target\\release\\resources\\backend\\app.exe","engine_cim_path":"\\\\?\\E:\\AI_Agent\\src-tauri\\target\\release\\resources\\backend\\app.exe","port":59540,"port_status":"closed","boot_id":"2c327773","old_boot_id":"cf045ef0","handshake_published_before_action":true,"engine_remaining":0,"shell_remaining":0,"port_open":false,"binary_sha256":"a7fc07b6acc9eff87b205823814ccb8cca032be19146206db17a0a2117b6f486","passed":true}
+{"round":2,"mode":"Close","shell_pid":23532,"shell_path":"E:\\AI_Agent\\src-tauri\\target\\release\\spectrum-agent.exe","shell_cim_path":"E:\\AI_Agent\\src-tauri\\target\\release\\spectrum-agent.exe","parent_pid":8292,"parent_path":"C:\\Windows\\explorer.exe","parent_cim_path":"C:\\Windows\\Explorer.EXE","parent_in_job":false,"engine_pid":25732,"engine_path":"E:\\AI_Agent\\src-tauri\\target\\release\\resources\\backend\\app.exe","engine_cim_path":"\\\\?\\E:\\AI_Agent\\src-tauri\\target\\release\\resources\\backend\\app.exe","port":60248,"boot_id":"568d4e0c","handshake_published":true,"elapsed_ms":1346}
+WAITING_FOR_WINDOW_CLOSE round=2 shell_pid=23532 engine_pid=25732 port=60248
+{"round":2,"mode":"Close","shell_pid":23532,"shell_path":"E:\\AI_Agent\\src-tauri\\target\\release\\spectrum-agent.exe","shell_cim_path":"E:\\AI_Agent\\src-tauri\\target\\release\\spectrum-agent.exe","parent_pid":8292,"parent_path":"C:\\Windows\\explorer.exe","parent_cim_path":"C:\\Windows\\Explorer.EXE","parent_in_job":false,"engine_pid":25732,"engine_path":"E:\\AI_Agent\\src-tauri\\target\\release\\resources\\backend\\app.exe","engine_cim_path":"\\\\?\\E:\\AI_Agent\\src-tauri\\target\\release\\resources\\backend\\app.exe","port":60248,"port_status":"closed","boot_id":"568d4e0c","old_boot_id":"2c327773","handshake_published_before_action":true,"engine_remaining":0,"shell_remaining":0,"port_open":false,"binary_sha256":"a7fc07b6acc9eff87b205823814ccb8cca032be19146206db17a0a2117b6f486","passed":true}
+{"round":3,"mode":"Close","shell_pid":22664,"shell_path":"E:\\AI_Agent\\src-tauri\\target\\release\\spectrum-agent.exe","shell_cim_path":"E:\\AI_Agent\\src-tauri\\target\\release\\spectrum-agent.exe","parent_pid":8292,"parent_path":"C:\\Windows\\explorer.exe","parent_cim_path":"C:\\Windows\\Explorer.EXE","parent_in_job":false,"engine_pid":19308,"engine_path":"E:\\AI_Agent\\src-tauri\\target\\release\\resources\\backend\\app.exe","engine_cim_path":"\\\\?\\E:\\AI_Agent\\src-tauri\\target\\release\\resources\\backend\\app.exe","port":52845,"boot_id":"284e7b5f","handshake_published":true,"elapsed_ms":1402}
+WAITING_FOR_WINDOW_CLOSE round=3 shell_pid=22664 engine_pid=19308 port=52845
+
+
+PSMessageDetails      : 
+Exception             : System.Management.Automation.RuntimeException: Round 3: cleanup failed
+TargetObject          : Round 3: cleanup failed
+CategoryInfo          : OperationStopped: (Round 3: cleanup failed:String) [], RuntimeException
+FullyQualifiedErrorId : Round 3: cleanup failed
+ErrorDetails          : 
+InvocationInfo        : System.Management.Automation.InvocationInfo
+ScriptStackTrace      : 在 <ScriptBlock>、E:\AI_Agent\artifacts\step3\checkpoint-4\release_lifecycle.ps1 中: 第 100 行
+                        在 <ScriptBlock>、E:\AI_Agent\artifacts\step3\checkpoint-4\matrix-runner.ps1 中: 第 10 行
+                        在 <ScriptBlock>、E:\AI_Agent\artifacts\step3\checkpoint-4\matrix-runner.ps1 中: 第 9 行
+PipelineIterationInfo : {}
+
+
+

@@ -1,0 +1,110 @@
+﻿{
+    "diagnostic":  "spawn_observation_failed",
+    "shell":  null,
+    "child":  25540,
+    "data_root":  "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent",
+    "log_path":  "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\shell-20261018.log",
+    "offset":  9447,
+    "event_count":  18,
+    "log_bytes":  11665,
+    "last_events":  [
+                        {
+                            "event":  "process_created_suspended",
+                            "generation_id":  1,
+                            "pid":  25540,
+                            "timestamp":  "2026-10-18T10:48:49.970Z"
+                        },
+                        {
+                            "event":  "job_assigned",
+                            "generation_id":  1,
+                            "pid":  25540,
+                            "timestamp":  "2026-10-18T10:48:49.971Z"
+                        },
+                        {
+                            "event":  "thread_resumed_and_closed",
+                            "generation_id":  1,
+                            "pid":  25540,
+                            "timestamp":  "2026-10-18T10:48:49.971Z"
+                        },
+                        {
+                            "event":  "process_identity_recorded",
+                            "generation_id":  1,
+                            "pid":  25540,
+                            "process_created_at_ms":  1792320529967,
+                            "timestamp":  "2026-10-18T10:48:49.971Z"
+                        },
+                        {
+                            "event":  "handshake_ignored",
+                            "generation_id":  1,
+                            "reason":  "foreign_identity",
+                            "timestamp":  "2026-10-18T10:48:49.972Z"
+                        },
+                        {
+                            "event":  "window_hidden",
+                            "generation_id":  1,
+                            "success":  true,
+                            "timestamp":  "2026-10-18T10:48:49.980Z",
+                            "visible":  false
+                        },
+                        {
+                            "event":  "handshake_wait",
+                            "generation_id":  1,
+                            "reason":  "not_valid_yet",
+                            "timestamp":  "2026-10-18T10:48:50.538Z"
+                        },
+                        {
+                            "boot_id":  "a1f4c35f",
+                            "event":  "handshake_identity_verified",
+                            "generation_id":  1,
+                            "pid":  25540,
+                            "process_created_at_ms":  1792320529967,
+                            "timestamp":  "2026-10-18T10:48:50.619Z"
+                        },
+                        {
+                            "event":  "health_verified",
+                            "generation_id":  1,
+                            "pid":  25540,
+                            "port":  59425,
+                            "timestamp":  "2026-10-18T10:48:50.623Z"
+                        },
+                        {
+                            "event":  "state_transition",
+                            "from":  "Starting",
+                            "generation_id":  1,
+                            "reason":  "health_identity_matched",
+                            "timestamp":  "2026-10-18T10:48:50.623Z",
+                            "to":  "Ready"
+                        },
+                        {
+                            "activated":  true,
+                            "event":  "window_shown",
+                            "generation_id":  1,
+                            "success":  true,
+                            "timestamp":  "2026-10-18T10:48:50.638Z",
+                            "visible":  true
+                        },
+                        {
+                            "elapsed_ms":  1199,
+                            "event":  "desktop_presented",
+                            "generation_id":  1,
+                            "phase":  "Ready",
+                            "timestamp":  "2026-10-18T10:48:50.638Z"
+                        }
+                    ]
+}
+
+
+PSMessageDetails      : 
+Exception             : System.Management.Automation.RuntimeException: Round 1: spawn identity not observed
+TargetObject          : Round 1: spawn identity not observed
+CategoryInfo          : OperationStopped: (Round 1: spawn identity not observed:String) [], RuntimeException
+FullyQualifiedErrorId : Round 1: spawn identity not observed
+ErrorDetails          : 
+InvocationInfo        : System.Management.Automation.InvocationInfo
+ScriptStackTrace      : 在 <ScriptBlock>、E:\AI_Agent\artifacts\step3\checkpoint-4\release_lifecycle.ps1 中: 第 63 行
+                        在 <ScriptBlock>、E:\AI_Agent\artifacts\step3\checkpoint-4\matrix-runner.ps1 中: 第 10 行
+                        在 <ScriptBlock>、E:\AI_Agent\artifacts\step3\checkpoint-4\matrix-runner.ps1 中: 第 9 行
+PipelineIterationInfo : {}
+
+
+

@@ -1,0 +1,4 @@
+Independent full matrix assertions: KillReady=10 KillStarting=10 Close=10; exact SHA shared; zero own process/port residuals.
+requirements-lock.txt SHA256=58e24b59da34461a17fd942b4047071e42b5120b3d474ba976a7e28535d40bcc
+package-lock.json SHA256=5122b8e2dbd8b84ce2d7365088d01e657de7c178037533194ab17504eb7ecb14
+src-tauri\Cargo.lock SHA256=19677a37d746c188184f4948d8bc5739759be755e3afeaa2c9f58471fec13b12

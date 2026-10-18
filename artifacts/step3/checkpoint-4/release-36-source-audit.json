@@ -1,0 +1,71 @@
+{
+  "scan_original_before_copy": true,
+  "records": [
+    {
+      "source": "C:/Users/Administrator/AppData/Local/SpectrumAgent/logs/shell-20261018.log",
+      "bytes": 2105736,
+      "sha256": "e423fd5505ca1c9477a7185c66d517d97169dc5293105c51e832beea01dd69a0",
+      "json_lines": 7208,
+      "actual_token_samples": 4,
+      "full_handshake_samples": 2,
+      "exact_token_hits": 0,
+      "whole_handshake_hits": 0,
+      "authorization_bearer": false
+    },
+    {
+      "source": "C:/Users/Administrator/AppData/Local/SpectrumAgent/logs/engine-20261018.jsonl",
+      "bytes": 890324,
+      "sha256": "5faeb31ec173a526ffa873fd224c988664e5554b25a6c6016268f6cdd999831e",
+      "json_lines": 5030,
+      "actual_token_samples": 4,
+      "full_handshake_samples": 2,
+      "exact_token_hits": 0,
+      "whole_handshake_hits": 0,
+      "authorization_bearer": false
+    },
+    {
+      "source": "C:/Users/Administrator/AppData/Local/SpectrumAgent/acceptance/dom-14352.jsonl",
+      "bytes": 629689,
+      "sha256": "2f99b1e764b2c555ea53198e885681c676ce89967db219f27732cd78176336d3",
+      "json_lines": 450,
+      "actual_token_samples": 4,
+      "full_handshake_samples": 2,
+      "exact_token_hits": 0,
+      "whole_handshake_hits": 0,
+      "authorization_bearer": false
+    },
+    {
+      "source": "C:/Users/Administrator/AppData/Local/SpectrumAgent/acceptance/dom-19480.jsonl",
+      "bytes": 7354,
+      "sha256": "b3c4a55a20e8c84171a303507d8c101a2506f9f3bcd74298d6cbf268d2539175",
+      "json_lines": 9,
+      "actual_token_samples": 4,
+      "full_handshake_samples": 2,
+      "exact_token_hits": 0,
+      "whole_handshake_hits": 0,
+      "authorization_bearer": false
+    },
+    {
+      "source": "C:/Users/Administrator/AppData/Local/SpectrumAgent/acceptance/dom-21520.jsonl",
+      "bytes": 6646,
+      "sha256": "2bfb0d06724fcf50b1a58e3a0c82a7054edc668a2a95b6ed7c440284e135bb18",
+      "json_lines": 8,
+      "actual_token_samples": 4,
+      "full_handshake_samples": 2,
+      "exact_token_hits": 0,
+      "whole_handshake_hits": 0,
+      "authorization_bearer": false
+    },
+    {
+      "source": "C:/Users/Administrator/AppData/Local/SpectrumAgent/acceptance/dom-11612.jsonl",
+      "bytes": 2742,
+      "sha256": "4e9865436ed62dc6b26caa9430b801b32cbe5d26a5165d769a8f91e41a6770db",
+      "json_lines": 2,
+      "actual_token_samples": 4,
+      "full_handshake_samples": 2,
+      "exact_token_hits": 0,
+      "whole_handshake_hits": 0,
+      "authorization_bearer": false
+    }
+  ]
+}

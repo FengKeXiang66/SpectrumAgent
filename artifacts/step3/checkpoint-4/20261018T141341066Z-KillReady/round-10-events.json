@@ -1,0 +1,120 @@
+﻿[
+    {
+        "event":  "shell_log_started",
+        "timestamp":  "2026-10-18T14:13:59.952Z"
+    },
+    {
+        "event":  "shell_started",
+        "pid":  24088,
+        "timestamp":  "2026-10-18T14:13:59.952Z"
+    },
+    {
+        "event":  "single_instance_lock_acquired",
+        "timestamp":  "2026-10-18T14:14:00.319Z"
+    },
+    {
+        "event":  "shell_log_started",
+        "timestamp":  "2026-10-18T14:14:00.320Z"
+    },
+    {
+        "event":  "engine_start_attempt",
+        "exe":  "\\\\?\\E:\\AI_Agent\\src-tauri\\target\\release\\resources\\backend\\app.exe",
+        "generation_id":  1,
+        "selection_source":  "resolved_resource",
+        "timestamp":  "2026-10-18T14:14:00.320Z"
+    },
+    {
+        "event":  "preexisting_handshake_snapshot",
+        "generation_id":  1,
+        "old_identity":  {
+                             "boot_id":  "86d2efe6",
+                             "pid":  26760,
+                             "port":  49923,
+                             "process_created_at_ms":  1792332838316
+                         },
+        "preexisting_handshake_invalid":  null,
+        "timestamp":  "2026-10-18T14:14:00.320Z"
+    },
+    {
+        "event":  "process_created_suspended",
+        "generation_id":  1,
+        "pid":  19756,
+        "timestamp":  "2026-10-18T14:14:00.343Z"
+    },
+    {
+        "event":  "job_assigned",
+        "generation_id":  1,
+        "pid":  19756,
+        "timestamp":  "2026-10-18T14:14:00.343Z"
+    },
+    {
+        "event":  "thread_resumed_and_closed",
+        "generation_id":  1,
+        "pid":  19756,
+        "timestamp":  "2026-10-18T14:14:00.343Z"
+    },
+    {
+        "event":  "process_identity_recorded",
+        "generation_id":  1,
+        "pid":  19756,
+        "process_created_at_ms":  1792332840337,
+        "timestamp":  "2026-10-18T14:14:00.343Z"
+    },
+    {
+        "event":  "handshake_ignored",
+        "generation_id":  1,
+        "reason":  "foreign_identity",
+        "timestamp":  "2026-10-18T14:14:00.344Z"
+    },
+    {
+        "event":  "window_hidden",
+        "generation_id":  1,
+        "success":  true,
+        "timestamp":  "2026-10-18T14:14:00.345Z",
+        "visible":  false
+    },
+    {
+        "event":  "handshake_wait",
+        "generation_id":  1,
+        "reason":  "not_valid_yet",
+        "timestamp":  "2026-10-18T14:14:00.951Z"
+    },
+    {
+        "boot_id":  "7ee44e9b",
+        "event":  "handshake_identity_verified",
+        "generation_id":  1,
+        "pid":  19756,
+        "process_created_at_ms":  1792332840337,
+        "timestamp":  "2026-10-18T14:14:00.991Z"
+    },
+    {
+        "event":  "health_verified",
+        "generation_id":  1,
+        "pid":  19756,
+        "port":  50282,
+        "timestamp":  "2026-10-18T14:14:00.995Z"
+    },
+    {
+        "event":  "state_transition",
+        "from":  "Starting",
+        "generation_id":  1,
+        "reason":  "health_identity_matched",
+        "timestamp":  "2026-10-18T14:14:00.995Z",
+        "to":  "Ready"
+    },
+    {
+        "activated":  true,
+        "event":  "window_shown",
+        "generation_id":  1,
+        "success":  true,
+        "timestamp":  "2026-10-18T14:14:01.009Z",
+        "visible":  true
+    },
+    {
+        "elapsed_ms":  1057,
+        "event":  "desktop_presented",
+        "generation_id":  1,
+        "phase":  "Ready",
+        "timestamp":  "2026-10-18T14:14:01.009Z"
+    }
+]

@@ -1,0 +1,12 @@
+{"event":"shell_log_started","timestamp":"2026-10-18T14:32:49.644Z"}
+{"event":"engine_start_attempt","exe":"E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\temp\\timeout-stub\\app.exe","generation_id":1,"selection_source":"constructor_injection","timestamp":"2026-10-18T14:32:49.647Z"}
+{"event":"preexisting_handshake_snapshot","generation_id":1,"old_identity":null,"preexisting_handshake_invalid":null,"timestamp":"2026-10-18T14:32:49.647Z"}
+{"event":"process_created_suspended","generation_id":1,"pid":17768,"timestamp":"2026-10-18T14:32:49.656Z"}
+{"event":"job_assigned","generation_id":1,"pid":17768,"timestamp":"2026-10-18T14:32:49.656Z"}
+{"event":"thread_resumed_and_closed","generation_id":1,"pid":17768,"timestamp":"2026-10-18T14:32:49.656Z"}
+{"event":"process_identity_recorded","generation_id":1,"pid":17768,"process_created_at_ms":1792333969650,"timestamp":"2026-10-18T14:32:49.657Z"}
+{"event":"handshake_wait","generation_id":1,"reason":"not_valid_yet","timestamp":"2026-10-18T14:32:49.664Z"}
+{"event":"state_transition","from":"Starting","generation_id":1,"reason":"application_close","timestamp":"2026-10-18T14:32:50.035Z","to":"Stopping"}
+{"event":"engine_process_exit","exit_code":1,"generation_id":1,"pid":17768,"timestamp":"2026-10-18T14:32:50.040Z","wait_error":null}
+{"complete":true,"errors":[],"event":"generation_cleanup","generation_id":1,"timestamp":"2026-10-18T14:32:50.070Z"}
+{"event":"app_exit","generation_id":1,"timestamp":"2026-10-18T14:32:50.071Z"}

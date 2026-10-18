@@ -1,0 +1,22 @@
+{
+  "command": [
+    "E:\\AI_Agent\\src-tauri\\target\\debug\\supervisor-probe.exe",
+    "--resource-exe",
+    "E:\\AI_Agent\\src-tauri\\target\\release\\resources\\backend\\app.exe",
+    "--injected-exe",
+    "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\temp\\timeout-stub\\app.exe"
+  ],
+  "scope": "core acceptance harness; not Tauri single-instance evidence",
+  "exit_code": 0,
+  "transitions": [
+    {
+      "event": "state_transition",
+      "from": "Starting",
+      "generation_id": 1,
+      "reason": "application_close",
+      "timestamp": "2026-10-18T14:32:50.035Z",
+      "to": "Stopping"
+    }
+  ],
+  "app_exit": 1
+}

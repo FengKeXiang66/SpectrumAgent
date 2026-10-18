@@ -1,0 +1,42 @@
+COMMAND: Get-FileHash three lock files
+E:\AI_Agent\requirements-lock.txt SHA256=58E24B59DA34461A17FD942B4047071E42B5120B3D474BA976A7E28535D40BCC
+E:\AI_Agent\package-lock.json SHA256=5122B8E2DBD8B84CE2D7365088D01E657DE7C178037533194AB17504EB7ECB14
+E:\AI_Agent\src-tauri\Cargo.lock SHA256=19677A37D746C188184F4948D8BC5739759BE755E3AFEAA2C9F58471FEC13B12
+COMMAND: Get-CimInstance Win32_Process (own executable paths only)
+[]
+COMMAND: git ls-files forbidden product directories
+[]
+COMMAND: Test-Path E-drive NSIS cache location / configured bundle mode
+{
+  "nsis_cache": false,
+  "configured_local_tools_dir": true
+}
+COMMAND: git diff --name-only HEAD -- artifacts/step2
+COMMAND: closed matrix and final UI ports via Get-NetTCPConnection
+{
+  "observed_ports": [
+    49923,
+    50134,
+    50282,
+    51500,
+    51976,
+    53187,
+    53302,
+    53976,
+    55761,
+    56687,
+    56792,
+    57014,
+    57548,
+    58004,
+    58770,
+    58796,
+    59574,
+    59924,
+    60330,
+    61586,
+    62086,
+    64133
+  ],
+  "current_matching_listeners": []
+}

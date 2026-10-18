@@ -1,0 +1,23 @@
+
+> spectrum-agent@0.1.0 tauri
+> tauri build --debug --no-bundle --runner C:\Users\Administrator\.cargo\bin\cargo.exe
+
+        Info Looking up installed tauri packages to check mismatched versions...
+     Running beforeBuildCommand `npm run build`
+
+> spectrum-agent@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v8.3.4 building client environment for production...
+transforming...
+✓ 20 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.37 kB │ gzip:  0.28 kB
+dist/assets/index-DlY-5qsv.css    0.55 kB │ gzip:  0.36 kB
+dist/assets/index-BVBpdjoe.js   226.31 kB │ gzip: 71.60 kB
+
+✓ built in 104ms
+   Compiling spectrum-agent v0.1.0 (E:\AI_Agent\src-tauri)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 13.63s
+       Built application at: E:\AI_Agent\src-tauri\target\debug\spectrum-agent.exe

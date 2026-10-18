@@ -1,0 +1,10 @@
+{
+  "shell_path": "E:\\AI_Agent\\src-tauri\\target\\release\\spectrum-agent.exe",
+  "shell_sha256": "a7fc07b6acc9eff87b205823814ccb8cca032be19146206db17a0a2117b6f486",
+  "shell_bytes": 10785792,
+  "engine_source_manifest": "artifacts/step2/revision-20261018-smoke-headers/product-manifest.json",
+  "engine_sha256": "3f62c1895152a01eb0a92b61a733985c15ca7888d233fd9408ca5b9dc61d7703",
+  "resource_files": 544,
+  "fault_fixture": false,
+  "long_paths_enabled": 0
+}

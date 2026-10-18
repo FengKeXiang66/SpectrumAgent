@@ -1,0 +1,61 @@
+Window: "光谱数据 AI Agent", App: spectrum-agent.exe.
+	0 窗口 光谱数据 AI Agent Secondary Actions: Raise
+		7 窗格
+			8 窗格 光谱数据 AI Agent
+				9 窗格 (disabled)
+				10 区域 光谱数据 AI Agent - Web 内容
+					11 区域
+						12 区域
+							13 区域
+								14 区域
+								15 区域
+									16 区域
+										17 区域
+											18 区域
+												19 区域
+												20 文档 光谱数据 AI Agent Value: http://tauri.localhost/ ID: RootWebArea
+													21 组 ID: root
+														22 主要
+															23 标题 光谱数据 AI Agent · 地基演示
+															24 警报
+																25 标题 引擎启动或运行失败
+																26 文本 无法启动引擎，请检查程序文件是否完整。
+																27 文本 Win32 错误码：2（CreateProcessW）
+																28 文本 握手路径：
+																29 文本 C:\Users\Administrator\AppData\Local\SpectrumAgent\run\handshake.json
+																30 文本 日志路径：
+																31 文本 C:\Users\Administrator\AppData\Local\SpectrumAgent\logs\engine-20261018.jsonl
+																32 文本 数据目录：
+																33 文本 C:\Users\Administrator\AppData\Local\SpectrumAgent
+																34 按钮 重试
+																35 按钮 打开数据目录
+														36 页脚 常驻对话条
+															37 状态
+																38 文本 引擎不可用，请查看失败原因与诊断入口。
+															39 文本 hello 对话条
+															40 编辑 (disabled) hello 对话条 Description: 运行冒烟测试（Ctrl+K 聚焦，Ctrl+Enter 发送） ID: agent-input
+															41 按钮 (disabled) 发送
+								42 区域
+						43 区域
+						44 区域
+		1 标题栏 (settable, string) Value: 光谱数据 AI Agent
+			2 菜单栏 系统 ID: MenuBar
+				3 菜单项目 系统
+			4 按钮 最小化
+			5 按钮 最大化
+			6 按钮 关闭
+
+Document text: ```
+光谱数据 AI Agent · 地基演示
+引擎启动或运行失败
+无法启动引擎，请检查程序文件是否完整。
+Win32 错误码：2（CreateProcessW）
+握手路径：C:\Users\Administrator\AppData\Local\SpectrumAgent\run\handshake.json
+日志路径：C:\Users\Administrator\AppData\Local\SpectrumAgent\logs\engine-20261018.jsonl
+数据目录：C:\Users\Administrator\AppData\Local\SpectrumAgent
+重试打开数据目录
+引擎不可用，请查看失败原因与诊断入口。
+hello 对话条
+￼
+发送
+```

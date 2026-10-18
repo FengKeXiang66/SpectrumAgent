@@ -1,0 +1,9 @@
+{
+  "launch_before_utc": "2026-10-18T13:58:08.2367738Z",
+  "pid": 26856,
+  "process_created_utc": "2026-10-18T13:58:08.3395773Z",
+  "spawn_return_ms": 106,
+  "shell_sha256": "A7FC07B6ACC9EFF87B205823814CCB8CCA032BE19146206DB17A0A2117B6F486",
+  "cold_definition": "new WebView profile; OS file cache not purged",
+  "invalid_engine_override": "E:\\AI_Agent\\deliberately-invalid-release-override\\app.exe"
+}

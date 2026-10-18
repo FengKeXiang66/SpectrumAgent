@@ -1,0 +1,8 @@
+{
+  "shell_sha256": "301ab78355ec50b96b3e58dc776a6651dc5fb002085f86d82d25388495931767",
+  "shell_bytes": 10785792,
+  "resource_root": "E:\\AI_Agent\\src-tauri\\target\\release\\resources\\backend",
+  "resource_files": 543,
+  "only_missing": "_internal/python312.dll",
+  "full_manifest_match": true
+}

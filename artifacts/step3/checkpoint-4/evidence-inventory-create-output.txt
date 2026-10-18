@@ -1,0 +1,1 @@
+{"action": "create", "files": 304, "bytes": 17381611, "inventory_sha256": "847098f88fe07055744a11c29d54324fa4ceb74d4ac029d0106ec70f2f03d719", "all_match": true}

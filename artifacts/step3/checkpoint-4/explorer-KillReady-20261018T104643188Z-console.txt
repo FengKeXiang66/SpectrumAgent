@@ -1,0 +1,16 @@
+﻿
+
+PSMessageDetails      : 
+Exception             : System.Management.Automation.RuntimeException: Round 1: spawn identity not observed
+TargetObject          : Round 1: spawn identity not observed
+CategoryInfo          : OperationStopped: (Round 1: spawn identity not observed:String) [], RuntimeException
+FullyQualifiedErrorId : Round 1: spawn identity not observed
+ErrorDetails          : 
+InvocationInfo        : System.Management.Automation.InvocationInfo
+ScriptStackTrace      : 在 <ScriptBlock>、E:\AI_Agent\artifacts\step3\checkpoint-4\release_lifecycle.ps1 中: 第 61 行
+                        在 <ScriptBlock>、E:\AI_Agent\artifacts\step3\checkpoint-4\matrix-runner.ps1 中: 第 10 行
+                        在 <ScriptBlock>、E:\AI_Agent\artifacts\step3\checkpoint-4\matrix-runner.ps1 中: 第 9 行
+PipelineIterationInfo : {}
+
+
+

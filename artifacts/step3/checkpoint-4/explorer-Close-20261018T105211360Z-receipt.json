@@ -1,0 +1,8 @@
+﻿{
+    "mode":  "Close",
+    "rounds":  10,
+    "runner_pid":  27228,
+    "console":  "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\explorer-Close-20261018T105211360Z-console.txt",
+    "status":  "failed",
+    "error":  "Round 3: cleanup failed"
+}

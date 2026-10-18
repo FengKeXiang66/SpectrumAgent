@@ -1,0 +1,85 @@
+{
+  "source": "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\20261018T141341066Z-KillReady",
+  "previous_round_verbatim": {
+    "round": 1,
+    "mode": "KillReady",
+    "shell_pid": 15404,
+    "shell_path": "E:\\AI_Agent\\src-tauri\\target\\release\\spectrum-agent.exe",
+    "shell_cim_path": "E:\\AI_Agent\\src-tauri\\target\\release\\spectrum-agent.exe",
+    "parent_pid": 8292,
+    "parent_path": "C:\\Windows\\explorer.exe",
+    "parent_cim_path": "C:\\Windows\\Explorer.EXE",
+    "parent_in_job": false,
+    "engine_pid": 26728,
+    "engine_path": "E:\\AI_Agent\\src-tauri\\target\\release\\resources\\backend\\app.exe",
+    "engine_cim_path": "\\\\?\\E:\\AI_Agent\\src-tauri\\target\\release\\resources\\backend\\app.exe",
+    "port": 57014,
+    "port_status": "closed",
+    "boot_id": "762f81de",
+    "old_boot_id": "5a1b269f",
+    "handshake_published_before_action": true,
+    "engine_remaining": 0,
+    "shell_remaining": 0,
+    "port_open": false,
+    "binary_sha256": "36fbc3df1d220d51c2a1b9e6d347a0ebdb99eb6fa6318d20a18f82d1b9da713f",
+    "passed": true
+  },
+  "next_round_selected_verbatim_events": [
+    {
+      "event": "engine_start_attempt",
+      "exe": "\\\\?\\E:\\AI_Agent\\src-tauri\\target\\release\\resources\\backend\\app.exe",
+      "generation_id": 1,
+      "selection_source": "resolved_resource",
+      "timestamp": "2026-10-18T14:13:44.058Z"
+    },
+    {
+      "event": "preexisting_handshake_snapshot",
+      "generation_id": 1,
+      "old_identity": {
+        "boot_id": "762f81de",
+        "pid": 26728,
+        "port": 57014,
+        "process_created_at_ms": 1792332821963
+      },
+      "preexisting_handshake_invalid": null,
+      "timestamp": "2026-10-18T14:13:44.058Z"
+    },
+    {
+      "event": "process_identity_recorded",
+      "generation_id": 1,
+      "pid": 16644,
+      "process_created_at_ms": 1792332824075,
+      "timestamp": "2026-10-18T14:13:44.081Z"
+    },
+    {
+      "event": "handshake_ignored",
+      "generation_id": 1,
+      "reason": "foreign_identity",
+      "timestamp": "2026-10-18T14:13:44.082Z"
+    },
+    {
+      "boot_id": "caa59c59",
+      "event": "handshake_identity_verified",
+      "generation_id": 1,
+      "pid": 16644,
+      "process_created_at_ms": 1792332824075,
+      "timestamp": "2026-10-18T14:13:44.690Z"
+    },
+    {
+      "event": "health_verified",
+      "generation_id": 1,
+      "pid": 16644,
+      "port": 59574,
+      "timestamp": "2026-10-18T14:13:44.712Z"
+    },
+    {
+      "event": "state_transition",
+      "from": "Starting",
+      "generation_id": 1,
+      "reason": "health_identity_matched",
+      "timestamp": "2026-10-18T14:13:44.712Z",
+      "to": "Ready"
+    }
+  ],
+  "scope": "derived excerpt; complete original event file remains unchanged"
+}

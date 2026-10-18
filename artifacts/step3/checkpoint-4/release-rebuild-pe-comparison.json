@@ -1,0 +1,65 @@
+{
+  "old_sha256": "a7fc07b6acc9eff87b205823814ccb8cca032be19146206db17a0a2117b6f486",
+  "new_sha256": "36fbc3df1d220d51c2a1b9e6d347a0ebdb99eb6fa6318d20a18f82d1b9da713f",
+  "old_bytes": 10785792,
+  "new_bytes": 10785792,
+  "old_coff_timestamp": 1792319720,
+  "new_coff_timestamp": 1792332220,
+  "sections": [
+    {
+      "name": ".text",
+      "old_size": 7621120,
+      "new_size": 7621120,
+      "same_bytes": true,
+      "old_sha256": "965a0971570ccd4fd3d0384ea1c8739f8622f714d60e82dfa40bfef1f6eea5a6",
+      "new_sha256": "965a0971570ccd4fd3d0384ea1c8739f8622f714d60e82dfa40bfef1f6eea5a6",
+      "different_byte_positions": 0
+    },
+    {
+      "name": ".rdata",
+      "old_size": 2689536,
+      "new_size": 2689536,
+      "same_bytes": false,
+      "old_sha256": "e0afba7c675dba7f9e09ad06262b29de3caf10e2d827d91ee12babca833c739c",
+      "new_sha256": "dd71257ffad160baa5e924dd6e91b9ea3ca30269db495d69c0e07c578c19a4b8",
+      "different_byte_positions": 22
+    },
+    {
+      "name": ".data",
+      "old_size": 4096,
+      "new_size": 4096,
+      "same_bytes": true,
+      "old_sha256": "08a555259087780aab0c70ec5fd958117af1750e6ac3096b103e996c4d98094b",
+      "new_sha256": "08a555259087780aab0c70ec5fd958117af1750e6ac3096b103e996c4d98094b",
+      "different_byte_positions": 0
+    },
+    {
+      "name": ".pdata",
+      "old_size": 441856,
+      "new_size": 441856,
+      "same_bytes": true,
+      "old_sha256": "f4e6d21d0e1ac1cb269f375bd14eb02b29d1386acdde37529d598769a5c15b9e",
+      "new_sha256": "f4e6d21d0e1ac1cb269f375bd14eb02b29d1386acdde37529d598769a5c15b9e",
+      "different_byte_positions": 0
+    },
+    {
+      "name": ".rsrc",
+      "old_size": 6144,
+      "new_size": 6144,
+      "same_bytes": true,
+      "old_sha256": "9c0fb3e3a9f545768b401edd2084c696e2d46cdc0a1d752d76ce3d27a7ff73eb",
+      "new_sha256": "9c0fb3e3a9f545768b401edd2084c696e2d46cdc0a1d752d76ce3d27a7ff73eb",
+      "different_byte_positions": 0
+    },
+    {
+      "name": ".reloc",
+      "old_size": 22016,
+      "new_size": 22016,
+      "same_bytes": true,
+      "old_sha256": "ed8382acf2b43c21504a1a6f2ac32405c1b22637ca732c1438836bc2ba5590b2",
+      "new_sha256": "ed8382acf2b43c21504a1a6f2ac32405c1b22637ca732c1438836bc2ba5590b2",
+      "different_byte_positions": 0
+    }
+  ],
+  "cause": "UNVERIFIED: section comparison is evidence, not a unique root-cause attribution"
+}

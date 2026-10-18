@@ -1,0 +1,18 @@
+﻿[
+    {
+        "exact_token_hits":  0,
+        "source":  "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\shell-20261018.log",
+        "actual_token_samples":  1,
+        "authorization_bearer":  false,
+        "sha256":  "C3F4015E6AA26E8EC028F9DF836B8DDCA34A2C130E2BD8B48A73BB37ACDC09DA",
+        "bytes":  96075
+    },
+    {
+        "exact_token_hits":  0,
+        "source":  "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\engine-20261018.jsonl",
+        "actual_token_samples":  1,
+        "authorization_bearer":  false,
+        "sha256":  "2ABF2727D589BB7C9C44C12417869C448722F32EA868BC9A0D2BB1E473CB4108",
+        "bytes":  140579
+    }
+]

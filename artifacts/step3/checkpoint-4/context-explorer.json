@@ -1,0 +1,20 @@
+﻿{
+    "label":  "explorer",
+    "pid":  26860,
+    "parent_pid":  8292,
+    "package_api_result":  15700,
+    "package":  "",
+    "localappdata":  "C:\\Users\\Administrator\\AppData\\Local",
+    "handshake":  {
+                      "boot_id":  "ee6c2cd3",
+                      "pid":  6120,
+                      "process_created_at":  "2026-10-18T10:46:44.655Z",
+                      "port":  50644,
+                      "token":  "[REDACTED]",
+                      "protocol":  1,
+                      "version":  "0.1.0",
+                      "started_at":  "2026-10-18T10:46:45.269Z"
+                  },
+    "shell_log_bytes":  8886,
+    "shell_log_sha256":  "96001D9DAB29B682C3A073180D7ED6FF8FC6CB9397A059C84EE15F779B145261"
+}
