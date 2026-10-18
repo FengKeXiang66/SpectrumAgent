@@ -1,0 +1,12 @@
+{
+  "checked": 304,
+  "mismatches": [
+    {
+      "path": "artifacts/step3/checkpoint-4/nsis-install-directory-proposal.diff",
+      "manifest_bytes": 238,
+      "blob_bytes": 233,
+      "working_bytes": 238,
+      "only_CRLF_normalization": true
+    }
+  ]
+}

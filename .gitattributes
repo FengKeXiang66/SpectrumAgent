@@ -27,3 +27,4 @@ artifacts/step3/checkpoint-2/*.ps1 text eol=lf
 artifacts/step3/staging-reports/*.xml -text -whitespace
 artifacts/step3/checkpoint-4/REPORT.md -text -whitespace
 artifacts/step3/checkpoint-4/*.ps1 text eol=lf
+artifacts/step3/checkpoint-4/*.diff -text -whitespace
