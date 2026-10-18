@@ -1,0 +1,137 @@
+**********************
+PowerShell transcript start
+Start time: 20261018122026
+Username: WIN-RTKE72PB5BE\Administrator
+RunAs User: WIN-RTKE72PB5BE\Administrator
+Configuration Name: 
+Machine: WIN-RTKE72PB5BE (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Users\Administrator\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\powershell\pwsh.dll -Command try { [Console]::OutputEncoding=[System.Text.Encoding]::UTF8 } catch {}
+$vmEvidence = 'E:\AI_Agent\artifacts\step2\revision-01\vm'
+New-Item -ItemType Directory -Path $vmEvidence -Force | Out-Null
+$probePath = Join-Path $vmEvidence 'host-probe-output.txt'
+if (Test-Path -LiteralPath $probePath) { throw 'Refusing to overwrite VM host probe' }
+Start-Transcript -Path $probePath | Out-Host
+try {
+    'COMMAND: Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V'
+    Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V | Format-List FeatureName,State
+    'COMMAND: Get-CimInstance Win32_ComputerSystem'
+    Get-CimInstance Win32_ComputerSystem | Format-List HypervisorPresent,TotalPhysicalMemory
+    'COMMAND: Get-Command Get-VM,Set-VMKeyProtector,Enable-VMIntegrationService'
+    Get-Command Get-VM,Set-VMKeyProtector,Enable-VMIntegrationService -ErrorAction Continue | Select-Object Name,Source
+    'COMMAND: Get-Service vmms'
+    Get-Service vmms -ErrorAction Continue | Select-Object Name,Status
+    'COMMAND: Get-Module -ListAvailable Hyper-V'
+    Get-Module -ListAvailable Hyper-V | Select-Object Name,Version,Path
+    'COMMAND: Get-Item ISO'
+    Get-Item -LiteralPath 'E:\ISO\Windows11_Client_x64_zh-cn_26300_9457.iso' | Select-Object FullName,Length | Format-List
+    'COMMAND: PowerShell Parser.ParseFile (syntax only; does not call Hyper-V)'
+    foreach ($scriptName in @('build-vm.ps1','vm-ops.ps1')) {
+        $tokens = $null
+        $parseErrors = $null
+        [System.Management.Automation.Language.Parser]::ParseFile((Join-Path 'E:\AI_Agent' $scriptName), [ref]$tokens, [ref]$parseErrors) | Out-Null
+        [pscustomobject]@{Script=$scriptName;ParseErrors=@($parseErrors).Count} | Format-List
+        if (@($parseErrors).Count) { $parseErrors | Format-List; throw "Script parse failed: $scriptName" }
+        Get-FileHash -LiteralPath $scriptName -Algorithm SHA256 | Format-List
+    }
+    'VM_REAL_MACHINE_VERIFICATION: NOT RUN (Hyper-V Disabled; module and vmms unavailable)'
+} finally { Stop-Transcript | Out-Host }
+Process ID: 25696
+PSVersion: 7.6.5
+PSEdition: Core
+GitCommitId: 7.6.5
+OS: Microsoft Windows 10.0.26100
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.4
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+Transcript started, output file is E:\AI_Agent\artifacts\step2\revision-01\vm\host-probe-output.txt
+COMMAND: Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V
+
+FeatureName : Microsoft-Hyper-V
+State       : Disabled
+
+COMMAND: Get-CimInstance Win32_ComputerSystem
+
+HypervisorPresent   : True
+TotalPhysicalMemory : 16962281472
+
+COMMAND: Get-Command Get-VM,Set-VMKeyProtector,Enable-VMIntegrationService
+Get-Command: 
+Line |
+  13 |      Get-Command Get-VM,Set-VMKeyProtector,Enable-VMIntegrationService …
+     |      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | The term 'Get-VM' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+Get-Command:
+Line |
+  13 |      Get-Command Get-VM,Set-VMKeyProtector,Enable-VMIntegrationService …
+     |      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | The term 'Get-VM' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+Get-Command: 
+Line |
+  13 |      Get-Command Get-VM,Set-VMKeyProtector,Enable-VMIntegrationService …
+     |      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | The term 'Set-VMKeyProtector' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+Get-Command:
+Line |
+  13 |      Get-Command Get-VM,Set-VMKeyProtector,Enable-VMIntegrationService …
+     |      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | The term 'Set-VMKeyProtector' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+Get-Command: 
+Line |
+  13 |      Get-Command Get-VM,Set-VMKeyProtector,Enable-VMIntegrationService …
+     |      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | The term 'Enable-VMIntegrationService' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+Get-Command:
+Line |
+  13 |      Get-Command Get-VM,Set-VMKeyProtector,Enable-VMIntegrationService …
+     |      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | The term 'Enable-VMIntegrationService' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+COMMAND: Get-Service vmms
+Get-Service: 
+Line |
+  15 |      Get-Service vmms -ErrorAction Continue | Select-Object Name,Statu …
+     |      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | Cannot find any service with service name 'vmms'.
+Get-Service:
+Line |
+  15 |      Get-Service vmms -ErrorAction Continue | Select-Object Name,Statu …
+     |      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | Cannot find any service with service name 'vmms'.
+COMMAND: Get-Module -ListAvailable Hyper-V
+COMMAND: Get-Item ISO
+
+FullName : E:\ISO\Windows11_Client_x64_zh-cn_26300_9457.iso
+Length   : 9112440832
+
+COMMAND: PowerShell Parser.ParseFile (syntax only; does not call Hyper-V)
+
+Script      : build-vm.ps1
+ParseErrors : 0
+
+
+Algorithm : SHA256
+Hash      : 18602F98A781F03AD98E7C533F76FDDE5070C0FF09F92F3D717527414AF694ED
+Path      : E:\AI_Agent\build-vm.ps1
+
+
+Script      : vm-ops.ps1
+ParseErrors : 0
+
+
+Algorithm : SHA256
+Hash      : 46F7E815EC82C1CC8864BF8FDCB2DFBCC1D63A69A0337E56CE2BF582CA275143
+Path      : E:\AI_Agent\vm-ops.ps1
+
+VM_REAL_MACHINE_VERIFICATION: NOT RUN (Hyper-V Disabled; module and vmms unavailable)
+**********************
+PowerShell transcript end
+End time: 20261018122028
+**********************
