@@ -1,0 +1,14 @@
+{"event": "Started server process [3232]", "pid": 3232, "boot_id": "07745c0f", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:51:06.357412Z"}
+{"event": "Waiting for application startup.", "pid": 3232, "boot_id": "07745c0f", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:51:06.357916Z"}
+{"event": "Application startup complete.", "pid": 3232, "boot_id": "07745c0f", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:51:06.363812Z"}
+{"event": "Uvicorn running on http://127.0.0.1:52659 (Press CTRL+C to quit)", "pid": 3232, "boot_id": "07745c0f", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:51:06.364317Z"}
+{"event": "127.0.0.1:52660 - \"GET /health HTTP/1.1\" 200", "pid": 3232, "boot_id": "07745c0f", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:51:06.397025Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:52659/health \"HTTP/1.1 200 OK\"", "pid": 3232, "boot_id": "07745c0f", "logger": "httpx", "level": "info", "timestamp": "2026-10-18T00:51:06.398025Z"}
+{"boot_id": "07745c0f", "pid": 3232, "port": 52659, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:51:06.403535Z"}
+{"event": "127.0.0.1:52661 - \"GET /health HTTP/1.1\" 200", "pid": 3232, "boot_id": "07745c0f", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:51:06.439808Z"}
+{"event": "127.0.0.1:52666 - \"GET /health HTTP/1.1\" 200", "pid": 3232, "boot_id": "07745c0f", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:51:07.093451Z"}
+{"event": "Shutting down", "pid": 3232, "boot_id": "07745c0f", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:51:07.378111Z"}
+{"event": "Waiting for application shutdown.", "pid": 3232, "boot_id": "07745c0f", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:51:07.486582Z"}
+{"boot_id": "07745c0f", "cleanup_phase": "lifespan", "event": "engine_stopped", "pid": 3232, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T00:51:07.489854Z"}
+{"event": "Application shutdown complete.", "pid": 3232, "boot_id": "07745c0f", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:51:07.490359Z"}
+{"event": "Finished server process [3232]", "pid": 3232, "boot_id": "07745c0f", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:51:07.490359Z"}

@@ -1,0 +1,14 @@
+{"event": "Started server process [8512]", "boot_id": "b24b5b8a", "pid": 8512, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:54:33.089508Z"}
+{"reason": "dead_pid", "old_boot_id": "ad255eb0", "old_pid": 5472, "old_process_created_at": "2026-10-18T00:54:31.427Z", "old_port": 56928, "event": "stale_handshake_removed", "boot_id": "b24b5b8a", "pid": 8512, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T00:54:33.091550Z"}
+{"event": "Waiting for application startup.", "boot_id": "b24b5b8a", "pid": 8512, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:54:33.092051Z"}
+{"event": "Application startup complete.", "boot_id": "b24b5b8a", "pid": 8512, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:54:33.110974Z"}
+{"event": "Uvicorn running on http://127.0.0.1:56937 (Press CTRL+C to quit)", "boot_id": "b24b5b8a", "pid": 8512, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:54:33.111471Z"}
+{"event": "127.0.0.1:56938 - \"GET /health HTTP/1.1\" 200", "boot_id": "b24b5b8a", "pid": 8512, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:54:33.141214Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:56937/health \"HTTP/1.1 200 OK\"", "boot_id": "b24b5b8a", "pid": 8512, "logger": "httpx", "level": "info", "timestamp": "2026-10-18T00:54:33.142214Z"}
+{"boot_id": "b24b5b8a", "pid": 8512, "port": 56937, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:54:33.146199Z"}
+{"event": "127.0.0.1:56939 - \"GET /health HTTP/1.1\" 200", "boot_id": "b24b5b8a", "pid": 8512, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:54:33.175752Z"}
+{"event": "Shutting down", "boot_id": "b24b5b8a", "pid": 8512, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:54:33.467101Z"}
+{"event": "Waiting for application shutdown.", "boot_id": "b24b5b8a", "pid": 8512, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:54:33.574760Z"}
+{"boot_id": "b24b5b8a", "cleanup_phase": "lifespan", "event": "engine_stopped", "pid": 8512, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T00:54:33.575765Z"}
+{"event": "Application shutdown complete.", "boot_id": "b24b5b8a", "pid": 8512, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:54:33.575765Z"}
+{"event": "Finished server process [8512]", "boot_id": "b24b5b8a", "pid": 8512, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:54:33.576627Z"}

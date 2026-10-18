@@ -1,0 +1,15 @@
+{"pid": 9460, "event": "engine_boot", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:56:05.219920Z"}
+{"event": "Started server process [9460]", "pid": 9460, "boot_id": "ea1eb238", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:56:05.531941Z"}
+{"action": "reread_handshake_under_lock", "event": "startup_mutex_abandoned", "pid": 9460, "boot_id": "ea1eb238", "logger": "engine.startup_mutex", "level": "warning", "timestamp": "2026-10-18T00:56:05.531941Z"}
+{"event": "Waiting for application startup.", "pid": 9460, "boot_id": "ea1eb238", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:56:05.531941Z"}
+{"event": "Application startup complete.", "pid": 9460, "boot_id": "ea1eb238", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:56:05.536476Z"}
+{"event": "Uvicorn running on http://127.0.0.1:60066 (Press CTRL+C to quit)", "pid": 9460, "boot_id": "ea1eb238", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:56:05.540937Z"}
+{"event": "127.0.0.1:60067 - \"GET /health HTTP/1.1\" 200", "pid": 9460, "boot_id": "ea1eb238", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:56:05.572293Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:60066/health \"HTTP/1.1 200 OK\"", "pid": 9460, "boot_id": "ea1eb238", "logger": "httpx", "level": "info", "timestamp": "2026-10-18T00:56:05.572747Z"}
+{"boot_id": "ea1eb238", "pid": 9460, "port": 60066, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:56:05.578808Z"}
+{"event": "127.0.0.1:60068 - \"GET /health HTTP/1.1\" 200", "pid": 9460, "boot_id": "ea1eb238", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:56:05.596827Z"}
+{"event": "Shutting down", "pid": 9460, "boot_id": "ea1eb238", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:56:05.918530Z"}
+{"event": "Waiting for application shutdown.", "pid": 9460, "boot_id": "ea1eb238", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:56:06.011475Z"}
+{"boot_id": "ea1eb238", "cleanup_phase": "lifespan", "event": "engine_stopped", "pid": 9460, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T00:56:06.013794Z"}
+{"event": "Application shutdown complete.", "pid": 9460, "boot_id": "ea1eb238", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:56:06.014282Z"}
+{"event": "Finished server process [9460]", "pid": 9460, "boot_id": "ea1eb238", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:56:06.014282Z"}

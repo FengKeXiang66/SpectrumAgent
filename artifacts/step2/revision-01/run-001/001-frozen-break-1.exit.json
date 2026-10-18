@@ -1,0 +1,16 @@
+{
+  "event": "exit_verified",
+  "mode": "frozen",
+  "signal": "break",
+  "boot_id": "61a0e200",
+  "pid": 21592,
+  "process_created_at": "2026-10-18T00:44:27.788Z",
+  "port": 60511,
+  "exit_code": 3,
+  "pid_absent": true,
+  "port_absent": true,
+  "engine_stopped_count": 1,
+  "handshake_exists": false,
+  "residual_handshake": null,
+  "classification": "immediate_cleanup"
+}

@@ -1,0 +1,15 @@
+{"pid": 20036, "event": "engine_boot", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:51:45.430973Z"}
+{"event": "Started server process [20036]", "boot_id": "f1ce2cae", "pid": 20036, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:51:46.107320Z"}
+{"reason": "dead_pid", "old_boot_id": "9bcb40ba", "old_pid": 22376, "old_process_created_at": "2026-10-18T00:51:43.592Z", "old_port": 52902, "event": "stale_handshake_removed", "boot_id": "f1ce2cae", "pid": 20036, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T00:51:46.113804Z"}
+{"event": "Waiting for application startup.", "boot_id": "f1ce2cae", "pid": 20036, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:51:46.114030Z"}
+{"event": "Application startup complete.", "boot_id": "f1ce2cae", "pid": 20036, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:51:46.134480Z"}
+{"event": "Uvicorn running on http://127.0.0.1:52913 (Press CTRL+C to quit)", "boot_id": "f1ce2cae", "pid": 20036, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:51:46.134974Z"}
+{"event": "127.0.0.1:52915 - \"GET /health HTTP/1.1\" 200", "boot_id": "f1ce2cae", "pid": 20036, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:51:46.200833Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:52913/health \"HTTP/1.1 200 OK\"", "boot_id": "f1ce2cae", "pid": 20036, "logger": "httpx", "level": "info", "timestamp": "2026-10-18T00:51:46.201833Z"}
+{"boot_id": "f1ce2cae", "pid": 20036, "port": 52913, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:51:46.217867Z"}
+{"event": "127.0.0.1:52916 - \"GET /health HTTP/1.1\" 200", "boot_id": "f1ce2cae", "pid": 20036, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:51:46.257389Z"}
+{"event": "Shutting down", "boot_id": "f1ce2cae", "pid": 20036, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:51:46.549918Z"}
+{"event": "Waiting for application shutdown.", "boot_id": "f1ce2cae", "pid": 20036, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:51:46.657339Z"}
+{"boot_id": "f1ce2cae", "cleanup_phase": "lifespan", "event": "engine_stopped", "pid": 20036, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T00:51:46.657969Z"}
+{"event": "Application shutdown complete.", "boot_id": "f1ce2cae", "pid": 20036, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:51:46.658749Z"}
+{"event": "Finished server process [20036]", "boot_id": "f1ce2cae", "pid": 20036, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:51:46.658749Z"}

@@ -1,0 +1,25 @@
+{
+  "event": "exit_verified",
+  "mode": "frozen",
+  "signal": "taskkill",
+  "boot_id": "af179b65",
+  "pid": 27536,
+  "process_created_at": "2026-10-18T00:44:54.183Z",
+  "port": 63078,
+  "exit_code": 1,
+  "pid_absent": true,
+  "port_absent": true,
+  "engine_stopped_count": 0,
+  "handshake_exists": true,
+  "residual_handshake": {
+    "boot_id": "af179b65",
+    "pid": 27536,
+    "process_created_at": "2026-10-18T00:44:54.183Z",
+    "port": 63078,
+    "token": "<redacted>",
+    "protocol": 1,
+    "version": "0.1.0",
+    "started_at": "2026-10-18T00:44:54.777Z"
+  },
+  "classification": "recovery_path_not_graceful_exit_claim"
+}

@@ -1,0 +1,1 @@
+SUCCESS: The process with PID 24148 has been terminated.

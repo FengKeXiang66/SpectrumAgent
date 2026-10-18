@@ -1,0 +1,12 @@
+{"event": "Started server process [6588]", "pid": 6588, "boot_id": "7ba9e87f", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:02.985400Z"}
+{"event": "Waiting for application startup.", "pid": 6588, "boot_id": "7ba9e87f", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:02.985899Z"}
+{"event": "Application startup complete.", "pid": 6588, "boot_id": "7ba9e87f", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:02.989403Z"}
+{"event": "Uvicorn running on http://127.0.0.1:61870 (Press CTRL+C to quit)", "pid": 6588, "boot_id": "7ba9e87f", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:02.989918Z"}
+{"event": "127.0.0.1:61872 - \"GET /health HTTP/1.1\" 200", "pid": 6588, "boot_id": "7ba9e87f", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:48:03.021331Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:61870/health \"HTTP/1.1 200 OK\"", "pid": 6588, "boot_id": "7ba9e87f", "logger": "httpx", "level": "info", "timestamp": "2026-10-18T00:48:03.022331Z"}
+{"boot_id": "7ba9e87f", "pid": 6588, "port": 61870, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:48:03.028384Z"}
+{"event": "127.0.0.1:61874 - \"GET /health HTTP/1.1\" 200", "pid": 6588, "boot_id": "7ba9e87f", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:48:03.071071Z"}
+{"event": "Shutting down", "pid": 6588, "boot_id": "7ba9e87f", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:03.362237Z"}
+{"event": "Waiting for application shutdown.", "pid": 6588, "boot_id": "7ba9e87f", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:03.471044Z"}
+{"event": "Application shutdown complete.", "pid": 6588, "boot_id": "7ba9e87f", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:03.485721Z"}
+{"event": "Finished server process [6588]", "pid": 6588, "boot_id": "7ba9e87f", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:03.486219Z"}

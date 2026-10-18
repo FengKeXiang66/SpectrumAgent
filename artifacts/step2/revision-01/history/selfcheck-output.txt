@@ -1,0 +1,152 @@
+**********************
+PowerShell transcript start
+Start time: 20261018075433
+Username: WIN-RTKE72PB5BE\Administrator
+RunAs User: WIN-RTKE72PB5BE\Administrator
+Configuration Name: 
+Machine: WIN-RTKE72PB5BE (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Users\Administrator\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\powershell\pwsh.dll -Command try { [Console]::OutputEncoding=[System.Text.Encoding]::UTF8 } catch {}
+& 'E:\AI_Agent\artifacts\step2\selfcheck_step2.ps1'
+Process ID: 8512
+PSVersion: 7.6.5
+PSEdition: Core
+GitCommitId: 7.6.5
+OS: Microsoft Windows 10.0.26100
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.4
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+GDAL_DATA=
+PROJ_DATA=
+PROJ_LIB=
+PREFLIGHT TEST HYGIENE ONLY: archive and remove a pre-existing dead-process handshake before the first launch.
+{
+  "boot_id": "0cee22a2",
+  "pid": 17588,
+  "process_created_at": "2026-10-17T23:33:04.606Z",
+  "port": 64385,
+  "token": "<redacted>",
+  "protocol": 1,
+  "version": "0.1.0",
+  "started_at": "2026-10-17T23:33:05.770Z"
+}
+child_PATH=C:\Windows\System32;C:\Windows
+=== 1. Direct frozen engine launch / process identity ===
+> CreateProcessW("E:\AI_Agent\artifacts\step2\dist\app\app.exe") [CREATE_NEW_CONSOLE, SW_HIDE; no Python/command shell]
+spawn_pid=23768 handshake_pid=23768 health_pid=23768
+first_launch_process_start_to_health_200_ms=690.567
+> tasklist.exe /FI "IMAGENAME eq app.exe"
+
+> Get-CimInstance Win32_Process -Filter "Name = 'app.exe'"
+
+ProcessId       : 23768
+ParentProcessId : 8512
+ExecutablePath  : E:\AI_Agent\artifacts\step2\dist\app\app.exe
+CommandLine     : "E:\AI_Agent\artifacts\step2\dist\app\app.exe"
+app_process_count=1
+=== 2. Four real curl requests ===
+> curl.exe --noproxy "*" http://127.0.0.1:50289/health
+HTTP 200
+{"status":"ok","boot_id":"1d6ca94e","pid":23768,"version":"0.1.0","uptime_s":0.531}
+> curl.exe --noproxy "*" http://127.0.0.1:50289/smoke
+HTTP 401
+{"error":"UNAUTHORIZED","detail":"需要本次引擎握手中的 Bearer token。"}
+> curl.exe --noproxy "*" -H "Authorization: Bearer $($identity.token)" http://127.0.0.1:50289/smoke
+HTTP 200
+{"nan_ratio":0.0,"reflectance_range":[-1.5275289241381491,1.5275289241381491],"bands":8,"shape":[8,8,8],"elapsed_ms":136.459}
+> curl.exe --noproxy "*" -H "Authorization: Bearer $($identity.token)" http://127.0.0.1:50289/smoke?blocks=8
+HTTP 200
+{"nan_ratio":0.0,"reflectance_range":[-1.5275289241381491,1.5275289241381491],"bands":8,"shape":[8,8,8],"elapsed_ms":197.514}
+=== 3. Complete handshake (token redacted only) ===
+{
+  "boot_id": "1d6ca94e",
+  "pid": 23768,
+  "process_created_at": "2026-10-17T23:54:33.550Z",
+  "port": 50289,
+  "token": "<redacted>",
+  "protocol": 1,
+  "version": "0.1.0",
+  "started_at": "2026-10-17T23:54:34.140Z"
+}
+=== 4. JSONL logs ===
+valid_json_lines=71 current_boot_lines=15 token_occurrences=0
+{"event": "Started server process [23768]", "pid": 23768, "boot_id": "1d6ca94e", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-17T23:54:34.088647Z"}
+{"event": "Waiting for application startup.", "pid": 23768, "boot_id": "1d6ca94e", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-17T23:54:34.089655Z"}
+{"event": "Application startup complete.", "pid": 23768, "boot_id": "1d6ca94e", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-17T23:54:34.107873Z"}
+=== 5. Frozen GeoTIFF generation / readback (no external interpreter) ===
+> & "E:\AI_Agent\artifacts\step2\dist\app\app.exe" --selfcheck-geotiff
+exit_code=0
+{"check": "geotiff", "result": "PASS", "frozen": true, "executable": "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\app.exe", "crs": "EPSG:32650", "shape": [10, 12], "width": 12, "height": 10, "count": 3, "transform": [30.0, 0.0, 500000.0, 0.0, -30.0, 4000000.0], "dtype": "float32", "pixel_values_equal": true, "GDAL_DATA": null, "PROJ_DATA": null, "PROJ_LIB": null, "proj_db": "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\_internal\\rasterio\\proj_data\\proj.db", "gdalvrt_xsd": "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\_internal\\rasterio\\gdal_data\\gdalvrt.xsd", "rasterio_module": "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\_internal\\rasterio\\__init__.py", "numpy_module": "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\_internal\\numpy\\__init__.py", "python_search_paths": ["E:\\AI_Agent\\artifacts\\step2\\dist\\app\\_internal\\base_library.zip", "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\_internal\\python3.12\\lib-dynload", "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\_internal", "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\_internal\\setuptools\\_vendor"], "sample": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\testdata\\geotiff-check-q2w3rk92\\generated.tif", "sample_removed": true}
+=== Additional: freeze_support / one temporary spawn worker (no pool) ===
+> & "E:\AI_Agent\artifacts\step2\dist\app\app.exe" --selfcheck-worker
+exit_code=0
+{"check": "multiprocessing", "result": "PASS", "diagnostic_pid": 14980, "worker_pid": 28592, "parent_pid": 14980, "frozen": true, "worker_exitcode": 0, "handshake_unchanged": true}
+=== 7. Size / first-launch health latency ===
+internal_files=543 internal_total_bytes=238793334 exe_bytes=16763405
+rasterio_libs_dll_count=36 rasterio_pyd_count=15
+first_launch_process_start_to_health_200_ms=690.567
+Timing scope: first launch of this build in this selfcheck; no OS cache flush or clean-machine cold boot was performed.
+=== 8a. Normal Ctrl+C shutdown ===
+> GenerateConsoleCtrlEvent(CTRL_C_EVENT) to PID 23768 [separate helper attaches to engine console]
+engine_exit_code=1
+process_absent=True pid=23768 listener_absent=True port=50289
+handshake_exists=False (checked before any test hygiene)
+=== 6. Required DLL removal / native readable failure ===
+> Removed E:\AI_Agent\artifacts\step2\dist\app\_internal\python312.dll (backup retained outside _internal)
+exit_code=-1
+[PYI-25244:ERROR] Failed to load Python DLL 'E:\AI_Agent\artifacts\step2\dist\app\_internal\python312.dll'.
+LoadLibrary: ?????????
+Required DLL restored; SHA256 matches original.
+=== 8b. taskkill /F / stale-handshake overwrite without pre-clean ===
+> CreateProcessW("E:\AI_Agent\artifacts\step2\dist\app\app.exe") [CREATE_NEW_CONSOLE, SW_HIDE; no Python/command shell]
+spawn_pid=4280 handshake_pid=4280 health_pid=4280
+kill_test_launch_process_start_to_health_200_ms=577.676
+> taskkill.exe /F /PID 4280
+
+process_absent=True pid=4280 listener_absent=True port=59655
+> tasklist.exe /FI "PID eq 4280"
+
+handshake_exists_after_taskkill=True; residue before any hygiene:
+{
+  "boot_id": "872bbaac",
+  "pid": 4280,
+  "process_created_at": "2026-10-17T23:54:38.945Z",
+  "port": 59655,
+  "token": "<redacted>",
+  "protocol": 1,
+  "version": "0.1.0",
+  "started_at": "2026-10-17T23:54:39.503Z"
+}
+Restarting directly; no handshake deletion or rewrite by harness.
+> CreateProcessW("E:\AI_Agent\artifacts\step2\dist\app\app.exe") [CREATE_NEW_CONSOLE, SW_HIDE; no Python/command shell]
+spawn_pid=22396 handshake_pid=22396 health_pid=22396
+stale_restart_process_start_to_health_200_ms=612.545
+old_boot_id=872bbaac new_boot_id=3a1b84b8
+old_port=59655 new_port=59664
+> curl.exe --noproxy "*" http://127.0.0.1:59664/health
+HTTP 200
+{"status":"ok","boot_id":"3a1b84b8","pid":22396,"version":"0.1.0","uptime_s":0.125}
+=== Final normal exit / test hygiene ===
+> GenerateConsoleCtrlEvent(CTRL_C_EVENT) to PID 22396 [separate helper attaches to engine console]
+engine_exit_code=1
+process_absent=True pid=22396 listener_absent=True port=59664
+handshake_exists=False (checked before any test hygiene)
+No hygiene deletion was needed; any fallback cleanup below is test hygiene, never a pass criterion.
+> tasklist.exe /FI "IMAGENAME eq app.exe"
+
+CHECK_1=PASS
+CHECK_2=PASS
+CHECK_3=PASS
+CHECK_4=PASS
+CHECK_5=PASS
+CHECK_6=PASS
+CHECK_7=PASS
+CHECK_8a=PASS
+CHECK_8b=PASS
+CHECK_multiprocessing=PASS
+**********************
+PowerShell transcript end
+End time: 20261018075443
+**********************

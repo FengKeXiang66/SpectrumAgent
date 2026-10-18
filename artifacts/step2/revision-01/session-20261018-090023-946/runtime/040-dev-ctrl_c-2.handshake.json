@@ -1,0 +1,10 @@
+{
+  "boot_id": "bad1a9c4",
+  "pid": 26040,
+  "process_created_at": "2026-10-18T01:01:20.325Z",
+  "port": 53441,
+  "token": "<redacted>",
+  "protocol": 1,
+  "version": "0.1.0",
+  "started_at": "2026-10-18T01:01:21.254Z"
+}

@@ -1,0 +1,1 @@
+SUCCESS: The process with PID 25640 has been terminated.

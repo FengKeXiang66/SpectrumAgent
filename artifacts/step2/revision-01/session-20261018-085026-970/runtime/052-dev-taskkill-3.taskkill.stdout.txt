@@ -1,0 +1,1 @@
+SUCCESS: The process with PID 22376 has been terminated.

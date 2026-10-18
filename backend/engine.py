@@ -5,9 +5,10 @@ import structlog
 import uvicorn
 
 from backend.app import create_app
-from backend.handshake import publish, remove_if_owned
+from backend.handshake import HandshakeError, publish, remove_if_owned, sweep_stale
 from backend.identity import EngineIdentity
 from backend.paths import AppPaths
+from backend.startup_mutex import StartupMutex
 
 log = structlog.get_logger("engine")
 
@@ -19,19 +20,21 @@ class HandshakeServer(uvicorn.Server):
         self.identity = identity
 
     async def startup(self, sockets=None) -> None:
-        await super().startup(sockets=sockets)
-        if not self.started or self.should_exit:
-            return
-        # uvicorn 0.54 exposes asyncio.Server objects in self.servers.
-        # The actual kernel-assigned port comes from server.sockets, never a port probe.
-        server = self.servers[0]
-        port = int(server.sockets[0].getsockname()[1])
-        async with httpx.AsyncClient(trust_env=False, timeout=5) as client:
-            response = await client.get(f"http://127.0.0.1:{port}/health")
-            response.raise_for_status()
-            if response.json()["boot_id"] != self.identity.boot_id:
-                raise RuntimeError("Startup health identity mismatch")
-        publish(self.paths.handshake, self.identity.handshake(port))
+        # Ownership is acquired/released on the startup thread, never in main().
+        with StartupMutex():
+            sweep_stale(self.paths.handshake)
+            await super().startup(sockets=sockets)
+            if not self.started or self.should_exit:
+                return
+            # Read the kernel-assigned port from the bound asyncio.Server socket.
+            server = self.servers[0]
+            port = int(server.sockets[0].getsockname()[1])
+            async with httpx.AsyncClient(trust_env=False, timeout=5) as client:
+                response = await client.get(f"http://127.0.0.1:{port}/health")
+                response.raise_for_status()
+                if response.json()["boot_id"] != self.identity.boot_id:
+                    raise RuntimeError("Startup health identity mismatch")
+            publish(self.paths.handshake, self.identity.handshake(port))
         log.info("engine_ready", boot_id=self.identity.boot_id, pid=self.identity.pid, port=port)
 
 
@@ -49,5 +52,7 @@ def main(paths: AppPaths) -> None:
     try:
         server.run()
     finally:
-        remove_if_owned(paths.handshake, identity.boot_id)
-        log.info("engine_stopped")
+        try:
+            remove_if_owned(paths.handshake, identity.boot_id, phase="finally")
+        except HandshakeError as exc:
+            log.error("engine_final_cleanup_failed", error=exc.code)

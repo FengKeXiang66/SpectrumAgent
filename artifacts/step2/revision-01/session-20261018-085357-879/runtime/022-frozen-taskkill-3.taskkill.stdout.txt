@@ -1,0 +1,1 @@
+SUCCESS: The process with PID 5828 has been terminated.

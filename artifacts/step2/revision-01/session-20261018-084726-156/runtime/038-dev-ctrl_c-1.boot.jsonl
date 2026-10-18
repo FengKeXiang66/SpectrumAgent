@@ -1,0 +1,13 @@
+{"event": "Started server process [23080]", "boot_id": "3ea4facb", "pid": 23080, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:19.156636Z"}
+{"event": "Waiting for application startup.", "boot_id": "3ea4facb", "pid": 23080, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:19.157137Z"}
+{"event": "Application startup complete.", "boot_id": "3ea4facb", "pid": 23080, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:19.163237Z"}
+{"event": "Uvicorn running on http://127.0.0.1:63536 (Press CTRL+C to quit)", "boot_id": "3ea4facb", "pid": 23080, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:19.163760Z"}
+{"event": "127.0.0.1:63537 - \"GET /health HTTP/1.1\" 200", "boot_id": "3ea4facb", "pid": 23080, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:48:19.234659Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:63536/health \"HTTP/1.1 200 OK\"", "boot_id": "3ea4facb", "pid": 23080, "logger": "httpx", "level": "info", "timestamp": "2026-10-18T00:48:19.235658Z"}
+{"boot_id": "3ea4facb", "pid": 23080, "port": 63536, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:48:19.250938Z"}
+{"event": "127.0.0.1:63538 - \"GET /health HTTP/1.1\" 200", "boot_id": "3ea4facb", "pid": 23080, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:48:19.275337Z"}
+{"event": "Shutting down", "boot_id": "3ea4facb", "pid": 23080, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:19.582979Z"}
+{"event": "Waiting for application shutdown.", "boot_id": "3ea4facb", "pid": 23080, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:19.690475Z"}
+{"boot_id": "3ea4facb", "cleanup_phase": "lifespan", "event": "engine_stopped", "pid": 23080, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T00:48:19.698647Z"}
+{"event": "Application shutdown complete.", "boot_id": "3ea4facb", "pid": 23080, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:19.698647Z"}
+{"event": "Finished server process [23080]", "boot_id": "3ea4facb", "pid": 23080, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:19.699747Z"}

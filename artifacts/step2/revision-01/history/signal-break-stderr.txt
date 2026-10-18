@@ -1,0 +1,12 @@
+{"event": "engine_boot", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:09:29.741370Z"}
+{"event": "Started server process [25528]", "boot_id": "9cdb2ab7", "pid": 25528, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:09:30.058117Z"}
+{"event": "Waiting for application startup.", "boot_id": "9cdb2ab7", "pid": 25528, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:09:30.059058Z"}
+{"event": "Application startup complete.", "boot_id": "9cdb2ab7", "pid": 25528, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:09:30.070107Z"}
+{"event": "Uvicorn running on http://127.0.0.1:59743 (Press CTRL+C to quit)", "boot_id": "9cdb2ab7", "pid": 25528, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:09:30.070609Z"}
+{"event": "127.0.0.1:59744 - \"GET /health HTTP/1.1\" 200", "boot_id": "9cdb2ab7", "pid": 25528, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:09:30.106732Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:59743/health \"HTTP/1.1 200 OK\"", "boot_id": "9cdb2ab7", "pid": 25528, "logger": "httpx", "level": "info", "timestamp": "2026-10-18T00:09:30.107718Z"}
+{"boot_id": "9cdb2ab7", "pid": 25528, "port": 59743, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:09:30.114727Z"}
+{"event": "Shutting down", "boot_id": "9cdb2ab7", "pid": 25528, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:09:31.187278Z"}
+{"event": "Waiting for application shutdown.", "boot_id": "9cdb2ab7", "pid": 25528, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:09:31.294905Z"}
+{"event": "Application shutdown complete.", "boot_id": "9cdb2ab7", "pid": 25528, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:09:31.336580Z"}
+{"event": "Finished server process [25528]", "boot_id": "9cdb2ab7", "pid": 25528, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:09:31.336580Z"}

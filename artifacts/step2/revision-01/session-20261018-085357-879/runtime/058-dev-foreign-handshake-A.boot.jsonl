@@ -1,0 +1,12 @@
+{"event": "Started server process [18028]", "boot_id": "696f8110", "pid": 18028, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:55:26.349461Z"}
+{"event": "Waiting for application startup.", "boot_id": "696f8110", "pid": 18028, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:55:26.349962Z"}
+{"event": "Application startup complete.", "boot_id": "696f8110", "pid": 18028, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:55:26.355561Z"}
+{"event": "Uvicorn running on http://127.0.0.1:57391 (Press CTRL+C to quit)", "boot_id": "696f8110", "pid": 18028, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:55:26.356067Z"}
+{"event": "127.0.0.1:57392 - \"GET /health HTTP/1.1\" 200", "boot_id": "696f8110", "pid": 18028, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:55:26.426292Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:57391/health \"HTTP/1.1 200 OK\"", "boot_id": "696f8110", "pid": 18028, "logger": "httpx", "level": "info", "timestamp": "2026-10-18T00:55:26.427308Z"}
+{"boot_id": "696f8110", "pid": 18028, "port": 57391, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:55:26.433338Z"}
+{"event": "127.0.0.1:57393 - \"GET /health HTTP/1.1\" 200", "boot_id": "696f8110", "pid": 18028, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:55:26.480320Z"}
+{"event": "Shutting down", "boot_id": "696f8110", "pid": 18028, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:55:26.862554Z"}
+{"event": "Waiting for application shutdown.", "boot_id": "696f8110", "pid": 18028, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:55:26.969629Z"}
+{"event": "Application shutdown complete.", "boot_id": "696f8110", "pid": 18028, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:55:26.988132Z"}
+{"event": "Finished server process [18028]", "boot_id": "696f8110", "pid": 18028, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:55:26.988631Z"}

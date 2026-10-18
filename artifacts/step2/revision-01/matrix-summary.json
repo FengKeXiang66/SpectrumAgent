@@ -1,0 +1,200 @@
+[
+  {
+    "mode": "frozen",
+    "signal": "break",
+    "passed": 5,
+    "exit_codes_actual_engine": [
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "exit_codes_launcher": [
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "engine_stopped_counts": [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "residue_after_exit": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "mode": "frozen",
+    "signal": "ctrl_c",
+    "passed": 5,
+    "exit_codes_actual_engine": [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "exit_codes_launcher": [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "engine_stopped_counts": [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "residue_after_exit": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "mode": "frozen",
+    "signal": "taskkill",
+    "passed": 5,
+    "exit_codes_actual_engine": [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "exit_codes_launcher": [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "engine_stopped_counts": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "residue_after_exit": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "mode": "dev",
+    "signal": "break",
+    "passed": 5,
+    "exit_codes_actual_engine": [
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "exit_codes_launcher": [
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "engine_stopped_counts": [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "residue_after_exit": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "mode": "dev",
+    "signal": "ctrl_c",
+    "passed": 5,
+    "exit_codes_actual_engine": [
+      3221225786,
+      3221225786,
+      3221225786,
+      3221225786,
+      3221225786
+    ],
+    "exit_codes_launcher": [
+      3221225786,
+      3221225786,
+      3221225786,
+      3221225786,
+      3221225786
+    ],
+    "engine_stopped_counts": [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "residue_after_exit": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "mode": "dev",
+    "signal": "taskkill",
+    "passed": 5,
+    "exit_codes_actual_engine": [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "exit_codes_launcher": [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "engine_stopped_counts": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "residue_after_exit": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  }
+]

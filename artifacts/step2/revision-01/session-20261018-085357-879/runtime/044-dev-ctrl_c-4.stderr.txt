@@ -1,0 +1,44 @@
+{"pid": 7824, "event": "engine_boot", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:55:01.309744Z"}
+{"event": "Started server process [7824]", "pid": 7824, "boot_id": "0b5ed6c8", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:55:01.959657Z"}
+{"event": "Waiting for application startup.", "pid": 7824, "boot_id": "0b5ed6c8", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:55:01.960168Z"}
+{"event": "Application startup complete.", "pid": 7824, "boot_id": "0b5ed6c8", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:55:01.964655Z"}
+{"event": "Uvicorn running on http://127.0.0.1:52599 (Press CTRL+C to quit)", "pid": 7824, "boot_id": "0b5ed6c8", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:55:01.965623Z"}
+{"event": "127.0.0.1:52600 - \"GET /health HTTP/1.1\" 200", "pid": 7824, "boot_id": "0b5ed6c8", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:55:02.043658Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:52599/health \"HTTP/1.1 200 OK\"", "pid": 7824, "boot_id": "0b5ed6c8", "logger": "httpx", "level": "info", "timestamp": "2026-10-18T00:55:02.044267Z"}
+{"boot_id": "0b5ed6c8", "pid": 7824, "port": 52599, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:55:02.050831Z"}
+{"event": "127.0.0.1:52601 - \"GET /health HTTP/1.1\" 200", "pid": 7824, "boot_id": "0b5ed6c8", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:55:02.088638Z"}
+{"event": "Shutting down", "pid": 7824, "boot_id": "0b5ed6c8", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:55:02.381914Z"}
+{"event": "Waiting for application shutdown.", "pid": 7824, "boot_id": "0b5ed6c8", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:55:02.489576Z"}
+{"boot_id": "0b5ed6c8", "cleanup_phase": "lifespan", "event": "engine_stopped", "pid": 7824, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T00:55:02.499889Z"}
+{"event": "Application shutdown complete.", "pid": 7824, "boot_id": "0b5ed6c8", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:55:02.500289Z"}
+{"event": "Finished server process [7824]", "pid": 7824, "boot_id": "0b5ed6c8", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:55:02.500289Z"}
+Traceback (most recent call last):
+  File "C:\Users\Administrator\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\asyncio\base_events.py", line 691, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "E:\AI_Agent\backend\__main__.py", line 49, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "E:\AI_Agent\backend\__main__.py", line 36, in main
+    run_engine(paths)
+  File "E:\AI_Agent\backend\engine.py", line 53, in main
+    server.run()
+  File "E:\AI_Agent\.venv\Lib\site-packages\uvicorn\server.py", line 86, in run
+    return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt

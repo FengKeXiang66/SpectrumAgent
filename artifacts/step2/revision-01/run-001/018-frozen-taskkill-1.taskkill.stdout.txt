@@ -1,0 +1,1 @@
+SUCCESS: The process with PID 28344 has been terminated.

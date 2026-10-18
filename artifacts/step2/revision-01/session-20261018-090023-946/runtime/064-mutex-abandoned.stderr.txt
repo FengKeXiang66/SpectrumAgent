@@ -1,0 +1,15 @@
+{"pid": 2180, "event": "engine_boot", "logger": "engine", "level": "info", "timestamp": "2026-10-18T01:02:30.948678Z"}
+{"event": "Started server process [2180]", "pid": 2180, "boot_id": "8f4c4dd3", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:02:31.243884Z"}
+{"action": "reread_handshake_under_lock", "event": "startup_mutex_abandoned", "pid": 2180, "boot_id": "8f4c4dd3", "logger": "engine.startup_mutex", "level": "warning", "timestamp": "2026-10-18T01:02:31.243884Z"}
+{"event": "Waiting for application startup.", "pid": 2180, "boot_id": "8f4c4dd3", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:02:31.244387Z"}
+{"event": "Application startup complete.", "pid": 2180, "boot_id": "8f4c4dd3", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:02:31.248689Z"}
+{"event": "Uvicorn running on http://127.0.0.1:53951 (Press CTRL+C to quit)", "pid": 2180, "boot_id": "8f4c4dd3", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:02:31.253562Z"}
+{"event": "127.0.0.1:53952 - \"GET /health HTTP/1.1\" 200", "pid": 2180, "boot_id": "8f4c4dd3", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T01:02:31.281260Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:53951/health \"HTTP/1.1 200 OK\"", "pid": 2180, "boot_id": "8f4c4dd3", "logger": "httpx", "level": "info", "timestamp": "2026-10-18T01:02:31.281761Z"}
+{"boot_id": "8f4c4dd3", "pid": 2180, "port": 53951, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T01:02:31.287929Z"}
+{"event": "127.0.0.1:53953 - \"GET /health HTTP/1.1\" 200", "pid": 2180, "boot_id": "8f4c4dd3", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T01:02:31.309803Z"}
+{"event": "Shutting down", "pid": 2180, "boot_id": "8f4c4dd3", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:02:31.603690Z"}
+{"event": "Waiting for application shutdown.", "pid": 2180, "boot_id": "8f4c4dd3", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:02:31.719965Z"}
+{"boot_id": "8f4c4dd3", "cleanup_phase": "lifespan", "event": "engine_stopped", "pid": 2180, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T01:02:31.722074Z"}
+{"event": "Application shutdown complete.", "pid": 2180, "boot_id": "8f4c4dd3", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:02:31.722573Z"}
+{"event": "Finished server process [2180]", "pid": 2180, "boot_id": "8f4c4dd3", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:02:31.722573Z"}

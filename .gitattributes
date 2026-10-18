@@ -7,3 +7,4 @@ artifacts/step2/*.log -text -whitespace
 artifacts/step2/*.json -text -whitespace
 artifacts/step2/*.jsonl -text -whitespace
 artifacts/step2/REPORT.md -text -whitespace
+artifacts/step2/revision-01/** -text -whitespace

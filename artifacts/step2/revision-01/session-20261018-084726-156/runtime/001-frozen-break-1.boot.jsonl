@@ -1,0 +1,22 @@
+{"event": "Started server process [23680]", "boot_id": "54e2b8a0", "pid": 23680, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:47:26.972961Z"}
+{"event": "Waiting for application startup.", "boot_id": "54e2b8a0", "pid": 23680, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:47:26.973460Z"}
+{"event": "Application startup complete.", "boot_id": "54e2b8a0", "pid": 23680, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:47:26.988719Z"}
+{"event": "Uvicorn running on http://127.0.0.1:58510 (Press CTRL+C to quit)", "boot_id": "54e2b8a0", "pid": 23680, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:47:26.989226Z"}
+{"event": "127.0.0.1:58511 - \"GET /health HTTP/1.1\" 200", "boot_id": "54e2b8a0", "pid": 23680, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:47:27.022454Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:58510/health \"HTTP/1.1 200 OK\"", "boot_id": "54e2b8a0", "pid": 23680, "logger": "httpx", "level": "info", "timestamp": "2026-10-18T00:47:27.023460Z"}
+{"boot_id": "54e2b8a0", "pid": 23680, "port": 58510, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:47:27.036991Z"}
+{"event": "127.0.0.1:58512 - \"GET /health HTTP/1.1\" 200", "boot_id": "54e2b8a0", "pid": 23680, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:47:27.051041Z"}
+{"event": "127.0.0.1:58513 - \"GET /health HTTP/1.1\" 200", "boot_id": "54e2b8a0", "pid": 23680, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:47:27.645765Z"}
+{"path": "/smoke", "event": "authentication_rejected", "boot_id": "54e2b8a0", "pid": 23680, "logger": "engine.http", "level": "warning", "timestamp": "2026-10-18T00:47:27.677471Z"}
+{"event": "127.0.0.1:58514 - \"GET /smoke HTTP/1.1\" 401", "boot_id": "54e2b8a0", "pid": 23680, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:47:27.677471Z"}
+{"blocks": 1, "nan_ratio": 0.0, "reflectance_range": [-1.5275289241381491, 1.5275289241381491], "bands": 8, "shape": [8, 8, 8], "elapsed_ms": 163.722, "event": "smoke_completed", "boot_id": "54e2b8a0", "pid": 23680, "logger": "engine.http", "level": "info", "timestamp": "2026-10-18T00:47:27.865309Z"}
+{"event": "127.0.0.1:58515 - \"GET /smoke HTTP/1.1\" 200", "boot_id": "54e2b8a0", "pid": 23680, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:47:27.865909Z"}
+{"blocks": 8, "nan_ratio": 0.0, "reflectance_range": [-1.5275289241381491, 1.5275289241381491], "bands": 8, "shape": [8, 8, 8], "elapsed_ms": 207.941, "event": "smoke_completed", "boot_id": "54e2b8a0", "pid": 23680, "logger": "engine.http", "level": "info", "timestamp": "2026-10-18T00:47:28.115723Z"}
+{"event": "127.0.0.1:58518 - \"GET /smoke?blocks=8 HTTP/1.1\" 200", "boot_id": "54e2b8a0", "pid": 23680, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:47:28.116371Z"}
+{"event": "127.0.0.1:58519 - \"GET /health HTTP/1.1\" 200", "boot_id": "54e2b8a0", "pid": 23680, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:47:28.577494Z"}
+{"event": "127.0.0.1:58522 - \"GET /health HTTP/1.1\" 200", "boot_id": "54e2b8a0", "pid": 23680, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:47:29.087142Z"}
+{"event": "Shutting down", "boot_id": "54e2b8a0", "pid": 23680, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:47:29.333202Z"}
+{"event": "Waiting for application shutdown.", "boot_id": "54e2b8a0", "pid": 23680, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:47:29.441844Z"}
+{"boot_id": "54e2b8a0", "cleanup_phase": "lifespan", "event": "engine_stopped", "pid": 23680, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T00:47:29.444580Z"}
+{"event": "Application shutdown complete.", "boot_id": "54e2b8a0", "pid": 23680, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:47:29.445085Z"}
+{"event": "Finished server process [23680]", "boot_id": "54e2b8a0", "pid": 23680, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:47:29.445085Z"}

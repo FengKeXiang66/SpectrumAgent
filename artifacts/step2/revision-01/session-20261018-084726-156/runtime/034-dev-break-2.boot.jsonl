@@ -1,0 +1,13 @@
+{"event": "Started server process [15344]", "boot_id": "cc23ddb4", "pid": 15344, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:11.690440Z"}
+{"event": "Waiting for application startup.", "boot_id": "cc23ddb4", "pid": 15344, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:11.690968Z"}
+{"event": "Application startup complete.", "boot_id": "cc23ddb4", "pid": 15344, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:11.696474Z"}
+{"event": "Uvicorn running on http://127.0.0.1:63497 (Press CTRL+C to quit)", "boot_id": "cc23ddb4", "pid": 15344, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:11.697005Z"}
+{"event": "127.0.0.1:63498 - \"GET /health HTTP/1.1\" 200", "boot_id": "cc23ddb4", "pid": 15344, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:48:11.763347Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:63497/health \"HTTP/1.1 200 OK\"", "boot_id": "cc23ddb4", "pid": 15344, "logger": "httpx", "level": "info", "timestamp": "2026-10-18T00:48:11.764348Z"}
+{"boot_id": "cc23ddb4", "pid": 15344, "port": 63497, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:48:11.771896Z"}
+{"event": "127.0.0.1:63499 - \"GET /health HTTP/1.1\" 200", "boot_id": "cc23ddb4", "pid": 15344, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:48:11.827934Z"}
+{"event": "Shutting down", "boot_id": "cc23ddb4", "pid": 15344, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:12.073018Z"}
+{"event": "Waiting for application shutdown.", "boot_id": "cc23ddb4", "pid": 15344, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:12.181665Z"}
+{"boot_id": "cc23ddb4", "cleanup_phase": "lifespan", "event": "engine_stopped", "pid": 15344, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T00:48:12.190247Z"}
+{"event": "Application shutdown complete.", "boot_id": "cc23ddb4", "pid": 15344, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:12.190775Z"}
+{"event": "Finished server process [15344]", "boot_id": "cc23ddb4", "pid": 15344, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:12.190775Z"}

@@ -1,0 +1,13 @@
+{"event": "Started server process [17780]", "pid": 17780, "boot_id": "ea87e64b", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:51:21.009367Z"}
+{"event": "Waiting for application startup.", "pid": 17780, "boot_id": "ea87e64b", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:51:21.009867Z"}
+{"event": "Application startup complete.", "pid": 17780, "boot_id": "ea87e64b", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:51:21.014995Z"}
+{"event": "Uvicorn running on http://127.0.0.1:52752 (Press CTRL+C to quit)", "pid": 17780, "boot_id": "ea87e64b", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:51:21.015475Z"}
+{"event": "127.0.0.1:52753 - \"GET /health HTTP/1.1\" 200", "pid": 17780, "boot_id": "ea87e64b", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:51:21.078283Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:52752/health \"HTTP/1.1 200 OK\"", "pid": 17780, "boot_id": "ea87e64b", "logger": "httpx", "level": "info", "timestamp": "2026-10-18T00:51:21.079517Z"}
+{"boot_id": "ea87e64b", "pid": 17780, "port": 52752, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:51:21.086022Z"}
+{"event": "127.0.0.1:52754 - \"GET /health HTTP/1.1\" 200", "pid": 17780, "boot_id": "ea87e64b", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:51:21.129134Z"}
+{"event": "Shutting down", "pid": 17780, "boot_id": "ea87e64b", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:51:21.406789Z"}
+{"event": "Waiting for application shutdown.", "pid": 17780, "boot_id": "ea87e64b", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:51:21.514006Z"}
+{"boot_id": "ea87e64b", "cleanup_phase": "lifespan", "event": "engine_stopped", "pid": 17780, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T00:51:21.524693Z"}
+{"event": "Application shutdown complete.", "pid": 17780, "boot_id": "ea87e64b", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:51:21.524693Z"}
+{"event": "Finished server process [17780]", "pid": 17780, "boot_id": "ea87e64b", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:51:21.524693Z"}

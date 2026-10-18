@@ -1,0 +1,1 @@
+SUCCESS: The process with PID 20704 has been terminated.

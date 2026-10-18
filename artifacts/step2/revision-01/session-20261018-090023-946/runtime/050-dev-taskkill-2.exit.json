@@ -1,0 +1,26 @@
+{
+  "event": "exit_verified",
+  "mode": "dev",
+  "signal": "taskkill",
+  "boot_id": "2a6d8d6f",
+  "pid": 29328,
+  "process_created_at": "2026-10-18T01:01:38.433Z",
+  "port": 53676,
+  "exit_code": 1,
+  "launcher_exit_code": 1,
+  "pid_absent": true,
+  "port_absent": true,
+  "engine_stopped_count": 0,
+  "handshake_exists": true,
+  "residual_handshake": {
+    "boot_id": "2a6d8d6f",
+    "pid": 29328,
+    "process_created_at": "2026-10-18T01:01:38.433Z",
+    "port": 53676,
+    "token": "<redacted>",
+    "protocol": 1,
+    "version": "0.1.0",
+    "started_at": "2026-10-18T01:01:39.407Z"
+  },
+  "classification": "recovery_path_not_graceful_exit_claim"
+}

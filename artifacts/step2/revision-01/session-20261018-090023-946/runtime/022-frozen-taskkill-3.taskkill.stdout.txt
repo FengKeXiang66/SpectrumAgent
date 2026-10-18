@@ -1,0 +1,1 @@
+SUCCESS: The process with PID 15460 has been terminated.

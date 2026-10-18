@@ -1,0 +1,8 @@
+{"event": "Started server process [27204]", "boot_id": "cfaaf1c7", "pid": 27204, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:47:55.321419Z"}
+{"event": "Waiting for application startup.", "boot_id": "cfaaf1c7", "pid": 27204, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:47:55.321919Z"}
+{"event": "Application startup complete.", "boot_id": "cfaaf1c7", "pid": 27204, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:47:55.325473Z"}
+{"event": "Uvicorn running on http://127.0.0.1:55135 (Press CTRL+C to quit)", "boot_id": "cfaaf1c7", "pid": 27204, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:47:55.325971Z"}
+{"event": "127.0.0.1:55136 - \"GET /health HTTP/1.1\" 200", "boot_id": "cfaaf1c7", "pid": 27204, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:47:55.360483Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:55135/health \"HTTP/1.1 200 OK\"", "boot_id": "cfaaf1c7", "pid": 27204, "logger": "httpx", "level": "info", "timestamp": "2026-10-18T00:47:55.361505Z"}
+{"boot_id": "cfaaf1c7", "pid": 27204, "port": 55135, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:47:55.367539Z"}
+{"event": "127.0.0.1:55137 - \"GET /health HTTP/1.1\" 200", "boot_id": "cfaaf1c7", "pid": 27204, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:47:55.403314Z"}

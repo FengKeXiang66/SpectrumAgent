@@ -1,0 +1,20 @@
+{
+  "REPORT.md": {
+    "committed_bytes": 16490,
+    "archived_working_bytes": 16703,
+    "equal_after_line_ending_normalization": true,
+    "previous_commit_archive_sha256": "8843b9ba35676c93dbaccabf724bbcbda1f127c88b455447a815a977dfae7716"
+  },
+  "selfcheck-output.txt": {
+    "committed_bytes": 8001,
+    "archived_working_bytes": 8152,
+    "equal_after_line_ending_normalization": true,
+    "previous_commit_archive_sha256": "fd0cdffa45393ff0ba64ed7547d8d8cb7aac4ccd3686cd78911624b7292db795"
+  },
+  "selfcheck-results.json": {
+    "committed_bytes": 524,
+    "archived_working_bytes": 548,
+    "equal_after_line_ending_normalization": true,
+    "previous_commit_archive_sha256": "7a20d5f1b37a81a0474dc434098415a399624da32adc27c5871c85b8bca9d7b4"
+  }
+}

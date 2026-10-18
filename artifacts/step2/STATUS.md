@@ -1,11 +1,13 @@
 # 第 2 步当前状态
 
-正式 onedir 已构建，当前完整自检 1–7、8a、8b 及单 worker 均 PASS。
-主报告见 REPORT.md；完整原始输出见 selfcheck-output.txt。
-首次自检 8a 曾失败，原始记录保留在 selfcheck-attempt1-*；
-历史握手出现原因未定位，详细说明见 README.md。
-首次产物进程启动到 /health 200 为 1712.879 ms；复跑为 690.567 ms。
-干净机器冷启动未验证。未安装依赖，未开始第 3/4 步。
+**第 2 步未关闭，第 3 步禁止开始。旧 8a 通过结论撤回。**
+四项修复已实现，最终重建后的 27 项自动测试及 30 轮信号矩阵通过，现提交负责人复核。
+CTRL_BREAK 的每轮本代删除由 lifespan 完成且恰好一次 engine_stopped；CTRL_C/强杀按恢复路径验收，
+不把进程内钩子的偶发执行作为保证。实际引擎退出码与 dev 启动器退出码已分列。
+CTRL_BREAK 即时清理与 CTRL_C / 强杀恢复已拆成独立验收，dev/frozen 各信号至少 5 轮。
+本轮修复与回归证据位于 revision-01；历史原文与首次 FAIL、偶发 PASS、后续复现均保留。
+正式状态以最新 REPORT.md 与 revision-01/latest-session.txt 指向的 summary.json 为准。
+干净机器冷启动仍未验证；未安装依赖；未开始第 3/4 步。
 
 ---
 

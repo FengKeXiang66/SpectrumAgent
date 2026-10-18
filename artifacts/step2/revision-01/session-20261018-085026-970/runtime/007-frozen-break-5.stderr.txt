@@ -1,0 +1,14 @@
+{"pid": 8252, "event": "engine_boot", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:50:35.045333Z"}
+{"event": "Started server process [8252]", "boot_id": "63eabd07", "pid": 8252, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:50:35.347382Z"}
+{"event": "Waiting for application startup.", "boot_id": "63eabd07", "pid": 8252, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:50:35.347881Z"}
+{"event": "Application startup complete.", "boot_id": "63eabd07", "pid": 8252, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:50:35.351893Z"}
+{"event": "Uvicorn running on http://127.0.0.1:52289 (Press CTRL+C to quit)", "boot_id": "63eabd07", "pid": 8252, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:50:35.352381Z"}
+{"event": "127.0.0.1:52290 - \"GET /health HTTP/1.1\" 200", "boot_id": "63eabd07", "pid": 8252, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:50:35.386786Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:52289/health \"HTTP/1.1 200 OK\"", "boot_id": "63eabd07", "pid": 8252, "logger": "httpx", "level": "info", "timestamp": "2026-10-18T00:50:35.387789Z"}
+{"boot_id": "63eabd07", "pid": 8252, "port": 52289, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:50:35.402001Z"}
+{"event": "127.0.0.1:52291 - \"GET /health HTTP/1.1\" 200", "boot_id": "63eabd07", "pid": 8252, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:50:35.437804Z"}
+{"event": "Shutting down", "boot_id": "63eabd07", "pid": 8252, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:50:35.697920Z"}
+{"event": "Waiting for application shutdown.", "boot_id": "63eabd07", "pid": 8252, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:50:35.806005Z"}
+{"boot_id": "63eabd07", "cleanup_phase": "lifespan", "event": "engine_stopped", "pid": 8252, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T00:50:35.811321Z"}
+{"event": "Application shutdown complete.", "boot_id": "63eabd07", "pid": 8252, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:50:35.811321Z"}
+{"event": "Finished server process [8252]", "boot_id": "63eabd07", "pid": 8252, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:50:35.811832Z"}

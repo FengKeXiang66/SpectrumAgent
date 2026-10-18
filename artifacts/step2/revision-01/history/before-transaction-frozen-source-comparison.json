@@ -1,0 +1,16 @@
+{
+  "exe_sha256": "171139c505bdb71aa7617ee4954024d9dfb2880618b352efe789d6f4e0c1b9ab",
+  "code_matches": {
+    "backend\\__init__.py": true,
+    "backend\\__main__.py": true,
+    "backend\\app.py": true,
+    "backend\\diagnostics.py": true,
+    "backend\\engine.py": true,
+    "backend\\handshake.py": true,
+    "backend\\identity.py": true,
+    "backend\\logging_config.py": true,
+    "backend\\paths.py": true,
+    "backend\\smoke.py": true,
+    "backend\\startup_mutex.py": true
+  }
+}

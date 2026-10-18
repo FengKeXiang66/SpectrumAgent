@@ -1,0 +1,10 @@
+{
+  "boot_id": "bed9597f",
+  "pid": 22272,
+  "process_created_at": "2026-10-18T00:55:04.760Z",
+  "port": 52618,
+  "token": "<redacted>",
+  "protocol": 1,
+  "version": "0.1.0",
+  "started_at": "2026-10-18T00:55:05.744Z"
+}

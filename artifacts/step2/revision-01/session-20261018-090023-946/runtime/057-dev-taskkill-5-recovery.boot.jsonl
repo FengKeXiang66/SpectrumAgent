@@ -1,0 +1,14 @@
+{"event": "Started server process [14660]", "pid": 14660, "boot_id": "a8080d45", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:01:50.618992Z"}
+{"reason": "dead_pid", "old_boot_id": "ae16ed34", "old_pid": 10000, "old_process_created_at": "2026-10-18T01:01:48.317Z", "old_port": 53779, "event": "stale_handshake_removed", "pid": 14660, "boot_id": "a8080d45", "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T01:01:50.625223Z"}
+{"event": "Waiting for application startup.", "pid": 14660, "boot_id": "a8080d45", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:01:50.625300Z"}
+{"event": "Application startup complete.", "pid": 14660, "boot_id": "a8080d45", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:01:50.646779Z"}
+{"event": "Uvicorn running on http://127.0.0.1:53788 (Press CTRL+C to quit)", "pid": 14660, "boot_id": "a8080d45", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:01:50.647312Z"}
+{"event": "127.0.0.1:53789 - \"GET /health HTTP/1.1\" 200", "pid": 14660, "boot_id": "a8080d45", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T01:01:50.709306Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:53788/health \"HTTP/1.1 200 OK\"", "pid": 14660, "boot_id": "a8080d45", "logger": "httpx", "level": "info", "timestamp": "2026-10-18T01:01:50.710312Z"}
+{"boot_id": "a8080d45", "pid": 14660, "port": 53788, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T01:01:50.717824Z"}
+{"event": "127.0.0.1:53790 - \"GET /health HTTP/1.1\" 200", "pid": 14660, "boot_id": "a8080d45", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T01:01:50.764640Z"}
+{"event": "Shutting down", "pid": 14660, "boot_id": "a8080d45", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:01:51.057621Z"}
+{"event": "Waiting for application shutdown.", "pid": 14660, "boot_id": "a8080d45", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:01:51.164901Z"}
+{"boot_id": "a8080d45", "cleanup_phase": "lifespan", "event": "engine_stopped", "pid": 14660, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T01:01:51.166568Z"}
+{"event": "Application shutdown complete.", "pid": 14660, "boot_id": "a8080d45", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:01:51.166568Z"}
+{"event": "Finished server process [14660]", "pid": 14660, "boot_id": "a8080d45", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:01:51.166568Z"}

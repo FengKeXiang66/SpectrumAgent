@@ -1,0 +1,1 @@
+SUCCESS: The process with PID 9732 has been terminated.

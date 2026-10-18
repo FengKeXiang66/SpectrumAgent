@@ -1,0 +1,25 @@
+{
+  "event": "exit_verified",
+  "mode": "dev",
+  "signal": "break",
+  "boot_id": "b73734b8",
+  "pid": 27156,
+  "process_created_at": "2026-10-18T00:51:54.070Z",
+  "port": 52963,
+  "exit_code": 3,
+  "pid_absent": true,
+  "port_absent": true,
+  "engine_stopped_count": 0,
+  "handshake_exists": true,
+  "residual_handshake": {
+    "boot_id": "c308be85",
+    "pid": 25616,
+    "process_created_at": "2000-01-01T00:00:00.000Z",
+    "port": 54321,
+    "token": "<redacted>",
+    "protocol": 1,
+    "version": "0.1.0",
+    "started_at": "2000-01-01T00:00:00.000Z"
+  },
+  "classification": "foreign_generation_preserved"
+}

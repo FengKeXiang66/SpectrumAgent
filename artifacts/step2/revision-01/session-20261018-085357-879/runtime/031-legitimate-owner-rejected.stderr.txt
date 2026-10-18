@@ -1,0 +1,5 @@
+{"pid": 14252, "event": "engine_boot", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:54:37.730214Z"}
+{"event": "Started server process [14252]", "pid": 14252, "boot_id": "484cadb3", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:54:38.029914Z"}
+{"error": "HANDSHAKE_OWNER_ALIVE", "phase": "startup", "old_boot_id": "694568d8", "old_pid": 5408, "old_process_created_at": "2026-10-18T00:54:36.867Z", "old_port": 56971, "event": "handshake_error", "pid": 14252, "boot_id": "484cadb3", "logger": "engine.handshake", "level": "error", "timestamp": "2026-10-18T00:54:38.031819Z"}
+{"error": "HANDSHAKE_OWNER_ALIVE", "event": "engine_start_failed", "pid": 14252, "boot_id": "484cadb3", "logger": "engine", "level": "error", "timestamp": "2026-10-18T00:54:38.032854Z"}
+引擎启动失败：HANDSHAKE_OWNER_ALIVE；请查看 C:\Users\Administrator\AppData\Local\SpectrumAgent\logs

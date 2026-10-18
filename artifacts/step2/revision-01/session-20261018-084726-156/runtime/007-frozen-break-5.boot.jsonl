@@ -1,0 +1,13 @@
+{"event": "Started server process [8996]", "boot_id": "32fed5b7", "pid": 8996, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:47:34.559372Z"}
+{"event": "Waiting for application startup.", "boot_id": "32fed5b7", "pid": 8996, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:47:34.559873Z"}
+{"event": "Application startup complete.", "boot_id": "32fed5b7", "pid": 8996, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:47:34.563397Z"}
+{"event": "Uvicorn running on http://127.0.0.1:57507 (Press CTRL+C to quit)", "boot_id": "32fed5b7", "pid": 8996, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:47:34.563898Z"}
+{"event": "127.0.0.1:57508 - \"GET /health HTTP/1.1\" 200", "boot_id": "32fed5b7", "pid": 8996, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:47:34.599259Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:57507/health \"HTTP/1.1 200 OK\"", "boot_id": "32fed5b7", "pid": 8996, "logger": "httpx", "level": "info", "timestamp": "2026-10-18T00:47:34.599808Z"}
+{"boot_id": "32fed5b7", "pid": 8996, "port": 57507, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:47:34.614870Z"}
+{"event": "127.0.0.1:57509 - \"GET /health HTTP/1.1\" 200", "boot_id": "32fed5b7", "pid": 8996, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:47:34.633093Z"}
+{"event": "Shutting down", "boot_id": "32fed5b7", "pid": 8996, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:47:34.939871Z"}
+{"event": "Waiting for application shutdown.", "boot_id": "32fed5b7", "pid": 8996, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:47:35.047575Z"}
+{"boot_id": "32fed5b7", "cleanup_phase": "lifespan", "event": "engine_stopped", "pid": 8996, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T00:47:35.050576Z"}
+{"event": "Application shutdown complete.", "boot_id": "32fed5b7", "pid": 8996, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:47:35.050576Z"}
+{"event": "Finished server process [8996]", "boot_id": "32fed5b7", "pid": 8996, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:47:35.051586Z"}

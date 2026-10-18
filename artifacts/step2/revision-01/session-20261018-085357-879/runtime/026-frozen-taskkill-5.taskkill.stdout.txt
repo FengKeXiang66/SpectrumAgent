@@ -1,0 +1,1 @@
+SUCCESS: The process with PID 5472 has been terminated.

@@ -13,6 +13,7 @@ from starlette.exceptions import HTTPException
 from starlette.responses import JSONResponse
 
 from backend.identity import EngineIdentity
+from backend.handshake import remove_if_owned
 from backend.paths import AppPaths
 from backend.smoke import ensure_sample, run_smoke
 
@@ -30,7 +31,10 @@ def create_app(paths: AppPaths, identity: EngineIdentity) -> FastAPI:
             app.state.sample = await asyncio.to_thread(ensure_sample, paths.testdata)
             yield
         finally:
-            connection.close()
+            try:
+                connection.close()
+            finally:
+                remove_if_owned(paths.handshake, identity.boot_id, phase="lifespan")
 
     app = FastAPI(
         title="SpectrumAgent foundation", version="0.1.0", lifespan=lifespan,

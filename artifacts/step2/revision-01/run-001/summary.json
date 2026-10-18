@@ -1,0 +1,1482 @@
+{
+  "passed": false,
+  "failed_case": "frozen-live-owner",
+  "rounds_per_signal_per_mode": 5,
+  "matrix_rounds": 30,
+  "first_frozen_launch_ms": 1715.743,
+  "records": [
+    {
+      "event": "preflight_test_hygiene",
+      "purpose": "before all launches only; not acceptance evidence",
+      "old": {
+        "boot_id": "1fc540aa",
+        "pid": 29224,
+        "process_created_at": "2026-10-18T00:25:40.196Z",
+        "port": 64120,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:25:40.916Z"
+      }
+    },
+    {
+      "event": "round_started",
+      "case": "frozen-break-1",
+      "handshake_absent_before_start": true
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-break-1",
+      "spawn_pid": 21592,
+      "handshake": {
+        "boot_id": "61a0e200",
+        "pid": 21592,
+        "process_created_at": "2026-10-18T00:44:27.788Z",
+        "port": 60511,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:44:29.471Z"
+      },
+      "elapsed_ms": 1715.743
+    },
+    {
+      "event": "curl_response",
+      "path": "/health",
+      "http_status": 200,
+      "body": {
+        "status": "ok",
+        "boot_id": "61a0e200",
+        "pid": 21592,
+        "version": "0.1.0",
+        "uptime_s": 0.172
+      }
+    },
+    {
+      "event": "curl_response",
+      "path": "/smoke",
+      "http_status": 401,
+      "body": {
+        "error": "UNAUTHORIZED",
+        "detail": "需要本次引擎握手中的 Bearer token。"
+      }
+    },
+    {
+      "event": "curl_response",
+      "path": "/smoke",
+      "http_status": 200,
+      "body": {
+        "nan_ratio": 0.0,
+        "reflectance_range": [
+          -1.5275289241381491,
+          1.5275289241381491
+        ],
+        "bands": 8,
+        "shape": [
+          8,
+          8,
+          8
+        ],
+        "elapsed_ms": 242.108
+      }
+    },
+    {
+      "event": "curl_response",
+      "path": "/smoke?blocks=8",
+      "http_status": 200,
+      "body": {
+        "nan_ratio": 0.0,
+        "reflectance_range": [
+          -1.5275289241381491,
+          1.5275289241381491
+        ],
+        "bands": 8,
+        "shape": [
+          8,
+          8,
+          8
+        ],
+        "elapsed_ms": 133.451
+      }
+    },
+    {
+      "event": "diagnostic_isolation_verified",
+      "argument": "--selfcheck-geotiff",
+      "main_pid": 21592,
+      "main_boot_id": "61a0e200",
+      "before_sha256": "4d40eddb7635a96766d51fa1e4bdbb6a93c6c265c23965773195955714fc8137",
+      "after_sha256": "4d40eddb7635a96766d51fa1e4bdbb6a93c6c265c23965773195955714fc8137",
+      "forbidden_engine_events": 0,
+      "diagnostic": {
+        "check": "geotiff",
+        "result": "PASS",
+        "diagnostic_pid": 22324,
+        "engine_module_loaded": false,
+        "uvicorn_module_loaded": false,
+        "frozen": true,
+        "executable": "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\app.exe",
+        "crs": "EPSG:32650",
+        "shape": [
+          10,
+          12
+        ],
+        "width": 12,
+        "height": 10,
+        "count": 3,
+        "transform": [
+          30.0,
+          0.0,
+          500000.0,
+          0.0,
+          -30.0,
+          4000000.0
+        ],
+        "dtype": "float32",
+        "pixel_values_equal": true,
+        "GDAL_DATA": null,
+        "PROJ_DATA": null,
+        "PROJ_LIB": null,
+        "proj_db": "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\_internal\\rasterio\\proj_data\\proj.db",
+        "gdalvrt_xsd": "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\_internal\\rasterio\\gdal_data\\gdalvrt.xsd",
+        "rasterio_module": "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\_internal\\rasterio\\__init__.py",
+        "numpy_module": "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\_internal\\numpy\\__init__.py",
+        "python_search_paths": [
+          "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\_internal\\base_library.zip",
+          "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\_internal\\python3.12\\lib-dynload",
+          "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\_internal",
+          "E:\\AI_Agent\\artifacts\\step2\\dist\\app\\_internal\\setuptools\\_vendor"
+        ],
+        "sample": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\testdata\\geotiff-check-dd3m3gv8\\generated.tif",
+        "sample_removed": true
+      },
+      "diagnostic_logs": [
+        {
+          "diagnostic": "geotiff",
+          "pid": 22324,
+          "event": "diagnostic_started",
+          "logger": "engine",
+          "level": "info",
+          "timestamp": "2026-10-18T00:44:30.249178Z"
+        }
+      ]
+    },
+    {
+      "event": "diagnostic_isolation_verified",
+      "argument": "--selfcheck-worker",
+      "main_pid": 21592,
+      "main_boot_id": "61a0e200",
+      "before_sha256": "4d40eddb7635a96766d51fa1e4bdbb6a93c6c265c23965773195955714fc8137",
+      "after_sha256": "4d40eddb7635a96766d51fa1e4bdbb6a93c6c265c23965773195955714fc8137",
+      "forbidden_engine_events": 0,
+      "diagnostic": {
+        "check": "multiprocessing",
+        "result": "PASS",
+        "diagnostic_pid": 16932,
+        "worker_pid": 21800,
+        "parent_pid": 16932,
+        "frozen": true,
+        "worker_engine_module_loaded": false,
+        "worker_uvicorn_module_loaded": false,
+        "worker_exitcode": 0,
+        "handshake_unchanged": true,
+        "engine_module_loaded": false,
+        "uvicorn_module_loaded": false
+      },
+      "diagnostic_logs": [
+        {
+          "diagnostic": "worker",
+          "pid": 16932,
+          "event": "diagnostic_started",
+          "logger": "engine",
+          "level": "info",
+          "timestamp": "2026-10-18T00:44:31.164583Z"
+        }
+      ]
+    },
+    {
+      "event": "exit_verified",
+      "mode": "frozen",
+      "signal": "break",
+      "boot_id": "61a0e200",
+      "pid": 21592,
+      "process_created_at": "2026-10-18T00:44:27.788Z",
+      "port": 60511,
+      "exit_code": 3,
+      "pid_absent": true,
+      "port_absent": true,
+      "engine_stopped_count": 1,
+      "handshake_exists": false,
+      "residual_handshake": null,
+      "classification": "immediate_cleanup"
+    },
+    {
+      "event": "round_passed",
+      "case": "frozen-break-1"
+    },
+    {
+      "event": "round_started",
+      "case": "frozen-break-2",
+      "handshake_absent_before_start": true
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-break-2",
+      "spawn_pid": 21716,
+      "handshake": {
+        "boot_id": "0c3f5d5c",
+        "pid": 21716,
+        "process_created_at": "2026-10-18T00:44:32.206Z",
+        "port": 56880,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:44:32.794Z"
+      },
+      "elapsed_ms": 621.795
+    },
+    {
+      "event": "exit_verified",
+      "mode": "frozen",
+      "signal": "break",
+      "boot_id": "0c3f5d5c",
+      "pid": 21716,
+      "process_created_at": "2026-10-18T00:44:32.206Z",
+      "port": 56880,
+      "exit_code": 3,
+      "pid_absent": true,
+      "port_absent": true,
+      "engine_stopped_count": 1,
+      "handshake_exists": false,
+      "residual_handshake": null,
+      "classification": "immediate_cleanup"
+    },
+    {
+      "event": "round_passed",
+      "case": "frozen-break-2"
+    },
+    {
+      "event": "round_started",
+      "case": "frozen-break-3",
+      "handshake_absent_before_start": true
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-break-3",
+      "spawn_pid": 17736,
+      "handshake": {
+        "boot_id": "487774e3",
+        "pid": 17736,
+        "process_created_at": "2026-10-18T00:44:33.576Z",
+        "port": 56888,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:44:34.150Z"
+      },
+      "elapsed_ms": 599.36
+    },
+    {
+      "event": "exit_verified",
+      "mode": "frozen",
+      "signal": "break",
+      "boot_id": "487774e3",
+      "pid": 17736,
+      "process_created_at": "2026-10-18T00:44:33.576Z",
+      "port": 56888,
+      "exit_code": 3,
+      "pid_absent": true,
+      "port_absent": true,
+      "engine_stopped_count": 1,
+      "handshake_exists": false,
+      "residual_handshake": null,
+      "classification": "immediate_cleanup"
+    },
+    {
+      "event": "round_passed",
+      "case": "frozen-break-3"
+    },
+    {
+      "event": "round_started",
+      "case": "frozen-break-4",
+      "handshake_absent_before_start": true
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-break-4",
+      "spawn_pid": 14728,
+      "handshake": {
+        "boot_id": "2dad05f9",
+        "pid": 14728,
+        "process_created_at": "2026-10-18T00:44:34.929Z",
+        "port": 62954,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:44:35.516Z"
+      },
+      "elapsed_ms": 631.672
+    },
+    {
+      "event": "exit_verified",
+      "mode": "frozen",
+      "signal": "break",
+      "boot_id": "2dad05f9",
+      "pid": 14728,
+      "process_created_at": "2026-10-18T00:44:34.929Z",
+      "port": 62954,
+      "exit_code": 3,
+      "pid_absent": true,
+      "port_absent": true,
+      "engine_stopped_count": 1,
+      "handshake_exists": false,
+      "residual_handshake": null,
+      "classification": "immediate_cleanup"
+    },
+    {
+      "event": "round_passed",
+      "case": "frozen-break-4"
+    },
+    {
+      "event": "round_started",
+      "case": "frozen-break-5",
+      "handshake_absent_before_start": true
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-break-5",
+      "spawn_pid": 23044,
+      "handshake": {
+        "boot_id": "468c82c7",
+        "pid": 23044,
+        "process_created_at": "2026-10-18T00:44:36.317Z",
+        "port": 62962,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:44:36.905Z"
+      },
+      "elapsed_ms": 616.584
+    },
+    {
+      "event": "exit_verified",
+      "mode": "frozen",
+      "signal": "break",
+      "boot_id": "468c82c7",
+      "pid": 23044,
+      "process_created_at": "2026-10-18T00:44:36.317Z",
+      "port": 62962,
+      "exit_code": 3,
+      "pid_absent": true,
+      "port_absent": true,
+      "engine_stopped_count": 1,
+      "handshake_exists": false,
+      "residual_handshake": null,
+      "classification": "immediate_cleanup"
+    },
+    {
+      "event": "round_passed",
+      "case": "frozen-break-5"
+    },
+    {
+      "event": "round_started",
+      "case": "frozen-ctrl_c-1",
+      "handshake_absent_before_start": true
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-ctrl_c-1",
+      "spawn_pid": 8572,
+      "handshake": {
+        "boot_id": "c7678b0d",
+        "pid": 8572,
+        "process_created_at": "2026-10-18T00:44:37.689Z",
+        "port": 62973,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:44:38.279Z"
+      },
+      "elapsed_ms": 621.254
+    },
+    {
+      "event": "exit_verified",
+      "mode": "frozen",
+      "signal": "ctrl_c",
+      "boot_id": "c7678b0d",
+      "pid": 8572,
+      "process_created_at": "2026-10-18T00:44:37.689Z",
+      "port": 62973,
+      "exit_code": 1,
+      "pid_absent": true,
+      "port_absent": true,
+      "engine_stopped_count": 1,
+      "handshake_exists": false,
+      "residual_handshake": null,
+      "classification": "recovery_path_not_graceful_exit_claim"
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-ctrl_c-1-recovery",
+      "spawn_pid": 9512,
+      "handshake": {
+        "boot_id": "baef33c5",
+        "pid": 9512,
+        "process_created_at": "2026-10-18T00:44:39.122Z",
+        "port": 62981,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:44:39.691Z"
+      },
+      "elapsed_ms": 612.204
+    },
+    {
+      "event": "stale_sweep_verified",
+      "mode": "frozen",
+      "boot_id": "baef33c5",
+      "stale_handshake_removed_count": 0,
+      "records": []
+    },
+    {
+      "event": "exit_verified",
+      "mode": "frozen",
+      "signal": "break",
+      "boot_id": "baef33c5",
+      "pid": 9512,
+      "process_created_at": "2026-10-18T00:44:39.122Z",
+      "port": 62981,
+      "exit_code": 3,
+      "pid_absent": true,
+      "port_absent": true,
+      "engine_stopped_count": 1,
+      "handshake_exists": false,
+      "residual_handshake": null,
+      "classification": "immediate_cleanup"
+    },
+    {
+      "event": "round_passed",
+      "case": "frozen-ctrl_c-1"
+    },
+    {
+      "event": "round_started",
+      "case": "frozen-ctrl_c-2",
+      "handshake_absent_before_start": true
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-ctrl_c-2",
+      "spawn_pid": 24984,
+      "handshake": {
+        "boot_id": "a52913a1",
+        "pid": 24984,
+        "process_created_at": "2026-10-18T00:44:40.490Z",
+        "port": 62990,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:44:41.064Z"
+      },
+      "elapsed_ms": 615.54
+    },
+    {
+      "event": "exit_verified",
+      "mode": "frozen",
+      "signal": "ctrl_c",
+      "boot_id": "a52913a1",
+      "pid": 24984,
+      "process_created_at": "2026-10-18T00:44:40.490Z",
+      "port": 62990,
+      "exit_code": 1,
+      "pid_absent": true,
+      "port_absent": true,
+      "engine_stopped_count": 1,
+      "handshake_exists": false,
+      "residual_handshake": null,
+      "classification": "recovery_path_not_graceful_exit_claim"
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-ctrl_c-2-recovery",
+      "spawn_pid": 28320,
+      "handshake": {
+        "boot_id": "1c309368",
+        "pid": 28320,
+        "process_created_at": "2026-10-18T00:44:41.908Z",
+        "port": 62998,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:44:42.502Z"
+      },
+      "elapsed_ms": 618.944
+    },
+    {
+      "event": "stale_sweep_verified",
+      "mode": "frozen",
+      "boot_id": "1c309368",
+      "stale_handshake_removed_count": 0,
+      "records": []
+    },
+    {
+      "event": "exit_verified",
+      "mode": "frozen",
+      "signal": "break",
+      "boot_id": "1c309368",
+      "pid": 28320,
+      "process_created_at": "2026-10-18T00:44:41.908Z",
+      "port": 62998,
+      "exit_code": 3,
+      "pid_absent": true,
+      "port_absent": true,
+      "engine_stopped_count": 1,
+      "handshake_exists": false,
+      "residual_handshake": null,
+      "classification": "immediate_cleanup"
+    },
+    {
+      "event": "round_passed",
+      "case": "frozen-ctrl_c-2"
+    },
+    {
+      "event": "round_started",
+      "case": "frozen-ctrl_c-3",
+      "handshake_absent_before_start": true
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-ctrl_c-3",
+      "spawn_pid": 12528,
+      "handshake": {
+        "boot_id": "b1b3a589",
+        "pid": 12528,
+        "process_created_at": "2026-10-18T00:44:43.279Z",
+        "port": 63010,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:44:43.886Z"
+      },
+      "elapsed_ms": 660.083
+    },
+    {
+      "event": "exit_verified",
+      "mode": "frozen",
+      "signal": "ctrl_c",
+      "boot_id": "b1b3a589",
+      "pid": 12528,
+      "process_created_at": "2026-10-18T00:44:43.279Z",
+      "port": 63010,
+      "exit_code": 1,
+      "pid_absent": true,
+      "port_absent": true,
+      "engine_stopped_count": 1,
+      "handshake_exists": false,
+      "residual_handshake": null,
+      "classification": "recovery_path_not_graceful_exit_claim"
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-ctrl_c-3-recovery",
+      "spawn_pid": 25036,
+      "handshake": {
+        "boot_id": "0018dafa",
+        "pid": 25036,
+        "process_created_at": "2026-10-18T00:44:44.725Z",
+        "port": 63019,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:44:45.307Z"
+      },
+      "elapsed_ms": 631.414
+    },
+    {
+      "event": "stale_sweep_verified",
+      "mode": "frozen",
+      "boot_id": "0018dafa",
+      "stale_handshake_removed_count": 0,
+      "records": []
+    },
+    {
+      "event": "exit_verified",
+      "mode": "frozen",
+      "signal": "break",
+      "boot_id": "0018dafa",
+      "pid": 25036,
+      "process_created_at": "2026-10-18T00:44:44.725Z",
+      "port": 63019,
+      "exit_code": 3,
+      "pid_absent": true,
+      "port_absent": true,
+      "engine_stopped_count": 1,
+      "handshake_exists": false,
+      "residual_handshake": null,
+      "classification": "immediate_cleanup"
+    },
+    {
+      "event": "round_passed",
+      "case": "frozen-ctrl_c-3"
+    },
+    {
+      "event": "round_started",
+      "case": "frozen-ctrl_c-4",
+      "handshake_absent_before_start": true
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-ctrl_c-4",
+      "spawn_pid": 23856,
+      "handshake": {
+        "boot_id": "ac1e1383",
+        "pid": 23856,
+        "process_created_at": "2026-10-18T00:44:46.111Z",
+        "port": 63027,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:44:46.709Z"
+      },
+      "elapsed_ms": 629.969
+    },
+    {
+      "event": "exit_verified",
+      "mode": "frozen",
+      "signal": "ctrl_c",
+      "boot_id": "ac1e1383",
+      "pid": 23856,
+      "process_created_at": "2026-10-18T00:44:46.111Z",
+      "port": 63027,
+      "exit_code": 1,
+      "pid_absent": true,
+      "port_absent": true,
+      "engine_stopped_count": 1,
+      "handshake_exists": false,
+      "residual_handshake": null,
+      "classification": "recovery_path_not_graceful_exit_claim"
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-ctrl_c-4-recovery",
+      "spawn_pid": 9576,
+      "handshake": {
+        "boot_id": "216148cd",
+        "pid": 9576,
+        "process_created_at": "2026-10-18T00:44:47.548Z",
+        "port": 63035,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:44:48.167Z"
+      },
+      "elapsed_ms": 640.485
+    },
+    {
+      "event": "stale_sweep_verified",
+      "mode": "frozen",
+      "boot_id": "216148cd",
+      "stale_handshake_removed_count": 0,
+      "records": []
+    },
+    {
+      "event": "exit_verified",
+      "mode": "frozen",
+      "signal": "break",
+      "boot_id": "216148cd",
+      "pid": 9576,
+      "process_created_at": "2026-10-18T00:44:47.548Z",
+      "port": 63035,
+      "exit_code": 3,
+      "pid_absent": true,
+      "port_absent": true,
+      "engine_stopped_count": 1,
+      "handshake_exists": false,
+      "residual_handshake": null,
+      "classification": "immediate_cleanup"
+    },
+    {
+      "event": "round_passed",
+      "case": "frozen-ctrl_c-4"
+    },
+    {
+      "event": "round_started",
+      "case": "frozen-ctrl_c-5",
+      "handshake_absent_before_start": true
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-ctrl_c-5",
+      "spawn_pid": 19248,
+      "handshake": {
+        "boot_id": "28ada2bf",
+        "pid": 19248,
+        "process_created_at": "2026-10-18T00:44:48.930Z",
+        "port": 63045,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:44:49.518Z"
+      },
+      "elapsed_ms": 627.444
+    },
+    {
+      "event": "exit_verified",
+      "mode": "frozen",
+      "signal": "ctrl_c",
+      "boot_id": "28ada2bf",
+      "pid": 19248,
+      "process_created_at": "2026-10-18T00:44:48.930Z",
+      "port": 63045,
+      "exit_code": 1,
+      "pid_absent": true,
+      "port_absent": true,
+      "engine_stopped_count": 1,
+      "handshake_exists": false,
+      "residual_handshake": null,
+      "classification": "recovery_path_not_graceful_exit_claim"
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-ctrl_c-5-recovery",
+      "spawn_pid": 25992,
+      "handshake": {
+        "boot_id": "1886fa89",
+        "pid": 25992,
+        "process_created_at": "2026-10-18T00:44:50.342Z",
+        "port": 63053,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:44:50.934Z"
+      },
+      "elapsed_ms": 629.782
+    },
+    {
+      "event": "stale_sweep_verified",
+      "mode": "frozen",
+      "boot_id": "1886fa89",
+      "stale_handshake_removed_count": 0,
+      "records": []
+    },
+    {
+      "event": "exit_verified",
+      "mode": "frozen",
+      "signal": "break",
+      "boot_id": "1886fa89",
+      "pid": 25992,
+      "process_created_at": "2026-10-18T00:44:50.342Z",
+      "port": 63053,
+      "exit_code": 3,
+      "pid_absent": true,
+      "port_absent": true,
+      "engine_stopped_count": 1,
+      "handshake_exists": false,
+      "residual_handshake": null,
+      "classification": "immediate_cleanup"
+    },
+    {
+      "event": "round_passed",
+      "case": "frozen-ctrl_c-5"
+    },
+    {
+      "event": "round_started",
+      "case": "frozen-taskkill-1",
+      "handshake_absent_before_start": true
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-taskkill-1",
+      "spawn_pid": 28344,
+      "handshake": {
+        "boot_id": "86e2bcd7",
+        "pid": 28344,
+        "process_created_at": "2026-10-18T00:44:51.729Z",
+        "port": 63062,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:44:52.318Z"
+      },
+      "elapsed_ms": 604.02
+    },
+    {
+      "event": "exit_verified",
+      "mode": "frozen",
+      "signal": "taskkill",
+      "boot_id": "86e2bcd7",
+      "pid": 28344,
+      "process_created_at": "2026-10-18T00:44:51.729Z",
+      "port": 63062,
+      "exit_code": 1,
+      "pid_absent": true,
+      "port_absent": true,
+      "engine_stopped_count": 0,
+      "handshake_exists": true,
+      "residual_handshake": {
+        "boot_id": "86e2bcd7",
+        "pid": 28344,
+        "process_created_at": "2026-10-18T00:44:51.729Z",
+        "port": 63062,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:44:52.318Z"
+      },
+      "classification": "recovery_path_not_graceful_exit_claim"
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-taskkill-1-recovery",
+      "spawn_pid": 12976,
+      "handshake": {
+        "boot_id": "b4847d00",
+        "pid": 12976,
+        "process_created_at": "2026-10-18T00:44:52.804Z",
+        "port": 63070,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:44:53.400Z"
+      },
+      "elapsed_ms": 623.892
+    },
+    {
+      "event": "stale_sweep_verified",
+      "mode": "frozen",
+      "boot_id": "b4847d00",
+      "stale_handshake_removed_count": 1,
+      "records": [
+        {
+          "reason": "dead_pid",
+          "old_boot_id": "86e2bcd7",
+          "old_pid": 28344,
+          "old_process_created_at": "2026-10-18T00:44:51.729Z",
+          "old_port": 63062,
+          "event": "stale_handshake_removed",
+          "pid": 12976,
+          "boot_id": "b4847d00",
+          "logger": "engine.handshake",
+          "level": "info",
+          "timestamp": "2026-10-18T00:44:53.347232Z"
+        }
+      ]
+    },
+    {
+      "event": "exit_verified",
+      "mode": "frozen",
+      "signal": "break",
+      "boot_id": "b4847d00",
+      "pid": 12976,
+      "process_created_at": "2026-10-18T00:44:52.804Z",
+      "port": 63070,
+      "exit_code": 3,
+      "pid_absent": true,
+      "port_absent": true,
+      "engine_stopped_count": 1,
+      "handshake_exists": false,
+      "residual_handshake": null,
+      "classification": "immediate_cleanup"
+    },
+    {
+      "event": "round_passed",
+      "case": "frozen-taskkill-1"
+    },
+    {
+      "event": "round_started",
+      "case": "frozen-taskkill-2",
+      "handshake_absent_before_start": true
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-taskkill-2",
+      "spawn_pid": 27536,
+      "handshake": {
+        "boot_id": "af179b65",
+        "pid": 27536,
+        "process_created_at": "2026-10-18T00:44:54.183Z",
+        "port": 63078,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:44:54.777Z"
+      },
+      "elapsed_ms": 645.465
+    },
+    {
+      "event": "exit_verified",
+      "mode": "frozen",
+      "signal": "taskkill",
+      "boot_id": "af179b65",
+      "pid": 27536,
+      "process_created_at": "2026-10-18T00:44:54.183Z",
+      "port": 63078,
+      "exit_code": 1,
+      "pid_absent": true,
+      "port_absent": true,
+      "engine_stopped_count": 0,
+      "handshake_exists": true,
+      "residual_handshake": {
+        "boot_id": "af179b65",
+        "pid": 27536,
+        "process_created_at": "2026-10-18T00:44:54.183Z",
+        "port": 63078,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:44:54.777Z"
+      },
+      "classification": "recovery_path_not_graceful_exit_claim"
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-taskkill-2-recovery",
+      "spawn_pid": 28356,
+      "handshake": {
+        "boot_id": "89a76595",
+        "pid": 28356,
+        "process_created_at": "2026-10-18T00:44:55.299Z",
+        "port": 63086,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:44:55.901Z"
+      },
+      "elapsed_ms": 637.771
+    },
+    {
+      "event": "stale_sweep_verified",
+      "mode": "frozen",
+      "boot_id": "89a76595",
+      "stale_handshake_removed_count": 1,
+      "records": [
+        {
+          "reason": "dead_pid",
+          "old_boot_id": "af179b65",
+          "old_pid": 27536,
+          "old_process_created_at": "2026-10-18T00:44:54.183Z",
+          "old_port": 63078,
+          "event": "stale_handshake_removed",
+          "boot_id": "89a76595",
+          "pid": 28356,
+          "logger": "engine.handshake",
+          "level": "info",
+          "timestamp": "2026-10-18T00:44:55.850930Z"
+        }
+      ]
+    },
+    {
+      "event": "exit_verified",
+      "mode": "frozen",
+      "signal": "break",
+      "boot_id": "89a76595",
+      "pid": 28356,
+      "process_created_at": "2026-10-18T00:44:55.299Z",
+      "port": 63086,
+      "exit_code": 3,
+      "pid_absent": true,
+      "port_absent": true,
+      "engine_stopped_count": 1,
+      "handshake_exists": false,
+      "residual_handshake": null,
+      "classification": "immediate_cleanup"
+    },
+    {
+      "event": "round_passed",
+      "case": "frozen-taskkill-2"
+    },
+    {
+      "event": "round_started",
+      "case": "frozen-taskkill-3",
+      "handshake_absent_before_start": true
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-taskkill-3",
+      "spawn_pid": 9732,
+      "handshake": {
+        "boot_id": "9e9cd6e0",
+        "pid": 9732,
+        "process_created_at": "2026-10-18T00:44:56.698Z",
+        "port": 63094,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:44:57.291Z"
+      },
+      "elapsed_ms": 606.157
+    },
+    {
+      "event": "exit_verified",
+      "mode": "frozen",
+      "signal": "taskkill",
+      "boot_id": "9e9cd6e0",
+      "pid": 9732,
+      "process_created_at": "2026-10-18T00:44:56.698Z",
+      "port": 63094,
+      "exit_code": 1,
+      "pid_absent": true,
+      "port_absent": true,
+      "engine_stopped_count": 0,
+      "handshake_exists": true,
+      "residual_handshake": {
+        "boot_id": "9e9cd6e0",
+        "pid": 9732,
+        "process_created_at": "2026-10-18T00:44:56.698Z",
+        "port": 63094,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:44:57.291Z"
+      },
+      "classification": "recovery_path_not_graceful_exit_claim"
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-taskkill-3-recovery",
+      "spawn_pid": 10224,
+      "handshake": {
+        "boot_id": "29db80c7",
+        "pid": 10224,
+        "process_created_at": "2026-10-18T00:44:57.768Z",
+        "port": 63112,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:44:58.358Z"
+      },
+      "elapsed_ms": 619.076
+    },
+    {
+      "event": "stale_sweep_verified",
+      "mode": "frozen",
+      "boot_id": "29db80c7",
+      "stale_handshake_removed_count": 1,
+      "records": [
+        {
+          "reason": "dead_pid",
+          "old_boot_id": "9e9cd6e0",
+          "old_pid": 9732,
+          "old_process_created_at": "2026-10-18T00:44:56.698Z",
+          "old_port": 63094,
+          "event": "stale_handshake_removed",
+          "pid": 10224,
+          "boot_id": "29db80c7",
+          "logger": "engine.handshake",
+          "level": "info",
+          "timestamp": "2026-10-18T00:44:58.314768Z"
+        }
+      ]
+    },
+    {
+      "event": "exit_verified",
+      "mode": "frozen",
+      "signal": "break",
+      "boot_id": "29db80c7",
+      "pid": 10224,
+      "process_created_at": "2026-10-18T00:44:57.768Z",
+      "port": 63112,
+      "exit_code": 3,
+      "pid_absent": true,
+      "port_absent": true,
+      "engine_stopped_count": 1,
+      "handshake_exists": false,
+      "residual_handshake": null,
+      "classification": "immediate_cleanup"
+    },
+    {
+      "event": "round_passed",
+      "case": "frozen-taskkill-3"
+    },
+    {
+      "event": "round_started",
+      "case": "frozen-taskkill-4",
+      "handshake_absent_before_start": true
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-taskkill-4",
+      "spawn_pid": 14184,
+      "handshake": {
+        "boot_id": "864f7ad6",
+        "pid": 14184,
+        "process_created_at": "2026-10-18T00:44:59.144Z",
+        "port": 63122,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:44:59.725Z"
+      },
+      "elapsed_ms": 613.291
+    },
+    {
+      "event": "exit_verified",
+      "mode": "frozen",
+      "signal": "taskkill",
+      "boot_id": "864f7ad6",
+      "pid": 14184,
+      "process_created_at": "2026-10-18T00:44:59.144Z",
+      "port": 63122,
+      "exit_code": 1,
+      "pid_absent": true,
+      "port_absent": true,
+      "engine_stopped_count": 0,
+      "handshake_exists": true,
+      "residual_handshake": {
+        "boot_id": "864f7ad6",
+        "pid": 14184,
+        "process_created_at": "2026-10-18T00:44:59.144Z",
+        "port": 63122,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:44:59.725Z"
+      },
+      "classification": "recovery_path_not_graceful_exit_claim"
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-taskkill-4-recovery",
+      "spawn_pid": 13788,
+      "handshake": {
+        "boot_id": "0a6d88fd",
+        "pid": 13788,
+        "process_created_at": "2026-10-18T00:45:00.230Z",
+        "port": 63130,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:45:00.838Z"
+      },
+      "elapsed_ms": 651.877
+    },
+    {
+      "event": "stale_sweep_verified",
+      "mode": "frozen",
+      "boot_id": "0a6d88fd",
+      "stale_handshake_removed_count": 1,
+      "records": [
+        {
+          "reason": "dead_pid",
+          "old_boot_id": "864f7ad6",
+          "old_pid": 14184,
+          "old_process_created_at": "2026-10-18T00:44:59.144Z",
+          "old_port": 63122,
+          "event": "stale_handshake_removed",
+          "boot_id": "0a6d88fd",
+          "pid": 13788,
+          "logger": "engine.handshake",
+          "level": "info",
+          "timestamp": "2026-10-18T00:45:00.787499Z"
+        }
+      ]
+    },
+    {
+      "event": "exit_verified",
+      "mode": "frozen",
+      "signal": "break",
+      "boot_id": "0a6d88fd",
+      "pid": 13788,
+      "process_created_at": "2026-10-18T00:45:00.230Z",
+      "port": 63130,
+      "exit_code": 3,
+      "pid_absent": true,
+      "port_absent": true,
+      "engine_stopped_count": 1,
+      "handshake_exists": false,
+      "residual_handshake": null,
+      "classification": "immediate_cleanup"
+    },
+    {
+      "event": "round_passed",
+      "case": "frozen-taskkill-4"
+    },
+    {
+      "event": "round_started",
+      "case": "frozen-taskkill-5",
+      "handshake_absent_before_start": true
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-taskkill-5",
+      "spawn_pid": 19956,
+      "handshake": {
+        "boot_id": "bb154e5f",
+        "pid": 19956,
+        "process_created_at": "2026-10-18T00:45:01.637Z",
+        "port": 63139,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:45:02.223Z"
+      },
+      "elapsed_ms": 614.513
+    },
+    {
+      "event": "exit_verified",
+      "mode": "frozen",
+      "signal": "taskkill",
+      "boot_id": "bb154e5f",
+      "pid": 19956,
+      "process_created_at": "2026-10-18T00:45:01.637Z",
+      "port": 63139,
+      "exit_code": 1,
+      "pid_absent": true,
+      "port_absent": true,
+      "engine_stopped_count": 0,
+      "handshake_exists": true,
+      "residual_handshake": {
+        "boot_id": "bb154e5f",
+        "pid": 19956,
+        "process_created_at": "2026-10-18T00:45:01.637Z",
+        "port": 63139,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:45:02.223Z"
+      },
+      "classification": "recovery_path_not_graceful_exit_claim"
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-taskkill-5-recovery",
+      "spawn_pid": 25988,
+      "handshake": {
+        "boot_id": "d672684f",
+        "pid": 25988,
+        "process_created_at": "2026-10-18T00:45:02.729Z",
+        "port": 63147,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:45:03.332Z"
+      },
+      "elapsed_ms": 649.153
+    },
+    {
+      "event": "stale_sweep_verified",
+      "mode": "frozen",
+      "boot_id": "d672684f",
+      "stale_handshake_removed_count": 1,
+      "records": [
+        {
+          "reason": "dead_pid",
+          "old_boot_id": "bb154e5f",
+          "old_pid": 19956,
+          "old_process_created_at": "2026-10-18T00:45:01.637Z",
+          "old_port": 63139,
+          "event": "stale_handshake_removed",
+          "boot_id": "d672684f",
+          "pid": 25988,
+          "logger": "engine.handshake",
+          "level": "info",
+          "timestamp": "2026-10-18T00:45:03.283150Z"
+        }
+      ]
+    },
+    {
+      "event": "exit_verified",
+      "mode": "frozen",
+      "signal": "break",
+      "boot_id": "d672684f",
+      "pid": 25988,
+      "process_created_at": "2026-10-18T00:45:02.729Z",
+      "port": 63147,
+      "exit_code": 3,
+      "pid_absent": true,
+      "port_absent": true,
+      "engine_stopped_count": 1,
+      "handshake_exists": false,
+      "residual_handshake": null,
+      "classification": "immediate_cleanup"
+    },
+    {
+      "event": "round_passed",
+      "case": "frozen-taskkill-5"
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-foreign-handshake-A",
+      "spawn_pid": 21984,
+      "handshake": {
+        "boot_id": "9532ed07",
+        "pid": 21984,
+        "process_created_at": "2026-10-18T00:45:04.132Z",
+        "port": 64833,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:45:04.704Z"
+      },
+      "elapsed_ms": 615.05
+    },
+    {
+      "event": "foreign_handshake_injected",
+      "mode": "frozen",
+      "old": {
+        "boot_id": "2d5614eb",
+        "pid": 28204,
+        "process_created_at": "2000-01-01T00:00:00.000Z",
+        "port": 54321,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2000-01-01T00:00:00.000Z"
+      }
+    },
+    {
+      "event": "exit_verified",
+      "mode": "frozen",
+      "signal": "break",
+      "boot_id": "9532ed07",
+      "pid": 21984,
+      "process_created_at": "2026-10-18T00:45:04.132Z",
+      "port": 64833,
+      "exit_code": 3,
+      "pid_absent": true,
+      "port_absent": true,
+      "engine_stopped_count": 0,
+      "handshake_exists": true,
+      "residual_handshake": {
+        "boot_id": "2d5614eb",
+        "pid": 28204,
+        "process_created_at": "2000-01-01T00:00:00.000Z",
+        "port": 54321,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2000-01-01T00:00:00.000Z"
+      },
+      "classification": "immediate_cleanup"
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-foreign-handshake-B",
+      "spawn_pid": 26064,
+      "handshake": {
+        "boot_id": "849064a4",
+        "pid": 26064,
+        "process_created_at": "2026-10-18T00:45:05.611Z",
+        "port": 64843,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:45:06.197Z"
+      },
+      "elapsed_ms": 616.038
+    },
+    {
+      "event": "stale_sweep_verified",
+      "mode": "frozen",
+      "boot_id": "849064a4",
+      "stale_handshake_removed_count": 1,
+      "records": [
+        {
+          "reason": "dead_pid",
+          "old_boot_id": "2d5614eb",
+          "old_pid": 28204,
+          "old_process_created_at": "2000-01-01T00:00:00.000Z",
+          "old_port": 54321,
+          "event": "stale_handshake_removed",
+          "pid": 26064,
+          "boot_id": "849064a4",
+          "logger": "engine.handshake",
+          "level": "info",
+          "timestamp": "2026-10-18T00:45:06.154370Z"
+        }
+      ]
+    },
+    {
+      "event": "exit_verified",
+      "mode": "frozen",
+      "signal": "break",
+      "boot_id": "849064a4",
+      "pid": 26064,
+      "process_created_at": "2026-10-18T00:45:05.611Z",
+      "port": 64843,
+      "exit_code": 3,
+      "pid_absent": true,
+      "port_absent": true,
+      "engine_stopped_count": 1,
+      "handshake_exists": false,
+      "residual_handshake": null,
+      "classification": "immediate_cleanup"
+    },
+    {
+      "event": "handshake_confirmed_published",
+      "mode": "frozen",
+      "label": "frozen-live-owner",
+      "spawn_pid": 24532,
+      "handshake": {
+        "boot_id": "5c411981",
+        "pid": 24532,
+        "process_created_at": "2026-10-18T00:45:06.983Z",
+        "port": 64853,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:45:07.584Z"
+      },
+      "elapsed_ms": 618.632
+    },
+    {
+      "event": "regression_failed",
+      "case": "frozen-live-owner",
+      "error": "'utf-8' codec can't decode byte 0xd2 in position 804: invalid continuation byte",
+      "residual_handshake": {
+        "boot_id": "5c411981",
+        "pid": 24532,
+        "process_created_at": "2026-10-18T00:45:06.983Z",
+        "port": 64853,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:45:07.584Z"
+      }
+    },
+    {
+      "event": "TEST_HYGIENE_ONLY",
+      "action": "force_terminate_test_process",
+      "spawn_pid": 24532
+    },
+    {
+      "event": "TEST_HYGIENE_ONLY",
+      "action": "remove_residue_after_failure",
+      "residual_handshake": {
+        "boot_id": "5c411981",
+        "pid": 24532,
+        "process_created_at": "2026-10-18T00:45:06.983Z",
+        "port": 64853,
+        "token": "<redacted>",
+        "protocol": 1,
+        "version": "0.1.0",
+        "started_at": "2026-10-18T00:45:07.584Z"
+      }
+    }
+  ]
+}

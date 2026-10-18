@@ -1,0 +1,1 @@
+{"diagnostic": "geotiff", "pid": 22324, "event": "diagnostic_started", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:44:30.249178Z"}

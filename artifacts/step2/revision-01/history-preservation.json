@@ -1,0 +1,30 @@
+{
+  "README.md": {
+    "sha256": "26b593cf9697856e0a06caa6ef223a768b7fb94e6da5e54b482811f056ab19d5",
+    "matches_previous_commit_bytes": true
+  },
+  "REPORT.md": {
+    "sha256": "01f81efe328897b82b24c5e3a0248c00a88b38a6b463fdcb9c131f95b5c876d5",
+    "matches_previous_commit_bytes": false
+  },
+  "STATUS.md": {
+    "sha256": "e2ed2164bdc423650b823e360a1c27dd5006d6a0014d73619970b39ea28616bc",
+    "matches_previous_commit_bytes": true
+  },
+  "selfcheck_step2.ps1": {
+    "sha256": "095e565d1883e2a816bc55ebb31e2ae8e028e7f5f92c165e31d37a1fc92fc908",
+    "matches_previous_commit_bytes": true
+  },
+  "selfcheck-output.txt": {
+    "sha256": "b3fb33194d6e78e7b90e27880cb5b7c74c26b5e263ce9b4d7f3de1d0e9d9411e",
+    "matches_previous_commit_bytes": false
+  },
+  "selfcheck-results.json": {
+    "sha256": "acc6627514d7fdb0dd1acec3858ad2e45cd6f7e872ab543ac8792e62ff95ac82",
+    "matches_previous_commit_bytes": false
+  },
+  "NativeConsole.cs": {
+    "sha256": "37e6a08704a33845ae4754b59a8ddc27c77b71b206a02881070b25a07b018b4b",
+    "matches_previous_commit_bytes": true
+  }
+}

@@ -1,0 +1,30 @@
+{"pid": 25380, "event": "engine_boot", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:50:45.005294Z"}
+{"event": "Started server process [25380]", "pid": 25380, "boot_id": "17adde66", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:50:45.337130Z"}
+{"event": "Waiting for application startup.", "pid": 25380, "boot_id": "17adde66", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:50:45.337631Z"}
+{"event": "Application startup complete.", "pid": 25380, "boot_id": "17adde66", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:50:45.341192Z"}
+{"event": "Uvicorn running on http://127.0.0.1:52507 (Press CTRL+C to quit)", "pid": 25380, "boot_id": "17adde66", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:50:45.341690Z"}
+{"event": "127.0.0.1:52508 - \"GET /health HTTP/1.1\" 200", "pid": 25380, "boot_id": "17adde66", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:50:45.373517Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:52507/health \"HTTP/1.1 200 OK\"", "pid": 25380, "boot_id": "17adde66", "logger": "httpx", "level": "info", "timestamp": "2026-10-18T00:50:45.374516Z"}
+{"boot_id": "17adde66", "pid": 25380, "port": 52507, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:50:45.380683Z"}
+{"event": "127.0.0.1:52509 - \"GET /health HTTP/1.1\" 200", "pid": 25380, "boot_id": "17adde66", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:50:45.388739Z"}
+{"event": "Shutting down", "pid": 25380, "boot_id": "17adde66", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:50:45.678505Z"}
+{"event": "Waiting for application shutdown.", "pid": 25380, "boot_id": "17adde66", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:50:45.787224Z"}
+{"boot_id": "17adde66", "cleanup_phase": "lifespan", "event": "engine_stopped", "pid": 25380, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T00:50:45.789836Z"}
+{"event": "Application shutdown complete.", "pid": 25380, "boot_id": "17adde66", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:50:45.790584Z"}
+{"event": "Finished server process [25380]", "pid": 25380, "boot_id": "17adde66", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:50:45.790584Z"}
+Traceback (most recent call last):
+  File "asyncio\runners.py", line 118, in run
+  File "asyncio\base_events.py", line 691, in run_until_complete
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "__main__.py", line 49, in <module>
+  File "__main__.py", line 36, in main
+  File "backend\engine.py", line 53, in main
+  File "uvicorn\server.py", line 86, in run
+  File "asyncio\runners.py", line 195, in run
+  File "asyncio\runners.py", line 123, in run
+KeyboardInterrupt
+[PYI-25380:ERROR] Failed to execute script '__main__' due to unhandled exception!

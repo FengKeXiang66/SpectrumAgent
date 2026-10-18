@@ -1,0 +1,1 @@
+{"check": "multiprocessing", "result": "PASS", "diagnostic_pid": 18040, "worker_pid": 22156, "parent_pid": 18040, "frozen": true, "worker_engine_module_loaded": false, "worker_uvicorn_module_loaded": false, "worker_exitcode": 0, "handshake_unchanged": true, "engine_module_loaded": false, "uvicorn_module_loaded": false}

@@ -1,0 +1,8 @@
+{"event": "Started server process [5472]", "boot_id": "ad255eb0", "pid": 5472, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:54:31.998340Z"}
+{"event": "Waiting for application startup.", "boot_id": "ad255eb0", "pid": 5472, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:54:31.998821Z"}
+{"event": "Application startup complete.", "boot_id": "ad255eb0", "pid": 5472, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:54:32.002565Z"}
+{"event": "Uvicorn running on http://127.0.0.1:56928 (Press CTRL+C to quit)", "boot_id": "ad255eb0", "pid": 5472, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:54:32.003073Z"}
+{"event": "127.0.0.1:56929 - \"GET /health HTTP/1.1\" 200", "boot_id": "ad255eb0", "pid": 5472, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:54:32.035682Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:56928/health \"HTTP/1.1 200 OK\"", "boot_id": "ad255eb0", "pid": 5472, "logger": "httpx", "level": "info", "timestamp": "2026-10-18T00:54:32.036918Z"}
+{"boot_id": "ad255eb0", "pid": 5472, "port": 56928, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:54:32.042212Z"}
+{"event": "127.0.0.1:56930 - \"GET /health HTTP/1.1\" 200", "boot_id": "ad255eb0", "pid": 5472, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:54:32.065721Z"}

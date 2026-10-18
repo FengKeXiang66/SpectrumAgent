@@ -1,0 +1,15 @@
+{"pid": 18532, "event": "engine_boot", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:49:00.792950Z"}
+{"event": "Started server process [18532]", "pid": 18532, "boot_id": "aac887b2", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:49:01.423820Z"}
+{"reason": "pid_reused", "old_boot_id": "96d0b985", "old_pid": 16916, "old_process_created_at": "2000-01-01T00:00:00.000Z", "old_port": 54321, "event": "stale_handshake_removed", "pid": 18532, "boot_id": "aac887b2", "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T00:49:01.429818Z"}
+{"event": "Waiting for application startup.", "pid": 18532, "boot_id": "aac887b2", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:49:01.430321Z"}
+{"event": "Application startup complete.", "pid": 18532, "boot_id": "aac887b2", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:49:01.440650Z"}
+{"event": "Uvicorn running on http://127.0.0.1:53432 (Press CTRL+C to quit)", "pid": 18532, "boot_id": "aac887b2", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:49:01.441155Z"}
+{"event": "127.0.0.1:53433 - \"GET /health HTTP/1.1\" 200", "pid": 18532, "boot_id": "aac887b2", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:49:01.501744Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:53432/health \"HTTP/1.1 200 OK\"", "pid": 18532, "boot_id": "aac887b2", "logger": "httpx", "level": "info", "timestamp": "2026-10-18T00:49:01.502259Z"}
+{"boot_id": "aac887b2", "pid": 18532, "port": 53432, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:49:01.518333Z"}
+{"event": "127.0.0.1:53434 - \"GET /health HTTP/1.1\" 200", "pid": 18532, "boot_id": "aac887b2", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:49:01.566680Z"}
+{"event": "Shutting down", "pid": 18532, "boot_id": "aac887b2", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:49:01.842293Z"}
+{"event": "Waiting for application shutdown.", "pid": 18532, "boot_id": "aac887b2", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:49:01.950821Z"}
+{"boot_id": "aac887b2", "cleanup_phase": "lifespan", "event": "engine_stopped", "pid": 18532, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T00:49:01.951950Z"}
+{"event": "Application shutdown complete.", "pid": 18532, "boot_id": "aac887b2", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:49:01.952455Z"}
+{"event": "Finished server process [18532]", "pid": 18532, "boot_id": "aac887b2", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:49:01.952455Z"}

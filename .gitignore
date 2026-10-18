@@ -7,6 +7,7 @@ artifacts/step2/*
 !artifacts/step2/*.spec
 !artifacts/step2/*.ps1
 !artifacts/step2/*.cs
+!artifacts/step2/*.py
 !artifacts/step2/*.md
 !artifacts/step2/selfcheck-*.txt
 !artifacts/step2/selfcheck-*.json
@@ -24,6 +25,8 @@ artifacts/step2/*
 !artifacts/step2/environment-final-output.txt
 !artifacts/step2/pytest-output.txt
 !artifacts/step2/build-output.log
+!artifacts/step2/revision-01/
+artifacts/step2/revision-01/**/pytest-tmp*/
 .workbuddy-ai/
 build/
 dist/

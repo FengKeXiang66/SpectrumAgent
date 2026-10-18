@@ -1,0 +1,1 @@
+SUCCESS: The process with PID 23596 has been terminated.

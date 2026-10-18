@@ -1,0 +1,10 @@
+{
+  "boot_id": "e15296ae",
+  "pid": 27092,
+  "process_created_at": "2026-10-18T00:54:42.297Z",
+  "port": 57007,
+  "token": "<redacted>",
+  "protocol": 1,
+  "version": "0.1.0",
+  "started_at": "2026-10-18T00:54:43.291Z"
+}

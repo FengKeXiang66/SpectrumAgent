@@ -1,0 +1,8 @@
+{"event": "Started server process [11068]", "boot_id": "dbc8bded", "pid": 11068, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:00:51.651527Z"}
+{"event": "Waiting for application startup.", "boot_id": "dbc8bded", "pid": 11068, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:00:51.652018Z"}
+{"event": "Application startup complete.", "boot_id": "dbc8bded", "pid": 11068, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:00:51.656449Z"}
+{"event": "Uvicorn running on http://127.0.0.1:53259 (Press CTRL+C to quit)", "boot_id": "dbc8bded", "pid": 11068, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:00:51.656903Z"}
+{"event": "127.0.0.1:53260 - \"GET /health HTTP/1.1\" 200", "boot_id": "dbc8bded", "pid": 11068, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T01:00:51.691341Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:53259/health \"HTTP/1.1 200 OK\"", "boot_id": "dbc8bded", "pid": 11068, "logger": "httpx", "level": "info", "timestamp": "2026-10-18T01:00:51.692341Z"}
+{"boot_id": "dbc8bded", "pid": 11068, "port": 53259, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T01:00:51.696343Z"}
+{"event": "127.0.0.1:53261 - \"GET /health HTTP/1.1\" 200", "boot_id": "dbc8bded", "pid": 11068, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T01:00:51.727056Z"}

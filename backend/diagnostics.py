@@ -40,6 +40,9 @@ def check_geotiff(paths: AppPaths) -> None:
             assert np.array_equal(dataset.read(), values)
             result = {
                 "check": "geotiff", "result": "PASS",
+                "diagnostic_pid": os.getpid(),
+                "engine_module_loaded": "backend.engine" in sys.modules,
+                "uvicorn_module_loaded": "uvicorn" in sys.modules,
                 "frozen": bool(getattr(sys, "frozen", False)),
                 "executable": sys.executable,
                 "crs": str(dataset.crs), "shape": list(dataset.shape),
@@ -62,6 +65,8 @@ def _worker_report(queue) -> None:
     queue.put({
         "worker_pid": os.getpid(), "parent_pid": os.getppid(),
         "frozen": bool(getattr(sys, "frozen", False)),
+        "worker_engine_module_loaded": "backend.engine" in sys.modules,
+        "worker_uvicorn_module_loaded": "uvicorn" in sys.modules,
     })
 
 
@@ -85,6 +90,8 @@ def check_worker(paths: AppPaths) -> None:
             "check": "multiprocessing", "result": "PASS", "diagnostic_pid": os.getpid(),
             **result, "worker_exitcode": worker.exitcode,
             "handshake_unchanged": True,
+            "engine_module_loaded": "backend.engine" in sys.modules,
+            "uvicorn_module_loaded": "uvicorn" in sys.modules,
         }), flush=True)
     finally:
         if worker.is_alive():

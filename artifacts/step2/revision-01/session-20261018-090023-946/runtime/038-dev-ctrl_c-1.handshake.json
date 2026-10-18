@@ -1,0 +1,10 @@
+{
+  "boot_id": "2cfd6bcd",
+  "pid": 25768,
+  "process_created_at": "2026-10-18T01:01:16.671Z",
+  "port": 53422,
+  "token": "<redacted>",
+  "protocol": 1,
+  "version": "0.1.0",
+  "started_at": "2026-10-18T01:01:17.662Z"
+}

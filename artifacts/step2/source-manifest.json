@@ -1,18 +1,25 @@
 {
+  "revision": "revision-01",
+  "previous_manifest": "revision-01/history/source-manifest-before-revision.json",
   "source_sha256": {
-    "backend\\app.py": "12494f6c906329367f75eb9ce9023ac1b26c9e8564a9ed1db8cee5b05a1ca978",
-    "backend\\diagnostics.py": "0a3e5c85b351de4d03b093e5fbdedfd72ab5b76c353f18e8aeae7f17dd25f104",
-    "backend\\engine.py": "8e22e7255841b364136db0d4c0c0a8f2316cf21dae1c8b0a46729d7c76fe396a",
-    "backend\\handshake.py": "6b49296cefb067d869cb6a342052db3fef0f57bbfcca1930ff2778396acc99f8",
-    "backend\\identity.py": "fbbb9f7681ff5986599dd7de4892dd9c196d0f189b4d86f58bbca643f70c3c30",
+    "backend\\__init__.py": "05121179fffa951f9cd5954abebcea2a4f6a69353cd79b5dd6de8d8a8cd255b5",
+    "backend\\__main__.py": "c71b4548599ee5e0ca5f22dc092e59ce08eec9aeefc8d856f166305c50bb2463",
+    "backend\\app.py": "c8c9dbe08a05e9125e532abf1ca4310379955d2d2417b78d394ff6904c8fc40e",
+    "backend\\diagnostics.py": "74279c1272e3cf03242619fdbb5efbcabdc3fad1225ed77694611c21b23097af",
+    "backend\\engine.py": "f53cda26f5412c8ae72c3bcd1f1d8fb97ac838804b00843c9202117d6a74901f",
+    "backend\\handshake.py": "ff4a598f3cf7243ec971d2712817933af9bb6cdbc6da75adeab10bca57138ad3",
+    "backend\\identity.py": "f9d9361ed998809f9fa168a0458d78b46db3de9527612683195ea4e65fb936d3",
     "backend\\logging_config.py": "9af56280a99298e425b5230b8bd2e94a678d08fd2def99a7bc07454314098959",
     "backend\\paths.py": "90cd1fed54f9c38aaac5cce3d2ffc74fbacfbf8babe684a62c2ea94796a83a67",
     "backend\\smoke.py": "554650ba3a3cc69b0283ac248eca98b6a1b23ec8b7fc0b98a85746cab62f80c7",
-    "backend\\__init__.py": "05121179fffa951f9cd5954abebcea2a4f6a69353cd79b5dd6de8d8a8cd255b5",
-    "backend\\__main__.py": "fd5917d72e505cda51b3c70aa0d00bc4b0267a054f4a9a0c8ba21f60c1bb6b06",
+    "backend\\startup_mutex.py": "f6547d6229e5b6d5053b2dff9e0a21387bd8d0ff5d4b8ba418d418e400fd27b2",
     "backend\\tests\\test_foundation.py": "5a2415e121131ff76efafec9ff51642b62252eadb562eefd4afaadb32809c014",
+    "backend\\tests\\test_lifecycle.py": "0b78642e45a5eaff27db6f4770cfe6605caac02f8da3c7da27097953f9a8b3cb",
     "artifacts\\step2\\build.spec": "8612b9ed9212d132a24635a28ecbd97670c1ee74b0327b14477c32ae06ea15cc",
+    "artifacts\\step2\\lifecycle_regression.py": "b6d15f6050318856fae737350789de5e347ccd7c2d564ccdee483643ae37a404",
+    "artifacts\\step2\\selfcheck_step2.ps1": "e9dccfc214871eec784daaa3ee97f2e8d7e2c2e7a69e8119e6cb0ebd91859beb",
+    "artifacts\\step2\\verify_frozen_sources.py": "03001a1b9e76d1e3ccad7554eb1897740f7798062ed9a8acdffa10304a4fb391",
     "requirements-lock.txt": "58e24b59da34461a17fd942b4047071e42b5120b3d474ba976a7e28535d40bcc"
   },
-  "exe_sha256": "45ecdbe20e7ef0f0ab61a2b922e988d15b404b68573e11cb2bd457809c21efd6"
+  "exe_sha256": "0877ed3e11f0d247ddb929352104fa1745f9f690a968d98c6b93b797cec83e37"
 }

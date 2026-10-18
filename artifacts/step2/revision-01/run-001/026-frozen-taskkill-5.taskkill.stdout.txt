@@ -1,0 +1,1 @@
+SUCCESS: The process with PID 19956 has been terminated.

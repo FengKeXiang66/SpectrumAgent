@@ -1,0 +1,17 @@
+{
+  "backend\\app.py": "c8c9dbe08a05e9125e532abf1ca4310379955d2d2417b78d394ff6904c8fc40e",
+  "backend\\diagnostics.py": "74279c1272e3cf03242619fdbb5efbcabdc3fad1225ed77694611c21b23097af",
+  "backend\\engine.py": "f53cda26f5412c8ae72c3bcd1f1d8fb97ac838804b00843c9202117d6a74901f",
+  "backend\\handshake.py": "ff4a598f3cf7243ec971d2712817933af9bb6cdbc6da75adeab10bca57138ad3",
+  "backend\\identity.py": "f9d9361ed998809f9fa168a0458d78b46db3de9527612683195ea4e65fb936d3",
+  "backend\\logging_config.py": "9af56280a99298e425b5230b8bd2e94a678d08fd2def99a7bc07454314098959",
+  "backend\\paths.py": "90cd1fed54f9c38aaac5cce3d2ffc74fbacfbf8babe684a62c2ea94796a83a67",
+  "backend\\smoke.py": "554650ba3a3cc69b0283ac248eca98b6a1b23ec8b7fc0b98a85746cab62f80c7",
+  "backend\\startup_mutex.py": "f6547d6229e5b6d5053b2dff9e0a21387bd8d0ff5d4b8ba418d418e400fd27b2",
+  "backend\\__init__.py": "05121179fffa951f9cd5954abebcea2a4f6a69353cd79b5dd6de8d8a8cd255b5",
+  "backend\\__main__.py": "c71b4548599ee5e0ca5f22dc092e59ce08eec9aeefc8d856f166305c50bb2463",
+  "artifacts\\step2\\lifecycle_regression.py": "b6d15f6050318856fae737350789de5e347ccd7c2d564ccdee483643ae37a404",
+  "artifacts\\step2\\selfcheck_step2.ps1": "e9dccfc214871eec784daaa3ee97f2e8d7e2c2e7a69e8119e6cb0ebd91859beb",
+  "artifacts\\step2\\build.spec": "8612b9ed9212d132a24635a28ecbd97670c1ee74b0327b14477c32ae06ea15cc",
+  "requirements-lock.txt": "58e24b59da34461a17fd942b4047071e42b5120b3d474ba976a7e28535d40bcc"
+}

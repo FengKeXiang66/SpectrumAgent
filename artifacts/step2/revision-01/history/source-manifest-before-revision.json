@@ -1,0 +1,18 @@
+{
+  "source_sha256": {
+    "backend\\app.py": "12494f6c906329367f75eb9ce9023ac1b26c9e8564a9ed1db8cee5b05a1ca978",
+    "backend\\diagnostics.py": "0a3e5c85b351de4d03b093e5fbdedfd72ab5b76c353f18e8aeae7f17dd25f104",
+    "backend\\engine.py": "8e22e7255841b364136db0d4c0c0a8f2316cf21dae1c8b0a46729d7c76fe396a",
+    "backend\\handshake.py": "6b49296cefb067d869cb6a342052db3fef0f57bbfcca1930ff2778396acc99f8",
+    "backend\\identity.py": "fbbb9f7681ff5986599dd7de4892dd9c196d0f189b4d86f58bbca643f70c3c30",
+    "backend\\logging_config.py": "9af56280a99298e425b5230b8bd2e94a678d08fd2def99a7bc07454314098959",
+    "backend\\paths.py": "90cd1fed54f9c38aaac5cce3d2ffc74fbacfbf8babe684a62c2ea94796a83a67",
+    "backend\\smoke.py": "554650ba3a3cc69b0283ac248eca98b6a1b23ec8b7fc0b98a85746cab62f80c7",
+    "backend\\__init__.py": "05121179fffa951f9cd5954abebcea2a4f6a69353cd79b5dd6de8d8a8cd255b5",
+    "backend\\__main__.py": "fd5917d72e505cda51b3c70aa0d00bc4b0267a054f4a9a0c8ba21f60c1bb6b06",
+    "backend\\tests\\test_foundation.py": "5a2415e121131ff76efafec9ff51642b62252eadb562eefd4afaadb32809c014",
+    "artifacts\\step2\\build.spec": "8612b9ed9212d132a24635a28ecbd97670c1ee74b0327b14477c32ae06ea15cc",
+    "requirements-lock.txt": "58e24b59da34461a17fd942b4047071e42b5120b3d474ba976a7e28535d40bcc"
+  },
+  "exe_sha256": "45ecdbe20e7ef0f0ab61a2b922e988d15b404b68573e11cb2bd457809c21efd6"
+}

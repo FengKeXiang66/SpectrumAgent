@@ -1,0 +1,1 @@
+SUCCESS: The process with PID 26216 has been terminated.

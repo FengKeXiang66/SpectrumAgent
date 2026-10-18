@@ -1,0 +1,13 @@
+{"event": "Started server process [22900]", "pid": 22900, "boot_id": "76743ca4", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:54:46.978004Z"}
+{"event": "Waiting for application startup.", "pid": 22900, "boot_id": "76743ca4", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:54:46.978490Z"}
+{"event": "Application startup complete.", "pid": 22900, "boot_id": "76743ca4", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:54:46.983501Z"}
+{"event": "Uvicorn running on http://127.0.0.1:52517 (Press CTRL+C to quit)", "pid": 22900, "boot_id": "76743ca4", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:54:46.984013Z"}
+{"event": "127.0.0.1:52518 - \"GET /health HTTP/1.1\" 200", "pid": 22900, "boot_id": "76743ca4", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:54:47.055234Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:52517/health \"HTTP/1.1 200 OK\"", "pid": 22900, "boot_id": "76743ca4", "logger": "httpx", "level": "info", "timestamp": "2026-10-18T00:54:47.056127Z"}
+{"boot_id": "76743ca4", "pid": 22900, "port": 52517, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:54:47.063038Z"}
+{"event": "127.0.0.1:52519 - \"GET /health HTTP/1.1\" 200", "pid": 22900, "boot_id": "76743ca4", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:54:47.098951Z"}
+{"event": "Shutting down", "pid": 22900, "boot_id": "76743ca4", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:54:47.390130Z"}
+{"event": "Waiting for application shutdown.", "pid": 22900, "boot_id": "76743ca4", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:54:47.498194Z"}
+{"boot_id": "76743ca4", "cleanup_phase": "lifespan", "event": "engine_stopped", "pid": 22900, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T00:54:47.507186Z"}
+{"event": "Application shutdown complete.", "pid": 22900, "boot_id": "76743ca4", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:54:47.507186Z"}
+{"event": "Finished server process [22900]", "pid": 22900, "boot_id": "76743ca4", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:54:47.507186Z"}

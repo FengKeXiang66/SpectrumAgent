@@ -1,0 +1,25 @@
+{
+  "event": "exit_verified",
+  "mode": "frozen",
+  "signal": "taskkill",
+  "boot_id": "c870cd7b",
+  "pid": 4596,
+  "process_created_at": "2026-10-18T00:50:57.885Z",
+  "port": 52594,
+  "exit_code": 1,
+  "pid_absent": true,
+  "port_absent": true,
+  "engine_stopped_count": 0,
+  "handshake_exists": true,
+  "residual_handshake": {
+    "boot_id": "c870cd7b",
+    "pid": 4596,
+    "process_created_at": "2026-10-18T00:50:57.885Z",
+    "port": 52594,
+    "token": "<redacted>",
+    "protocol": 1,
+    "version": "0.1.0",
+    "started_at": "2026-10-18T00:50:58.473Z"
+  },
+  "classification": "recovery_path_not_graceful_exit_claim"
+}

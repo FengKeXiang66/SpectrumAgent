@@ -1,0 +1,13 @@
+{"event": "Started server process [19992]", "pid": 19992, "boot_id": "9db97209", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:00:39.264925Z"}
+{"event": "Waiting for application startup.", "pid": 19992, "boot_id": "9db97209", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:00:39.265441Z"}
+{"event": "Application startup complete.", "pid": 19992, "boot_id": "9db97209", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:00:39.268778Z"}
+{"event": "Uvicorn running on http://127.0.0.1:53145 (Press CTRL+C to quit)", "pid": 19992, "boot_id": "9db97209", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:00:39.268778Z"}
+{"event": "127.0.0.1:53146 - \"GET /health HTTP/1.1\" 200", "pid": 19992, "boot_id": "9db97209", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T01:00:39.298523Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:53145/health \"HTTP/1.1 200 OK\"", "pid": 19992, "boot_id": "9db97209", "logger": "httpx", "level": "info", "timestamp": "2026-10-18T01:00:39.299783Z"}
+{"boot_id": "9db97209", "pid": 19992, "port": 53145, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T01:00:39.308493Z"}
+{"event": "127.0.0.1:53147 - \"GET /health HTTP/1.1\" 200", "pid": 19992, "boot_id": "9db97209", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T01:00:39.339641Z"}
+{"event": "Shutting down", "pid": 19992, "boot_id": "9db97209", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:00:39.632798Z"}
+{"event": "Waiting for application shutdown.", "pid": 19992, "boot_id": "9db97209", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:00:39.741054Z"}
+{"boot_id": "9db97209", "cleanup_phase": "lifespan", "event": "engine_stopped", "pid": 19992, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T01:00:39.743730Z"}
+{"event": "Application shutdown complete.", "pid": 19992, "boot_id": "9db97209", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:00:39.744215Z"}
+{"event": "Finished server process [19992]", "pid": 19992, "boot_id": "9db97209", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T01:00:39.744215Z"}

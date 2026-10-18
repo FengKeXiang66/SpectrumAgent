@@ -1,0 +1,9 @@
+{"pid": 17740, "event": "engine_boot", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:48:37.083304Z"}
+{"event": "Started server process [17740]", "pid": 17740, "boot_id": "7954393a", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:37.725090Z"}
+{"event": "Waiting for application startup.", "pid": 17740, "boot_id": "7954393a", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:37.725090Z"}
+{"event": "Application startup complete.", "pid": 17740, "boot_id": "7954393a", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:37.729929Z"}
+{"event": "Uvicorn running on http://127.0.0.1:56435 (Press CTRL+C to quit)", "pid": 17740, "boot_id": "7954393a", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:48:37.730438Z"}
+{"event": "127.0.0.1:56436 - \"GET /health HTTP/1.1\" 200", "pid": 17740, "boot_id": "7954393a", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:48:37.800427Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:56435/health \"HTTP/1.1 200 OK\"", "pid": 17740, "boot_id": "7954393a", "logger": "httpx", "level": "info", "timestamp": "2026-10-18T00:48:37.800864Z"}
+{"boot_id": "7954393a", "pid": 17740, "port": 56435, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:48:37.818321Z"}
+{"event": "127.0.0.1:56437 - \"GET /health HTTP/1.1\" 200", "pid": 17740, "boot_id": "7954393a", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:48:37.846509Z"}

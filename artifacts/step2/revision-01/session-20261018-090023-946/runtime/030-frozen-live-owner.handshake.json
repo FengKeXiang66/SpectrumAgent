@@ -1,0 +1,10 @@
+{
+  "boot_id": "81d9cb9c",
+  "pid": 22024,
+  "process_created_at": "2026-10-18T01:01:03.927Z",
+  "port": 53346,
+  "token": "<redacted>",
+  "protocol": 1,
+  "version": "0.1.0",
+  "started_at": "2026-10-18T01:01:04.552Z"
+}

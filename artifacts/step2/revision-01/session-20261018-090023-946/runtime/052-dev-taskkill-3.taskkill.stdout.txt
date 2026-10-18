@@ -1,0 +1,1 @@
+SUCCESS: The process with PID 18688 has been terminated.

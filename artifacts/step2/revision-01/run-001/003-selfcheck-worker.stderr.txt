@@ -1,0 +1,1 @@
+{"diagnostic": "worker", "pid": 16932, "event": "diagnostic_started", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:44:31.164583Z"}

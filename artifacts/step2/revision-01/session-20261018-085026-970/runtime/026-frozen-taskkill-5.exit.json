@@ -1,0 +1,25 @@
+{
+  "event": "exit_verified",
+  "mode": "frozen",
+  "signal": "taskkill",
+  "boot_id": "39d5125a",
+  "pid": 26308,
+  "process_created_at": "2026-10-18T00:51:00.392Z",
+  "port": 52625,
+  "exit_code": 1,
+  "pid_absent": true,
+  "port_absent": true,
+  "engine_stopped_count": 0,
+  "handshake_exists": true,
+  "residual_handshake": {
+    "boot_id": "39d5125a",
+    "pid": 26308,
+    "process_created_at": "2026-10-18T00:51:00.392Z",
+    "port": 52625,
+    "token": "<redacted>",
+    "protocol": 1,
+    "version": "0.1.0",
+    "started_at": "2026-10-18T00:51:01.044Z"
+  },
+  "classification": "recovery_path_not_graceful_exit_claim"
+}

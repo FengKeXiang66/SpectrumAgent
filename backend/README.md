@@ -17,7 +17,12 @@
 启动由 uvicorn 以 `127.0.0.1:0` 绑定，通过 `server.sockets` 获取内核分配端口，
 实际 HTTP 自检通过后，`fsync` 临时文件并用 `os.replace` 发布握手。
 `process_created_at` 来自 Windows `GetProcessTimes`，统一 UTC 毫秒精度。
-正常退出仅清理属于本次 boot_id 的握手；强杀后的旧握手由后续外壳核验清理。
+握手启动事务由 `Local\SpectrumAgent.EngineHandshake.Startup.v1` 串行化：
+清扫死 PID / PID 复用的旧握手，合法所有者与无法判断的元数据均拒绝启动。
+删除前再次读文件比对原始字节，成功清扫记录 `stale_handshake_removed`。
+ASGI lifespan shutdown 清理本代握手；main finally 仅 best-effort 兜底，
+只有实际删除才记录一次 `engine_stopped`。CTRL_BREAK 验证即时清理；
+CTRL_C / 强杀允许残留，验证下一次引擎启动恢复，不将其记为优雅退出。
 
 `GET /smoke?blocks=1` 读取本地 ENVI，按像元分块执行一次演示 SNV。
 `blocks` 范围为 1–64。默认返回任务卡规定的五个字段。

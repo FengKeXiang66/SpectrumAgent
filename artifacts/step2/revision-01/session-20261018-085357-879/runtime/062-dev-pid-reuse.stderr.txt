@@ -1,0 +1,15 @@
+{"pid": 5212, "event": "engine_boot", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:55:32.409105Z"}
+{"event": "Started server process [5212]", "boot_id": "46181063", "pid": 5212, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:55:33.028627Z"}
+{"reason": "pid_reused", "old_boot_id": "6889708d", "old_pid": 12328, "old_process_created_at": "2000-01-01T00:00:00.000Z", "old_port": 54321, "event": "stale_handshake_removed", "boot_id": "46181063", "pid": 5212, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T00:55:33.034176Z"}
+{"event": "Waiting for application startup.", "boot_id": "46181063", "pid": 5212, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:55:33.034176Z"}
+{"event": "Application startup complete.", "boot_id": "46181063", "pid": 5212, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:55:33.044672Z"}
+{"event": "Uvicorn running on http://127.0.0.1:52998 (Press CTRL+C to quit)", "boot_id": "46181063", "pid": 5212, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:55:33.045632Z"}
+{"event": "127.0.0.1:52999 - \"GET /health HTTP/1.1\" 200", "boot_id": "46181063", "pid": 5212, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:55:33.110243Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:52998/health \"HTTP/1.1 200 OK\"", "boot_id": "46181063", "pid": 5212, "logger": "httpx", "level": "info", "timestamp": "2026-10-18T00:55:33.110759Z"}
+{"boot_id": "46181063", "pid": 5212, "port": 52998, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-18T00:55:33.125634Z"}
+{"event": "127.0.0.1:53000 - \"GET /health HTTP/1.1\" 200", "boot_id": "46181063", "pid": 5212, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-18T00:55:33.165306Z"}
+{"event": "Shutting down", "boot_id": "46181063", "pid": 5212, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:55:33.456665Z"}
+{"event": "Waiting for application shutdown.", "boot_id": "46181063", "pid": 5212, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:55:33.564734Z"}
+{"boot_id": "46181063", "cleanup_phase": "lifespan", "event": "engine_stopped", "pid": 5212, "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-18T00:55:33.566234Z"}
+{"event": "Application shutdown complete.", "boot_id": "46181063", "pid": 5212, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:55:33.566234Z"}
+{"event": "Finished server process [5212]", "boot_id": "46181063", "pid": 5212, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-18T00:55:33.566234Z"}
