@@ -113,6 +113,8 @@ E:\AI_Agent\
 成功 `200 {"nan_ratio":0.0,"reflectance_range":[0.0,1.0],"bands":8,"shape":[8,8,8],"elapsed_ms":12.4}`
 失败 → 非 2xx + `{"error":"<短码>","detail":"<人读信息>"}`
 
+经鉴权的所有 `/smoke` 响应（200/409/500/422，401 除外）必须带 `X-SpectrumAgent-Boot-Id` 与 `X-SpectrumAgent-Pid`；外壳须先与本代握手核验过的身份一致，不符按身份不匹配处理。JSON body 不变，其他路径不注入身份头。（负责人 2026-10-18 批准）
+
 ### 5. 鉴权
 
 除 `/health` 外，所有请求带 `Authorization: Bearer <token>`（token 来自本次握手）。随机端口不等于别人扫不到，一行校验能挡掉本机其他程序的误调用。

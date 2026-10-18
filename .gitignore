@@ -27,6 +27,11 @@ artifacts/step2/*
 !artifacts/step2/pytest-output.txt
 !artifacts/step2/build-output.log
 !artifacts/step2/revision-01/
+!artifacts/step2/revision-20261018-smoke-headers/
+artifacts/step2/revision-20261018-smoke-headers/build/
+artifacts/step2/revision-20261018-smoke-headers/dist/
+artifacts/step2/revision-20261018-smoke-headers/staged/
+artifacts/step2/revision-20261018-smoke-headers/temp/
 artifacts/step2/revision-01/**/pytest-tmp*/
 .workbuddy-ai/
 build/

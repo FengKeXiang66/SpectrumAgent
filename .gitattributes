@@ -8,6 +8,10 @@ artifacts/step2/*.json -text -whitespace
 artifacts/step2/*.jsonl -text -whitespace
 artifacts/step2/REPORT.md -text -whitespace
 artifacts/step2/revision-01/** -text -whitespace
+artifacts/step2/revision-20261018-smoke-headers/**/*.txt -text -whitespace
+artifacts/step2/revision-20261018-smoke-headers/**/*.json -text -whitespace
+artifacts/step2/revision-20261018-smoke-headers/**/*.jsonl -text -whitespace
+artifacts/step2/revision-20261018-smoke-headers/**/*.log -text -whitespace
 *.rs text eol=lf
 *.toml text eol=lf
 src-tauri/Cargo.lock text eol=lf

@@ -1,0 +1,33 @@
+{
+  "fastapi": "0.143.3",
+  "starlette": "1.8.0",
+  "pyinstaller": "6.22.3",
+  "pyinstaller-hooks-contrib": "2026.8"
+}
+    def add_middleware(self, middleware_class: _MiddlewareFactory[P], *args: P.args, **kwargs: P.kwargs) -> None:
+        if self.middleware_stack is not None:  # pragma: no cover
+            raise RuntimeError("Cannot add middleware after an application has started")
+        self.user_middleware.insert(0, Middleware(middleware_class, *args, **kwargs))
+
+    def build_middleware_stack(self) -> ASGIApp:
+        debug = self.debug
+        error_handler = None
+        exception_handlers: dict[Any, ExceptionHandler] = {}
+
+        for key, value in self.exception_handlers.items():
+            if key in (500, Exception):
+                error_handler = value
+            else:
+                exception_handlers[key] = value
+
+        middleware = [Middleware(ServerErrorMiddleware, handler=error_handler, debug=debug)]
+        if self.max_body_size is not None:
+            middleware.append(Middleware(RequestBodyLimitMiddleware, max_body_size=self.max_body_size))
+        middleware += self.user_middleware
+        middleware.append(Middleware(ExceptionMiddleware, handlers=exception_handlers, debug=debug))
+
+        app = self.router
+        for cls, args, kwargs in reversed(middleware):
+            app = cls(app, *args, **kwargs)
+        return app
+

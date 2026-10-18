@@ -26,6 +26,10 @@ CTRL_C / 强杀允许残留，验证下一次引擎启动恢复，不将其记�
 
 `GET /smoke?blocks=1` 读取本地 ENVI，按像元分块执行一次演示 SNV。
 `blocks` 范围为 1–64。默认返回任务卡规定的五个字段。
+经鉴权的 `/smoke` 响应（包括 200/409/500/422）带
+`X-SpectrumAgent-Boot-Id` 与 `X-SpectrumAgent-Pid`，取自 `/health` 同一个身份对象。
+外壳须先与本代已核验握手核对这两个响应头；不符按身份不匹配处理。
+401 不带身份头；`/health` 和其他路径不注入。JSON body 保持原契约。
 `reflectance_range` 为 **SNV 之后**的有限值范围，因此出现负数正常；
 每条光谱采用总体标准差（ddof=0），常量光谱归零。
 elapsed_ms 包含 ENVI 读取和 SNV。样本是确定性的 8×8×8 float32。

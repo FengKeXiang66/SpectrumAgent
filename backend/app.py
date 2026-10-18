@@ -10,6 +10,8 @@ import structlog
 from fastapi import FastAPI, Query, Request
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException
+from starlette.middleware import Middleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
 from backend.identity import EngineIdentity
@@ -36,12 +38,6 @@ def create_app(paths: AppPaths, identity: EngineIdentity) -> FastAPI:
             finally:
                 remove_if_owned(paths.handshake, identity.boot_id, phase="lifespan")
 
-    app = FastAPI(
-        title="SpectrumAgent foundation", version="0.1.0", lifespan=lifespan,
-        docs_url=None, redoc_url=None, openapi_url=None,
-    )
-
-    @app.middleware("http")
     async def authenticate(request: Request, call_next):
         if request.url.path != "/health":
             expected = f"Bearer {identity.token}".encode("ascii")
@@ -53,6 +49,23 @@ def create_app(paths: AppPaths, identity: EngineIdentity) -> FastAPI:
                     status_code=401, headers={"WWW-Authenticate": "Bearer"},
                 )
         return await call_next(request)
+
+    async def inject_smoke_identity(request: Request, call_next):
+        response = await call_next(request)
+        if request.url.path == "/smoke":
+            response.headers["X-SpectrumAgent-Boot-Id"] = identity.boot_id
+            response.headers["X-SpectrumAgent-Pid"] = str(identity.pid)
+        return response
+
+    # Explicit outer-to-inner order: rejected authentication never reaches injection.
+    app = FastAPI(
+        title="SpectrumAgent foundation", version="0.1.0", lifespan=lifespan,
+        docs_url=None, redoc_url=None, openapi_url=None,
+        middleware=[
+            Middleware(BaseHTTPMiddleware, dispatch=authenticate),
+            Middleware(BaseHTTPMiddleware, dispatch=inject_smoke_identity),
+        ],
+    )
 
     @app.exception_handler(RequestValidationError)
     async def invalid_request(request: Request, exc: RequestValidationError):
