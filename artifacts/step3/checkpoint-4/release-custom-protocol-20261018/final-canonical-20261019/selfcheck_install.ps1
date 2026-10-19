@@ -23,7 +23,15 @@ function Assert-NoInstalledProcesses {
  if($owned.Count){throw 'Installed application/engine still running; close it first'}
 }
 if($Phase -eq 'Install'){
- if((Test-Path -LiteralPath $stateFile) -or (Test-Path -LiteralPath $program) -or (Test-Path -LiteralPath $key) -or (Test-Path -LiteralPath 'HKCU:\Software\spectrumagent\SpectrumAgent')){throw 'Unknown existing installation/state; refuse overwrite'}
+ if((Test-Path -LiteralPath $stateFile) -or (Test-Path -LiteralPath $program) -or (Test-Path -LiteralPath $key)){throw 'Unknown existing installation/state; refuse overwrite'}
+ $remembered='HKCU:\Software\spectrumagent\SpectrumAgent'
+ if(Test-Path -LiteralPath $remembered){
+  $previous=Get-Content -LiteralPath (Join-Path (Split-Path -Parent $out) 'host-install-state.json') -Raw|ConvertFrom-Json
+  $removed=Get-Content -LiteralPath (Join-Path (Split-Path -Parent $out) 'host-uninstall-result.json') -Raw|ConvertFrom-Json
+  $item=Get-Item -LiteralPath $remembered
+  if($previous.program -ine $program -or -not $removed.program_directory_removed -or $removed.program -ine $program -or $item.GetValue('') -ine $program -or @($item.GetValueNames()).Count -ne 1){throw 'Remembered install key is not the exact prior owned test key'}
+  Write-Output 'OWNED_PRIOR_TEST_KEY: only remembered default path remains; no key deletion; host is not pristine'
+ }
  $setup=Join-Path $root 'src-tauri\target\release\bundle\nsis\SpectrumAgent_0.1.0_x64-setup.exe'
  $setupHash=(Get-FileHash -LiteralPath $setup).Hash
  $bundle=Get-Content -LiteralPath (Join-Path $out 'bundle-idle-execution.json') -Raw|ConvertFrom-Json
