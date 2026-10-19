@@ -83,7 +83,7 @@ Set-ExecutionPolicy -Scope Process Bypass -Force   # 仅当前窗口，允许跑
 
 ```powershell
 # 宿主机执行
-.\vm-ops.ps1 -Action send -SourcePath "E:\AI_Agent\dist\setup.exe"
+.\vm-ops.ps1 -Action send -SourcePath "E:\AI_Agent\artifacts\step4\setup.exe"
 ```
 
 断网（验收 3）不用动交换机：VM 内右下角网络图标 → 右键 → 网络和 Internet 设置 → 高级网络设置 → **禁用适配器**，效果等同拔网线；测完再启用。
@@ -100,6 +100,8 @@ Set-ExecutionPolicy -Scope Process Bypass -Force   # 仅当前窗口，允许跑
 | 卸载保留用户数据（待 VM 实机） | 卸载前记录 `%LOCALAPPDATA%\SpectrumAgent` 下 run/logs/testdata 的文件名、大小与 SHA256，并放置本轮测试标记；卸载后确认 Programs 下程序目录已移除、数据根与这些内容逐项完好。程序运行阶段自身的握手生命周期不混入卸载比较。 |
 
 安装配置固定 currentUser（无需管理员）、WebView2 offlineInstaller；仅 NSIS 模板 currentUser 默认目录一行变更，保留 `/D=` 优先守卫、不改卸载逻辑、不用 installerHooks。模板来源与单行字节差异见 `artifacts/step3/checkpoint-4/release-custom-protocol-20261018/`。这两项未实测前，安装/卸载验收保持“待 VM 实机”，不得用宿主机测试替代。
+
+本次已打包微软离线安装器外层版本1.3.287.9，已签名载荷XML中WebView2 Runtime版本155.0.4283.62；依据见该批次WEBVIEW2-RUNTIME.md。VM安装前后读EdgeUpdate Clients中appid `{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}` 的pv并核对。若底座预存Runtime、NSIS跳过安装，不冒称已验证首次缺Runtime的离线安装。
 
 ## 空间与卫生纪律
 
