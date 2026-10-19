@@ -26,7 +26,8 @@ if($Phase -eq 'Install'){
  if((Test-Path -LiteralPath $stateFile) -or (Test-Path -LiteralPath $program) -or (Test-Path -LiteralPath $key) -or (Test-Path -LiteralPath 'HKCU:\Software\spectrumagent\SpectrumAgent')){throw 'Unknown existing installation/state; refuse overwrite'}
  $setup=Join-Path $root 'src-tauri\target\release\bundle\nsis\SpectrumAgent_0.1.0_x64-setup.exe'
  $setupHash=(Get-FileHash -LiteralPath $setup).Hash
- if($setupHash -cne '56B7551F048BF7C85D0A3CB9CDB94B80642CEEE9F78E0BAC666A1B8D2008A2AF'){throw 'Setup changed'}
+ $bundle=Get-Content -LiteralPath (Join-Path $out 'bundle-idle-execution.json') -Raw|ConvertFrom-Json
+ if($bundle.exit_code -ne 0 -or $bundle.shell_sha256.ToLowerInvariant() -cne $binding.shell_sha256 -or $setupHash -cne $bundle.setup_sha256){throw 'Successful bundle receipt/candidate/setup mismatch'}
  $env:TEMP=Join-Path $out 'temp';$env:TMP=$env:TEMP
  $process=Start-Process -FilePath $setup -ArgumentList '/S' -WindowStyle Hidden -Wait -PassThru
  if($process.ExitCode -ne 0){throw "Installer exit=$($process.ExitCode)"}
