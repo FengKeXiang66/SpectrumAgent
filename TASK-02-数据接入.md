@@ -134,10 +134,18 @@
 ### 4.5 FastAPI 端点暴露
 
 sidecar 新增路由：
-- `POST /api/v1/datasets/import`：接收文件路径（前端通过 Tauri fs API 获取），返回 dataset metadata
+- `POST /api/v1/datasets/import`（2026-10-19 契约裁定）：
+  - 请求体：`{"path": "<文件或目录绝对路径>", "raw": false, "data_path": "<可选，头文件配对用>"}`；`raw` 为该数据集的**默认读模式，随登记落库**
+  - 文件与目录**统一响应信封**：`{"datasets": [{"id": "<uuid>", "dataset": { SpectrumDataSet 元数据 }, "existing": false}], "summary": {"total": n, "imported": a, "existing": b}}`
+  - 目录递归（深度不限）收集 `.hdr`/`.json`/`.txt` 伴随头，每个能解析出数据文件的头登记为一个数据集；基名冲突用父目录名消歧
+  - **整批原子**：先全量解析校验（仅头文件 + 大小校验，不做全量读），任一无效 → HTTP 400，错误体列出**全部**无效项（路径 + 原因），且不登记任何数据集；空目录同样 400 显式报错
+  - **幂等**：同一规范化路径 + 同一 raw 模式已登记 → 返回既有 `id`（`existing: true`），不建重复记录
+  - 导入 = 登记引用 + 元数据解析：**不复制、不移动、不修改源文件**（源目录只读红线的延续）
 - `GET /api/v1/datasets/{id}`：获取已导入数据集信息
 - `GET /api/v1/datasets/{id}/preview`：返回缩略图 / 单波段预览（PNG base64）
-- `POST /api/v1/datasets/{id}/band/{i}`：读取指定波段数据（JSON 数组，小区域）
+- `POST /api/v1/datasets/{id}/band/{i}`：读取指定波段数据（JSON 数组，小区域）；band/region 端点支持可选 `raw` 覆盖（默认用数据集登记模式）
+
+**dev 联调入口（2026-10-19 裁定）**：#02 开发期需带新路由的后端做前后端联调，封版 app.exe 不动、本轮禁止重冻/重打包。方案：Rust 侧**仅 `#[cfg(debug_assertions)]` 分支**支持以本机 venv Python 直接启动 sidecar（默认 `E:\AI_Agent\.venv\Scripts\python.exe`，env var 可覆盖，代码内显著标注 dev-only），复用既有握手/端口/Job 监督机制、协议不变；release 构建路径逻辑零变化，不改 tauri.conf.json 的 resources/externalBin 配置、不碰 `resources/backend`；该分支不得向 release 引入任何新依赖。API 模块与单元测试可先于外壳独立完成；dev（venv）与 release（onedir）的运行时差异记为已知开发期差异，由后续打包里程碑在成品上复验。
 
 ### 4.6 前端 UI 适配
 

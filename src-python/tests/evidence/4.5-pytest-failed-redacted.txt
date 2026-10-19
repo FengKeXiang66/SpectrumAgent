@@ -1,0 +1,58 @@
+REDACTED DIAGNOSTIC COPY: fixture repr exposed a test-only token; original isolated under ignored .runtime. Not an unmodified raw transcript.
+..F..................................................................... [ 72%]
+............................                                             [100%]
+================================== FAILURES ===================================
+____________ test_directory_names_unrelated_text_and_metadata_only ____________
+
+obj = <class 'spectral.io.spyfile.SpyFile'>, name = 'asarray'
+ann = 'spectral.io.spyfile.SpyFile'
+
+    def annotated_getattr(obj: object, name: str, ann: str) -> object:
+        try:
+>           obj = getattr(obj, name)
+                  ^^^^^^^^^^^^^^^^^^
+E           AttributeError: type object 'SpyFile' has no attribute 'asarray'
+
+.venv\Lib\site-packages\_pytest\monkeypatch.py:95: AttributeError
+
+The above exception was the direct cause of the following exception:
+
+api = (<starlette.testclient.TestClient object at 0x000002292E4848F0>, AppPaths(root=WindowsPath('E:/AI_Agent/.runtime/m02-t..., process_created_at='2026-10-19T12:54:46.943Z', token='<test-token-redacted>', monotonic_start=114120.718))
+tmp_path = WindowsPath('E:/AI_Agent/.runtime/m02-tests/4.5/test_directory_names_unrelated0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000002292E4EA990>
+
+    def test_directory_names_unrelated_text_and_metadata_only(api, tmp_path, monkeypatch):
+        client, _, _ = api
+        source = tmp_path / "source"
+        cube(source / "a"); cube(source / "b")
+        (source / "README.txt").write_text("unrelated readme", "utf-8")
+>       monkeypatch.setattr("spectral.io.spyfile.SpyFile.asarray", lambda *_a, **_k: pytest.fail("import read data values"))
+
+src-python\tests\data\test_api.py:90: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv\Lib\site-packages\_pytest\monkeypatch.py:109: in derive_importpath
+    annotated_getattr(target, attr, ann=module)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+obj = <class 'spectral.io.spyfile.SpyFile'>, name = 'asarray'
+ann = 'spectral.io.spyfile.SpyFile'
+
+    def annotated_getattr(obj: object, name: str, ann: str) -> object:
+        try:
+            obj = getattr(obj, name)
+        except AttributeError as e:
+>           raise AttributeError(
+                f"{type(obj).__name__!r} object at {ann} has no attribute {name!r}"
+            ) from e
+E           AttributeError: 'type' object at spectral.io.spyfile.SpyFile has no attribute 'asarray'
+
+.venv\Lib\site-packages\_pytest\monkeypatch.py:97: AttributeError
+============================== warnings summary ===============================
+.venv\Lib\site-packages\fastapi\testclient.py:1
+  E:\AI_Agent\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED src-python/tests/data/test_api.py::test_directory_names_unrelated_text_and_metadata_only
+1 failed, 99 passed, 1 warning in 4.38s
