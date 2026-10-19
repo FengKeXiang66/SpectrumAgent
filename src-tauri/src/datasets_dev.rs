@@ -254,15 +254,19 @@ mod tests {
             let mut socket = loop {
                 match listener.accept() {
                     Ok((socket, _)) => break socket,
-                    Err(error)
-                        if error.kind() == io::ErrorKind::WouldBlock
-                            && Instant::now() < deadline =>
-                    {
-                        thread::sleep(Duration::from_millis(2))
+                    Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
+                        if Instant::now() >= deadline {
+                            return Err(io::Error::new(
+                                io::ErrorKind::TimedOut,
+                                "stub server: accept timeout",
+                            ));
+                        }
+                        thread::sleep(Duration::from_millis(2));
                     }
                     Err(error) => return Err(error),
                 }
             };
+            socket.set_nonblocking(false)?;
             socket.set_read_timeout(Some(Duration::from_secs(3)))?;
             let mut incoming = Vec::new();
             let mut buffer = [0u8; 1024];
