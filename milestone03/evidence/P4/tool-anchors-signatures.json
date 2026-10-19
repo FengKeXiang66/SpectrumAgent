@@ -1,0 +1,26 @@
+[
+  {
+    "path": "E:\\AI_Agent\\src-tauri\\target\\tauri\\nsis-3.13.zip",
+    "bytes": 2363925,
+    "sha1": "db14f8af2ea346b786c6ae19343f61aaf5e09b8e",
+    "sha256": "ba63dffc4410ee89193e1cb5a41989991bd77c61068da17e3156d136b7b0b3d8",
+    "signature_status": "UnknownError",
+    "signer_subject": null
+  },
+  {
+    "path": "E:\\AI_Agent\\src-tauri\\target\\tauri\\nsis_tauri_utils.dll",
+    "bytes": 34304,
+    "sha1": "75197fee3c6a814fe035788d1c34ead39349b860",
+    "sha256": "5ba143b5db4a87d32d6e7802e033330aae56cbceabe0d1e3ba41948385ad4709",
+    "signature_status": "NotSigned",
+    "signer_subject": null
+  },
+  {
+    "path": "E:\\AI_Agent\\src-tauri\\target\\.tauri\\downloads\\MicrosoftEdgeWebView2RuntimeInstallerX64.exe",
+    "bytes": 214156024,
+    "sha1": "08822cad6c184cc8667c323994f4d167d4cb0d8a",
+    "sha256": "0625fb5c1e75be58a164e14f95aa58a3e5badb859b3d17c952385f3e4a9ff3e8",
+    "signature_status": "Valid",
+    "signer_subject": "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
+  }
+]

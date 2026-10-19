@@ -1,6 +1,6 @@
 # 里程碑 #03 · 0.1.1 打包执行记录
 
-状态：P0–P3 完成，P4–P6 待执行，P7 等负责人本机冒烟。未宣布过闸。
+状态：P0–P4 完成，P5–P6 待执行，P7 等负责人本机冒烟。未宣布过闸。
 
 依据：TASK-03-打包里程碑.md 与负责人执行提示词；冲突以执行提示词为准。D1=A（仅转正 datasets_forward）、D2=产品0.1.1；握手协议版本仍0.1.0。每P独立提交，不安装新包，三份lock字节保持不变。
 
@@ -29,6 +29,16 @@ D1=A：release handler 精确为 engine_status / retry_engine / run_smoke / open
 真实构建exit0；25个backend/spectrumagent模块嵌入代码与源码相等，无matplotlib。544文件/255,688,706B，app.exe 16,895,372B / SHA256 36e56a560c6d929690d8f4975cd73dae6a226997007d76a25dea77b49bc758e9；_internal仍543文件/238,793,334B，rasterio仍36DLL/15pyd。与封版smoke-headers批次相比，依赖只有base_library.zip顺序变化（成员内容、逐项元数据相同）；七项全部通过后生成新product-manifest。
 
 Canonical暂存与src-tauri/resources/backend逐项全量比对544文件一致，旧ignored资源树移存.runtime供核查，未触碰旧冻结目录。build.spec仅补src-python发现路径与spectrumagent/spectral收集；collect_submodules先于Analysis，故显式加入sys.path；revision副本仅按目录深度调整ROOT。无GDAL/PROJ注入与手收DLL。PyInstaller日志实际分析工作目录为E:\AI_Agent\build\build（既有工具行为），dist位于本新revision；TEMP/TMP与缓存均E盘。依赖探针、构建原始输出及manifest见新revision，资源比对见evidence/P3。
+
+## P4 · custom-protocol release / NSIS
+
+真实 `npm run tauri -- build --features custom-protocol ... -- --locked --offline` 执行，beforeBuildCommand自动tsc+Vite，外壳重新编译成功（1m31s）；首次bundle因套接字os error10013退出1。原输出完整保留。随后同特性、--no-binary-patching仅重试bundle成功exit0；详细日志证明HEAD经微软fwlink 302→微软CDN 200、proxy:None，未关闭TLS、未安装依赖。既有工具缓存逐文件SHA相等复制到本轮target；NSIS两SHA1锚点吻合，WebView2载荷复用。实际Cargo fingerprint features=[custom-protocol]、未含test-probes。
+
+交付：`artifacts/milestone03/SpectrumAgent_0.1.1_x64-setup.exe`，287,410,501B，SHA256 `93c717284866562b8986bd1ad06bdcdb11d0adeb0fa7b47bfcb1646fc21888e7`；相对#01的287,156,790B增加253,711B（合计引擎/前端/IPC/dialog-rfd变化，不将合计增量冒充dialog单独归因实验）。交付副本与bundle源逐字节一致。旧artifacts/step4/setup.exe仍d8492536完整SHA，未改动。
+
+外壳11,413,504B / SHA256 8b4426a513b66a724e10d626bebbaecdb6a31e8e28f1d52c468bebd0e9ad519e；release资源544文件逐项匹配新批次manifest。NSIS生成脚本保留Programs目录守卫、currentUser/offlineInstaller和原模板，产品version0.1.1；release根仅spectrum-agent.exe，无probe/stub。两exe的RT_MANIFEST与SHA绑定，均longPathAware/asInvoker/CommonControls6；>260路径功能测试仍缓测。
+
+签名分列：setup.exe=NotSigned；外壳exe=NotSigned；引擎exe=NotSigned；WebView2载荷=Valid/Microsoft。SmartScreen警告可能出现，实际警告详录缓测，不称签名链完整。构建命令/退出码、工具缓存逐项SHA、生成NSIS脚本、fingerprints、dist全量SHA与候选绑定均在evidence/P4，未运行安装器或P7。
 
 ## 后续门槛
 

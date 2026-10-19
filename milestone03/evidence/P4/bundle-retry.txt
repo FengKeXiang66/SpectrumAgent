@@ -1,0 +1,67 @@
+COMMAND: E:\AI_Agent\.toolchains\node24.19.0-npm10.8.2\node.exe E:\AI_Agent\.toolchains\node24.19.0-npm10.8.2\node_modules\npm\bin\npm-cli.js run tauri -- bundle --features custom-protocol --bundles nsis --ci --no-binary-patching --verbose
+CHANNEL: env proxy variables removed in this process; NO_PROXY=*; TLS verification unchanged. Existing custom-protocol release build reused.
+
+> spectrum-agent@0.1.0 tauri
+> tauri bundle --features custom-protocol --bundles nsis --ci --no-binary-patching --verbose
+
+       Debug [tauri_cli::helpers::app_paths] Found Tauri project inside E:\AI_Agent\src-tauri on early lookup
+        Warn [tauri_bundler::bundle] Skipping binary patching for E:\AI_Agent\src-tauri\target\milestone03\release\spectrum-agent.exe due to --no-binary-patching flag.
+        Info [tauri_bundler::bundle::windows::nsis] Target: x64
+       Debug [ureq::run] HEAD https://go.microsoft.com/******
+       Debug [ureq::unversioned::resolver] Resolved: ArrayVec { len: 1, arr: [23.56.26.7:443] }
+       Debug [ureq::unversioned::transport::tcp] Connected TcpStream to 23.56.26.7:443
+       Debug [rustls::client::hs] No cached session for DnsName("go.microsoft.com")
+       Debug [rustls::client::hs] Not resuming any session
+       Debug [ureq::tls::rustls] Wrapped TLS
+       Debug [ureq::run] Request { method: HEAD, uri: https://go.microsoft.com/******, version: HTTP/1.1, headers: {"accept-encoding": "gzip", "user-agent": "tauri-bundler/2.10.3", "accept": "*/*", "host": "go.microsoft.com"} }
+       Debug [rustls::client::hs] Using ciphersuite TLS13_AES_256_GCM_SHA384
+       Debug [rustls::client::tls13] Not resuming
+       Debug [rustls::client::tls13] TLS1.3 encrypted extensions: ServerExtensions { server_name_ack: (), unknown_extensions: {10}, .. }
+       Debug [rustls::client::hs] ALPN protocol is None
+       Debug [ureq::run] Response { status: 302, version: HTTP/1.1, headers: {"server": "Kestrel", "content-length": "0", "date": "Mon, 19 Oct 2026 16:06:59 GMT", "connection": "keep-alive", "location": "******", "<NOTICE>": "6 HEADERS ARE REDACTED"} }
+       Debug [ureq::pool] Return to pool: PoolKey { scheme: "https", authority: go.microsoft.com, proxy: None }
+       Debug [ureq::run] Redirect (302 Found): HEAD https://msedge.sf.dl.delivery.mp.microsoft.com/******
+       Debug [ureq::run] HEAD https://msedge.sf.dl.delivery.mp.microsoft.com/******
+       Debug [ureq::unversioned::resolver] Resolved: ArrayVec { len: 3, arr: [113.125.231.123:443, 113.142.200.217:443, 1.82.220.66:443] }
+       Debug [ureq::unversioned::transport::tcp] Connected TcpStream to 113.125.231.123:443
+       Debug [rustls::client::hs] No cached session for DnsName("msedge.sf.dl.delivery.mp.microsoft.com")
+       Debug [rustls::client::hs] Not resuming any session
+       Debug [ureq::tls::rustls] Wrapped TLS
+       Debug [ureq::run] Request { method: HEAD, uri: https://msedge.sf.dl.delivery.mp.microsoft.com/******, version: HTTP/1.1, headers: {"accept-encoding": "gzip", "user-agent": "tauri-bundler/2.10.3", "accept": "*/*", "host": "msedge.sf.dl.delivery.mp.microsoft.com"} }
+       Debug [rustls::client::hs] ALPN protocol is None
+       Debug [rustls::client::hs] Using ciphersuite TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+       Debug [rustls::client::tls12::server_hello] Server supports tickets
+       Debug [rustls::client::tls12] ECDHE curve is EcParameters { curve_type: NamedCurve, named_group: X25519 }
+       Debug [rustls::client::tls12] Server DNS name is DnsName("msedge.sf.dl.delivery.mp.microsoft.com")
+       Debug [ureq::run] Response { status: 200, version: HTTP/1.1, headers: {"content-type": "application/octet-stream", "date": "Fri, 16 Oct 2026 18:39:51 GMT", "server": "Lego Server", "content-length": "214156024", "connection": "keep-alive", "<NOTICE>": "12 HEADERS ARE REDACTED"} }
+       Debug [ureq::pool] Return to pool: PoolKey { scheme: "https", authority: msedge.sf.dl.delivery.mp.microsoft.com, proxy: None }
+     Running [tauri_bundler::bundle::windows::nsis] makensis to produce E:\AI_Agent\src-tauri\target\milestone03\release\bundle\nsis\SpectrumAgent_0.1.1_x64-setup.exe
+     Running [tauri_bundler::utils] Command `E:\AI_Agent\src-tauri\target\milestone03\.tauri\NSIS\makensis.exe  -INPUTCHARSET UTF8 -OUTPUTCHARSET UTF8 -V3 E:\AI_Agent\src-tauri\target\milestone03\release\nsis\x64\installer.nsi`
+MakeNSIS v3.13 - Copyright 1999-2026 Contributors
+See the file COPYING for license details.
+Credits can be found in the Users Manual.
+
+Processing config: E:\AI_Agent\src-tauri\target\milestone03\.tauri\NSIS\nsisconf.nsh
+Processing script file: "E:\AI_Agent\src-tauri\target\milestone03\release\nsis\x64\installer.nsi" (UTF8)
+
+Processed 1 file, writing output (x86-unicode):
+
+Output: "E:\AI_Agent\src-tauri\target\milestone03\release\nsis\x64\nsis-output.exe"
+Install: 6 pages (384 bytes), 2 sections (4144 bytes), 3040 instructions (85120 bytes), 1007 strings (96584 bytes), 1 language table (402 bytes).
+Uninstall: 2 pages (192 bytes), 1 section (2072 bytes), 1284 instructions (35952 bytes), 833 strings (95100 bytes), 1 language table (274 bytes).
+Datablock optimizer saved 623568 bytes (~0.1%).
+
+Using lzma (compress whole) compression.
+
+EXE header size:               52736 / 38912 bytes
+Install code:                          (187098 bytes)
+Install data:                          (480759498 bytes)
+Uninstall code+data:                   (200190 bytes)
+Compressed data:           287357761 / 481146786 bytes
+CRC (0xC8DC507F):                  4 / 4 bytes
+
+Total size:                287410501 / 481185702 bytes (59.7%)
+    Finished [tauri_bundler::bundle] 1 bundle at:
+        E:\AI_Agent\src-tauri\target\milestone03\release\bundle\nsis\SpectrumAgent_0.1.1_x64-setup.exe (274.10 MiB)
+
+EXIT_CODE=0

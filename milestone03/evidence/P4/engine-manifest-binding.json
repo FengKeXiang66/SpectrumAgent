@@ -1,0 +1,10 @@
+{
+  "functional_over_260": "缓测",
+  "sha256": "36e56a560c6d929690d8f4975cd73dae6a226997007d76a25dea77b49bc758e9",
+  "commonControlsV6": true,
+  "longPathAware": true,
+  "manifest": "E:\\AI_Agent\\milestone03\\evidence\\P4\\engine.manifest.xml",
+  "manifest_sha256": "0ee298c1b1fe6d499988b60309dbc208e90c53c061fdeea39e63f6ffcf153d79",
+  "exe": "E:\\AI_Agent\\src-tauri\\target\\milestone03\\release\\resources\\backend\\app.exe",
+  "asInvoker": true
+}

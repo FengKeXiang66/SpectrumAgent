@@ -1,0 +1,44 @@
+{
+  "timestamp": "2026-10-19T16:10:50.866379+00:00",
+  "product_version": "0.1.1",
+  "protocol_version": "0.1.0",
+  "setup": {
+    "source": "E:\\AI_Agent\\src-tauri\\target\\milestone03\\release\\bundle\\nsis\\SpectrumAgent_0.1.1_x64-setup.exe",
+    "delivery": "E:\\AI_Agent\\artifacts\\milestone03\\SpectrumAgent_0.1.1_x64-setup.exe",
+    "bytes": 287410501,
+    "sha256": "93c717284866562b8986bd1ad06bdcdb11d0adeb0fa7b47bfcb1646fc21888e7",
+    "copy_matches": true,
+    "delta_from_01_bytes": 253711,
+    "delta_scope": "combined release UI/engine/IPC/dialog-rfd payload; not an isolated dialog-only measurement"
+  },
+  "shell": {
+    "path": "E:\\AI_Agent\\src-tauri\\target\\milestone03\\release\\spectrum-agent.exe",
+    "bytes": 11413504,
+    "sha256": "8b4426a513b66a724e10d626bebbaecdb6a31e8e28f1d52c468bebd0e9ad519e",
+    "features": [
+      "custom-protocol"
+    ],
+    "test_probes": false
+  },
+  "engine_manifest_sha256": "9e5d65a9a407d452faa5a219ff2f738f01fd2c7b376ac5e80d4b39090625bc06",
+  "release_resource_files_match": 544,
+  "milestone01_setup_unchanged": true,
+  "dist": [
+    {
+      "path": "assets/index-6XjvOZAI.js",
+      "bytes": 231843,
+      "sha256": "499c955c63323cf87ab24413d939c25e3a5ed02098a335392e508c0a027d9027"
+    },
+    {
+      "path": "assets/index-CVQeR6D8.css",
+      "bytes": 1165,
+      "sha256": "c05be76927279bce2b74dfb5f22bd5353f3934c24ef4fc1ab520a1b68b64d7b2"
+    },
+    {
+      "path": "index.html",
+      "bytes": 372,
+      "sha256": "b3b4b237f8072b27a377d0b3905e7b1da7042296cb5419ea336506e0dd92b3c8"
+    }
+  ],
+  "p7_installed_smoke": "待负责人本机执行"
+}

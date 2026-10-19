@@ -1,0 +1,303 @@
+{
+  "timestamp": "2026-10-19T16:10:50.866379+00:00",
+  "product_version": "0.1.1",
+  "protocol_version": "0.1.0",
+  "setup": {
+    "source": "E:\\AI_Agent\\src-tauri\\target\\milestone03\\release\\bundle\\nsis\\SpectrumAgent_0.1.1_x64-setup.exe",
+    "delivery": "E:\\AI_Agent\\artifacts\\milestone03\\SpectrumAgent_0.1.1_x64-setup.exe",
+    "bytes": 287410501,
+    "sha256": "93c717284866562b8986bd1ad06bdcdb11d0adeb0fa7b47bfcb1646fc21888e7",
+    "copy_matches": true,
+    "delta_from_01_bytes": 253711,
+    "delta_scope": "combined release UI/engine/IPC/dialog-rfd payload; not an isolated dialog-only measurement"
+  },
+  "shell": {
+    "path": "E:\\AI_Agent\\src-tauri\\target\\milestone03\\release\\spectrum-agent.exe",
+    "bytes": 11413504,
+    "sha256": "8b4426a513b66a724e10d626bebbaecdb6a31e8e28f1d52c468bebd0e9ad519e",
+    "features": [
+      "custom-protocol"
+    ],
+    "test_probes": false
+  },
+  "engine_manifest_sha256": "9e5d65a9a407d452faa5a219ff2f738f01fd2c7b376ac5e80d4b39090625bc06",
+  "release_resource_files_match": 544,
+  "milestone01_setup_unchanged": true,
+  "dist": [
+    {
+      "path": "assets/index-6XjvOZAI.js",
+      "bytes": 231843,
+      "sha256": "499c955c63323cf87ab24413d939c25e3a5ed02098a335392e508c0a027d9027"
+    },
+    {
+      "path": "assets/index-CVQeR6D8.css",
+      "bytes": 1165,
+      "sha256": "c05be76927279bce2b74dfb5f22bd5353f3934c24ef4fc1ab520a1b68b64d7b2"
+    },
+    {
+      "path": "index.html",
+      "bytes": 372,
+      "sha256": "b3b4b237f8072b27a377d0b3905e7b1da7042296cb5419ea336506e0dd92b3c8"
+    }
+  ],
+  "fingerprints": {
+    ".fingerprint/spectrum-agent-01724c21624b2642/lib-spectrum_agent.json": {
+      "rustc": 222933465615791797,
+      "features": "[\"custom-protocol\"]",
+      "declared_features": "[\"custom-protocol\", \"test-probes\"]",
+      "target": 2862124891048517366,
+      "profile": 5585871892529064040,
+      "path": 10763286916239946207,
+      "deps": [
+        [
+          6557439603276904804,
+          "serde",
+          false,
+          14286790417395013755
+        ],
+        [
+          6568467691589961976,
+          "windows_sys",
+          false,
+          10089495826754376398
+        ],
+        [
+          7057899838653257008,
+          "build_script_build",
+          false,
+          3761615207529661101
+        ],
+        [
+          7102883790009483138,
+          "tauri",
+          false,
+          7905770285646193729
+        ],
+        [
+          8160210889872729633,
+          "serde_json",
+          false,
+          11498244372024972556
+        ],
+        [
+          9477436350722826549,
+          "tauri_plugin_opener",
+          false,
+          18276765718076533285
+        ],
+        [
+          13196351783047880178,
+          "reqwest",
+          false,
+          10453295229116006491
+        ],
+        [
+          13242183202771126592,
+          "tauri_plugin_single_instance",
+          false,
+          17692128294280103973
+        ],
+        [
+          15246257146432269137,
+          "tauri_plugin_dialog",
+          false,
+          9413530851543935055
+        ],
+        [
+          16117757646811882223,
+          "chrono",
+          false,
+          2032549988034398795
+        ]
+      ],
+      "local": [
+        {
+          "CheckDepInfo": {
+            "dep_info": "release\\.fingerprint\\spectrum-agent-01724c21624b2642\\dep-lib-spectrum_agent",
+            "checksum": false
+          }
+        }
+      ],
+      "rustflags": [],
+      "config": 9396254390672932401,
+      "compile_kind": 0
+    },
+    ".fingerprint/spectrum-agent-5ccecd25f3bc7bca/build-script-build-script-build.json": {
+      "rustc": 222933465615791797,
+      "features": "[\"custom-protocol\"]",
+      "declared_features": "[\"custom-protocol\", \"test-probes\"]",
+      "target": 2835126046236718539,
+      "profile": 14728096039640814685,
+      "path": 13767053534773805487,
+      "deps": [
+        [
+          3193973027333350079,
+          "tauri_build",
+          false,
+          3632788939628220026
+        ]
+      ],
+      "local": [
+        {
+          "CheckDepInfo": {
+            "dep_info": "release\\.fingerprint\\spectrum-agent-5ccecd25f3bc7bca\\dep-build-script-build-script-build",
+            "checksum": false
+          }
+        }
+      ],
+      "rustflags": [],
+      "config": 9396254390672932401,
+      "compile_kind": 0
+    },
+    ".fingerprint/spectrum-agent-c40864bf6e45df4b/bin-spectrum-agent.json": {
+      "rustc": 222933465615791797,
+      "features": "[\"custom-protocol\"]",
+      "declared_features": "[\"custom-protocol\", \"test-probes\"]",
+      "target": 17430140133399687574,
+      "profile": 5585871892529064040,
+      "path": 4942398508502643691,
+      "deps": [
+        [
+          6557439603276904804,
+          "serde",
+          false,
+          14286790417395013755
+        ],
+        [
+          6568467691589961976,
+          "windows_sys",
+          false,
+          10089495826754376398
+        ],
+        [
+          7057899838653257008,
+          "spectrum_agent",
+          false,
+          4061182004152313970
+        ],
+        [
+          7057899838653257008,
+          "build_script_build",
+          false,
+          3761615207529661101
+        ],
+        [
+          7102883790009483138,
+          "tauri",
+          false,
+          7905770285646193729
+        ],
+        [
+          8160210889872729633,
+          "serde_json",
+          false,
+          11498244372024972556
+        ],
+        [
+          9477436350722826549,
+          "tauri_plugin_opener",
+          false,
+          18276765718076533285
+        ],
+        [
+          13196351783047880178,
+          "reqwest",
+          false,
+          10453295229116006491
+        ],
+        [
+          13242183202771126592,
+          "tauri_plugin_single_instance",
+          false,
+          17692128294280103973
+        ],
+        [
+          15246257146432269137,
+          "tauri_plugin_dialog",
+          false,
+          9413530851543935055
+        ],
+        [
+          16117757646811882223,
+          "chrono",
+          false,
+          2032549988034398795
+        ]
+      ],
+      "local": [
+        {
+          "CheckDepInfo": {
+            "dep_info": "release\\.fingerprint\\spectrum-agent-c40864bf6e45df4b\\dep-bin-spectrum-agent",
+            "checksum": false
+          }
+        }
+      ],
+      "rustflags": [],
+      "config": 9396254390672932401,
+      "compile_kind": 0
+    },
+    ".fingerprint/spectrum-agent-f648ccb08b7ac521/run-build-script-build-script-build.json": {
+      "rustc": 222933465615791797,
+      "features": "",
+      "declared_features": "",
+      "target": 0,
+      "profile": 0,
+      "path": 0,
+      "deps": [
+        [
+          7057899838653257008,
+          "build_script_build",
+          false,
+          14019763604031669520
+        ],
+        [
+          7102883790009483138,
+          "build_script_build",
+          false,
+          2891692466700439578
+        ],
+        [
+          15246257146432269137,
+          "build_script_build",
+          false,
+          9254967462071951062
+        ],
+        [
+          9477436350722826549,
+          "build_script_build",
+          false,
+          692966860553541005
+        ]
+      ],
+      "local": [
+        {
+          "RerunIfChanged": {
+            "output": "release\\build\\spectrum-agent-f648ccb08b7ac521\\output",
+            "paths": [
+              "tauri.conf.json",
+              "permissions",
+              "capabilities",
+              "resources\\backend"
+            ]
+          }
+        },
+        {
+          "RerunIfEnvChanged": {
+            "var": "TAURI_CONFIG",
+            "val": null
+          }
+        },
+        {
+          "RerunIfEnvChanged": {
+            "var": "REMOVE_UNUSED_COMMANDS",
+            "val": null
+          }
+        }
+      ],
+      "rustflags": [],
+      "config": 0,
+      "compile_kind": 0
+    }
+  },
+  "p7_installed_smoke": "待负责人本机执行"
+}

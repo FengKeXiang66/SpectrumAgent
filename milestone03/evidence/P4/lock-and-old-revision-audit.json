@@ -1,0 +1,9 @@
+{
+  "locks_unchanged": true,
+  "sha256": {
+    "requirements-lock.txt": "58e24b59da34461a17fd942b4047071e42b5120b3d474ba976a7e28535d40bcc",
+    "package-lock.json": "ea6a555e6389274fb938849fed4cc53ff1ae6b7dd1ac0b9bc4f31e3aef2b030b",
+    "src-tauri/Cargo.lock": "e28b95eccf2af5dff5dba7aaa553f670086a2646b324812678606ba6217407f6"
+  },
+  "old_revision_diff": ""
+}
