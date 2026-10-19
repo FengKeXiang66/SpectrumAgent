@@ -1,0 +1,33 @@
+   Compiling spectrum-agent v0.1.0 (E:\AI_Agent\src-tauri)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.58s
+     Running unittests src\lib.rs (src-tauri\target\milestone02\debug\deps\spectrum_agent-fc5a2225eca9e0bc.exe)
+
+running 7 tests
+test datasets_dev::tests::all_operations_use_the_handshake_port_and_fixed_namespace ... ok
+test datasets_dev::tests::declared_and_streaming_response_limits_are_enforced ... ok
+test datasets_dev::tests::no_generic_host_port_path_or_method_can_be_deserialized ... ok
+test datasets_dev::tests::redirects_are_not_followed_and_sensitive_bodies_never_leave_rust ... ok
+test datasets_dev::tests::response_identity_precedes_status_and_body ... ok
+test datasets_dev::tests::structured_sidecar_errors_are_preserved_after_identity_validation ... ok
+test health::route_tests::closed_routes_always_use_numeric_loopback_and_literal_paths ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests\dev_identity.rs (src-tauri\target\milestone02\debug\deps\dev_identity-6600fcd409e08ea7.exe)
+
+running 1 test
+test same_job_creation_time_and_live_process_are_all_required ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\dev_lifecycle.rs (src-tauri\target\milestone02\debug\deps\dev_lifecycle-e7b10eb393a2d273.exe)
+
+running 1 test
+test real_venv_dual_pid_job_cleanup_and_stale_handshake_recovery ... DEV_READY {"boot_id":"c89dd7c4","launcher_pid":13972,"port":57359,"process_created_at_ms":1792419342003,"python_pid":20772,"round":0,"same_job":true}
+DEV_JOB_CLEANUP {"handshake_remaining_observed":true,"launcher_exited":true,"python_exited":true,"round":0,"script_removed_handshake":false}
+DEV_READY {"boot_id":"27be4812","launcher_pid":3884,"port":52307,"process_created_at_ms":1792419343135,"python_pid":20836,"round":1,"same_job":true}
+DEV_JOB_CLEANUP {"handshake_remaining_observed":true,"launcher_exited":true,"python_exited":true,"round":1,"script_removed_handshake":false}
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.25s
+

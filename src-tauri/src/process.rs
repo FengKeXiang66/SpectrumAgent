@@ -41,6 +41,8 @@ pub struct LaunchFailure {
 }
 
 pub struct ManagedProcess {
+    #[cfg(debug_assertions)]
+    launcher: Option<OwnedHandle>,
     api: Arc<dyn Win32>,
     process: OwnedHandle,
     thread: OwnedHandle,
@@ -76,6 +78,8 @@ impl ManagedProcess {
                 cleanup_errors: vec![],
             })?;
         let mut owned = Self {
+            #[cfg(debug_assertions)]
+            launcher: None,
             process: OwnedHandle::new(child.process, api.clone()),
             thread: OwnedHandle::new(child.thread, api.clone()),
             job: None,
@@ -146,6 +150,24 @@ impl ManagedProcess {
     pub fn raw(&self) -> Option<RawHandle> {
         self.process.value
     }
+    #[cfg(debug_assertions)]
+    pub fn dev_job(&self) -> Option<RawHandle> {
+        self.job.as_ref().and_then(|job| job.value)
+    }
+    /// DEV ONLY: pin and supervise the actual CPython process, retaining the
+    /// launcher handle and the original kill-on-close Job. Never fall back.
+    #[cfg(debug_assertions)]
+    pub fn adopt_dev_python(&mut self, pid: u32, created: i64) -> Result<(), WinError> {
+        let job = self.dev_job().ok_or(WinError { api: "dev_job_handle", code: 6 })?;
+        let raw = self.api.open_dev_process(pid)?;
+        let pinned = OwnedHandle::new(raw, self.api.clone());
+        validate_dev_process(self.api.as_ref(), raw, job, created)?;
+        let launcher = std::mem::replace(&mut self.process, pinned);
+        self.launcher = Some(launcher);
+        self.pid = pid;
+        self.created_at_ms = created;
+        Ok(())
+    }
     pub fn mark_reaped(&mut self) {
         self.reaped = true;
     }
@@ -197,6 +219,11 @@ impl ManagedProcess {
         if let Err(error) = self.process.close() {
             errors.push(error);
         }
+        #[cfg(debug_assertions)]
+        if let Some(launcher) = self.launcher.as_mut()
+            && let Err(error) = launcher.close() {
+            errors.push(error);
+        }
         if let Some(job) = self.job.as_mut()
             && let Err(error) = job.close()
         {
@@ -204,6 +231,14 @@ impl ManagedProcess {
         }
         errors
     }
+}
+
+#[cfg(debug_assertions)]
+pub fn validate_dev_process(api: &dyn Win32, raw: RawHandle, job: RawHandle, created: i64) -> Result<(), WinError> {
+    if !api.dev_in_job(raw, job)? { return Err(WinError { api: "IsProcessInJob", code: 5 }); }
+    if api.created_at_ms(raw)? != created { return Err(WinError { api: "dev_process_created_at", code: 13 }); }
+    if api.wait(raw, Some(0))? != WaitResult::Timeout { return Err(WinError { api: "dev_process_exited", code: 6 }); }
+    Ok(())
 }
 
 impl Drop for ManagedProcess {

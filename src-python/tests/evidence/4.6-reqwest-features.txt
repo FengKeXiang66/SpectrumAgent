@@ -1,0 +1,6 @@
+reqwest v0.13.5
+├── reqwest feature "blocking"
+│   └── spectrum-agent v0.1.0 (E:\AI_Agent\src-tauri)
+│       └── spectrum-agent feature "default" (command-line)
+└── reqwest feature "json"
+    └── spectrum-agent v0.1.0 (E:\AI_Agent\src-tauri) (*)

@@ -1,0 +1,311 @@
+diff --git a/src-tauri/build.rs b/src-tauri/build.rs
+index b0de0b3..9374b1f 100644
+--- a/src-tauri/build.rs
++++ b/src-tauri/build.rs
+@@ -9,6 +9,8 @@ fn main() {
+             "retry_engine",
+             "run_smoke",
+             "open_data_directory",
++            // Permission is declarative; only the debug binary registers its handler.
++            "datasets_forward",
+         ]));
+     if let Err(error) = tauri_build::try_build(attributes) {
+         eprintln!("Tauri 构建失败：{error}");
+diff --git a/src-tauri/capabilities/main.json b/src-tauri/capabilities/main.json
+index 7f32dd9..287f3f9 100644
+--- a/src-tauri/capabilities/main.json
++++ b/src-tauri/capabilities/main.json
+@@ -1,9 +1,10 @@
+ {
+   "identifier": "main",
+-  "description": "主窗口仅订阅状态并调用四个固定无参业务命令，不开放通用路径或网络能力。",
++  "description": "主窗口订阅状态及四个地基命令；datasets-forward 仅 debug 注册，固定本代127.0.0.1端口的/api/v1/datasets/*，限GET/POST、8MiB并核验身份。release不注册该handler；不开放通用网络能力。",
+   "windows": ["main"],
+   "permissions": [
+     "core:event:allow-listen", "core:event:allow-unlisten",
+-    "allow-engine-status", "allow-retry-engine", "allow-run-smoke", "allow-open-data-directory"
++    "allow-engine-status", "allow-retry-engine", "allow-run-smoke", "allow-open-data-directory",
++    "allow-datasets-forward", "dialog:allow-open"
+   ]
+ }
+diff --git a/src-tauri/src/lib.rs b/src-tauri/src/lib.rs
+index 01d6daa..f01ae56 100644
+--- a/src-tauri/src/lib.rs
++++ b/src-tauri/src/lib.rs
+@@ -9,3 +9,7 @@ pub mod process;
+ pub mod state;
+ pub mod supervisor;
+ pub mod win32;
++#[cfg(debug_assertions)]
++pub mod dev_engine;
++#[cfg(debug_assertions)]
++pub mod datasets_dev;
+diff --git a/src-tauri/src/main.rs b/src-tauri/src/main.rs
+index e4b1984..cd1c986 100644
+--- a/src-tauri/src/main.rs
++++ b/src-tauri/src/main.rs
+@@ -45,6 +45,27 @@ async fn run_smoke(state: tauri::State<'_, Desktop>) -> Result<SmokeMetrics, Smo
+         .await
+         .map_err(|_| SmokeFailure::Transport)?
+ }
++// DEV ONLY: release never registers this command or compiles its transport.
++#[cfg(debug_assertions)]
++#[tauri::command]
++async fn datasets_forward(
++    state: tauri::State<'_, Desktop>,
++    request: spectrum_agent::datasets_dev::DatasetRequest,
++) -> Result<serde_json::Value, spectrum_agent::datasets_dev::ForwardError> {
++    use spectrum_agent::datasets_dev::{ForwardError, forward};
++    let supervisor = state.supervisor.clone();
++    tauri::async_runtime::spawn_blocking(move || {
++        let (generation, identity) = supervisor.dataset_identity()
++            .map_err(|_| ForwardError::new("ENGINE_NOT_READY", "数据引擎尚未就绪"))?;
++        let result = forward(&identity, &request);
++        let current = supervisor.snapshot()
++            .map_err(|_| ForwardError::new("ENGINE_NOT_READY", "无法核验当前引擎代次"))?;
++        if current.generation_id != generation || current.phase != Phase::Ready {
++            return Err(ForwardError::new("STALE_RESPONSE", "引擎代次已变化，请重试"));
++        }
++        result
++    }).await.map_err(|_| ForwardError::new("WORKER_FAILED", "数据请求工作线程失败"))?
++}
+ #[tauri::command]
+ async fn open_data_directory(
+     app: tauri::AppHandle,
+@@ -113,7 +134,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
+     let pending_callback = pending_activation.clone();
+     let callback_log = log.clone();
+     let setup_log = log.clone();
+-    let app = tauri::Builder::default()
++    let builder = tauri::Builder::default()
+         // Must be the first registered plugin; it acquires the lock before setup/spawn.
+         .plugin(tauri_plugin_single_instance::init(move |app, _args, _cwd| {
+             pending_callback.store(true, Ordering::Release);
+@@ -128,8 +149,13 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
+             }
+         }))
+         .plugin(tauri_plugin_opener::init())
+-        .invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory])
+-        .setup(move |app| {
++        .plugin(tauri_plugin_dialog::init());
++    #[cfg(debug_assertions)]
++    let builder = builder.invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, datasets_forward]);
++    #[cfg(not(debug_assertions))]
++    let builder = builder
++        .invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory]);
++    let app = builder.setup(move |app| {
+             setup_log.event("single_instance_lock_acquired", json!({}))?;
+             let resource = app.path().resolve("resources/backend/app.exe", tauri::path::BaseDirectory::Resource)?;
+             let selection = EngineSelection::resolve(None, || resource);
+diff --git a/src-tauri/src/process.rs b/src-tauri/src/process.rs
+index 55bdc95..435b7ae 100644
+--- a/src-tauri/src/process.rs
++++ b/src-tauri/src/process.rs
+@@ -41,6 +41,8 @@ pub struct LaunchFailure {
+ }
+ 
+ pub struct ManagedProcess {
++    #[cfg(debug_assertions)]
++    launcher: Option<OwnedHandle>,
+     api: Arc<dyn Win32>,
+     process: OwnedHandle,
+     thread: OwnedHandle,
+@@ -76,6 +78,8 @@ impl ManagedProcess {
+                 cleanup_errors: vec![],
+             })?;
+         let mut owned = Self {
++            #[cfg(debug_assertions)]
++            launcher: None,
+             process: OwnedHandle::new(child.process, api.clone()),
+             thread: OwnedHandle::new(child.thread, api.clone()),
+             job: None,
+@@ -146,6 +150,24 @@ impl ManagedProcess {
+     pub fn raw(&self) -> Option<RawHandle> {
+         self.process.value
+     }
++    #[cfg(debug_assertions)]
++    pub fn dev_job(&self) -> Option<RawHandle> {
++        self.job.as_ref().and_then(|job| job.value)
++    }
++    /// DEV ONLY: pin and supervise the actual CPython process, retaining the
++    /// launcher handle and the original kill-on-close Job. Never fall back.
++    #[cfg(debug_assertions)]
++    pub fn adopt_dev_python(&mut self, pid: u32, created: i64) -> Result<(), WinError> {
++        let job = self.dev_job().ok_or(WinError { api: "dev_job_handle", code: 6 })?;
++        let raw = self.api.open_dev_process(pid)?;
++        let pinned = OwnedHandle::new(raw, self.api.clone());
++        validate_dev_process(self.api.as_ref(), raw, job, created)?;
++        let launcher = std::mem::replace(&mut self.process, pinned);
++        self.launcher = Some(launcher);
++        self.pid = pid;
++        self.created_at_ms = created;
++        Ok(())
++    }
+     pub fn mark_reaped(&mut self) {
+         self.reaped = true;
+     }
+@@ -197,6 +219,11 @@ impl ManagedProcess {
+         if let Err(error) = self.process.close() {
+             errors.push(error);
+         }
++        #[cfg(debug_assertions)]
++        if let Some(launcher) = self.launcher.as_mut()
++            && let Err(error) = launcher.close() {
++            errors.push(error);
++        }
+         if let Some(job) = self.job.as_mut()
+             && let Err(error) = job.close()
+         {
+@@ -206,6 +233,14 @@ impl ManagedProcess {
+     }
+ }
+ 
++#[cfg(debug_assertions)]
++pub fn validate_dev_process(api: &dyn Win32, raw: RawHandle, job: RawHandle, created: i64) -> Result<(), WinError> {
++    if !api.dev_in_job(raw, job)? { return Err(WinError { api: "IsProcessInJob", code: 5 }); }
++    if api.created_at_ms(raw)? != created { return Err(WinError { api: "dev_process_created_at", code: 13 }); }
++    if api.wait(raw, Some(0))? != WaitResult::Timeout { return Err(WinError { api: "dev_process_exited", code: 6 }); }
++    Ok(())
++}
++
+ impl Drop for ManagedProcess {
+     fn drop(&mut self) {
+         for error in self.cleanup() {
+diff --git a/src-tauri/src/supervisor.rs b/src-tauri/src/supervisor.rs
+index 28e7626..032e077 100644
+--- a/src-tauri/src/supervisor.rs
++++ b/src-tauri/src/supervisor.rs
+@@ -9,6 +9,9 @@ use crate::{
+     win32::{SpawnRequest, WaitResult, Win32, WinError},
+ };
+ use chrono::{Local, Utc};
++#[cfg(debug_assertions)]
++#[path = "dev_supervision.rs"]
++mod dev_supervision;
+ use serde::Serialize;
+ use serde_json::json;
+ use std::{
+@@ -68,6 +71,8 @@ pub enum SupervisorEvent {
+ }
+ 
+ enum Message {
++    #[cfg(debug_assertions)]
++    DatasetIdentity(Sender<Result<(u64, Arc<Handshake>), &'static str>>),
+     Retry,
+     Stop,
+     Activate,
+@@ -100,6 +105,12 @@ pub struct SupervisorHandle {
+ }
+ 
+ impl SupervisorHandle {
++    #[cfg(debug_assertions)]
++    pub fn dataset_identity(&self) -> Result<(u64, Arc<Handshake>), &'static str> {
++        let (reply, response) = mpsc::channel();
++        self.tx.send(Message::DatasetIdentity(reply)).map_err(|_| "ENGINE_NOT_READY")?;
++        response.recv_timeout(Duration::from_secs(2)).map_err(|_| "ENGINE_NOT_READY")?
++    }
+     /// No caller inputs. Blocking channel wait must run on a worker, never the UI thread.
+     pub fn run_smoke(&self) -> Result<SmokeMetrics, SmokeFailure> {
+         let (reply, response) = mpsc::channel();
+@@ -218,6 +229,20 @@ impl EngineSupervisor {
+         data_root: PathBuf,
+         api: Arc<dyn Win32>,
+     ) -> io::Result<(SupervisorHandle, Receiver<SupervisorEvent>)> {
++        // DEV ONLY milestone02 source entry. The existing release branch below
++        // is byte-for-byte unchanged; explicit test/dev overrides still win.
++        #[cfg(debug_assertions)]
++        if selection.source == "resolved_resource" {
++            return Self::start_inner(
++                SupervisorConfig {
++                    process: crate::dev_engine::python_request(&data_root)?,
++                    data_root,
++                },
++                api,
++                false,
++                "development_python",
++            );
++        }
+         let invalid_shape = !selection.valid_shape();
+         let source = selection.source;
+         Self::start_inner(
+@@ -378,6 +403,11 @@ impl Actor {
+         self.publish();
+     }
+     fn start_attempt(&mut self) {
++        #[cfg(debug_assertions)]
++        if self.selection_source == "development_python" {
++            self.start_debug_attempt();
++            return;
++        }
+         let generation = self.view.generation_id;
+         self.log(
+             "engine_start_attempt",
+@@ -565,6 +595,14 @@ impl Actor {
+                 Err(RecvTimeoutError::Disconnected) => Message::Stop,
+             };
+             match message {
++                #[cfg(debug_assertions)]
++                Message::DatasetIdentity(reply) => {
++                    let identity = self.verified.as_ref()
++                        .filter(|_| self.machine.phase() == Phase::Ready)
++                        .map(|identity| (self.view.generation_id, identity.clone()))
++                        .ok_or("ENGINE_NOT_READY");
++                    let _ = reply.send(identity);
++                }
+                 Message::Smoke(reply) => {
+                     let Some(identity) = self
+                         .verified
+@@ -660,6 +698,11 @@ impl Actor {
+                     if generation == self.view.generation_id
+                         && self.machine.phase() == Phase::Starting =>
+                 {
++                    #[cfg(debug_assertions)]
++                    if self.selection_source == "development_python" {
++                        self.complete_debug_health(generation, result);
++                        continue;
++                    }
+                     // The blocking waiter is independent; reject a health response if exit is already observable.
+                     let alive = self
+                         .attempt
+diff --git a/src-tauri/src/win32.rs b/src-tauri/src/win32.rs
+index 70d76f5..1da8e83 100644
+--- a/src-tauri/src/win32.rs
++++ b/src-tauri/src/win32.rs
+@@ -95,6 +95,14 @@ pub enum WaitResult {
+ }
+ 
+ pub trait Win32: Send + Sync {
++    #[cfg(debug_assertions)]
++    fn open_dev_process(&self, _pid: u32) -> Result<RawHandle, WinError> {
++        Err(WinError { api: "OpenProcess", code: 50 })
++    }
++    #[cfg(debug_assertions)]
++    fn dev_in_job(&self, _process: RawHandle, _job: RawHandle) -> Result<bool, WinError> {
++        Err(WinError { api: "IsProcessInJob", code: 50 })
++    }
+     fn create_suspended(&self, parameters: &CreationParameters)
+     -> Result<CreatedProcess, WinError>;
+     fn create_job(&self) -> Result<RawHandle, WinError>;
+@@ -146,6 +154,22 @@ fn quoted(value: &OsStr) -> Vec<u16> {
+ }
+ 
+ impl Win32 for NativeWin32 {
++    #[cfg(debug_assertions)]
++    fn open_dev_process(&self, pid: u32) -> Result<RawHandle, WinError> {
++        use windows_sys::Win32::System::Threading::{OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_SYNCHRONIZE};
++        let raw = unsafe { OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_SYNCHRONIZE, 0, pid) };
++        if raw.is_null() { return Err(error("OpenProcess")); }
++        Ok(raw as usize)
++    }
++    #[cfg(debug_assertions)]
++    fn dev_in_job(&self, process: RawHandle, job: RawHandle) -> Result<bool, WinError> {
++        use windows_sys::Win32::System::JobObjects::IsProcessInJob;
++        let mut belongs = 0;
++        if unsafe { IsProcessInJob(process as HANDLE, job as HANDLE, &mut belongs) } == 0 {
++            return Err(error("IsProcessInJob"));
++        }
++        Ok(belongs != 0)
++    }
+     fn create_suspended(
+         &self,
+         parameters: &CreationParameters,

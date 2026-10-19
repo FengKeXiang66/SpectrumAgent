@@ -1,0 +1,41 @@
+explicit_interpreter=E:\AI_Agent\.venv\Scripts\python.exe
+spawn_pid=28612
+actual_python_pid=26420
+COMMAND=Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'python.exe' } | Select-Object ProcessId,ParentProcessId,ExecutablePath | ConvertTo-Json
+EXIT=0
+STDOUT=[
+    {
+        "ProcessId":  14212,
+        "ParentProcessId":  30360,
+        "ExecutablePath":  "E:\\AI_Agent\\.venv\\Scripts\\python.exe"
+    },
+    {
+        "ProcessId":  30520,
+        "ParentProcessId":  14212,
+        "ExecutablePath":  "C:\\Users\\Administrator\\AppData\\Roaming\\uv\\python\\cpython-3.12-windows-x86_64-none\\python.exe"
+    },
+    {
+        "ProcessId":  28612,
+        "ParentProcessId":  30520,
+        "ExecutablePath":  "E:\\AI_Agent\\.venv\\Scripts\\python.exe"
+    },
+    {
+        "ProcessId":  26420,
+        "ParentProcessId":  28612,
+        "ExecutablePath":  "C:\\Users\\Administrator\\AppData\\Roaming\\uv\\python\\cpython-3.12-windows-x86_64-none\\python.exe"
+    }
+]
+
+STDERR=
+COMMAND=tasklist.exe /FI "IMAGENAME eq python.exe"
+EXIT=0
+STDOUT=
+Image Name                     PID Session Name        Session#    Mem Usage
+========================= ======== ================ =========== ============
+python.exe                   14212 Console                    1      5,280 K
+python.exe                   30520 Console                    1     13,708 K
+python.exe                   28612 Console                    1      5,284 K
+python.exe                   26420 Console                    1     10,596 K
+
+STDERR=
+launcher_exit=0

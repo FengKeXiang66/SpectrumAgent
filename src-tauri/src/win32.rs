@@ -95,6 +95,14 @@ pub enum WaitResult {
 }
 
 pub trait Win32: Send + Sync {
+    #[cfg(debug_assertions)]
+    fn open_dev_process(&self, _pid: u32) -> Result<RawHandle, WinError> {
+        Err(WinError { api: "OpenProcess", code: 50 })
+    }
+    #[cfg(debug_assertions)]
+    fn dev_in_job(&self, _process: RawHandle, _job: RawHandle) -> Result<bool, WinError> {
+        Err(WinError { api: "IsProcessInJob", code: 50 })
+    }
     fn create_suspended(&self, parameters: &CreationParameters)
     -> Result<CreatedProcess, WinError>;
     fn create_job(&self) -> Result<RawHandle, WinError>;
@@ -146,6 +154,22 @@ fn quoted(value: &OsStr) -> Vec<u16> {
 }
 
 impl Win32 for NativeWin32 {
+    #[cfg(debug_assertions)]
+    fn open_dev_process(&self, pid: u32) -> Result<RawHandle, WinError> {
+        use windows_sys::Win32::System::Threading::{OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_SYNCHRONIZE};
+        let raw = unsafe { OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_SYNCHRONIZE, 0, pid) };
+        if raw.is_null() { return Err(error("OpenProcess")); }
+        Ok(raw as usize)
+    }
+    #[cfg(debug_assertions)]
+    fn dev_in_job(&self, process: RawHandle, job: RawHandle) -> Result<bool, WinError> {
+        use windows_sys::Win32::System::JobObjects::IsProcessInJob;
+        let mut belongs = 0;
+        if unsafe { IsProcessInJob(process as HANDLE, job as HANDLE, &mut belongs) } == 0 {
+            return Err(error("IsProcessInJob"));
+        }
+        Ok(belongs != 0)
+    }
     fn create_suspended(
         &self,
         parameters: &CreationParameters,

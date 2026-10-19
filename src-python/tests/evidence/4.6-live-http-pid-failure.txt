@@ -1,0 +1,8 @@
+TEST_HYGIENE {"forced_popen_cleanup": true, "child_exited": true, "not_product_lifecycle_evidence": true}
+Traceback (most recent call last):
+  File "E:\AI_Agent\scripts\selfcheck_milestone02.py", line 113, in <module>
+    main()
+  File "E:\AI_Agent\scripts\selfcheck_milestone02.py", line 46, in main
+    assert handshake["pid"] == process.pid
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

@@ -45,6 +45,27 @@ async fn run_smoke(state: tauri::State<'_, Desktop>) -> Result<SmokeMetrics, Smo
         .await
         .map_err(|_| SmokeFailure::Transport)?
 }
+// DEV ONLY: release never registers this command or compiles its transport.
+#[cfg(debug_assertions)]
+#[tauri::command]
+async fn datasets_forward(
+    state: tauri::State<'_, Desktop>,
+    request: spectrum_agent::datasets_dev::DatasetRequest,
+) -> Result<serde_json::Value, spectrum_agent::datasets_dev::ForwardError> {
+    use spectrum_agent::datasets_dev::{ForwardError, forward};
+    let supervisor = state.supervisor.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        let (generation, identity) = supervisor.dataset_identity()
+            .map_err(|_| ForwardError::new("ENGINE_NOT_READY", "数据引擎尚未就绪"))?;
+        let result = forward(&identity, &request);
+        let current = supervisor.snapshot()
+            .map_err(|_| ForwardError::new("ENGINE_NOT_READY", "无法核验当前引擎代次"))?;
+        if current.generation_id != generation || current.phase != Phase::Ready {
+            return Err(ForwardError::new("STALE_RESPONSE", "引擎代次已变化，请重试"));
+        }
+        result
+    }).await.map_err(|_| ForwardError::new("WORKER_FAILED", "数据请求工作线程失败"))?
+}
 #[tauri::command]
 async fn open_data_directory(
     app: tauri::AppHandle,
@@ -113,7 +134,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     let pending_callback = pending_activation.clone();
     let callback_log = log.clone();
     let setup_log = log.clone();
-    let app = tauri::Builder::default()
+    let builder = tauri::Builder::default()
         // Must be the first registered plugin; it acquires the lock before setup/spawn.
         .plugin(tauri_plugin_single_instance::init(move |app, _args, _cwd| {
             pending_callback.store(true, Ordering::Release);
@@ -128,8 +149,13 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             }
         }))
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory])
-        .setup(move |app| {
+        .plugin(tauri_plugin_dialog::init());
+    #[cfg(debug_assertions)]
+    let builder = builder.invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, datasets_forward]);
+    #[cfg(not(debug_assertions))]
+    let builder = builder
+        .invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory]);
+    let app = builder.setup(move |app| {
             setup_log.event("single_instance_lock_acquired", json!({}))?;
             let resource = app.path().resolve("resources/backend/app.exe", tauri::path::BaseDirectory::Resource)?;
             let selection = EngineSelection::resolve(None, || resource);

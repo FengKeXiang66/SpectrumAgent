@@ -9,6 +9,8 @@ fn main() {
             "retry_engine",
             "run_smoke",
             "open_data_directory",
+            // Permission is declarative; only the debug binary registers its handler.
+            "datasets_forward",
         ]));
     if let Err(error) = tauri_build::try_build(attributes) {
         eprintln!("Tauri 构建失败：{error}");

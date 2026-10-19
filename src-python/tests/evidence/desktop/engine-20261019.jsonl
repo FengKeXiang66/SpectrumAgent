@@ -1,0 +1,313 @@
+{"runtime": "dev_python", "python": "3.12.13", "event": "engine_boot", "boot_id": "c20179d5", "pid": 28324, "logger": "engine", "level": "info", "timestamp": "2026-10-19T14:04:20.884777Z"}
+{"event": "Started server process [28324]", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-19T14:04:20.980115Z"}
+{"event": "Waiting for application startup.", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-19T14:04:20.981172Z"}
+{"event": "Application startup complete.", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-19T14:04:20.998906Z"}
+{"event": "Uvicorn running on http://127.0.0.1:61011 (Press CTRL+C to quit)", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-19T14:04:20.999903Z"}
+{"event": "127.0.0.1:61012 - \"GET /health HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:04:21.067827Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:61011/health \"HTTP/1.1 200 OK\"", "boot_id": "c20179d5", "pid": 28324, "logger": "httpx", "level": "info", "timestamp": "2026-10-19T14:04:21.068897Z"}
+{"boot_id": "c20179d5", "pid": 28324, "port": 61011, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-19T14:04:21.075129Z"}
+{"event": "127.0.0.1:61014 - \"GET /health HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:04:21.115224Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.230561Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.230561Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.231063Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.231063Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.231063Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.231549Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.236167Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.236167Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.236666Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.236666Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.236666Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.236666Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.238181Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.238666Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.238666Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.238666Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.239164Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.239164Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.240666Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.240666Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.240666Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.240666Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.241165Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.241165Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.242599Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.242599Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.243104Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.243104Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.243104Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.243603Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.245105Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.245105Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.245105Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.245609Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.245609Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.245609Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.247110Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.247610Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.247610Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.248108Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.248108Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.248108Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.249609Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.249609Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.249609Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.250108Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.250108Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.250108Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.251608Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.251608Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.251608Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.252109Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.252109Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.252109Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.253607Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.253607Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.254108Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.254108Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.254108Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.254108Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.255610Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.255610Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.256109Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.256109Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.256109Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.256109Z"}
+{"event": "127.0.0.1:49607 - \"POST /api/v1/datasets/import HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:07:01.268902Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.302868Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.302868Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.303367Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.303367Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.303867Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.303867Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.312235Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.313241Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.313745Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.313745Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.314742Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.315113Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.324751Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.325752Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.325752Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.327250Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.327250Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.327750Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.328749Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.329252Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.329252Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.330250Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.330250Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.332250Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.334251Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.334750Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.336251Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.337184Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.337261Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.337689Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.338579Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.338989Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.340000Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.340504Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.341553Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.342058Z"}
+{"event": "127.0.0.1:49610 - \"GET /api/v1/datasets/0bc1a814-6a52-441c-a1bd-a9e3e88cc10c/preview?band=0 HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:07:01.343636Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.343636Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.344136Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.344636Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.345135Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.345636Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.346140Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.346140Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.346640Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.346640Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.347140Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.347639Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.348140Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.348140Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.348140Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.348641Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.349640Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.349640Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.350640Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.350640Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.351141Z"}
+{"event": "127.0.0.1:49611 - \"GET /api/v1/datasets/a8c0f1ec-0f15-468b-8ba1-865b8db5b368/preview?band=0 HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:07:01.352655Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.352154Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.352655Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.352655Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.353154Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.353654Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.353654Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.354154Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.354154Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.354654Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.354654Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.354654Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.355154Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.355154Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.355154Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.355653Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.355653Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.355653Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.356154Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.356654Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.356654Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.357153Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.357153Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.357153Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.357153Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.357653Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.357653Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.357653Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.358154Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.358154Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.358653Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.358653Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.359155Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.359155Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.359155Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.359653Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.359653Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.360153Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.360153Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.360153Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.360153Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.360153Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.360153Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.360153Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.361157Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.361157Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.361157Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.361663Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.361663Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.362162Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.362162Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.362662Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.362662Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.363161Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.363161Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.363161Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.363661Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.363661Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.364161Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.364161Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.364662Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.365162Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.365662Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.365662Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.366162Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.366663Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.367162Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.368161Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.369161Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.369661Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.370162Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.370162Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.370662Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.371162Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.371162Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.371661Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:01.372161Z"}
+{"event": "127.0.0.1:49615 - \"GET /api/v1/datasets/e5042366-b1bc-4c91-9059-1f03fe47960f/preview?band=0 HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:07:01.372662Z"}
+{"event": "127.0.0.1:49616 - \"GET /api/v1/datasets/ce99c348-2138-4f50-a3b6-5b03d4b88c32/preview?band=0 HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:07:01.388430Z"}
+{"event": "127.0.0.1:49623 - \"GET /api/v1/datasets/e5042366-b1bc-4c91-9059-1f03fe47960f/preview?band=0 HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:07:01.391771Z"}
+{"event": "127.0.0.1:49619 - \"GET /api/v1/datasets/7c4167e4-d2a1-4726-959d-5d7bcbf205ea/preview?band=0 HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:07:01.399276Z"}
+{"event": "127.0.0.1:49627 - \"GET /api/v1/datasets/ce99c348-2138-4f50-a3b6-5b03d4b88c32/preview?band=0 HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:07:01.400776Z"}
+{"event": "127.0.0.1:49625 - \"GET /api/v1/datasets/a8c0f1ec-0f15-468b-8ba1-865b8db5b368/preview?band=0 HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:07:01.402776Z"}
+{"event": "127.0.0.1:49621 - \"GET /api/v1/datasets/0bc1a814-6a52-441c-a1bd-a9e3e88cc10c/preview?band=0 HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:07:01.403277Z"}
+{"event": "127.0.0.1:49632 - \"GET /api/v1/datasets/297902f8-a5ee-49b3-a854-35e3ece84555/preview?band=0 HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:07:01.410744Z"}
+{"event": "127.0.0.1:49620 - \"GET /api/v1/datasets/297902f8-a5ee-49b3-a854-35e3ece84555/preview?band=0 HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:07:01.411248Z"}
+{"event": "127.0.0.1:49622 - \"GET /api/v1/datasets/75b7b0b4-870c-4de4-b7e9-247d58115a5f/preview?band=0 HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:07:01.411753Z"}
+{"event": "127.0.0.1:49631 - \"GET /api/v1/datasets/7c4167e4-d2a1-4726-959d-5d7bcbf205ea/preview?band=0 HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:07:01.411753Z"}
+{"event": "127.0.0.1:49624 - \"GET /api/v1/datasets/507573d9-5c32-477c-bdde-2e82795ca777/preview?band=0 HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:07:01.412900Z"}
+{"event": "127.0.0.1:49613 - \"GET /api/v1/datasets/75b7b0b4-870c-4de4-b7e9-247d58115a5f/preview?band=0 HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:07:01.413297Z"}
+{"event": "127.0.0.1:49612 - \"GET /api/v1/datasets/507573d9-5c32-477c-bdde-2e82795ca777/preview?band=0 HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:07:01.413297Z"}
+{"event": "127.0.0.1:49617 - \"GET /api/v1/datasets/e9eca79d-d242-45ab-98a5-7d88f0ee2ff2/preview?band=0 HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:07:01.425064Z"}
+{"event": "127.0.0.1:49629 - \"GET /api/v1/datasets/e9eca79d-d242-45ab-98a5-7d88f0ee2ff2/preview?band=0 HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:07:01.425620Z"}
+{"event": "127.0.0.1:49618 - \"GET /api/v1/datasets/87ee7758-dbd2-4680-8947-eab23bdf4a55/preview?band=0 HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:07:01.426130Z"}
+{"event": "127.0.0.1:49614 - \"GET /api/v1/datasets/87ee7758-dbd2-4680-8947-eab23bdf4a55/preview?band=0 HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:07:01.426130Z"}
+{"event": "127.0.0.1:49626 - \"GET /api/v1/datasets/271cc596-e0b3-4622-86d2-d95e91adb594/preview?band=0 HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:07:01.427993Z"}
+{"event": "127.0.0.1:49630 - \"GET /api/v1/datasets/271cc596-e0b3-4622-86d2-d95e91adb594/preview?band=0 HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:07:01.427993Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:34.106772Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:34.107274Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:34.107274Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:34.107274Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:34.107773Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:07:34.107773Z"}
+{"event": "127.0.0.1:63916 - \"GET /api/v1/datasets/0bc1a814-6a52-441c-a1bd-a9e3e88cc10c/preview?band=0 HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:07:34.113966Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:08:47.729451Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:08:47.729886Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:08:47.729951Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:08:47.730451Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:08:47.730650Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:08:47.730949Z"}
+{"event": "127.0.0.1:63272 - \"GET /api/v1/datasets/0bc1a814-6a52-441c-a1bd-a9e3e88cc10c/preview?band=199 HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:08:47.781504Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.161419Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.161920Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.161920Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.162419Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.162419Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.162419Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.163920Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.163920Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.163920Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.163920Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.164800Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.164800Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.166304Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.166304Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.166304Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.166805Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.166805Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.166805Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.168308Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.168308Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.168308Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.168808Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.168808Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.168808Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.171657Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.171930Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.171930Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.171930Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.172433Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.172433Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.173430Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.174283Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.174283Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.174283Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.174787Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.174787Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.176788Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.176788Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.176788Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.177288Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.177814Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.177814Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.178792Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.178792Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.179287Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.179287Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.179287Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.179287Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.180301Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.180812Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.180812Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.180812Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.181310Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.181310Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.182559Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.182559Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.182559Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.183064Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.183064Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.183064Z"}
+{"key": "file type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.184088Z"}
+{"key": "sensor type", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.184563Z"}
+{"key": "wavelength units", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.184563Z"}
+{"key": "default stretch", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.184563Z"}
+{"key": "band names", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.184563Z"}
+{"key": "relative", "event": "unknown_header_key", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.header", "level": "warning", "timestamp": "2026-10-19T14:10:55.184563Z"}
+{"event": "127.0.0.1:62941 - \"POST /api/v1/datasets/import HTTP/1.1\" 200", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:10:55.188418Z"}
+{"primary_error": "HEADER_INVALID", "event": "envi_fallback", "boot_id": "c20179d5", "pid": 28324, "logger": "datasets.fallback", "level": "warning", "timestamp": "2026-10-19T14:12:13.503198Z"}
+{"event": "127.0.0.1:63146 - \"POST /api/v1/datasets/import HTTP/1.1\" 400", "boot_id": "c20179d5", "pid": 28324, "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T14:12:13.504209Z"}

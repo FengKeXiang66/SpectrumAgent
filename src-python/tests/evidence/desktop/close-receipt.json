@@ -1,0 +1,11 @@
+{
+  "shell_pid": 6456,
+  "shell_exit": 0,
+  "launcher_pid": 22952,
+  "python_pid": 28324,
+  "survivors": [],
+  "handshake_remaining": true,
+  "script_removed_handshake": false,
+  "ended_utc": "2026-10-19T14:12:37.7264386Z",
+  "observed_before_host_script_exit": true
+}

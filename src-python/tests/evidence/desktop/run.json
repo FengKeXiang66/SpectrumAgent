@@ -1,0 +1,11 @@
+{
+  "shell_pid": 6456,
+  "launcher_pid": 22952,
+  "python_pid": 28324,
+  "boot_id": "c20179d5",
+  "port": 61011,
+  "data_root": "E:\\AI_Agent\\.runtime\\m02-desktop\\SpectrumAgent",
+  "binary": "E:\\AI_Agent\\src-tauri\\target\\milestone02\\debug\\spectrum-agent.exe",
+  "binary_sha256": "4b668c06e5043299689980fae741ef82aadece1fd6f778296eb5082af5def96e",
+  "started_utc": "2026-10-19T14:04:19.3496225Z"
+}

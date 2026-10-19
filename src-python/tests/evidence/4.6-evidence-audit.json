@@ -1,0 +1,42 @@
+{
+  "baseline": "205f0ad",
+  "protected_file_changes": [],
+  "release_commands_literal": "tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory]",
+  "release_command_list_identical": true,
+  "existing_supervisor_process_win32_lines_removed_or_edited": 0,
+  "new_permissions": [
+    "allow-datasets-forward",
+    "dialog:allow-open"
+  ],
+  "python_lock_sha256": "58e24b59da34461a17fd942b4047071e42b5120b3d474ba976a7e28535d40bcc",
+  "desktop": {
+    "data_root": "E:\\AI_Agent\\.runtime\\m02-desktop\\SpectrumAgent",
+    "shell_pid": 6456,
+    "python_pid": 28324,
+    "launcher_pid": 22952,
+    "shell_sha256": "4b668c06e5043299689980fae741ef82aadece1fd6f778296eb5082af5def96e",
+    "dom_samples": 450,
+    "dom_phases": {
+      "Starting": 12,
+      "Ready": 438
+    },
+    "dom_urls": [
+      "http://127.0.0.1:1420/"
+    ],
+    "local_storage_nonempty_samples": 0,
+    "session_storage_nonempty_samples": 0,
+    "credential_matches": 0,
+    "later_ui_evidence": "ui-*.txt + engine timestamped access records; outside 45s DOM window",
+    "close": {
+      "shell_pid": 6456,
+      "shell_exit": 0,
+      "launcher_pid": 22952,
+      "python_pid": 28324,
+      "survivors": [],
+      "handshake_remaining": true,
+      "script_removed_handshake": false,
+      "ended_utc": "2026-10-19T14:12:37.7264386Z",
+      "observed_before_host_script_exit": true
+    }
+  }
+}

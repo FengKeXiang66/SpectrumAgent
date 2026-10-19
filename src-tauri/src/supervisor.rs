@@ -9,6 +9,9 @@ use crate::{
     win32::{SpawnRequest, WaitResult, Win32, WinError},
 };
 use chrono::{Local, Utc};
+#[cfg(debug_assertions)]
+#[path = "dev_supervision.rs"]
+mod dev_supervision;
 use serde::Serialize;
 use serde_json::json;
 use std::{
@@ -68,6 +71,8 @@ pub enum SupervisorEvent {
 }
 
 enum Message {
+    #[cfg(debug_assertions)]
+    DatasetIdentity(Sender<Result<(u64, Arc<Handshake>), &'static str>>),
     Retry,
     Stop,
     Activate,
@@ -100,6 +105,12 @@ pub struct SupervisorHandle {
 }
 
 impl SupervisorHandle {
+    #[cfg(debug_assertions)]
+    pub fn dataset_identity(&self) -> Result<(u64, Arc<Handshake>), &'static str> {
+        let (reply, response) = mpsc::channel();
+        self.tx.send(Message::DatasetIdentity(reply)).map_err(|_| "ENGINE_NOT_READY")?;
+        response.recv_timeout(Duration::from_secs(2)).map_err(|_| "ENGINE_NOT_READY")?
+    }
     /// No caller inputs. Blocking channel wait must run on a worker, never the UI thread.
     pub fn run_smoke(&self) -> Result<SmokeMetrics, SmokeFailure> {
         let (reply, response) = mpsc::channel();
@@ -218,6 +229,20 @@ impl EngineSupervisor {
         data_root: PathBuf,
         api: Arc<dyn Win32>,
     ) -> io::Result<(SupervisorHandle, Receiver<SupervisorEvent>)> {
+        // DEV ONLY milestone02 source entry. The existing release branch below
+        // is byte-for-byte unchanged; explicit test/dev overrides still win.
+        #[cfg(debug_assertions)]
+        if selection.source == "resolved_resource" {
+            return Self::start_inner(
+                SupervisorConfig {
+                    process: crate::dev_engine::python_request(&data_root)?,
+                    data_root,
+                },
+                api,
+                false,
+                "development_python",
+            );
+        }
         let invalid_shape = !selection.valid_shape();
         let source = selection.source;
         Self::start_inner(
@@ -378,6 +403,11 @@ impl Actor {
         self.publish();
     }
     fn start_attempt(&mut self) {
+        #[cfg(debug_assertions)]
+        if self.selection_source == "development_python" {
+            self.start_debug_attempt();
+            return;
+        }
         let generation = self.view.generation_id;
         self.log(
             "engine_start_attempt",
@@ -565,6 +595,14 @@ impl Actor {
                 Err(RecvTimeoutError::Disconnected) => Message::Stop,
             };
             match message {
+                #[cfg(debug_assertions)]
+                Message::DatasetIdentity(reply) => {
+                    let identity = self.verified.as_ref()
+                        .filter(|_| self.machine.phase() == Phase::Ready)
+                        .map(|identity| (self.view.generation_id, identity.clone()))
+                        .ok_or("ENGINE_NOT_READY");
+                    let _ = reply.send(identity);
+                }
                 Message::Smoke(reply) => {
                     let Some(identity) = self
                         .verified
@@ -660,6 +698,11 @@ impl Actor {
                     if generation == self.view.generation_id
                         && self.machine.phase() == Phase::Starting =>
                 {
+                    #[cfg(debug_assertions)]
+                    if self.selection_source == "development_python" {
+                        self.complete_debug_health(generation, result);
+                        continue;
+                    }
                     // The blocking waiter is independent; reject a health response if exit is already observable.
                     let alive = self
                         .attempt

@@ -1,0 +1,13 @@
+PROCESS_IDENTITY {"launcher_pid": 20008, "python_pid": 21660, "same_pid": false, "supervisor_acceptance": "pending_debug_identity_ruling"}
+HEALTH 200 {"status":"ok","boot_id":"4b709998","pid":21660,"version":"0.1.0","uptime_s":0.281}
+UNAUTHORIZED 401 {"error":"UNAUTHORIZED","detail":"需要本次引擎握手中的 Bearer token。"}
+IMPORT 200 {"datasets":[{"id":"8cf9e7e5-01cf-49f4-8a45-d15c36d57d8f","dataset":{"name":"sample","shape":[2,3,4],"dtype":"uint16","interleave":"bil","wavelengths":[1.0,2.0,3.0,4.0],"data_path":"E:\\AI_Agent\\.runtime\\milestone02-http\\tmpgcq9fcfv\\source\\sample.img","header_path":"E:\\AI_Agent\\.runtime\\milestone02-http\\tmpgcq9fcfv\\source\\sample.hdr","fwhm":[0.1,0.2,0.3,0.4],"metadata":{"scale_factor":65535.0,"scale_applied":false,"value_mode":"raw_dn","value_description":"DN原值，未除scale factor=65535","byte_order":0,"header_offset":0,"reader":"spectral"}},"existing":false}],"summary":{"total":1,"imported":1,"existing":0}}
+IDEMPOTENT 200 {"total": 1, "imported": 0, "existing": 1}
+RAW_BAND 200 {"id":"8cf9e7e5-01cf-49f4-8a45-d15c36d57d8f","band":2,"shape":[2,3],"raw":true,"values":[[2,6,10],[14,18,22]]}
+SCALED_OVERRIDE 200 {"id":"8cf9e7e5-01cf-49f4-8a45-d15c36d57d8f","band":2,"shape":[2,3],"raw":false,"values":[[0.000030518043793392844,0.00009155413138017853,0.00015259021896696422],[0.0002136263065537499,0.0002746623941405356,0.0003356984817273213]]}
+PREVIEW 200 {"id":"8cf9e7e5-01cf-49f4-8a45-d15c36d57d8f","band":0,"width":3,"height":2,"mime":"image/png","png_base64":"iVBORw0KGgoAAAANSUhEUgAAAAMAAAACCAAAAAC4HznGAAAAEElEQVR4nGNgME5jmHnmPwAHmgL+77L/2AAAAABJRU5ErkJggg=="}
+MISSING 400 {"error":"FILE_NOT_FOUND","detail":"文件或目录不存在","context":{"path":"E:\\AI_Agent\\.runtime\\milestone02-http\\tmpgcq9fcfv\\absent.hdr"}}
+CONCURRENT_IMPORTS {"statuses": [200, 200, 200], "health": 200, "single_id": true}
+LOG_AUDIT {"json_lines": 21, "credential_matches": 0, "runtime": "dev_python", "python": "3.12.13"}
+TEST_HYGIENE {"forced_popen_cleanup": true, "child_exited": true, "not_product_lifecycle_evidence": true}
+RESULT PASS

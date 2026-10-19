@@ -1,0 +1,5302 @@
+{
+  "channel": "direct; ProxyHandler({}); TLS verification enabled",
+  "sources": {
+    "fs_2_7_1": {
+      "url": "https://crates.io/api/v1/crates/tauri-plugin-fs/2.7.1/dependencies",
+      "http_status": 200,
+      "data": {
+        "dependencies": [
+          {
+            "id": 39720312,
+            "version_id": 3496902,
+            "crate_id": "anyhow",
+            "req": "^1",
+            "optional": false,
+            "default_features": true,
+            "features": [],
+            "target": null,
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 39720313,
+            "version_id": 3496902,
+            "crate_id": "dunce",
+            "req": "^1",
+            "optional": false,
+            "default_features": true,
+            "features": [],
+            "target": null,
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 39720314,
+            "version_id": 3496902,
+            "crate_id": "glob",
+            "req": "^0.3",
+            "optional": false,
+            "default_features": true,
+            "features": [],
+            "target": null,
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 39720315,
+            "version_id": 3496902,
+            "crate_id": "log",
+            "req": "^0.4.21",
+            "optional": false,
+            "default_features": true,
+            "features": [],
+            "target": null,
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 39720331,
+            "version_id": 3496902,
+            "crate_id": "objc2-foundation",
+            "req": "^0.3",
+            "optional": false,
+            "default_features": true,
+            "features": [
+              "NSURL",
+              "NSString"
+            ],
+            "target": "cfg(target_os = \"ios\")",
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 39720318,
+            "version_id": 3496902,
+            "crate_id": "percent-encoding",
+            "req": "^2",
+            "optional": false,
+            "default_features": true,
+            "features": [],
+            "target": null,
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 39720326,
+            "version_id": 3496902,
+            "crate_id": "schemars",
+            "req": "^0.8",
+            "optional": false,
+            "default_features": true,
+            "features": [],
+            "target": null,
+            "kind": "build",
+            "downloads": 0
+          },
+          {
+            "id": 39720327,
+            "version_id": 3496902,
+            "crate_id": "serde",
+            "req": "^1",
+            "optional": false,
+            "default_features": true,
+            "features": [
+              "derive"
+            ],
+            "target": null,
+            "kind": "build",
+            "downloads": 0
+          },
+          {
+            "id": 39720319,
+            "version_id": 3496902,
+            "crate_id": "serde",
+            "req": "^1",
+            "optional": false,
+            "default_features": true,
+            "features": [
+              "derive"
+            ],
+            "target": null,
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 39720320,
+            "version_id": 3496902,
+            "crate_id": "serde_json",
+            "req": "^1",
+            "optional": false,
+            "default_features": true,
+            "features": [],
+            "target": null,
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 39720321,
+            "version_id": 3496902,
+            "crate_id": "serde_repr",
+            "req": "^0.1",
+            "optional": false,
+            "default_features": true,
+            "features": [],
+            "target": null,
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 39720322,
+            "version_id": 3496902,
+            "crate_id": "tauri",
+            "req": "^2.12",
+            "optional": false,
+            "default_features": false,
+            "features": [],
+            "target": null,
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 39720325,
+            "version_id": 3496902,
+            "crate_id": "tauri",
+            "req": "^2.12",
+            "optional": false,
+            "default_features": false,
+            "features": [
+              "wry"
+            ],
+            "target": null,
+            "kind": "dev",
+            "downloads": 0
+          },
+          {
+            "id": 39720328,
+            "version_id": 3496902,
+            "crate_id": "tauri-plugin",
+            "req": "^2.7.1",
+            "optional": false,
+            "default_features": true,
+            "features": [
+              "build"
+            ],
+            "target": null,
+            "kind": "build",
+            "downloads": 0
+          },
+          {
+            "id": 39720329,
+            "version_id": 3496902,
+            "crate_id": "tauri-utils",
+            "req": "^2.10",
+            "optional": false,
+            "default_features": true,
+            "features": [],
+            "target": null,
+            "kind": "build",
+            "downloads": 0
+          },
+          {
+            "id": 39720323,
+            "version_id": 3496902,
+            "crate_id": "thiserror",
+            "req": "^2",
+            "optional": false,
+            "default_features": true,
+            "features": [],
+            "target": null,
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 39720330,
+            "version_id": 3496902,
+            "crate_id": "toml",
+            "req": "^1.0",
+            "optional": false,
+            "default_features": true,
+            "features": [],
+            "target": null,
+            "kind": "build",
+            "downloads": 0
+          },
+          {
+            "id": 39720324,
+            "version_id": 3496902,
+            "crate_id": "url",
+            "req": "^2",
+            "optional": false,
+            "default_features": true,
+            "features": [],
+            "target": null,
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 39720316,
+            "version_id": 3496902,
+            "crate_id": "notify",
+            "req": "^8",
+            "optional": true,
+            "default_features": true,
+            "features": [
+              "serde",
+              "serialization-compat-6"
+            ],
+            "target": null,
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 39720317,
+            "version_id": 3496902,
+            "crate_id": "notify-debouncer-full",
+            "req": "^0.6",
+            "optional": true,
+            "default_features": true,
+            "features": [],
+            "target": null,
+            "kind": "normal",
+            "downloads": 0
+          }
+        ]
+      }
+    },
+    "rfd_versions": {
+      "url": "https://crates.io/api/v1/crates/rfd",
+      "http_status": 200,
+      "data": {
+        "crate": {
+          "id": "rfd",
+          "name": "rfd",
+          "updated_at": "2026-01-12T20:57:19.255609Z",
+          "versions": [
+            1939061,
+            1923309,
+            1921785,
+            1841495,
+            1638724,
+            1480866,
+            1393285,
+            1341639,
+            1274445,
+            1088518,
+            1056859,
+            1013852,
+            930859,
+            893359,
+            803670,
+            758424,
+            741131,
+            724162,
+            715781,
+            715096,
+            592539,
+            568416,
+            567255,
+            561161,
+            560783,
+            533711,
+            510898,
+            501731,
+            490068,
+            484444,
+            473051,
+            469346,
+            457031,
+            457026,
+            435536,
+            424672,
+            419467,
+            413918,
+            411128,
+            409754,
+            380832,
+            368082,
+            356746,
+            339636,
+            333446,
+            329935,
+            328415,
+            328403,
+            320058,
+            320024,
+            309518
+          ],
+          "keywords": [
+            "dialog",
+            "file",
+            "ui"
+          ],
+          "categories": [],
+          "badges": [],
+          "created_at": "2020-11-27T08:09:18.147448Z",
+          "downloads": 36712507,
+          "recent_downloads": 14303793,
+          "default_version": "0.17.2",
+          "num_versions": 51,
+          "yanked": false,
+          "max_version": "0.17.2",
+          "newest_version": "0.17.2",
+          "max_stable_version": "0.17.2",
+          "description": "Rusty File Dialog",
+          "homepage": null,
+          "documentation": "https://docs.rs/rfd",
+          "repository": "https://github.com/PolyMeilex/rfd",
+          "links": {
+            "version_downloads": "/api/v1/crates/rfd/downloads",
+            "versions": null,
+            "owners": "/api/v1/crates/rfd/owners",
+            "owner_team": "/api/v1/crates/rfd/owner_team",
+            "owner_user": "/api/v1/crates/rfd/owner_user",
+            "reverse_dependencies": "/api/v1/crates/rfd/reverse_dependencies"
+          },
+          "exact_match": false,
+          "trustpub_only": false
+        },
+        "versions": [
+          {
+            "id": 1939061,
+            "crate": "rfd",
+            "num": "0.17.2",
+            "dl_path": "/api/v1/crates/rfd/0.17.2/download",
+            "readme_path": "/api/v1/crates/rfd/0.17.2/readme",
+            "updated_at": "2026-01-12T20:57:19.255609Z",
+            "created_at": "2026-01-12T20:57:19.255609Z",
+            "downloads": 5201037,
+            "features": {
+              "common-controls-v6": [
+                "windows-sys/Win32_UI_Controls"
+              ],
+              "default": [
+                "xdg-portal",
+                "wayland"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys"
+              ],
+              "wayland": [
+                "wayland-backend",
+                "wayland-client",
+                "wayland-protocols"
+              ],
+              "xdg-portal": [
+                "pollster"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.17.2/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.17.2/downloads",
+              "authors": "/api/v1/crates/rfd/0.17.2/authors"
+            },
+            "crate_size": 57492,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2026-01-12T20:57:19.255609Z"
+              }
+            ],
+            "checksum": "20dafead71c16a34e1ff357ddefc8afc11e7d51d6d2b9fbd07eaa48e3e540220",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 44,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 5423,
+                  "comment_lines": 118,
+                  "files": 41
+                }
+              },
+              "total_code_lines": 5467,
+              "total_comment_lines": 118
+            }
+          },
+          {
+            "id": 1923309,
+            "crate": "rfd",
+            "num": "0.17.1",
+            "dl_path": "/api/v1/crates/rfd/0.17.1/download",
+            "readme_path": "/api/v1/crates/rfd/0.17.1/readme",
+            "updated_at": "2026-01-05T17:58:29.655251Z",
+            "created_at": "2026-01-05T17:58:29.655251Z",
+            "downloads": 31952,
+            "features": {
+              "common-controls-v6": [
+                "windows-sys/Win32_UI_Controls"
+              ],
+              "default": [
+                "xdg-portal",
+                "wayland"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys"
+              ],
+              "wayland": [
+                "wayland-backend",
+                "wayland-client",
+                "wayland-protocols"
+              ],
+              "xdg-portal": [
+                "pollster"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.17.1/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.17.1/downloads",
+              "authors": "/api/v1/crates/rfd/0.17.1/authors"
+            },
+            "crate_size": 57481,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2026-01-05T17:58:29.655251Z"
+              }
+            ],
+            "checksum": "069d6129dede311430d0dcf1ded88a7affc7a342c2d8e6336043d43ed14dac17",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 44,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 5423,
+                  "comment_lines": 118,
+                  "files": 41
+                }
+              },
+              "total_code_lines": 5467,
+              "total_comment_lines": 118
+            }
+          },
+          {
+            "id": 1921785,
+            "crate": "rfd",
+            "num": "0.17.0",
+            "dl_path": "/api/v1/crates/rfd/0.17.0/download",
+            "readme_path": "/api/v1/crates/rfd/0.17.0/readme",
+            "updated_at": "2026-01-05T03:37:18.105082Z",
+            "created_at": "2026-01-05T03:37:18.105082Z",
+            "downloads": 3393,
+            "features": {
+              "common-controls-v6": [
+                "windows-sys/Win32_UI_Controls"
+              ],
+              "default": [
+                "xdg-portal",
+                "wayland"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys"
+              ],
+              "wayland": [
+                "wayland-backend",
+                "wayland-client",
+                "wayland-protocols"
+              ],
+              "xdg-portal": [
+                "pollster"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.17.0/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.17.0/downloads",
+              "authors": "/api/v1/crates/rfd/0.17.0/authors"
+            },
+            "crate_size": 57226,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2026-01-05T03:37:18.105082Z"
+              }
+            ],
+            "checksum": "e22b12ea46f8320162a0aa43ae045169fe1ac89314e1861e4ce79091fce6ef11",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 44,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 5416,
+                  "comment_lines": 118,
+                  "files": 41
+                }
+              },
+              "total_code_lines": 5460,
+              "total_comment_lines": 118
+            }
+          },
+          {
+            "id": 1841495,
+            "crate": "rfd",
+            "num": "0.16.0",
+            "dl_path": "/api/v1/crates/rfd/0.16.0/download",
+            "readme_path": "/api/v1/crates/rfd/0.16.0/readme",
+            "updated_at": "2025-11-24T22:14:22.043917Z",
+            "created_at": "2025-11-24T22:14:22.043917Z",
+            "downloads": 14341628,
+            "features": {
+              "async-std": [
+                "ashpd?/async-std"
+              ],
+              "common-controls-v6": [
+                "windows-sys/Win32_UI_Controls"
+              ],
+              "default": [
+                "xdg-portal",
+                "wayland",
+                "async-std"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys"
+              ],
+              "tokio": [
+                "ashpd?/tokio"
+              ],
+              "wayland": [
+                "ashpd?/wayland"
+              ],
+              "xdg-portal": [
+                "ashpd",
+                "urlencoding",
+                "pollster"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.16.0/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.16.0/downloads",
+              "authors": "/api/v1/crates/rfd/0.16.0/authors"
+            },
+            "crate_size": 57973,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2025-11-24T22:14:22.043917Z"
+              }
+            ],
+            "checksum": "a15ad77d9e70a92437d8f74c35d99b4e4691128df018833e99f90bcd36152672",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 44,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 4384,
+                  "comment_lines": 155,
+                  "files": 38
+                }
+              },
+              "total_code_lines": 4428,
+              "total_comment_lines": 155
+            }
+          },
+          {
+            "id": 1638724,
+            "crate": "rfd",
+            "num": "0.15.4",
+            "dl_path": "/api/v1/crates/rfd/0.15.4/download",
+            "readme_path": "/api/v1/crates/rfd/0.15.4/readme",
+            "updated_at": "2025-07-12T13:32:23.319009Z",
+            "created_at": "2025-07-12T13:32:23.319009Z",
+            "downloads": 6991528,
+            "features": {
+              "async-std": [
+                "ashpd?/async-std"
+              ],
+              "common-controls-v6": [
+                "windows-sys/Win32_UI_Controls"
+              ],
+              "default": [
+                "xdg-portal",
+                "async-std"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys"
+              ],
+              "tokio": [
+                "ashpd?/tokio"
+              ],
+              "xdg-portal": [
+                "ashpd",
+                "urlencoding",
+                "pollster"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.15.4/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.15.4/downloads",
+              "authors": "/api/v1/crates/rfd/0.15.4/authors"
+            },
+            "crate_size": 56785,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2025-07-12T13:32:23.319009Z"
+              }
+            ],
+            "checksum": "ef2bee61e6cffa4635c72d7d81a84294e28f0930db0ddcb0f66d10244674ebed",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 41,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 4354,
+                  "comment_lines": 152,
+                  "files": 38
+                }
+              },
+              "total_code_lines": 4395,
+              "total_comment_lines": 152
+            }
+          },
+          {
+            "id": 1480866,
+            "crate": "rfd",
+            "num": "0.15.3",
+            "dl_path": "/api/v1/crates/rfd/0.15.3/download",
+            "readme_path": "/api/v1/crates/rfd/0.15.3/readme",
+            "updated_at": "2025-03-12T22:27:22.397844Z",
+            "created_at": "2025-03-12T22:27:22.397844Z",
+            "downloads": 1495956,
+            "features": {
+              "async-std": [
+                "ashpd?/async-std"
+              ],
+              "common-controls-v6": [
+                "windows-sys/Win32_UI_Controls"
+              ],
+              "default": [
+                "xdg-portal",
+                "async-std"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys"
+              ],
+              "tokio": [
+                "ashpd?/tokio"
+              ],
+              "xdg-portal": [
+                "ashpd",
+                "urlencoding",
+                "pollster"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.15.3/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.15.3/downloads",
+              "authors": "/api/v1/crates/rfd/0.15.3/authors"
+            },
+            "crate_size": 54977,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2025-03-12T22:27:22.397844Z"
+              }
+            ],
+            "checksum": "80c844748fdc82aae252ee4594a89b6e7ebef1063de7951545564cbc4e57075d",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 41,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 4323,
+                  "comment_lines": 151,
+                  "files": 38
+                }
+              },
+              "total_code_lines": 4364,
+              "total_comment_lines": 151
+            }
+          },
+          {
+            "id": 1393285,
+            "crate": "rfd",
+            "num": "0.15.2",
+            "dl_path": "/api/v1/crates/rfd/0.15.2/download",
+            "readme_path": "/api/v1/crates/rfd/0.15.2/readme",
+            "updated_at": "2025-01-03T00:37:35.185540Z",
+            "created_at": "2025-01-03T00:37:35.185540Z",
+            "downloads": 1289707,
+            "features": {
+              "async-std": [
+                "ashpd?/async-std"
+              ],
+              "common-controls-v6": [
+                "windows-sys/Win32_UI_Controls"
+              ],
+              "default": [
+                "xdg-portal",
+                "async-std"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys"
+              ],
+              "tokio": [
+                "ashpd?/tokio"
+              ],
+              "xdg-portal": [
+                "ashpd",
+                "urlencoding",
+                "pollster"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.15.2/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.15.2/downloads",
+              "authors": "/api/v1/crates/rfd/0.15.2/authors"
+            },
+            "crate_size": 55948,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2025-01-03T00:37:35.185540Z"
+              }
+            ],
+            "checksum": "6a24763657bff09769a8ccf12c8b8a50416fb035fe199263b4c5071e4e3f006f",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 41,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 4327,
+                  "comment_lines": 152,
+                  "files": 38
+                }
+              },
+              "total_code_lines": 4368,
+              "total_comment_lines": 152
+            }
+          },
+          {
+            "id": 1341639,
+            "crate": "rfd",
+            "num": "0.15.1",
+            "dl_path": "/api/v1/crates/rfd/0.15.1/download",
+            "readme_path": "/api/v1/crates/rfd/0.15.1/readme",
+            "updated_at": "2024-11-16T03:02:55.967889Z",
+            "created_at": "2024-11-16T03:02:55.967889Z",
+            "downloads": 322605,
+            "features": {
+              "async-std": [
+                "ashpd?/async-std"
+              ],
+              "common-controls-v6": [
+                "windows-sys/Win32_UI_Controls"
+              ],
+              "default": [
+                "xdg-portal",
+                "async-std"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys"
+              ],
+              "tokio": [
+                "ashpd?/tokio"
+              ],
+              "xdg-portal": [
+                "ashpd",
+                "urlencoding",
+                "pollster"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.15.1/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.15.1/downloads",
+              "authors": "/api/v1/crates/rfd/0.15.1/authors"
+            },
+            "crate_size": 50375,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2024-11-16T03:02:55.967889Z"
+              }
+            ],
+            "checksum": "46f6f80a9b882647d9014673ca9925d30ffc9750f2eed2b4490e189eaebd01e8",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 41,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 3982,
+                  "comment_lines": 88,
+                  "files": 36
+                }
+              },
+              "total_code_lines": 4023,
+              "total_comment_lines": 88
+            }
+          },
+          {
+            "id": 1274445,
+            "crate": "rfd",
+            "num": "0.15.0",
+            "dl_path": "/api/v1/crates/rfd/0.15.0/download",
+            "readme_path": "/api/v1/crates/rfd/0.15.0/readme",
+            "updated_at": "2024-09-18T20:14:53.657927Z",
+            "created_at": "2024-09-18T20:14:53.657927Z",
+            "downloads": 636920,
+            "features": {
+              "async-std": [
+                "ashpd?/async-std"
+              ],
+              "common-controls-v6": [
+                "windows-sys/Win32_UI_Controls"
+              ],
+              "default": [
+                "xdg-portal",
+                "async-std"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys"
+              ],
+              "tokio": [
+                "ashpd?/tokio"
+              ],
+              "xdg-portal": [
+                "ashpd",
+                "urlencoding",
+                "pollster"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.15.0/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.15.0/downloads",
+              "authors": "/api/v1/crates/rfd/0.15.0/authors"
+            },
+            "crate_size": 51227,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2024-09-18T20:14:53.657927Z"
+              }
+            ],
+            "checksum": "8af382a047821a08aa6bfc09ab0d80ff48d45d8726f7cd8e44891f7cb4a4278e",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 41,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 3982,
+                  "comment_lines": 88,
+                  "files": 36
+                }
+              },
+              "total_code_lines": 4023,
+              "total_comment_lines": 88
+            }
+          },
+          {
+            "id": 1088518,
+            "crate": "rfd",
+            "num": "0.14.1",
+            "dl_path": "/api/v1/crates/rfd/0.14.1/download",
+            "readme_path": "/api/v1/crates/rfd/0.14.1/readme",
+            "updated_at": "2024-03-19T22:33:27.991714Z",
+            "created_at": "2024-03-19T22:33:27.991714Z",
+            "downloads": 1661812,
+            "features": {
+              "async-std": [
+                "ashpd?/async-std"
+              ],
+              "common-controls-v6": [
+                "windows-sys/Win32_UI_Controls"
+              ],
+              "default": [
+                "xdg-portal",
+                "async-std"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys"
+              ],
+              "tokio": [
+                "ashpd?/tokio"
+              ],
+              "xdg-portal": [
+                "ashpd",
+                "urlencoding",
+                "pollster"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.14.1/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.14.1/downloads",
+              "authors": "/api/v1/crates/rfd/0.14.1/authors"
+            },
+            "crate_size": 50342,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2024-03-19T22:33:27.991714Z"
+              }
+            ],
+            "checksum": "25a73a7337fc24366edfca76ec521f51877b114e42dab584008209cca6719251",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 41,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 4096,
+                  "comment_lines": 88,
+                  "files": 39
+                }
+              },
+              "total_code_lines": 4137,
+              "total_comment_lines": 88
+            }
+          },
+          {
+            "id": 1056859,
+            "crate": "rfd",
+            "num": "0.14.0",
+            "dl_path": "/api/v1/crates/rfd/0.14.0/download",
+            "readme_path": "/api/v1/crates/rfd/0.14.0/readme",
+            "updated_at": "2024-02-19T19:17:13.354648Z",
+            "created_at": "2024-02-19T19:17:13.354648Z",
+            "downloads": 63922,
+            "features": {
+              "async-std": [
+                "ashpd?/async-std"
+              ],
+              "common-controls-v6": [
+                "windows-sys/Win32_UI_Controls"
+              ],
+              "default": [
+                "xdg-portal",
+                "async-std"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys"
+              ],
+              "tokio": [
+                "ashpd?/tokio"
+              ],
+              "xdg-portal": [
+                "ashpd",
+                "urlencoding",
+                "pollster"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.14.0/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.14.0/downloads",
+              "authors": "/api/v1/crates/rfd/0.14.0/authors"
+            },
+            "crate_size": 50275,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2024-02-19T19:17:13.354648Z"
+              }
+            ],
+            "checksum": "373d2fc6310e2d14943d4e66ebed5b774a2b6b3b1610e7377edf124fb2760d6b",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 41,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 4088,
+                  "comment_lines": 88,
+                  "files": 39
+                }
+              },
+              "total_code_lines": 4129,
+              "total_comment_lines": 88
+            }
+          },
+          {
+            "id": 1013852,
+            "crate": "rfd",
+            "num": "0.13.0",
+            "dl_path": "/api/v1/crates/rfd/0.13.0/download",
+            "readme_path": "/api/v1/crates/rfd/0.13.0/readme",
+            "updated_at": "2024-01-14T17:02:15.541271Z",
+            "created_at": "2024-01-14T17:02:15.541271Z",
+            "downloads": 338044,
+            "features": {
+              "async-std": [
+                "ashpd?/async-std"
+              ],
+              "common-controls-v6": [
+                "windows-sys/Win32_UI_Controls"
+              ],
+              "default": [
+                "gtk3"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys"
+              ],
+              "tokio": [
+                "ashpd?/tokio"
+              ],
+              "xdg-portal": [
+                "ashpd",
+                "urlencoding",
+                "pollster"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.13.0/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.13.0/downloads",
+              "authors": "/api/v1/crates/rfd/0.13.0/authors"
+            },
+            "crate_size": 49679,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2024-01-14T17:02:15.541271Z"
+              }
+            ],
+            "checksum": "c0d8ab342bcc5436e04d3a4c1e09e17d74958bfaddf8d5fad6f85607df0f994f",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 39,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 3987,
+                  "comment_lines": 87,
+                  "files": 39
+                }
+              },
+              "total_code_lines": 4026,
+              "total_comment_lines": 87
+            }
+          },
+          {
+            "id": 930859,
+            "crate": "rfd",
+            "num": "0.12.1",
+            "dl_path": "/api/v1/crates/rfd/0.12.1/download",
+            "readme_path": "/api/v1/crates/rfd/0.12.1/readme",
+            "updated_at": "2023-10-20T17:55:55.470934Z",
+            "created_at": "2023-10-20T17:55:55.470934Z",
+            "downloads": 684949,
+            "features": {
+              "common-controls-v6": [
+                "windows-sys/Win32_UI_Controls"
+              ],
+              "default": [
+                "gtk3"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys"
+              ],
+              "xdg-portal": [
+                "ashpd",
+                "urlencoding",
+                "pollster",
+                "async-io",
+                "futures-util"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.12.1/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.12.1/downloads",
+              "authors": "/api/v1/crates/rfd/0.12.1/authors"
+            },
+            "crate_size": 49025,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2023-10-20T17:55:55.470934Z"
+              }
+            ],
+            "checksum": "3c9e7b57df6e8472152674607f6cc68aa14a748a3157a857a94f516e11aeacc2",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 39,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 3961,
+                  "comment_lines": 87,
+                  "files": 39
+                }
+              },
+              "total_code_lines": 4000,
+              "total_comment_lines": 87
+            }
+          },
+          {
+            "id": 893359,
+            "crate": "rfd",
+            "num": "0.12.0",
+            "dl_path": "/api/v1/crates/rfd/0.12.0/download",
+            "readme_path": "/api/v1/crates/rfd/0.12.0/readme",
+            "updated_at": "2023-09-09T16:04:06.790487Z",
+            "created_at": "2023-09-09T16:04:06.790487Z",
+            "downloads": 287519,
+            "features": {
+              "common-controls-v6": [
+                "windows-sys/Win32_UI_Controls"
+              ],
+              "default": [
+                "gtk3"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys"
+              ],
+              "xdg-portal": [
+                "ashpd",
+                "urlencoding",
+                "pollster",
+                "async-io",
+                "futures-util"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.12.0/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.12.0/downloads",
+              "authors": "/api/v1/crates/rfd/0.12.0/authors"
+            },
+            "crate_size": 48738,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2023-09-09T16:04:06.790487Z"
+              }
+            ],
+            "checksum": "241a0deb168c88050d872294f7b3106c1dfa8740942bcc97bc91b98e97b5c501",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 39,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 3992,
+                  "comment_lines": 83,
+                  "files": 39
+                }
+              },
+              "total_code_lines": 4031,
+              "total_comment_lines": 83
+            }
+          },
+          {
+            "id": 803670,
+            "crate": "rfd",
+            "num": "0.11.4",
+            "dl_path": "/api/v1/crates/rfd/0.11.4/download",
+            "readme_path": "/api/v1/crates/rfd/0.11.4/readme",
+            "updated_at": "2023-05-19T17:07:44.898763Z",
+            "created_at": "2023-05-19T17:07:44.898763Z",
+            "downloads": 374655,
+            "features": {
+              "common-controls-v6": [
+                "windows/Win32_UI_Controls"
+              ],
+              "default": [
+                "gtk3"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys"
+              ],
+              "xdg-portal": [
+                "ashpd",
+                "urlencoding",
+                "pollster"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.11.4/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.11.4/downloads",
+              "authors": "/api/v1/crates/rfd/0.11.4/authors"
+            },
+            "crate_size": 42670,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2023-05-19T17:07:44.898763Z"
+              }
+            ],
+            "checksum": "4fe664af397d2b6a13a8ba1d172a2b5c87c6c5149039edbf8fa122b98c9ed96f",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 3250,
+                  "comment_lines": 82,
+                  "files": 37
+                }
+              },
+              "total_code_lines": 3286,
+              "total_comment_lines": 82
+            }
+          },
+          {
+            "id": 758424,
+            "crate": "rfd",
+            "num": "0.11.3",
+            "dl_path": "/api/v1/crates/rfd/0.11.3/download",
+            "readme_path": "/api/v1/crates/rfd/0.11.3/readme",
+            "updated_at": "2023-03-24T18:19:12.121521Z",
+            "created_at": "2023-03-24T18:19:12.121521Z",
+            "downloads": 80585,
+            "features": {
+              "common-controls-v6": [
+                "windows/Win32_UI_Controls"
+              ],
+              "default": [
+                "gtk3"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys"
+              ],
+              "xdg-portal": [
+                "ashpd",
+                "urlencoding",
+                "pollster"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.11.3/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.11.3/downloads",
+              "authors": "/api/v1/crates/rfd/0.11.3/authors"
+            },
+            "crate_size": 41700,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2023-03-24T18:19:12.121521Z"
+              }
+            ],
+            "checksum": "7cb2988ec50c9bcdb0c012b89643a6094a35a785a37897211ee62e1639342f7b",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 3303,
+                  "comment_lines": 90,
+                  "files": 37
+                }
+              },
+              "total_code_lines": 3339,
+              "total_comment_lines": 90
+            }
+          },
+          {
+            "id": 741131,
+            "crate": "rfd",
+            "num": "0.11.2",
+            "dl_path": "/api/v1/crates/rfd/0.11.2/download",
+            "readme_path": "/api/v1/crates/rfd/0.11.2/readme",
+            "updated_at": "2023-03-04T16:11:30.088703Z",
+            "created_at": "2023-03-04T16:11:30.088703Z",
+            "downloads": 25985,
+            "features": {
+              "common-controls-v6": [
+                "windows/Win32_UI_Controls"
+              ],
+              "default": [
+                "gtk3"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys"
+              ],
+              "xdg-portal": [
+                "ashpd",
+                "urlencoding",
+                "pollster"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.11.2/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.11.2/downloads",
+              "authors": "/api/v1/crates/rfd/0.11.2/authors"
+            },
+            "crate_size": 38814,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2023-03-04T16:11:30.088703Z"
+              }
+            ],
+            "checksum": "b344b73e5688c6ad9389095d8e78a877637078f490ae17259937371113ebcb67",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 3021,
+                  "comment_lines": 90,
+                  "files": 34
+                }
+              },
+              "total_code_lines": 3057,
+              "total_comment_lines": 90
+            }
+          },
+          {
+            "id": 724162,
+            "crate": "rfd",
+            "num": "0.11.1",
+            "dl_path": "/api/v1/crates/rfd/0.11.1/download",
+            "readme_path": "/api/v1/crates/rfd/0.11.1/readme",
+            "updated_at": "2023-02-10T17:25:16.192515Z",
+            "created_at": "2023-02-10T17:25:16.192515Z",
+            "downloads": 20736,
+            "features": {
+              "common-controls-v6": [
+                "windows/Win32_UI_Controls"
+              ],
+              "default": [
+                "gtk3"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys"
+              ],
+              "xdg-portal": [
+                "ashpd",
+                "urlencoding",
+                "pollster"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.11.1/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.11.1/downloads",
+              "authors": "/api/v1/crates/rfd/0.11.1/authors"
+            },
+            "crate_size": 38823,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2023-02-10T17:25:16.192515Z"
+              }
+            ],
+            "checksum": "1fe3bae427b011620cf4436d5dd7405c1a86dce3dfcdc0cda12b41fd31569ac3",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 3021,
+                  "comment_lines": 90,
+                  "files": 34
+                }
+              },
+              "total_code_lines": 3057,
+              "total_comment_lines": 90
+            }
+          },
+          {
+            "id": 715781,
+            "crate": "rfd",
+            "num": "0.11.0",
+            "dl_path": "/api/v1/crates/rfd/0.11.0/download",
+            "readme_path": "/api/v1/crates/rfd/0.11.0/readme",
+            "updated_at": "2023-01-31T12:51:40.921802Z",
+            "created_at": "2023-01-31T12:51:40.921802Z",
+            "downloads": 26167,
+            "features": {
+              "common-controls-v6": [
+                "windows/Win32_UI_Controls"
+              ],
+              "default": [
+                "gtk3"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys"
+              ],
+              "xdg-portal": [
+                "ashpd",
+                "urlencoding",
+                "pollster"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.11.0/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.11.0/downloads",
+              "authors": "/api/v1/crates/rfd/0.11.0/authors"
+            },
+            "crate_size": 38802,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2023-01-31T12:51:40.921802Z"
+              }
+            ],
+            "checksum": "cc2583255eadc4e0d816cb7648371cc91e49cbac85b0748b6ab417093bff4040",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 3021,
+                  "comment_lines": 90,
+                  "files": 34
+                }
+              },
+              "total_code_lines": 3057,
+              "total_comment_lines": 90
+            }
+          },
+          {
+            "id": 715096,
+            "crate": "rfd",
+            "num": "0.10.1",
+            "dl_path": "/api/v1/crates/rfd/0.10.1/download",
+            "readme_path": "/api/v1/crates/rfd/0.10.1/readme",
+            "updated_at": "2023-01-31T12:49:40.782215Z",
+            "created_at": "2023-01-30T16:25:58.119554Z",
+            "downloads": 2038,
+            "features": {
+              "common-controls-v6": [
+                "windows/Win32_UI_Controls"
+              ],
+              "default": [
+                "gtk3"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys"
+              ],
+              "xdg-portal": [
+                "ashpd",
+                "urlencoding",
+                "pollster"
+              ]
+            },
+            "yanked": true,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.10.1/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.10.1/downloads",
+              "authors": "/api/v1/crates/rfd/0.10.1/authors"
+            },
+            "crate_size": 38800,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2023-01-30T16:25:58.119554Z"
+              },
+              {
+                "action": "yank",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2023-01-31T12:49:40.789068Z"
+              }
+            ],
+            "checksum": "8604eac0b529b3ecb21ef1088b034483005d5b8b4caee3bd4641156407f13c53",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 3021,
+                  "comment_lines": 90,
+                  "files": 34
+                }
+              },
+              "total_code_lines": 3057,
+              "total_comment_lines": 90
+            }
+          },
+          {
+            "id": 592539,
+            "crate": "rfd",
+            "num": "0.10.0",
+            "dl_path": "/api/v1/crates/rfd/0.10.0/download",
+            "readme_path": "/api/v1/crates/rfd/0.10.0/readme",
+            "updated_at": "2022-07-28T17:23:58.271457Z",
+            "created_at": "2022-07-28T17:23:58.271457Z",
+            "downloads": 2161688,
+            "features": {
+              "common-controls-v6": [
+                "windows/Win32_UI_Controls"
+              ],
+              "default": [
+                "gtk3"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys",
+                "lazy_static"
+              ],
+              "xdg-portal": [
+                "ashpd",
+                "urlencoding",
+                "pollster"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.10.0/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.10.0/downloads",
+              "authors": "/api/v1/crates/rfd/0.10.0/authors"
+            },
+            "crate_size": 38170,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2022-07-28T17:23:58.271457Z"
+              }
+            ],
+            "checksum": "0149778bd99b6959285b0933288206090c50e2327f47a9c463bfdbf45c8823ea",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 3011,
+                  "comment_lines": 89,
+                  "files": 34
+                }
+              },
+              "total_code_lines": 3047,
+              "total_comment_lines": 89
+            }
+          },
+          {
+            "id": 568416,
+            "crate": "rfd",
+            "num": "0.9.1",
+            "dl_path": "/api/v1/crates/rfd/0.9.1/download",
+            "readme_path": "/api/v1/crates/rfd/0.9.1/readme",
+            "updated_at": "2022-06-17T09:21:29.045968Z",
+            "created_at": "2022-06-17T09:21:29.045968Z",
+            "downloads": 139132,
+            "features": {
+              "common-controls-v6": [
+                "windows/Win32_UI_Controls"
+              ],
+              "default": [
+                "gtk3"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys",
+                "lazy_static"
+              ],
+              "xdg-portal": [
+                "ashpd",
+                "urlencoding",
+                "pollster"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.9.1/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.9.1/downloads",
+              "authors": "/api/v1/crates/rfd/0.9.1/authors"
+            },
+            "crate_size": 37569,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2022-06-17T09:21:29.045968Z"
+              }
+            ],
+            "checksum": "f121348fd3b9035ed11be1f028e8944263c30641f8c5deacf57a4320782fb402",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 3046,
+                  "comment_lines": 83,
+                  "files": 34
+                }
+              },
+              "total_code_lines": 3082,
+              "total_comment_lines": 83
+            }
+          },
+          {
+            "id": 567255,
+            "crate": "rfd",
+            "num": "0.9.0",
+            "dl_path": "/api/v1/crates/rfd/0.9.0/download",
+            "readme_path": "/api/v1/crates/rfd/0.9.0/readme",
+            "updated_at": "2022-06-15T18:46:29.087139Z",
+            "created_at": "2022-06-15T18:46:29.087139Z",
+            "downloads": 8355,
+            "features": {
+              "common-controls-v6": [
+                "windows/Win32_UI_Controls"
+              ],
+              "default": [
+                "gtk3",
+                "common-controls-v6"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys",
+                "lazy_static"
+              ],
+              "xdg-portal": [
+                "ashpd",
+                "urlencoding",
+                "pollster"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.9.0/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.9.0/downloads",
+              "authors": "/api/v1/crates/rfd/0.9.0/authors"
+            },
+            "crate_size": 37582,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2022-06-15T18:46:29.087139Z"
+              }
+            ],
+            "checksum": "95281ea32d3c1ebdf84027986952e22f2bb89fa1b8b97c012be72bbc3b8e4537",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 3046,
+                  "comment_lines": 83,
+                  "files": 34
+                }
+              },
+              "total_code_lines": 3082,
+              "total_comment_lines": 83
+            }
+          },
+          {
+            "id": 561161,
+            "crate": "rfd",
+            "num": "0.8.4",
+            "dl_path": "/api/v1/crates/rfd/0.8.4/download",
+            "readme_path": "/api/v1/crates/rfd/0.8.4/readme",
+            "updated_at": "2022-06-04T20:49:31.241145Z",
+            "created_at": "2022-06-04T20:49:31.241145Z",
+            "downloads": 42201,
+            "features": {
+              "default": [
+                "gtk3"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys",
+                "lazy_static"
+              ],
+              "xdg-portal": [
+                "ashpd",
+                "urlencoding",
+                "pollster"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.8.4/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.8.4/downloads",
+              "authors": "/api/v1/crates/rfd/0.8.4/authors"
+            },
+            "crate_size": 34945,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2022-06-04T20:49:31.241145Z"
+              }
+            ],
+            "checksum": "1f756b55bff8f256a1a8c24dbabb1430ac8110628e418a02e4a1c5ff67179f56",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 2733,
+                  "comment_lines": 83,
+                  "files": 34
+                }
+              },
+              "total_code_lines": 2769,
+              "total_comment_lines": 83
+            }
+          },
+          {
+            "id": 560783,
+            "crate": "rfd",
+            "num": "0.8.3",
+            "dl_path": "/api/v1/crates/rfd/0.8.3/download",
+            "readme_path": "/api/v1/crates/rfd/0.8.3/readme",
+            "updated_at": "2022-06-03T20:08:34.470149Z",
+            "created_at": "2022-06-03T20:08:34.470149Z",
+            "downloads": 3346,
+            "features": {
+              "default": [
+                "gtk3"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys",
+                "lazy_static"
+              ],
+              "xdg-portal": [
+                "ashpd",
+                "pollster"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.8.3/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.8.3/downloads",
+              "authors": "/api/v1/crates/rfd/0.8.3/authors"
+            },
+            "crate_size": 34798,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2022-06-03T20:08:34.470149Z"
+              }
+            ],
+            "checksum": "f3d17df821b0da0e25ac29b1a6da5a6101d3593079b4d92a3001ee692da6f78f",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 2732,
+                  "comment_lines": 83,
+                  "files": 34
+                }
+              },
+              "total_code_lines": 2768,
+              "total_comment_lines": 83
+            }
+          },
+          {
+            "id": 533711,
+            "crate": "rfd",
+            "num": "0.8.2",
+            "dl_path": "/api/v1/crates/rfd/0.8.2/download",
+            "readme_path": "/api/v1/crates/rfd/0.8.2/readme",
+            "updated_at": "2022-04-16T21:47:15.174924Z",
+            "created_at": "2022-04-16T21:47:15.174924Z",
+            "downloads": 65844,
+            "features": {
+              "default": [
+                "gtk3"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys",
+                "lazy_static"
+              ],
+              "xdg-portal": [
+                "ashpd",
+                "pollster"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.8.2/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.8.2/downloads",
+              "authors": "/api/v1/crates/rfd/0.8.2/authors"
+            },
+            "crate_size": 34788,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2022-04-16T21:47:15.174924Z"
+              }
+            ],
+            "checksum": "92e3107b2e81967df7c0617e978dc656795583a73ad0ddbf645ce60109caf8c2",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 2732,
+                  "comment_lines": 83,
+                  "files": 34
+                }
+              },
+              "total_code_lines": 2768,
+              "total_comment_lines": 83
+            }
+          },
+          {
+            "id": 510898,
+            "crate": "rfd",
+            "num": "0.8.1",
+            "dl_path": "/api/v1/crates/rfd/0.8.1/download",
+            "readme_path": "/api/v1/crates/rfd/0.8.1/readme",
+            "updated_at": "2022-03-05T20:52:00.445457Z",
+            "created_at": "2022-03-05T20:52:00.445457Z",
+            "downloads": 40943,
+            "features": {
+              "default": [
+                "gtk3"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys",
+                "lazy_static"
+              ],
+              "xdg-portal": [
+                "ashpd",
+                "pollster"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.8.1/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.8.1/downloads",
+              "authors": "/api/v1/crates/rfd/0.8.1/authors"
+            },
+            "crate_size": 34666,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2022-03-05T20:52:00.445457Z"
+              }
+            ],
+            "checksum": "e7ca9214be1b6d296d4d539a31e795e556cdb43e60cbf0b77003be5b01075c13",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 2734,
+                  "comment_lines": 83,
+                  "files": 34
+                }
+              },
+              "total_code_lines": 2770,
+              "total_comment_lines": 83
+            }
+          },
+          {
+            "id": 501731,
+            "crate": "rfd",
+            "num": "0.8.0",
+            "dl_path": "/api/v1/crates/rfd/0.8.0/download",
+            "readme_path": "/api/v1/crates/rfd/0.8.0/readme",
+            "updated_at": "2022-02-17T17:55:55.765375Z",
+            "created_at": "2022-02-17T17:55:55.765375Z",
+            "downloads": 20117,
+            "features": {
+              "default": [
+                "gtk3"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys",
+                "lazy_static"
+              ],
+              "xdg-portal": [
+                "ashpd",
+                "pollster"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.8.0/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.8.0/downloads",
+              "authors": "/api/v1/crates/rfd/0.8.0/authors"
+            },
+            "crate_size": 34508,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2022-02-17T17:55:55.765375Z"
+              }
+            ],
+            "checksum": "3ea377e07fe8a55cd3c0752683d32d346e8a3d0a4dda7431c567509dbe3e514b",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 2710,
+                  "comment_lines": 83,
+                  "files": 34
+                }
+              },
+              "total_code_lines": 2746,
+              "total_comment_lines": 83
+            }
+          },
+          {
+            "id": 490068,
+            "crate": "rfd",
+            "num": "0.7.0",
+            "dl_path": "/api/v1/crates/rfd/0.7.0/download",
+            "readme_path": "/api/v1/crates/rfd/0.7.0/readme",
+            "updated_at": "2022-01-26T14:25:53.630253Z",
+            "created_at": "2022-01-26T14:25:53.630253Z",
+            "downloads": 60576,
+            "features": {
+              "default": [
+                "parent",
+                "gtk3"
+              ],
+              "file-handle-inner": [],
+              "gtk3": [
+                "gtk-sys",
+                "glib-sys",
+                "gobject-sys",
+                "lazy_static"
+              ],
+              "parent": [
+                "raw-window-handle"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.7.0/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.7.0/downloads",
+              "authors": "/api/v1/crates/rfd/0.7.0/authors"
+            },
+            "crate_size": 33892,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2022-01-26T14:25:53.630253Z"
+              }
+            ],
+            "checksum": "2aaf1d71ccd44689f7c2c72da1117fd8db71f72a76fe9b5c5dbb17ab903007e0",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 2738,
+                  "comment_lines": 88,
+                  "files": 34
+                }
+              },
+              "total_code_lines": 2774,
+              "total_comment_lines": 88
+            }
+          },
+          {
+            "id": 484444,
+            "crate": "rfd",
+            "num": "0.6.4",
+            "dl_path": "/api/v1/crates/rfd/0.6.4/download",
+            "readme_path": "/api/v1/crates/rfd/0.6.4/readme",
+            "updated_at": "2022-01-17T14:06:46.141505Z",
+            "created_at": "2022-01-17T14:06:46.141505Z",
+            "downloads": 17110,
+            "features": {
+              "default": [
+                "parent"
+              ],
+              "file-handle-inner": [],
+              "parent": [
+                "raw-window-handle"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.6.4/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.6.4/downloads",
+              "authors": "/api/v1/crates/rfd/0.6.4/authors"
+            },
+            "crate_size": 27620,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2022-01-17T14:06:46.141505Z"
+              }
+            ],
+            "checksum": "d4e3a2a1461f8ef8023ff00ce76f877c112cf1ffd601d95ba01a41e820af1f3d",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2021",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 2497,
+                  "comment_lines": 69,
+                  "files": 32
+                }
+              },
+              "total_code_lines": 2533,
+              "total_comment_lines": 69
+            }
+          },
+          {
+            "id": 473051,
+            "crate": "rfd",
+            "num": "0.6.3",
+            "dl_path": "/api/v1/crates/rfd/0.6.3/download",
+            "readme_path": "/api/v1/crates/rfd/0.6.3/readme",
+            "updated_at": "2021-12-26T14:01:30.442620Z",
+            "created_at": "2021-12-26T14:01:30.442620Z",
+            "downloads": 18157,
+            "features": {
+              "default": [
+                "parent"
+              ],
+              "file-handle-inner": [],
+              "parent": [
+                "raw-window-handle"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.6.3/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.6.3/downloads",
+              "authors": "/api/v1/crates/rfd/0.6.3/authors"
+            },
+            "crate_size": 28064,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2021-12-26T14:01:30.442620Z"
+              }
+            ],
+            "checksum": "6b0c25b610bf37d9874ff224ab2791ff2272bedeb5638a2dca8b18e1270ed69b",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2018",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 2497,
+                  "comment_lines": 69,
+                  "files": 32
+                }
+              },
+              "total_code_lines": 2533,
+              "total_comment_lines": 69
+            }
+          },
+          {
+            "id": 469346,
+            "crate": "rfd",
+            "num": "0.6.2",
+            "dl_path": "/api/v1/crates/rfd/0.6.2/download",
+            "readme_path": "/api/v1/crates/rfd/0.6.2/readme",
+            "updated_at": "2021-12-16T17:13:42.611558Z",
+            "created_at": "2021-12-16T17:13:42.611558Z",
+            "downloads": 5901,
+            "features": {
+              "default": [
+                "parent"
+              ],
+              "file-handle-inner": [],
+              "parent": [
+                "raw-window-handle"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.6.2/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.6.2/downloads",
+              "authors": "/api/v1/crates/rfd/0.6.2/authors"
+            },
+            "crate_size": 28214,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2021-12-16T17:13:42.611558Z"
+              }
+            ],
+            "checksum": "221a2c65ecf9d109a4b5f2524edff61500b84fa6ac5a66f51d1ce1add5a3fdfe",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2018",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 2448,
+                  "comment_lines": 69,
+                  "files": 32
+                }
+              },
+              "total_code_lines": 2484,
+              "total_comment_lines": 69
+            }
+          },
+          {
+            "id": 457031,
+            "crate": "rfd",
+            "num": "0.6.1",
+            "dl_path": "/api/v1/crates/rfd/0.6.1/download",
+            "readme_path": "/api/v1/crates/rfd/0.6.1/readme",
+            "updated_at": "2021-11-22T18:00:43.500013Z",
+            "created_at": "2021-11-22T18:00:43.500013Z",
+            "downloads": 8535,
+            "features": {
+              "default": [
+                "parent"
+              ],
+              "file-handle-inner": [],
+              "parent": [
+                "raw-window-handle"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.6.1/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.6.1/downloads",
+              "authors": "/api/v1/crates/rfd/0.6.1/authors"
+            },
+            "crate_size": 28123,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2021-11-22T18:00:43.500013Z"
+              }
+            ],
+            "checksum": "df102be679ae47c269a6393851bc2cff8760173e7e67a2f1e8110d6578b7c555",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2018",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 2411,
+                  "comment_lines": 69,
+                  "files": 32
+                }
+              },
+              "total_code_lines": 2447,
+              "total_comment_lines": 69
+            }
+          },
+          {
+            "id": 457026,
+            "crate": "rfd",
+            "num": "0.6.0",
+            "dl_path": "/api/v1/crates/rfd/0.6.0/download",
+            "readme_path": "/api/v1/crates/rfd/0.6.0/readme",
+            "updated_at": "2021-11-22T17:44:05.204508Z",
+            "created_at": "2021-11-22T17:44:05.204508Z",
+            "downloads": 1966,
+            "features": {
+              "default": [
+                "parent"
+              ],
+              "file-handle-inner": [],
+              "parent": [
+                "raw-window-handle"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.6.0/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.6.0/downloads",
+              "authors": "/api/v1/crates/rfd/0.6.0/authors"
+            },
+            "crate_size": 28053,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2021-11-22T17:44:05.204508Z"
+              }
+            ],
+            "checksum": "15d1d14172aa3d6b7f461575add29907f7f28bf257e88d8207d1b4898a0f2e3b",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2018",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 2411,
+                  "comment_lines": 69,
+                  "files": 32
+                }
+              },
+              "total_code_lines": 2447,
+              "total_comment_lines": 69
+            }
+          },
+          {
+            "id": 435536,
+            "crate": "rfd",
+            "num": "0.5.1",
+            "dl_path": "/api/v1/crates/rfd/0.5.1/download",
+            "readme_path": "/api/v1/crates/rfd/0.5.1/readme",
+            "updated_at": "2021-10-08T16:23:32.512748Z",
+            "created_at": "2021-10-08T16:23:32.512748Z",
+            "downloads": 19193,
+            "features": {
+              "default": [
+                "parent"
+              ],
+              "file-handle-inner": [],
+              "parent": [
+                "raw-window-handle"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.5.1/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.5.1/downloads",
+              "authors": "/api/v1/crates/rfd/0.5.1/authors"
+            },
+            "crate_size": 27896,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2021-10-08T16:23:32.512748Z"
+              }
+            ],
+            "checksum": "2acac5884e3a23b02ebd6ce50fd2729732cdbdb16ea944fbbfbfa638a67992aa",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2018",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 2474,
+                  "comment_lines": 69,
+                  "files": 32
+                }
+              },
+              "total_code_lines": 2510,
+              "total_comment_lines": 69
+            }
+          },
+          {
+            "id": 424672,
+            "crate": "rfd",
+            "num": "0.5.0",
+            "dl_path": "/api/v1/crates/rfd/0.5.0/download",
+            "readme_path": "/api/v1/crates/rfd/0.5.0/readme",
+            "updated_at": "2021-09-12T21:02:59.332810Z",
+            "created_at": "2021-09-12T21:02:59.332810Z",
+            "downloads": 7997,
+            "features": {
+              "default": [
+                "parent"
+              ],
+              "file-handle-inner": [],
+              "parent": [
+                "raw-window-handle"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.5.0/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.5.0/downloads",
+              "authors": "/api/v1/crates/rfd/0.5.0/authors"
+            },
+            "crate_size": 27886,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2021-09-12T21:02:59.332810Z"
+              }
+            ],
+            "checksum": "84b4745feef3bc92e709042c78d205e9a566ec46e18c58d4fac458e6fc12627e",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2018",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 2475,
+                  "comment_lines": 69,
+                  "files": 32
+                }
+              },
+              "total_code_lines": 2511,
+              "total_comment_lines": 69
+            }
+          },
+          {
+            "id": 419467,
+            "crate": "rfd",
+            "num": "0.4.4",
+            "dl_path": "/api/v1/crates/rfd/0.4.4/download",
+            "readme_path": "/api/v1/crates/rfd/0.4.4/readme",
+            "updated_at": "2021-08-30T19:37:52.895069Z",
+            "created_at": "2021-08-30T19:37:52.895069Z",
+            "downloads": 88434,
+            "features": {
+              "default": [
+                "parent"
+              ],
+              "file-handle-inner": [],
+              "parent": [
+                "raw-window-handle"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.4.4/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.4.4/downloads",
+              "authors": "/api/v1/crates/rfd/0.4.4/authors"
+            },
+            "crate_size": 27717,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2021-08-30T19:37:52.895069Z"
+              }
+            ],
+            "checksum": "609ed912e110af7d7084b6b17d2a68b25e766208e015a37beba1be3c2d7cbb3b",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2018",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 2435,
+                  "comment_lines": 69,
+                  "files": 32
+                }
+              },
+              "total_code_lines": 2471,
+              "total_comment_lines": 69
+            }
+          },
+          {
+            "id": 413918,
+            "crate": "rfd",
+            "num": "0.4.3",
+            "dl_path": "/api/v1/crates/rfd/0.4.3/download",
+            "readme_path": "/api/v1/crates/rfd/0.4.3/readme",
+            "updated_at": "2021-08-16T19:05:57.192710Z",
+            "created_at": "2021-08-16T19:05:57.192710Z",
+            "downloads": 7838,
+            "features": {
+              "default": [
+                "parent"
+              ],
+              "file-handle-inner": [],
+              "parent": [
+                "raw-window-handle"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.4.3/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.4.3/downloads",
+              "authors": "/api/v1/crates/rfd/0.4.3/authors"
+            },
+            "crate_size": 27255,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2021-08-16T19:05:57.192710Z"
+              }
+            ],
+            "checksum": "cede43618603a102f37bb58244534a33de7daa6a3b77f00277675eef5f8174fe",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2018",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 2423,
+                  "comment_lines": 68,
+                  "files": 32
+                }
+              },
+              "total_code_lines": 2459,
+              "total_comment_lines": 68
+            }
+          },
+          {
+            "id": 411128,
+            "crate": "rfd",
+            "num": "0.4.2",
+            "dl_path": "/api/v1/crates/rfd/0.4.2/download",
+            "readme_path": "/api/v1/crates/rfd/0.4.2/readme",
+            "updated_at": "2021-08-09T21:30:38.556402Z",
+            "created_at": "2021-08-09T21:30:38.556402Z",
+            "downloads": 3622,
+            "features": {
+              "default": [
+                "parent"
+              ],
+              "file-handle-inner": [],
+              "parent": [
+                "raw-window-handle"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.4.2/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.4.2/downloads",
+              "authors": "/api/v1/crates/rfd/0.4.2/authors"
+            },
+            "crate_size": 27174,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2021-08-09T21:30:38.556402Z"
+              }
+            ],
+            "checksum": "b949ab520365c012f527070b5d82cdc4414e7100f49f6b12611c90243b8c8c98",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2018",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 2406,
+                  "comment_lines": 66,
+                  "files": 32
+                }
+              },
+              "total_code_lines": 2442,
+              "total_comment_lines": 66
+            }
+          },
+          {
+            "id": 409754,
+            "crate": "rfd",
+            "num": "0.4.1",
+            "dl_path": "/api/v1/crates/rfd/0.4.1/download",
+            "readme_path": "/api/v1/crates/rfd/0.4.1/readme",
+            "updated_at": "2021-08-06T14:34:05.471687Z",
+            "created_at": "2021-08-06T14:34:05.471687Z",
+            "downloads": 2548,
+            "features": {
+              "default": [
+                "parent"
+              ],
+              "file-handle-inner": [],
+              "parent": [
+                "raw-window-handle"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.4.1/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.4.1/downloads",
+              "authors": "/api/v1/crates/rfd/0.4.1/authors"
+            },
+            "crate_size": 27045,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2021-08-06T14:34:05.471687Z"
+              }
+            ],
+            "checksum": "9394e8453f223530b2f6992972c57509086775e1fd01424f1957d1aeac20f727",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2018",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 2386,
+                  "comment_lines": 63,
+                  "files": 32
+                }
+              },
+              "total_code_lines": 2422,
+              "total_comment_lines": 63
+            }
+          },
+          {
+            "id": 380832,
+            "crate": "rfd",
+            "num": "0.4.0",
+            "dl_path": "/api/v1/crates/rfd/0.4.0/download",
+            "readme_path": "/api/v1/crates/rfd/0.4.0/readme",
+            "updated_at": "2021-05-21T11:59:47.403441Z",
+            "created_at": "2021-05-21T11:59:47.403441Z",
+            "downloads": 35787,
+            "features": {
+              "default": [
+                "parent"
+              ],
+              "file-handle-inner": [],
+              "parent": [
+                "raw-window-handle"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.4.0/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.4.0/downloads",
+              "authors": "/api/v1/crates/rfd/0.4.0/authors"
+            },
+            "crate_size": 26600,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2021-05-21T11:59:47.403441Z"
+              }
+            ],
+            "checksum": "c1084e570d9ce1890734b33edd8c1a7b7276076f9610fa23a48aa955587da141",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2018",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 2383,
+                  "comment_lines": 63,
+                  "files": 32
+                }
+              },
+              "total_code_lines": 2419,
+              "total_comment_lines": 63
+            }
+          },
+          {
+            "id": 368082,
+            "crate": "rfd",
+            "num": "0.3.0",
+            "dl_path": "/api/v1/crates/rfd/0.3.0/download",
+            "readme_path": "/api/v1/crates/rfd/0.3.0/readme",
+            "updated_at": "2021-04-18T13:14:14.993238Z",
+            "created_at": "2021-04-18T13:14:14.993238Z",
+            "downloads": 22066,
+            "features": {
+              "default": [
+                "parent"
+              ],
+              "file-handle-inner": [],
+              "parent": [
+                "raw-window-handle"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.3.0/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.3.0/downloads",
+              "authors": "/api/v1/crates/rfd/0.3.0/authors"
+            },
+            "crate_size": 26380,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2021-04-18T13:14:14.993238Z"
+              }
+            ],
+            "checksum": "9d70f2f644f85e23857c7fa9b939ec6a85f3eace37ebcae9ec977a33865496f5",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2018",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 2363,
+                  "comment_lines": 63,
+                  "files": 32
+                }
+              },
+              "total_code_lines": 2399,
+              "total_comment_lines": 63
+            }
+          },
+          {
+            "id": 356746,
+            "crate": "rfd",
+            "num": "0.2.2",
+            "dl_path": "/api/v1/crates/rfd/0.2.2/download",
+            "readme_path": "/api/v1/crates/rfd/0.2.2/readme",
+            "updated_at": "2021-03-26T12:41:52.537028Z",
+            "created_at": "2021-03-26T12:41:52.537028Z",
+            "downloads": 17275,
+            "features": {
+              "default": [
+                "parent"
+              ],
+              "file-handle-inner": [],
+              "parent": [
+                "raw-window-handle"
+              ]
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.2.2/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.2.2/downloads",
+              "authors": "/api/v1/crates/rfd/0.2.2/authors"
+            },
+            "crate_size": 26028,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2021-03-26T12:41:52.537028Z"
+              }
+            ],
+            "checksum": "3cf7347832c8a6641053cda45bcdae57916204de0c53f7964abab69015454f54",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2018",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 2318,
+                  "comment_lines": 61,
+                  "files": 32
+                }
+              },
+              "total_code_lines": 2354,
+              "total_comment_lines": 61
+            }
+          },
+          {
+            "id": 339636,
+            "crate": "rfd",
+            "num": "0.2.1",
+            "dl_path": "/api/v1/crates/rfd/0.2.1/download",
+            "readme_path": "/api/v1/crates/rfd/0.2.1/readme",
+            "updated_at": "2021-02-14T17:08:12.578643Z",
+            "created_at": "2021-02-14T17:08:12.578643Z",
+            "downloads": 6165,
+            "features": {
+              "file-handle-inner": []
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.2.1/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.2.1/downloads",
+              "authors": "/api/v1/crates/rfd/0.2.1/authors"
+            },
+            "crate_size": 25206,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2021-02-14T17:08:12.578643Z"
+              }
+            ],
+            "checksum": "3de7c6d5eab0f6b212d1b5a376639d91061bbfbdc2d7c7c5214063bd6ce99581",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2018",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 2158,
+                  "comment_lines": 59,
+                  "files": 28
+                }
+              },
+              "total_code_lines": 2194,
+              "total_comment_lines": 59
+            }
+          },
+          {
+            "id": 333446,
+            "crate": "rfd",
+            "num": "0.2.0",
+            "dl_path": "/api/v1/crates/rfd/0.2.0/download",
+            "readme_path": "/api/v1/crates/rfd/0.2.0/readme",
+            "updated_at": "2021-01-30T15:15:11.639529Z",
+            "created_at": "2021-01-30T15:15:11.639529Z",
+            "downloads": 2029,
+            "features": {
+              "file-handle-inner": []
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.2.0/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.2.0/downloads",
+              "authors": "/api/v1/crates/rfd/0.2.0/authors"
+            },
+            "crate_size": 24841,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2021-01-30T15:15:11.639529Z"
+              }
+            ],
+            "checksum": "c49ab43206ee213d9d2e53411e489eb5caca64bdc745854f551a98702456b991",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2018",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 2155,
+                  "comment_lines": 59,
+                  "files": 28
+                }
+              },
+              "total_code_lines": 2191,
+              "total_comment_lines": 59
+            }
+          },
+          {
+            "id": 329935,
+            "crate": "rfd",
+            "num": "0.1.2",
+            "dl_path": "/api/v1/crates/rfd/0.1.2/download",
+            "readme_path": "/api/v1/crates/rfd/0.1.2/readme",
+            "updated_at": "2021-01-20T23:29:39.450699Z",
+            "created_at": "2021-01-20T23:29:39.450699Z",
+            "downloads": 3196,
+            "features": {
+              "file-handle-inner": []
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.1.2/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.1.2/downloads",
+              "authors": "/api/v1/crates/rfd/0.1.2/authors"
+            },
+            "crate_size": 21193,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2021-01-20T23:29:39.450699Z"
+              }
+            ],
+            "checksum": "13a9d4c75452b7bc41aeceec8c168330410961c990606bb59ece68439f138e45",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2018",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 1645,
+                  "comment_lines": 78,
+                  "files": 20
+                }
+              },
+              "total_code_lines": 1681,
+              "total_comment_lines": 78
+            }
+          },
+          {
+            "id": 328415,
+            "crate": "rfd",
+            "num": "0.1.1",
+            "dl_path": "/api/v1/crates/rfd/0.1.1/download",
+            "readme_path": "/api/v1/crates/rfd/0.1.1/readme",
+            "updated_at": "2021-01-17T01:45:15.123763Z",
+            "created_at": "2021-01-17T01:45:15.123763Z",
+            "downloads": 1975,
+            "features": {
+              "file-handle-inner": []
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.1.1/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.1.1/downloads",
+              "authors": "/api/v1/crates/rfd/0.1.1/authors"
+            },
+            "crate_size": 21210,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2021-01-17T01:45:15.123763Z"
+              }
+            ],
+            "checksum": "4985da2dd561e54e7834f494f4e6a9f2b4710e5f9032418e0c99368019d7e169",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2018",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 1647,
+                  "comment_lines": 78,
+                  "files": 20
+                }
+              },
+              "total_code_lines": 1683,
+              "total_comment_lines": 78
+            }
+          },
+          {
+            "id": 328403,
+            "crate": "rfd",
+            "num": "0.1.0",
+            "dl_path": "/api/v1/crates/rfd/0.1.0/download",
+            "readme_path": "/api/v1/crates/rfd/0.1.0/readme",
+            "updated_at": "2021-01-17T01:22:53.119222Z",
+            "created_at": "2021-01-17T01:22:53.119222Z",
+            "downloads": 1969,
+            "features": {
+              "file-handle-inner": []
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.1.0/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.1.0/downloads",
+              "authors": "/api/v1/crates/rfd/0.1.0/authors"
+            },
+            "crate_size": 21073,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2021-01-17T01:22:53.119222Z"
+              }
+            ],
+            "checksum": "53d481a242499bea43aeeeba961f981c9b72b5a43018e349de19db9386af0b02",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2018",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 1647,
+                  "comment_lines": 78,
+                  "files": 20
+                }
+              },
+              "total_code_lines": 1683,
+              "total_comment_lines": 78
+            }
+          },
+          {
+            "id": 320058,
+            "crate": "rfd",
+            "num": "0.0.3",
+            "dl_path": "/api/v1/crates/rfd/0.0.3/download",
+            "readme_path": "/api/v1/crates/rfd/0.0.3/readme",
+            "updated_at": "2020-12-29T17:40:04.595582Z",
+            "created_at": "2020-12-29T17:40:04.595582Z",
+            "downloads": 2608,
+            "features": {
+              "native-file-handle": []
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.0.3/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.0.3/downloads",
+              "authors": "/api/v1/crates/rfd/0.0.3/authors"
+            },
+            "crate_size": 15569,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2020-12-29T17:40:04.595582Z"
+              }
+            ],
+            "checksum": "b0d39ac2ebb55e24e11464cd071a3e1be5567bf8caa62064954612beb091af72",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2018",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 970,
+                  "comment_lines": 111,
+                  "files": 11
+                }
+              },
+              "total_code_lines": 1006,
+              "total_comment_lines": 111
+            }
+          },
+          {
+            "id": 320024,
+            "crate": "rfd",
+            "num": "0.0.2",
+            "dl_path": "/api/v1/crates/rfd/0.0.2/download",
+            "readme_path": "/api/v1/crates/rfd/0.0.2/readme",
+            "updated_at": "2020-12-29T16:06:47.710170Z",
+            "created_at": "2020-12-29T16:06:47.710170Z",
+            "downloads": 1962,
+            "features": {
+              "native-file-handle": []
+            },
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.0.2/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.0.2/downloads",
+              "authors": "/api/v1/crates/rfd/0.0.2/authors"
+            },
+            "crate_size": 15570,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2020-12-29T16:06:47.710170Z"
+              }
+            ],
+            "checksum": "f597134901a998ddc6babd55781ca4267203a0698a5bc97d44f459c11596f3f1",
+            "rust_version": null,
+            "has_lib": true,
+            "bin_names": [],
+            "edition": "2018",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "CSS": {
+                  "code_lines": 36,
+                  "comment_lines": 0,
+                  "files": 1
+                },
+                "Rust": {
+                  "code_lines": 970,
+                  "comment_lines": 111,
+                  "files": 11
+                }
+              },
+              "total_code_lines": 1006,
+              "total_comment_lines": 111
+            }
+          },
+          {
+            "id": 309518,
+            "crate": "rfd",
+            "num": "0.0.1",
+            "dl_path": "/api/v1/crates/rfd/0.0.1/download",
+            "readme_path": "/api/v1/crates/rfd/0.0.1/readme",
+            "updated_at": "2020-11-27T08:09:18.147448Z",
+            "created_at": "2020-11-27T08:09:18.147448Z",
+            "downloads": 1989,
+            "features": {},
+            "yanked": false,
+            "yank_message": null,
+            "lib_links": null,
+            "license": "MIT",
+            "links": {
+              "dependencies": "/api/v1/crates/rfd/0.0.1/dependencies",
+              "version_downloads": "/api/v1/crates/rfd/0.0.1/downloads",
+              "authors": "/api/v1/crates/rfd/0.0.1/authors"
+            },
+            "crate_size": 999,
+            "published_by": {
+              "id": 89114,
+              "login": "PolyMeilex",
+              "name": "Bartłomiej Maryńczak",
+              "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+              "url": "https://github.com/PolyMeilex",
+              "github_username_matches": true,
+              "created_at": "2016-07-31T18:06:46Z"
+            },
+            "audit_actions": [
+              {
+                "action": "publish",
+                "user": {
+                  "id": 89114,
+                  "login": "PolyMeilex",
+                  "name": "Bartłomiej Maryńczak",
+                  "avatar": "https://avatars.githubusercontent.com/u/20758186?v=4",
+                  "url": "https://github.com/PolyMeilex",
+                  "github_username_matches": true,
+                  "created_at": "2016-07-31T18:06:46Z"
+                },
+                "time": "2020-11-27T08:09:18.147448Z"
+              }
+            ],
+            "checksum": "e975173a1e9762e73aafa7bf7782496fc54a3118f3d7d84913669b406feef2b7",
+            "rust_version": null,
+            "has_lib": false,
+            "bin_names": [
+              "rfd"
+            ],
+            "edition": "2018",
+            "description": "Rusty File Dialog",
+            "homepage": null,
+            "documentation": "https://docs.rs/rfd",
+            "repository": "https://github.com/PolyMeilex/rfd",
+            "trustpub_data": null,
+            "linecounts": {
+              "languages": {
+                "Rust": {
+                  "code_lines": 3,
+                  "comment_lines": 0,
+                  "files": 1
+                }
+              },
+              "total_code_lines": 3,
+              "total_comment_lines": 0
+            }
+          }
+        ],
+        "keywords": [
+          {
+            "id": "dialog",
+            "keyword": "dialog",
+            "created_at": "2016-04-23T04:26:07.941390Z",
+            "crates_cnt": 59
+          },
+          {
+            "id": "file",
+            "keyword": "file",
+            "created_at": "2014-11-20T20:07:58.726767Z",
+            "crates_cnt": 860
+          },
+          {
+            "id": "ui",
+            "keyword": "ui",
+            "created_at": "2015-01-22T12:54:18.454018Z",
+            "crates_cnt": 2573
+          }
+        ],
+        "categories": []
+      }
+    },
+    "rfd_0_16_0": {
+      "url": "https://crates.io/api/v1/crates/rfd/0.16.0/dependencies",
+      "http_status": 200,
+      "data": {
+        "dependencies": [
+          {
+            "id": 18918549,
+            "version_id": 1841495,
+            "crate_id": "block2",
+            "req": "^0.6.0",
+            "optional": false,
+            "default_features": true,
+            "features": [],
+            "target": "cfg(target_os = \"macos\")",
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 18918550,
+            "version_id": 1841495,
+            "crate_id": "dispatch2",
+            "req": "^0.3.0",
+            "optional": false,
+            "default_features": true,
+            "features": [],
+            "target": "cfg(target_os = \"macos\")",
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 18918538,
+            "version_id": 1841495,
+            "crate_id": "futures",
+            "req": "^0.3.12",
+            "optional": false,
+            "default_features": true,
+            "features": [],
+            "target": null,
+            "kind": "dev",
+            "downloads": 0
+          },
+          {
+            "id": 18918545,
+            "version_id": 1841495,
+            "crate_id": "js-sys",
+            "req": "^0.3.46",
+            "optional": false,
+            "default_features": true,
+            "features": [],
+            "target": "cfg(target_arch = \"wasm32\")",
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 18918536,
+            "version_id": 1841495,
+            "crate_id": "log",
+            "req": "^0.4",
+            "optional": false,
+            "default_features": true,
+            "features": [],
+            "target": null,
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 18918551,
+            "version_id": 1841495,
+            "crate_id": "objc2",
+            "req": "^0.6.0",
+            "optional": false,
+            "default_features": true,
+            "features": [],
+            "target": "cfg(target_os = \"macos\")",
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 18918552,
+            "version_id": 1841495,
+            "crate_id": "objc2-app-kit",
+            "req": "^0.3.0",
+            "optional": false,
+            "default_features": false,
+            "features": [
+              "std",
+              "block2",
+              "NSAlert",
+              "NSApplication",
+              "NSButton",
+              "NSControl",
+              "NSOpenPanel",
+              "NSPanel",
+              "NSResponder",
+              "NSRunningApplication",
+              "NSSavePanel",
+              "NSView",
+              "NSWindow"
+            ],
+            "target": "cfg(target_os = \"macos\")",
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 18918553,
+            "version_id": 1841495,
+            "crate_id": "objc2-core-foundation",
+            "req": "^0.3.0",
+            "optional": false,
+            "default_features": false,
+            "features": [
+              "std",
+              "CFBase",
+              "CFDate",
+              "CFString",
+              "CFURL",
+              "CFUserNotification"
+            ],
+            "target": "cfg(target_os = \"macos\")",
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 18918554,
+            "version_id": 1841495,
+            "crate_id": "objc2-foundation",
+            "req": "^0.3.0",
+            "optional": false,
+            "default_features": false,
+            "features": [
+              "std",
+              "NSArray",
+              "NSEnumerator",
+              "NSString",
+              "NSThread",
+              "NSURL"
+            ],
+            "target": "cfg(target_os = \"macos\")",
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 18918537,
+            "version_id": 1841495,
+            "crate_id": "raw-window-handle",
+            "req": "^0.6",
+            "optional": false,
+            "default_features": true,
+            "features": [],
+            "target": null,
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 18918546,
+            "version_id": 1841495,
+            "crate_id": "wasm-bindgen",
+            "req": "^0.2.69",
+            "optional": false,
+            "default_features": true,
+            "features": [],
+            "target": "cfg(target_arch = \"wasm32\")",
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 18918547,
+            "version_id": 1841495,
+            "crate_id": "wasm-bindgen-futures",
+            "req": "^0.4.19",
+            "optional": false,
+            "default_features": true,
+            "features": [],
+            "target": "cfg(target_arch = \"wasm32\")",
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 18918548,
+            "version_id": 1841495,
+            "crate_id": "web-sys",
+            "req": "^0.3.46",
+            "optional": false,
+            "default_features": true,
+            "features": [
+              "Document",
+              "Element",
+              "HtmlInputElement",
+              "HtmlButtonElement",
+              "HtmlAnchorElement",
+              "Window",
+              "Navigator",
+              "UserActivation",
+              "File",
+              "FileList",
+              "FileReader",
+              "Blob",
+              "BlobPropertyBag",
+              "Url"
+            ],
+            "target": "cfg(target_arch = \"wasm32\")",
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 18918555,
+            "version_id": 1841495,
+            "crate_id": "windows-sys",
+            "req": "^0.60",
+            "optional": false,
+            "default_features": true,
+            "features": [
+              "Win32_Foundation",
+              "Win32_System_Com",
+              "Win32_UI_Shell_Common",
+              "Win32_UI_Shell",
+              "Win32_UI_WindowsAndMessaging"
+            ],
+            "target": "cfg(target_os = \"windows\")",
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 18918539,
+            "version_id": 1841495,
+            "crate_id": "ashpd",
+            "req": "^0.11",
+            "optional": true,
+            "default_features": false,
+            "features": [
+              "raw_handle"
+            ],
+            "target": "cfg(any(target_os = \"linux\", target_os = \"freebsd\", target_os = \"dragonfly\", target_os = \"netbsd\", target_os = \"openbsd\"))",
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 18918540,
+            "version_id": 1841495,
+            "crate_id": "glib-sys",
+            "req": "^0.18.0",
+            "optional": true,
+            "default_features": true,
+            "features": [],
+            "target": "cfg(any(target_os = \"linux\", target_os = \"freebsd\", target_os = \"dragonfly\", target_os = \"netbsd\", target_os = \"openbsd\"))",
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 18918541,
+            "version_id": 1841495,
+            "crate_id": "gobject-sys",
+            "req": "^0.18.0",
+            "optional": true,
+            "default_features": true,
+            "features": [],
+            "target": "cfg(any(target_os = \"linux\", target_os = \"freebsd\", target_os = \"dragonfly\", target_os = \"netbsd\", target_os = \"openbsd\"))",
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 18918542,
+            "version_id": 1841495,
+            "crate_id": "gtk-sys",
+            "req": "^0.18.0",
+            "optional": true,
+            "default_features": true,
+            "features": [
+              "v3_24"
+            ],
+            "target": "cfg(any(target_os = \"linux\", target_os = \"freebsd\", target_os = \"dragonfly\", target_os = \"netbsd\", target_os = \"openbsd\"))",
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 18918543,
+            "version_id": 1841495,
+            "crate_id": "pollster",
+            "req": "^0.4",
+            "optional": true,
+            "default_features": true,
+            "features": [],
+            "target": "cfg(any(target_os = \"linux\", target_os = \"freebsd\", target_os = \"dragonfly\", target_os = \"netbsd\", target_os = \"openbsd\"))",
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 18918544,
+            "version_id": 1841495,
+            "crate_id": "urlencoding",
+            "req": "^2.1.0",
+            "optional": true,
+            "default_features": true,
+            "features": [],
+            "target": "cfg(any(target_os = \"linux\", target_os = \"freebsd\", target_os = \"dragonfly\", target_os = \"netbsd\", target_os = \"openbsd\"))",
+            "kind": "normal",
+            "downloads": 0
+          }
+        ]
+      }
+    },
+    "dialog_2_8_3": {
+      "url": "https://crates.io/api/v1/crates/tauri-plugin-dialog/2.8.3/dependencies",
+      "http_status": 200,
+      "data": {
+        "dependencies": [
+          {
+            "id": 39720334,
+            "version_id": 3496904,
+            "crate_id": "log",
+            "req": "^0.4.21",
+            "optional": false,
+            "default_features": true,
+            "features": [],
+            "target": null,
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 39720343,
+            "version_id": 3496904,
+            "crate_id": "raw-window-handle",
+            "req": "^0.6",
+            "optional": false,
+            "default_features": true,
+            "features": [],
+            "target": "cfg(any(target_os = \"macos\", windows, target_os = \"linux\", target_os = \"dragonfly\", target_os = \"freebsd\", target_os = \"openbsd\", target_os = \"netbsd\"))",
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 39720344,
+            "version_id": 3496904,
+            "crate_id": "rfd",
+            "req": "^0.16",
+            "optional": false,
+            "default_features": false,
+            "features": [
+              "common-controls-v6"
+            ],
+            "target": "cfg(any(target_os = \"macos\", windows, target_os = \"linux\", target_os = \"dragonfly\", target_os = \"freebsd\", target_os = \"openbsd\", target_os = \"netbsd\"))",
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 39720335,
+            "version_id": 3496904,
+            "crate_id": "serde",
+            "req": "^1",
+            "optional": false,
+            "default_features": true,
+            "features": [
+              "derive"
+            ],
+            "target": null,
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 39720336,
+            "version_id": 3496904,
+            "crate_id": "serde_json",
+            "req": "^1",
+            "optional": false,
+            "default_features": true,
+            "features": [],
+            "target": null,
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 39720345,
+            "version_id": 3496904,
+            "crate_id": "tauri",
+            "req": "^2.12",
+            "optional": false,
+            "default_features": false,
+            "features": [
+              "wry"
+            ],
+            "target": "cfg(target_os = \"ios\")",
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 39720337,
+            "version_id": 3496904,
+            "crate_id": "tauri",
+            "req": "^2.12",
+            "optional": false,
+            "default_features": false,
+            "features": [],
+            "target": null,
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 39720341,
+            "version_id": 3496904,
+            "crate_id": "tauri",
+            "req": "^2.12",
+            "optional": false,
+            "default_features": false,
+            "features": [
+              "wry"
+            ],
+            "target": null,
+            "kind": "dev",
+            "downloads": 0
+          },
+          {
+            "id": 39720342,
+            "version_id": 3496904,
+            "crate_id": "tauri-plugin",
+            "req": "^2.7.1",
+            "optional": false,
+            "default_features": true,
+            "features": [
+              "build"
+            ],
+            "target": null,
+            "kind": "build",
+            "downloads": 0
+          },
+          {
+            "id": 39720338,
+            "version_id": 3496904,
+            "crate_id": "tauri-plugin-fs",
+            "req": "^2.7.1",
+            "optional": false,
+            "default_features": true,
+            "features": [],
+            "target": null,
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 39720339,
+            "version_id": 3496904,
+            "crate_id": "thiserror",
+            "req": "^2",
+            "optional": false,
+            "default_features": true,
+            "features": [],
+            "target": null,
+            "kind": "normal",
+            "downloads": 0
+          },
+          {
+            "id": 39720340,
+            "version_id": 3496904,
+            "crate_id": "url",
+            "req": "^2",
+            "optional": false,
+            "default_features": true,
+            "features": [],
+            "target": null,
+            "kind": "normal",
+            "downloads": 0
+          }
+        ]
+      }
+    },
+    "npm_2_8_3": {
+      "url": "https://registry.npmjs.org/@tauri-apps%2fplugin-dialog/2.8.3",
+      "http_status": 200,
+      "data": {
+        "bugs": {
+          "url": "https://github.com/tauri-apps/plugins-workspace/issues"
+        },
+        "dist": {
+          "shasum": "1ef5cbd8833d50c911dedc3b50b94c6ba7ec2db5",
+          "tarball": "https://registry.npmjs.org/@tauri-apps/plugin-dialog/-/plugin-dialog-2.8.3.tgz",
+          "fileCount": 7,
+          "integrity": "sha512-Hd/yBfk2R5v2MFrz/0VArSXeh8xKLLXGunqSiTtcHKn1zNZwaKujuA0VSwUvNfwC4hDoF1PveS+gBDNe3nHspw==",
+          "signatures": [
+            {
+              "sig": "MEQCIF594l1lKke5T/HKSKefYLAa1csFvzbrcttuOPOGgeCwAiAYbwBjowYJtiS5gNOxTOnumLSgMhfhipLc+dbg0brOoA==",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            },
+            {
+              "sig": "MEUCIQDtwqnzvF/UiM9biMN6B9AOzDREdxYRP9euRaLNfNPScgIgELiMA5otlvpwDEHC/+W19zGOwIiaNic7pzYDQGCRviw=",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            }
+          ],
+          "attestations": {
+            "url": "https://registry.npmjs.org/-/npm/v1/attestations/@tauri-apps%2fplugin-dialog@2.8.3",
+            "provenance": {
+              "predicateType": "https://slsa.dev/provenance/v1"
+            }
+          },
+          "unpackedSize": 34306
+        },
+        "main": "./dist-js/index.cjs",
+        "name": "@tauri-apps/plugin-dialog",
+        "type": "module",
+        "types": "./dist-js/index.d.ts",
+        "module": "./dist-js/index.js",
+        "authors": [
+          "Tauri Programme within The Commons Conservancy"
+        ],
+        "exports": {
+          "types": "./dist-js/index.d.ts",
+          "import": "./dist-js/index.js",
+          "require": "./dist-js/index.cjs"
+        },
+        "gitHead": "44293a5722efcaf27060504e63b17aeba721b40f",
+        "license": "MIT OR Apache-2.0",
+        "scripts": {
+          "build": "rollup -c"
+        },
+        "_npmUser": {
+          "name": "GitHub Actions",
+          "email": "npm-oidc-no-reply@github.com",
+          "trustedPublisher": {
+            "id": "github",
+            "oidcConfigId": "4bddbdbe-73c1-4df2-9bf7-d25765bf051e"
+          }
+        },
+        "homepage": "https://github.com/tauri-apps/plugins-workspace#readme",
+        "repository": {
+          "url": "git+https://github.com/tauri-apps/plugins-workspace.git",
+          "type": "git"
+        },
+        "_npmVersion": "11.19.0",
+        "description": "![plugin-dialog](https://github.com/tauri-apps/plugins-workspace/raw/v2/plugins/dialog/banner.png)",
+        "directories": {},
+        "maintainers": [
+          {
+            "name": "nothingismagick",
+            "email": "denjell@sfosc.org"
+          },
+          {
+            "name": "lucasfernog",
+            "email": "lucasfernandesnog@gmail.com"
+          },
+          {
+            "name": "tauri-apps-ci-user",
+            "email": "drthompsonsmagickindustries+npmtauri@gmail.com"
+          },
+          {
+            "name": "jbolda",
+            "email": "me@jacobbolda.com"
+          },
+          {
+            "name": "fabianlars",
+            "email": "fabianlars@fabianlars.de"
+          },
+          {
+            "name": "amrbashir",
+            "email": "amr.bashir2015@gmail.com"
+          },
+          {
+            "name": "beanow",
+            "email": "beanow@oscp.info"
+          }
+        ],
+        "_nodeVersion": "24.21.0",
+        "dependencies": {
+          "@tauri-apps/api": "^2.12.0"
+        },
+        "_hasShrinkwrap": false,
+        "_npmOperationalInternal": {
+          "tmp": "tmp/plugin-dialog_2.8.3_1792005475748_0.7676697034250535",
+          "host": "s3://npm-registry-packages-npm-production"
+        },
+        "_id": "@tauri-apps/plugin-dialog@2.8.3",
+        "version": "2.8.3"
+      }
+    }
+  }
+}

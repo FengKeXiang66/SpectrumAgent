@@ -10,3 +10,9 @@ input { flex: 1; min-width: 100px; padding: 8px; }
 button { margin-right: 8px; padding: 8px 12px; cursor: pointer; }
 button:disabled { cursor: default; }
 code { font-family: Consolas, monospace; }
+[aria-label="数据集管理"] input[type="checkbox"] { min-width: auto; padding: 0; }
+[aria-label="数据集列表"] { border-collapse: collapse; width: 100%; }
+[aria-label="数据集列表"] th, [aria-label="数据集列表"] td { padding: 8px; border-bottom: 1px solid #ddd; text-align: left; }
+[aria-label="数据集列表"] th, [aria-label="数据集列表"] td:nth-child(2), [aria-label="数据集列表"] td:nth-child(3), [aria-label="数据集列表"] td:nth-child(4) { white-space: nowrap; }
+.dataset-canvas { max-width: 100%; image-rendering: pixelated; border: 1px solid #aaa; }
+.dataset-thumbnail { width: 80px; height: auto; vertical-align: middle; margin-right: 8px; }

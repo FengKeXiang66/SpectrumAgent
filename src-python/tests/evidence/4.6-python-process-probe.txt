@@ -1,0 +1,5 @@
+explicit_interpreter=E:\AI_Agent\.venv\Scripts\python.exe
+spawn_pid=19468
+actual_python_pid=5780
+
+launcher_exit=0

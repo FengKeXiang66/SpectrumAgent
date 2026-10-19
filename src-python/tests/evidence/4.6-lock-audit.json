@@ -1,0 +1,65 @@
+{
+  "cargo_before": 445,
+  "cargo_after": 458,
+  "cargo_added": [
+    {
+      "name": "rfd",
+      "version": "0.16.0"
+    },
+    {
+      "name": "tauri-plugin-dialog",
+      "version": "2.8.3"
+    },
+    {
+      "name": "tauri-plugin-fs",
+      "version": "2.7.1"
+    },
+    {
+      "name": "windows-sys",
+      "version": "0.60.2"
+    },
+    {
+      "name": "windows-targets",
+      "version": "0.53.5"
+    },
+    {
+      "name": "windows_aarch64_gnullvm",
+      "version": "0.53.1"
+    },
+    {
+      "name": "windows_aarch64_msvc",
+      "version": "0.53.1"
+    },
+    {
+      "name": "windows_i686_gnu",
+      "version": "0.53.1"
+    },
+    {
+      "name": "windows_i686_gnullvm",
+      "version": "0.53.1"
+    },
+    {
+      "name": "windows_i686_msvc",
+      "version": "0.53.1"
+    },
+    {
+      "name": "windows_x86_64_gnu",
+      "version": "0.53.1"
+    },
+    {
+      "name": "windows_x86_64_gnullvm",
+      "version": "0.53.1"
+    },
+    {
+      "name": "windows_x86_64_msvc",
+      "version": "0.53.1"
+    }
+  ],
+  "unreachable_added": [],
+  "npm_added": [
+    "node_modules/@tauri-apps/plugin-dialog"
+  ],
+  "npm_existing_resolved_changed": [],
+  "plugin_installed": "2.8.3",
+  "python_lock_sha256": "58e24b59da34461a17fd942b4047071e42b5120b3d474ba976a7e28535d40bcc"
+}

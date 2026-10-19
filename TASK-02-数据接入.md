@@ -147,9 +147,11 @@ sidecar 新增路由：
 
 **dev 联调入口（2026-10-19 裁定）**：#02 开发期需带新路由的后端做前后端联调，封版 app.exe 不动、本轮禁止重冻/重打包。方案：Rust 侧**仅 `#[cfg(debug_assertions)]` 分支**支持以本机 venv Python 直接启动 sidecar（默认 `E:\AI_Agent\.venv\Scripts\python.exe`，env var 可覆盖，代码内显著标注 dev-only），复用既有握手/端口/Job 监督机制、协议不变；release 构建路径逻辑零变化，不改 tauri.conf.json 的 resources/externalBin 配置、不碰 `resources/backend`；该分支不得向 release 引入任何新依赖。API 模块与单元测试可先于外壳独立完成；dev（venv）与 release（onedir）的运行时差异记为已知开发期差异，由后续打包里程碑在成品上复验。
 
+**dev IPC/ACL 扩展（2026-10-19 裁定）**：datasets 转发需新增命令 `datasets`。边界：① invoke_handler 注册 cfg 双分支，**release 分支保持原 4 命令逐字不变**（以 diff 为证）；② 转发器为固定功能：目标仅 `127.0.0.1:<握手端口>`、路由白名单仅 `/api/v1/datasets/*`、方法白名单 GET/POST、响应大小上限（超限结构化报错）、响应校验 boot_id/pid 防伪；③ ACL 条目（main.json 的 `allow-datasets-forward`）为声明性，**真正的授权边界是 handler 注册**——release 不注册即无从调用；权限文案同步更新，不得顺手放宽其他项；④ release 形态的 datasets IPC 推迟到打包里程碑决定（已记账），本轮 dev-only；⑤ 前端对 `datasets` 的调用统一封装为一个 api client 模块，禁止组件内散落 invoke（可审计）。
+
 ### 4.6 前端 UI 适配
 
-- 文件选择器（Tauri `dialog:open`，多选/目录）
+- 文件选择器（`@tauri-apps/plugin-dialog` 2.8.3，`open({ directory: true, multiple: true, filters: [...] })`，多选/目录；capability 仅加 `dialog:allow-open`，2026-10-19 批准）
 - 导入进度条（大文件读取）
 - 数据集列表页（名称、维度、波段范围、缩略图）
 - 单波段预览（Canvas 2D 渲染灰度图）

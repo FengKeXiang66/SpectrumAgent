@@ -1,0 +1,37 @@
+   Compiling spectrum-agent v0.1.0 (E:\AI_Agent\src-tauri)
+error[E0603]: struct `Builder` is private
+   --> src\main.rs:152:38
+    |
+152 |         .plugin(tauri_plugin_dialog::Builder::new().build());
+    |                                      ^^^^^^^ private struct
+    |
+note: the struct `Builder` is defined here
+   --> E:\AI_Agent\.cargo-home\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-plugin-dialog-2.8.3\src\lib.rs:20:14
+    |
+ 20 |     plugin::{Builder, TauriPlugin},
+    |              ^^^^^^^
+help: import `Builder` directly
+    |
+152 -         .plugin(tauri_plugin_dialog::Builder::new().build());
+152 +         .plugin(tauri::plugin::Builder().build());
+    |
+
+error[E0061]: this function takes 1 argument but 0 arguments were supplied
+   --> src\main.rs:152:17
+    |
+152 |         .plugin(tauri_plugin_dialog::Builder::new().build());
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^-- argument #1 of type `&'static str` is missing
+    |
+note: associated function defined here
+   --> E:\AI_Agent\.cargo-home\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-2.12.4\src\plugin.rs:281:10
+    |
+281 |   pub fn new(name: &'static str) -> Self {
+    |          ^^^
+help: provide the argument
+    |
+152 |         .plugin(tauri_plugin_dialog::Builder::new(/* &str */).build());
+    |                                                   ++++++++++
+
+Some errors have detailed explanations: E0061, E0603.
+For more information about an error, try `rustc --explain E0061`.
+error: could not compile `spectrum-agent` (bin "spectrum-agent") due to 2 previous errors
