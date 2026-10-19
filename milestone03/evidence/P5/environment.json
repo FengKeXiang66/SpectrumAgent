@@ -1,0 +1,9 @@
+{
+  "CARGO_TARGET_DIR": "E:\\AI_Agent\\src-tauri\\target\\milestone03",
+  "cargo_test_mode": "default parallel, no --test-threads",
+  "TMP": "E:\\AI_Agent\\.runtime\\m03-temp",
+  "RUST_TEST_THREADS": null,
+  "CARGO_HOME": "E:\\AI_Agent\\.cargo-home",
+  "TEMP": "E:\\AI_Agent\\.runtime\\m03-temp",
+  "PYTHONPATH": "E:\\AI_Agent;E:\\AI_Agent\\src-python"
+}

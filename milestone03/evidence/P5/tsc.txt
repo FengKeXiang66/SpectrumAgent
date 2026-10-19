@@ -1,0 +1,2 @@
+COMMAND: E:\AI_Agent\.toolchains\node24.19.0-npm10.8.2\node.exe node_modules/typescript/bin/tsc --noEmit
+EXIT_CODE=0

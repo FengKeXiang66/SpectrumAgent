@@ -1,0 +1,32 @@
+[
+  {
+    "check": "pytest",
+    "command": "E:\\AI_Agent\\.venv\\Scripts\\python.exe -m pytest backend/tests src-python/tests -q --basetemp E:\\AI_Agent\\.runtime\\m03-temp\\pytest",
+    "exit_code": 0
+  },
+  {
+    "check": "cargo-test-default",
+    "command": "C:\\Users\\Administrator\\.cargo\\bin\\cargo.exe test --manifest-path E:\\AI_Agent\\src-tauri\\Cargo.toml --locked --offline",
+    "exit_code": 0
+  },
+  {
+    "check": "node-test",
+    "command": "E:\\AI_Agent\\.toolchains\\node24.19.0-npm10.8.2\\node.exe --test src/components/datasets/types.test.ts",
+    "exit_code": 0
+  },
+  {
+    "check": "tsc",
+    "command": "E:\\AI_Agent\\.toolchains\\node24.19.0-npm10.8.2\\node.exe node_modules/typescript/bin/tsc --noEmit",
+    "exit_code": 0
+  },
+  {
+    "check": "clippy",
+    "command": "C:\\Users\\Administrator\\.cargo\\bin\\cargo.exe clippy --manifest-path E:\\AI_Agent\\src-tauri\\Cargo.toml --locked --offline --all-targets -- -D warnings",
+    "exit_code": 0
+  },
+  {
+    "check": "vite",
+    "command": "E:\\AI_Agent\\.toolchains\\node24.19.0-npm10.8.2\\node.exe node_modules/vite/bin/vite.js build",
+    "exit_code": 0
+  }
+]

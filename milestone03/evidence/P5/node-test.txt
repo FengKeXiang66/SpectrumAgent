@@ -1,0 +1,12 @@
+COMMAND: E:\AI_Agent\.toolchains\node24.19.0-npm10.8.2\node.exe --test src/components/datasets/types.test.ts
+✔ retries and existing imports keep exactly one row per persisted ID (2.3177ms)
+✔ batch errors retain source path and reason for the user (1.1977ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 120.3852
+EXIT_CODE=0

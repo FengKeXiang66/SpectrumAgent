@@ -1,6 +1,6 @@
 # 里程碑 #03 · 0.1.1 打包执行记录
 
-状态：P0–P4 完成，P5–P6 待执行，P7 等负责人本机冒烟。未宣布过闸。
+状态：P0–P5 完成，P6 待执行，P7 等负责人本机冒烟。未宣布过闸。
 
 依据：TASK-03-打包里程碑.md 与负责人执行提示词；冲突以执行提示词为准。D1=A（仅转正 datasets_forward）、D2=产品0.1.1；握手协议版本仍0.1.0。每P独立提交，不安装新包，三份lock字节保持不变。
 
@@ -39,6 +39,12 @@ Canonical暂存与src-tauri/resources/backend逐项全量比对544文件一致�
 外壳11,413,504B / SHA256 8b4426a513b66a724e10d626bebbaecdb6a31e8e28f1d52c468bebd0e9ad519e；release资源544文件逐项匹配新批次manifest。NSIS生成脚本保留Programs目录守卫、currentUser/offlineInstaller和原模板，产品version0.1.1；release根仅spectrum-agent.exe，无probe/stub。两exe的RT_MANIFEST与SHA绑定，均longPathAware/asInvoker/CommonControls6；>260路径功能测试仍缓测。
 
 签名分列：setup.exe=NotSigned；外壳exe=NotSigned；引擎exe=NotSigned；WebView2载荷=Valid/Microsoft。SmartScreen警告可能出现，实际警告详录缓测，不称签名链完整。构建命令/退出码、工具缓存逐项SHA、生成NSIS脚本、fingerprints、dist全量SHA与候选绑定均在evidence/P4，未运行安装器或P7。
+
+## P5 · 最终源码默认全量测试
+
+2026-10-20（本地时区）执行，六项命令全exit0。pytest backend/tests src-python/tests -q：144 passed（6.26s，141基线+P1入口/数据根/非法相对路径3项）；10个既有弃用提示保留。Cargo test --locked --offline：默认并行22 passed（21常规+1 compile_fail文档测试），无--test-threads，RUST_TEST_THREADS未设置；包含真实venv双PID Job回收/陈旧握手自愈。Node --test：2 passed。tsc --noEmit：exit0。cargo clippy --all-targets -- -D warnings：exit0。vite build：exit0；重建后dist三个文件全量SHA与P4入包时相同。
+
+完整命令/原始输出逐项在 `evidence/P5/pytest.txt`、`cargo-test-default.txt`、`node-test.txt`、`tsc.txt`、`clippy.txt`、`vite.txt`；默认模式与E盘环境见environment.json，逐项exit码见results.json，计数与dist复算见summary.json。没有使用串行cargo结果替代默认并行。
 
 ## 后续门槛
 

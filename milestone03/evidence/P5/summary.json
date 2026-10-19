@@ -1,0 +1,11 @@
+{
+  "python_passed": 144,
+  "python_delta": 3,
+  "python_delta_reason": "P1 entry dispatch / explicit data root / invalid-root structured startup failure",
+  "rust_passed": 22,
+  "rust_doc_compile_fail_included": 1,
+  "rust_mode": "default parallel, no RUST_TEST_THREADS or --test-threads",
+  "node_passed": 2,
+  "commands_all_exit_zero": true,
+  "dist_after_tests_matches_packaged_dist": true
+}
