@@ -98,6 +98,7 @@ Set-ExecutionPolicy -Scope Process Bypass -Force   # 仅当前窗口，允许跑
 | 验收 4 断网 `/smoke` | 保持禁网卡启动应用走一遍冒烟 |
 | 默认安装目录（待 VM 实机） | 恢复当前 pristine，首次安装时不传 `/D=`；从 NSIS 界面/日志及 HKCU 卸载项 InstallLocation 取证，必须为 `%LOCALAPPDATA%\Programs\SpectrumAgent`，不得与数据根重叠。 |
 | 卸载保留用户数据（待 VM 实机） | 卸载前记录 `%LOCALAPPDATA%\SpectrumAgent` 下 run/logs/testdata 的文件名、大小与 SHA256，并放置本轮测试标记；卸载后确认 Programs 下程序目录已移除、数据根与这些内容逐项完好。程序运行阶段自身的握手生命周期不混入卸载比较。 |
+| 卸载注册键创建与持久性（待 VM 实机） | 分别在安装完成且尚未启动、首次运行并正常关闭、VM 重启后三个时点，读取 HKCU 卸载项 SpectrumAgent；每个时点必须存在并保存原始输出，任一缺失记异常。若干净 VM 同样消失，升级为产品缺陷（应用列表不可见、无法从应用列表卸载），不得按宿主偶发处理或用宿主证据替代。 |
 
 安装配置固定 currentUser（无需管理员）、WebView2 offlineInstaller；仅 NSIS 模板 currentUser 默认目录一行变更，保留 `/D=` 优先守卫、不改卸载逻辑、不用 installerHooks。模板来源与单行字节差异见 `artifacts/step3/checkpoint-4/release-custom-protocol-20261018/`。这两项未实测前，安装/卸载验收保持“待 VM 实机”，不得用宿主机测试替代。
 

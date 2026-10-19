@@ -1,25 +1,33 @@
-param([Parameter(Mandatory=$true)][ValidateSet('Install','PrepareUninstall','Uninstall')][string]$Phase)
+param(
+ [Parameter(Mandatory=$true)][ValidateSet('Install','PrepareUninstall','Uninstall')][string]$Phase,
+ [ValidatePattern('^[a-z0-9-]*$')][string]$EvidenceTag='',
+ [ValidateSet('candidate.json','candidate-repro.json')][string]$BindingName='candidate.json',
+ [ValidateSet('bundle-idle-execution.json','bundle-repro-cached-execution.json')][string]$BundleReceipt='bundle-idle-execution.json'
+)
 $ErrorActionPreference='Stop'
 $root='E:\AI_Agent'
 $out=$PSScriptRoot
-$program=Join-Path $env:LOCALAPPDATA 'Programs\SpectrumAgent'
-$data=Join-Path $env:LOCALAPPDATA 'SpectrumAgent'
+. (Join-Path $PSScriptRoot 'real_root.ps1')
+$program=$RealProgram
+$data=$RealData
 $stateFile=Join-Path $out 'host-install-state.json'
-$beforeFile=Join-Path $out 'data-before-uninstall.json'
+$evidencePrefix=if($EvidenceTag){$EvidenceTag+'-'}else{''}
+$beforeFile=Join-Path $out ($evidencePrefix+'data-before-uninstall.json')
 $key='HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\SpectrumAgent'
-$binding=Get-Content -LiteralPath (Join-Path $out 'candidate.json') -Raw|ConvertFrom-Json
+$binding=Get-Content -LiteralPath (Join-Path $out $BindingName) -Raw|ConvertFrom-Json
 function Write-Record([string]$Name,$Value){
- $target=Join-Path $out $Name
+ $target=Join-Path $out $(if($Name -eq 'host-install-state.json'){$Name}else{$evidencePrefix+$Name})
  if(Test-Path -LiteralPath $target){throw "Do not overwrite evidence: $target"}
  $Value|ConvertTo-Json -Depth 10|Tee-Object -FilePath $target
 }
 function Snapshot-Data {
+ Write-Record ('lineage-'+$Phase+'.json') (Assert-RealLineage ($evidencePrefix+$Phase)) | Out-Host
  @(Get-ChildItem -LiteralPath $data -Recurse -File|Sort-Object FullName|ForEach-Object {
   [ordered]@{path=$_.FullName.Substring($data.Length+1).Replace('\','/');bytes=$_.Length;sha256=(Get-FileHash -LiteralPath $_.FullName).Hash}
  })
 }
 function Assert-NoInstalledProcesses {
- $owned=@(Get-CimInstance Win32_Process -Filter "Name='spectrum-agent.exe' OR Name='app.exe'"|Where-Object {$_.ExecutablePath -and $_.ExecutablePath.Replace('\\?\','').StartsWith($program+'\',[StringComparison]::OrdinalIgnoreCase)})
+ $owned=@(Get-CimInstance Win32_Process -Filter "Name='spectrum-agent.exe' OR Name='app.exe'"|Where-Object {$_.ExecutablePath -and ($_.ExecutablePath -like '*Programs\SpectrumAgent*' -or $_.ExecutablePath -like '*AI_Agent*')})
  if($owned.Count){throw 'Installed application/engine still running; close it first'}
 }
 if($Phase -eq 'Install'){
@@ -32,10 +40,10 @@ if($Phase -eq 'Install'){
   if($previous.program -ine $program -or -not $removed.program_directory_removed -or $removed.program -ine $program -or $item.GetValue('') -ine $program -or @($item.GetValueNames()).Count -ne 1){throw 'Remembered install key is not the exact prior owned test key'}
   Write-Output 'OWNED_PRIOR_TEST_KEY: only remembered default path remains; no key deletion; host is not pristine'
  }
- $setup=Join-Path $root 'src-tauri\target\release\bundle\nsis\SpectrumAgent_0.1.0_x64-setup.exe'
+ $bundle=Get-Content -LiteralPath (Join-Path $out $BundleReceipt) -Raw|ConvertFrom-Json
+ $setup=if($bundle.setup){$bundle.setup}else{Join-Path $root 'src-tauri\target\release\bundle\nsis\SpectrumAgent_0.1.0_x64-setup.exe'}
  $setupHash=(Get-FileHash -LiteralPath $setup).Hash
- $bundle=Get-Content -LiteralPath (Join-Path $out 'bundle-idle-execution.json') -Raw|ConvertFrom-Json
- if($bundle.exit_code -ne 0 -or $bundle.shell_sha256.ToLowerInvariant() -cne $binding.shell_sha256 -or $setupHash -cne $bundle.setup_sha256){throw 'Successful bundle receipt/candidate/setup mismatch'}
+ if($bundle.exit_code -ne 0 -or $bundle.shell_sha256.ToLowerInvariant() -cne $binding.shell_sha256 -or $setupHash.ToLowerInvariant() -cne $bundle.setup_sha256.ToLowerInvariant()){throw 'Successful bundle receipt/candidate/setup mismatch'}
  $env:TEMP=Join-Path $out 'temp';$env:TMP=$env:TEMP
  $process=Start-Process -FilePath $setup -ArgumentList '/S' -WindowStyle Hidden -Wait -PassThru
  if($process.ExitCode -ne 0){throw "Installer exit=$($process.ExitCode)"}
@@ -63,11 +71,12 @@ if($Phase -eq 'Install'){
 }else{
  $state=Get-Content -LiteralPath $stateFile -Raw|ConvertFrom-Json
  if($state.program -ine $program -or $state.data -ine $data){throw 'Installation state/path mismatch'}
- if(-not ([IO.Path]::GetFullPath($program)).StartsWith(([IO.Path]::GetFullPath((Join-Path $env:LOCALAPPDATA 'Programs')))+'\',[StringComparison]::OrdinalIgnoreCase)){throw 'Program target outside intended parent'}
+ if(-not ([IO.Path]::GetFullPath($program)).StartsWith(([IO.Path]::GetFullPath('C:\Users\Administrator\AppData\Local\Programs'))+'\',[StringComparison]::OrdinalIgnoreCase)){throw 'Program target outside intended parent'}
  Assert-NoInstalledProcesses
  $uninstaller=Join-Path $program 'uninstall.exe'
  $uninstallerHash=(Get-FileHash -LiteralPath $uninstaller).Hash
- $before=@(Get-Content -LiteralPath $beforeFile -Raw|ConvertFrom-Json)
+ $before=Get-Content -LiteralPath $beforeFile -Raw|ConvertFrom-Json
+ $uninstallKeyExisted=Test-Path -LiteralPath $key
  $process=Start-Process -FilePath $uninstaller -ArgumentList '/S' -WindowStyle Hidden -Wait -PassThru
  $deadline=[DateTime]::UtcNow.AddSeconds(30)
  while((Test-Path -LiteralPath $program) -and [DateTime]::UtcNow -lt $deadline){Start-Sleep -Milliseconds 100}
@@ -79,9 +88,17 @@ if($Phase -eq 'Install'){
  $same=$beforeMap.Count -eq $afterMap.Count
  foreach($name in $beforeMap.Keys){if(-not $afterMap.ContainsKey($name) -or $afterMap[$name] -cne $beforeMap[$name]){$same=$false}}
  $directories=[ordered]@{};foreach($folder in @('run','logs','testdata')){$directories[$folder]=Test-Path -LiteralPath (Join-Path $data $folder)}
- Write-Record 'host-uninstall-result.json' ([ordered]@{scope='host only; VM uninstall remains pending';uninstaller_pid=$process.Id;initial_uninstaller_exit=$process.ExitCode;uninstaller_sha256=$uninstallerHash;program=$program;program_directory_removed=$removed;data=$data;data_directory_preserved=Test-Path -LiteralPath $data;data_files_before=$beforeMap.Count;data_files_after=$afterMap.Count;all_data_bytes_unchanged=$same;directories_preserved=$directories;test_hygiene_not_yet_applied=$true})
+ Write-Record 'host-uninstall-result.json' ([ordered]@{scope='host only; VM uninstall remains pending';uninstaller_pid=$process.Id;initial_uninstaller_exit=$process.ExitCode;uninstaller_sha256=$uninstallerHash;program=$program;program_directory_removed=$removed;data=$data;data_directory_preserved=Test-Path -LiteralPath $data;data_files_before=$beforeMap.Count;data_files_after=$afterMap.Count;all_data_bytes_unchanged=$same;directories_preserved=$directories;uninstall_registry_key_existed_before=$uninstallKeyExisted;uninstall_registry_key_exists_after=Test-Path -LiteralPath $key;test_hygiene_not_yet_applied=$true})
  if($process.ExitCode -ne 0 -or -not $removed -or -not $same){throw 'Uninstall acceptance failed before hygiene; preserve evidence'}
- foreach($marker in @(Get-Content -LiteralPath (Join-Path $out 'uninstall-markers.json') -Raw|ConvertFrom-Json)){
+ $stamp=[DateTime]::UtcNow.ToString('yyyyMMddTHHmmssfffZ')
+ $archive=Join-Path $out ('host-install-state.'+$stamp+'.json')
+ if(Test-Path -LiteralPath $archive){throw 'State archive exists; refuse overwrite'}
+ $stateHash=(Get-FileHash -LiteralPath $stateFile).Hash.ToLowerInvariant()
+ Move-Item -LiteralPath $stateFile -Destination $archive
+ if((Get-FileHash -LiteralPath $archive).Hash.ToLowerInvariant() -cne $stateHash){throw 'State archive bytes changed'}
+ Write-Record ('state-archive.'+$stamp+'.json') ([ordered]@{archived_utc=[DateTime]::UtcNow.ToString('o');source=$stateFile;destination=$archive;sha256=$stateHash;reason='successful uninstall; same-directory state archival; no Install guard bypass'})
+ $markerRecords=Get-Content -LiteralPath (Join-Path $out ($evidencePrefix+'uninstall-markers.json')) -Raw|ConvertFrom-Json
+ foreach($marker in $markerRecords){
   $resolved=[IO.Path]::GetFullPath($marker.path)
   if(-not $resolved.StartsWith($data+'\',[StringComparison]::OrdinalIgnoreCase) -or (Get-FileHash -LiteralPath $resolved).Hash -cne $marker.sha256){throw 'Refuse deleting changed/foreign marker'}
   Remove-Item -LiteralPath $resolved
