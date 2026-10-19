@@ -1,0 +1,146 @@
+E:\AI_Agent\scripts\verify_plastic_dataset.py:3: SyntaxWarning: invalid escape sequence '\A'
+  Run with E:\AI_Agent\.venv\Scripts\python.exe scripts/verify_plastic_dataset.py
+2026-10-19 20:38:43 [warning  ] unknown_header_key             key='file type'
+2026-10-19 20:38:43 [warning  ] unknown_header_key             key='sensor type'
+2026-10-19 20:38:43 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-19 20:38:43 [warning  ] unknown_header_key             key='default stretch'
+2026-10-19 20:38:43 [warning  ] unknown_header_key             key='band names'
+2026-10-19 20:38:43 [warning  ] unknown_header_key             key=relative
+2026-10-19 20:38:43 [warning  ] unknown_header_key             key='file type'
+2026-10-19 20:38:43 [warning  ] unknown_header_key             key='sensor type'
+2026-10-19 20:38:43 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-19 20:38:43 [warning  ] unknown_header_key             key='default stretch'
+2026-10-19 20:38:43 [warning  ] unknown_header_key             key='band names'
+2026-10-19 20:38:43 [warning  ] unknown_header_key             key=relative
+{"file": "E:\\高光谱数据集\\plastic\\pe\\20260804205214_64.hdr", "status": "PASS", "shape": [231, 640, 200], "dtype": "uint16", "interleave": "bil", "wavelength_nm": [881.85, 1714.13], "scale_factor": 65535, "bytes": 59136000, "raw_all_values_equal": true, "scaled_all_bands_equal": true, "open_ms": 4.159, "max_read_band_ms": 2.579}
+2026-10-19 20:38:43 [warning  ] unknown_header_key             key='file type'
+2026-10-19 20:38:43 [warning  ] unknown_header_key             key='sensor type'
+2026-10-19 20:38:43 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-19 20:38:43 [warning  ] unknown_header_key             key='default stretch'
+2026-10-19 20:38:43 [warning  ] unknown_header_key             key='band names'
+2026-10-19 20:38:43 [warning  ] unknown_header_key             key=relative
+2026-10-19 20:38:44 [warning  ] unknown_header_key             key='file type'
+2026-10-19 20:38:44 [warning  ] unknown_header_key             key='sensor type'
+2026-10-19 20:38:44 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-19 20:38:44 [warning  ] unknown_header_key             key='default stretch'
+2026-10-19 20:38:44 [warning  ] unknown_header_key             key='band names'
+2026-10-19 20:38:44 [warning  ] unknown_header_key             key=relative
+{"file": "E:\\高光谱数据集\\plastic\\pe\\20260804205217_70.hdr", "status": "PASS", "shape": [231, 640, 200], "dtype": "uint16", "interleave": "bil", "wavelength_nm": [881.85, 1714.13], "scale_factor": 65535, "bytes": 59136000, "raw_all_values_equal": true, "scaled_all_bands_equal": true, "open_ms": 4.969, "max_read_band_ms": 23.1}
+2026-10-19 20:38:44 [warning  ] unknown_header_key             key='file type'
+2026-10-19 20:38:44 [warning  ] unknown_header_key             key='sensor type'
+2026-10-19 20:38:44 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-19 20:38:44 [warning  ] unknown_header_key             key='default stretch'
+2026-10-19 20:38:44 [warning  ] unknown_header_key             key='band names'
+2026-10-19 20:38:44 [warning  ] unknown_header_key             key=relative
+2026-10-19 20:38:44 [warning  ] unknown_header_key             key='file type'
+2026-10-19 20:38:44 [warning  ] unknown_header_key             key='sensor type'
+2026-10-19 20:38:44 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-19 20:38:44 [warning  ] unknown_header_key             key='default stretch'
+2026-10-19 20:38:44 [warning  ] unknown_header_key             key='band names'
+2026-10-19 20:38:44 [warning  ] unknown_header_key             key=relative
+{"file": "E:\\高光谱数据集\\plastic\\pe\\20260804205301_143.hdr", "status": "PASS", "shape": [231, 640, 200], "dtype": "uint16", "interleave": "bil", "wavelength_nm": [881.85, 1714.13], "scale_factor": 65535, "bytes": 59136000, "raw_all_values_equal": true, "scaled_all_bands_equal": true, "open_ms": 3.068, "max_read_band_ms": 19.347}
+2026-10-19 20:38:45 [warning  ] unknown_header_key             key='file type'
+2026-10-19 20:38:45 [warning  ] unknown_header_key             key='sensor type'
+2026-10-19 20:38:45 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-19 20:38:45 [warning  ] unknown_header_key             key='default stretch'
+2026-10-19 20:38:45 [warning  ] unknown_header_key             key='band names'
+2026-10-19 20:38:45 [warning  ] unknown_header_key             key=relative
+2026-10-19 20:38:45 [warning  ] unknown_header_key             key='file type'
+2026-10-19 20:38:45 [warning  ] unknown_header_key             key='sensor type'
+2026-10-19 20:38:45 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-19 20:38:45 [warning  ] unknown_header_key             key='default stretch'
+2026-10-19 20:38:45 [warning  ] unknown_header_key             key='band names'
+2026-10-19 20:38:45 [warning  ] unknown_header_key             key=relative
+{"file": "E:\\高光谱数据集\\plastic\\pet\\20260804195714_53.hdr", "status": "PASS", "shape": [231, 640, 200], "dtype": "uint16", "interleave": "bil", "wavelength_nm": [881.85, 1714.13], "scale_factor": 65535, "bytes": 59136000, "raw_all_values_equal": true, "scaled_all_bands_equal": true, "open_ms": 3.526, "max_read_band_ms": 22.01}
+2026-10-19 20:38:46 [warning  ] unknown_header_key             key='file type'
+2026-10-19 20:38:46 [warning  ] unknown_header_key             key='sensor type'
+2026-10-19 20:38:46 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-19 20:38:46 [warning  ] unknown_header_key             key='default stretch'
+2026-10-19 20:38:46 [warning  ] unknown_header_key             key='band names'
+2026-10-19 20:38:46 [warning  ] unknown_header_key             key=relative
+2026-10-19 20:38:46 [warning  ] unknown_header_key             key='file type'
+2026-10-19 20:38:46 [warning  ] unknown_header_key             key='sensor type'
+2026-10-19 20:38:46 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-19 20:38:46 [warning  ] unknown_header_key             key='default stretch'
+2026-10-19 20:38:46 [warning  ] unknown_header_key             key='band names'
+2026-10-19 20:38:46 [warning  ] unknown_header_key             key=relative
+{"file": "E:\\高光谱数据集\\plastic\\pet\\20260804195723_72.hdr", "status": "PASS", "shape": [231, 640, 200], "dtype": "uint16", "interleave": "bil", "wavelength_nm": [881.85, 1714.13], "scale_factor": 65535, "bytes": 59136000, "raw_all_values_equal": true, "scaled_all_bands_equal": true, "open_ms": 3.076, "max_read_band_ms": 19.92}
+2026-10-19 20:38:47 [warning  ] unknown_header_key             key='file type'
+2026-10-19 20:38:47 [warning  ] unknown_header_key             key='sensor type'
+2026-10-19 20:38:47 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-19 20:38:47 [warning  ] unknown_header_key             key='default stretch'
+2026-10-19 20:38:47 [warning  ] unknown_header_key             key='band names'
+2026-10-19 20:38:47 [warning  ] unknown_header_key             key=relative
+2026-10-19 20:38:47 [warning  ] unknown_header_key             key='file type'
+2026-10-19 20:38:47 [warning  ] unknown_header_key             key='sensor type'
+2026-10-19 20:38:47 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-19 20:38:47 [warning  ] unknown_header_key             key='default stretch'
+2026-10-19 20:38:47 [warning  ] unknown_header_key             key='band names'
+2026-10-19 20:38:47 [warning  ] unknown_header_key             key=relative
+{"file": "E:\\高光谱数据集\\plastic\\pet\\20260804195732_93.hdr", "status": "PASS", "shape": [231, 640, 200], "dtype": "uint16", "interleave": "bil", "wavelength_nm": [881.85, 1714.13], "scale_factor": 65535, "bytes": 59136000, "raw_all_values_equal": true, "scaled_all_bands_equal": true, "open_ms": 4.542, "max_read_band_ms": 21.08}
+2026-10-19 20:38:48 [warning  ] unknown_header_key             key='file type'
+2026-10-19 20:38:48 [warning  ] unknown_header_key             key='sensor type'
+2026-10-19 20:38:48 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-19 20:38:48 [warning  ] unknown_header_key             key='default stretch'
+2026-10-19 20:38:48 [warning  ] unknown_header_key             key='band names'
+2026-10-19 20:38:48 [warning  ] unknown_header_key             key=relative
+2026-10-19 20:38:48 [warning  ] unknown_header_key             key='file type'
+2026-10-19 20:38:48 [warning  ] unknown_header_key             key='sensor type'
+2026-10-19 20:38:48 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-19 20:38:48 [warning  ] unknown_header_key             key='default stretch'
+2026-10-19 20:38:48 [warning  ] unknown_header_key             key='band names'
+2026-10-19 20:38:48 [warning  ] unknown_header_key             key=relative
+{"file": "E:\\高光谱数据集\\plastic\\pet\\20260804195826_186.hdr", "status": "PASS", "shape": [231, 640, 200], "dtype": "uint16", "interleave": "bil", "wavelength_nm": [881.85, 1714.13], "scale_factor": 65535, "bytes": 59136000, "raw_all_values_equal": true, "scaled_all_bands_equal": true, "open_ms": 4.777, "max_read_band_ms": 20.465}
+2026-10-19 20:38:49 [warning  ] unknown_header_key             key='file type'
+2026-10-19 20:38:49 [warning  ] unknown_header_key             key='sensor type'
+2026-10-19 20:38:49 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-19 20:38:49 [warning  ] unknown_header_key             key='default stretch'
+2026-10-19 20:38:49 [warning  ] unknown_header_key             key='band names'
+2026-10-19 20:38:49 [warning  ] unknown_header_key             key=relative
+2026-10-19 20:38:49 [warning  ] unknown_header_key             key='file type'
+2026-10-19 20:38:49 [warning  ] unknown_header_key             key='sensor type'
+2026-10-19 20:38:49 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-19 20:38:49 [warning  ] unknown_header_key             key='default stretch'
+2026-10-19 20:38:49 [warning  ] unknown_header_key             key='band names'
+2026-10-19 20:38:49 [warning  ] unknown_header_key             key=relative
+{"file": "E:\\高光谱数据集\\plastic\\pp\\20260804210313_15.hdr", "status": "PASS", "shape": [231, 640, 200], "dtype": "uint16", "interleave": "bil", "wavelength_nm": [881.85, 1714.13], "scale_factor": 65535, "bytes": 59136000, "raw_all_values_equal": true, "scaled_all_bands_equal": true, "open_ms": 2.955, "max_read_band_ms": 20.685}
+2026-10-19 20:38:50 [warning  ] unknown_header_key             key='file type'
+2026-10-19 20:38:50 [warning  ] unknown_header_key             key='sensor type'
+2026-10-19 20:38:50 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-19 20:38:50 [warning  ] unknown_header_key             key='default stretch'
+2026-10-19 20:38:50 [warning  ] unknown_header_key             key='band names'
+2026-10-19 20:38:50 [warning  ] unknown_header_key             key=relative
+2026-10-19 20:38:50 [warning  ] unknown_header_key             key='file type'
+2026-10-19 20:38:50 [warning  ] unknown_header_key             key='sensor type'
+2026-10-19 20:38:50 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-19 20:38:50 [warning  ] unknown_header_key             key='default stretch'
+2026-10-19 20:38:50 [warning  ] unknown_header_key             key='band names'
+2026-10-19 20:38:50 [warning  ] unknown_header_key             key=relative
+{"file": "E:\\高光谱数据集\\plastic\\pp\\20260804210353_75.hdr", "status": "PASS", "shape": [231, 640, 200], "dtype": "uint16", "interleave": "bil", "wavelength_nm": [881.85, 1714.13], "scale_factor": 65535, "bytes": 59136000, "raw_all_values_equal": true, "scaled_all_bands_equal": true, "open_ms": 3.371, "max_read_band_ms": 20.401}
+2026-10-19 20:38:51 [warning  ] unknown_header_key             key='file type'
+2026-10-19 20:38:51 [warning  ] unknown_header_key             key='sensor type'
+2026-10-19 20:38:51 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-19 20:38:51 [warning  ] unknown_header_key             key='default stretch'
+2026-10-19 20:38:51 [warning  ] unknown_header_key             key='band names'
+2026-10-19 20:38:51 [warning  ] unknown_header_key             key=relative
+2026-10-19 20:38:51 [warning  ] unknown_header_key             key='file type'
+2026-10-19 20:38:51 [warning  ] unknown_header_key             key='sensor type'
+2026-10-19 20:38:51 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-19 20:38:51 [warning  ] unknown_header_key             key='default stretch'
+2026-10-19 20:38:51 [warning  ] unknown_header_key             key='band names'
+2026-10-19 20:38:51 [warning  ] unknown_header_key             key=relative
+{"file": "E:\\高光谱数据集\\plastic\\pp\\20260804210443_152.hdr", "status": "PASS", "shape": [231, 640, 200], "dtype": "uint16", "interleave": "bil", "wavelength_nm": [881.85, 1714.13], "scale_factor": 65535, "bytes": 59136000, "raw_all_values_equal": true, "scaled_all_bands_equal": true, "open_ms": 2.985, "max_read_band_ms": 20.95}
+2026-10-19 20:38:52 [warning  ] unknown_header_key             key='file type'
+2026-10-19 20:38:52 [warning  ] unknown_header_key             key='sensor type'
+2026-10-19 20:38:52 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-19 20:38:52 [warning  ] unknown_header_key             key='default stretch'
+2026-10-19 20:38:52 [warning  ] unknown_header_key             key='band names'
+2026-10-19 20:38:52 [warning  ] unknown_header_key             key=relative
+2026-10-19 20:38:52 [warning  ] unknown_header_key             key='file type'
+2026-10-19 20:38:52 [warning  ] unknown_header_key             key='sensor type'
+2026-10-19 20:38:52 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-19 20:38:52 [warning  ] unknown_header_key             key='default stretch'
+2026-10-19 20:38:52 [warning  ] unknown_header_key             key='band names'
+2026-10-19 20:38:52 [warning  ] unknown_header_key             key=relative
+{"file": "E:\\高光谱数据集\\plastic\\pp\\20260804210509_189.hdr", "status": "PASS", "shape": [231, 640, 200], "dtype": "uint16", "interleave": "bil", "wavelength_nm": [881.85, 1714.13], "scale_factor": 65535, "bytes": 59136000, "raw_all_values_equal": true, "scaled_all_bands_equal": true, "open_ms": 3.404, "max_read_band_ms": 20.748}
+{"samples": 11, "passed": 11, "failed": 0}
