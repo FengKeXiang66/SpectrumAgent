@@ -44,9 +44,9 @@ Set-ExecutionPolicy -Scope Process Bypass -Force   # 仅当前窗口，允许跑
 .\build-vm.ps1
 ```
 
-- 脚本默认读你的 ISO，VM 全落 `E:\HyperV\Win11Clean\`
+- 脚本默认读你的 ISO，VM 全落 `E:\Hyper-V\Win11\`（**2026-10-19 实测**：目录名带连字符 `Hyper-V`，VM 名为 `Win11`，不是 `Win11Clean`）
 - 网络交换机：优先 `Default Switch`（NAT，VM 能直接上网补驱动）；没有就自动建 `VMNet`（Internal，VM 不能上网但断网验收照样做）
-- 脚本启动 VM 后，手动执行 `vmconnect.exe localhost Win11Clean` 进入装系统；脚本不自动弹窗。
+- 脚本启动 VM 后，手动执行 `vmconnect.exe localhost Win11` 进入装系统；脚本不自动弹窗。
 
 ## 第 3 步：装系统（VMConnect 窗口内）
 
@@ -88,6 +88,45 @@ Set-ExecutionPolicy -Scope Process Bypass -Force   # 仅当前窗口，允许跑
 
 断网（验收 3）不用动交换机：VM 内右下角网络图标 → 右键 → 网络和 Internet 设置 → 高级网络设置 → **禁用适配器**，效果等同拔网线；测完再启用。
 
+## 第 5.5 步：证据怎么从 VM 出来（唯一可行通道）
+
+**`Copy-VMFile` 是单向 host→guest，微软没有反向接口，`vm-ops.ps1` 也没有取回动作。** VM 内的证据只能走「关机 + 只读挂载 VHDX」：
+
+> **已封装成脚本（推荐直接用）**：VM 内 `collect-vm-evidence.ps1` 采集，宿主机 `fetch-vm-evidence.ps1` 挂载取回（自动拒绝非 Off 状态、只读挂载、生成 `manifest.json`）。下面的手工流程用于脚本失效时兜底。逐步操作见 `VM-ACCEPTANCE-CHECKPOINT4.md`。
+
+1. VM 内脚本把证据写到 `C:\vm-evidence\`
+2. VM 内**正常关机**（`Stop-Computer`，**不要 `-Force`**，要保证刷盘）
+3. 宿主机（管理员）挂载读取：
+
+```powershell
+$v = (Get-VMHardDiskDrive -VMName Win11).Path
+Mount-VHD -Path $v -ReadOnly
+# 挂载后可能自动分配盘符；用 Get-Volume 按卷标确认
+Get-Volume | Where-Object { $_.DriveLetter } | Select-Object DriveLetter,FileSystemLabel,Size
+Copy-Item '<挂载盘符>:\vm-evidence\*' 'E:\AI_Agent\artifacts\step4\vm\<轮次>\' -Recurse
+Dismount-VHD -Path $v
+```
+
+4. **取完证据再删临时检查点。**
+
+**顺序硬约束**：先取证据、再 `deletecp`。`deletecp` 要合并差异盘，合并期间挂载会失败或读到脏数据。
+
+**磁盘现状（2026-10-19 15:12 实测）**：主盘 `E:\Hyper-V\Win11\Virtual Hard Disks\disk.vhdx` 29.6 GB；因存在 pristine 检查点，VM 实际挂在差异盘 `disk_08C634AC-….avhdx` 33.27 GB 且仍在写。`Get-VMHardDiskDrive` 返回的就是这个 avhdx，直接挂它。
+
+## 第 5.6 步：本轮（检查点 4）执行顺序
+
+```powershell
+# 宿主机，管理员 PowerShell
+.\vm-ops.ps1 -Action restore    -Name pristine        # 1. 回干净底座
+.\vm-ops.ps1 -Action checkpoint -Name accept-4-20261019   # 2. 桌面就绪后打临时检查点（测崩不用重送文件）
+.\vm-ops.ps1 -Action send       -SourcePath "E:\AI_Agent\artifacts\step4\setup.exe"  # 3. 送包
+# 4. 【VM 内】禁用网卡 → 双击安装 → 五次采样 → 关机
+# 5. 【宿主机】按第 5.5 步挂载取证据
+.\vm-ops.ps1 -Action deletecp   -Name accept-4-20261019   # 6. 删临时检查点，只留 pristine
+```
+
+**分工**：宿主机这 4 条命令可由 codex 代跑（可自动化、有原始输出）；**VM 内的界面操作与采样必须负责人亲手做**，codex 不进 VM、不判定通过与否。
+
 ## 验收对照表（VM 就位后才解锁的项）
 
 | 验收条目 | 在 VM 里怎么做 |
@@ -99,6 +138,8 @@ Set-ExecutionPolicy -Scope Process Bypass -Force   # 仅当前窗口，允许跑
 | 默认安装目录（待 VM 实机） | 恢复当前 pristine，首次安装时不传 `/D=`；从 NSIS 界面/日志及 HKCU 卸载项 InstallLocation 取证，必须为 `%LOCALAPPDATA%\Programs\SpectrumAgent`，不得与数据根重叠。 |
 | 卸载保留用户数据（待 VM 实机） | 卸载前记录 `%LOCALAPPDATA%\SpectrumAgent` 下 run/logs/testdata 的文件名、大小与 SHA256，并放置本轮测试标记；卸载后确认 Programs 下程序目录已移除、数据根与这些内容逐项完好。程序运行阶段自身的握手生命周期不混入卸载比较。 |
 | 卸载注册键创建与持久性（待 VM 实机） | 分别在安装完成且尚未启动、首次运行并正常关闭、VM 重启后三个时点，读取 HKCU 卸载项 SpectrumAgent；每个时点必须存在并保存原始输出，任一缺失记异常。若干净 VM 同样消失，升级为产品缺陷（应用列表不可见、无法从应用列表卸载），不得按宿主偶发处理或用宿主证据替代。 |
+| 记忆键不应存在（判别项） | 纯安装器安装（不经任何验收 harness）后，`HKCU\Software\spectrumagent` **不应存在**。该键由 `selfcheck_install.ps1:35` 写入，属 harness 残留、非安装器行为；VM 里若出现即判安装器越界，须记异常并保留原始输出。 |
+| 握手残留（已知问题，本轮预期复现） | 正常关窗后检查 `%LOCALAPPDATA%\SpectrumAgent\run\handshake.json`：**本轮预期仍存在**（外壳优雅关闭未清理，已裁定为 0.1.1 修、不阻塞本轮）。同时必须验证自愈：下次启动在 Ready 之前删除旧文件并记 `stale_handshake_removed`，且无孤儿进程、端口无占用。记录文件内容（pid/port/boot_id/token 是否存在）与自愈日志行。 |
 
 安装配置固定 currentUser（无需管理员）、WebView2 offlineInstaller；仅 NSIS 模板 currentUser 默认目录一行变更，保留 `/D=` 优先守卫、不改卸载逻辑、不用 installerHooks。模板来源与单行字节差异见 `artifacts/step3/checkpoint-4/release-custom-protocol-20261018/`。这两项未实测前，安装/卸载验收保持“待 VM 实机”，不得用宿主机测试替代。
 
