@@ -31,3 +31,5 @@ artifacts/step3/checkpoint-4/*.diff -text -whitespace
 artifacts/step3/checkpoint-4/**/*.diff -text -whitespace
 artifacts/step3/checkpoint-4/**/*.nsi -text -whitespace
 src-tauri/nsis/*.nsi -text -whitespace
+artifacts/step3/checkpoint-4/cdn-official-asset-urls.md -text -whitespace
+artifacts/step3/checkpoint-4/release-custom-protocol-20261018/REPORT.md -text -whitespace

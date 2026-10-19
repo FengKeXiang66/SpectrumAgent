@@ -57,8 +57,11 @@ artifacts/step3/checkpoint-1/temp/
 !artifacts/step3/checkpoint-4/
 !artifacts/step3/checkpoint-4/*
 artifacts/step3/checkpoint-4/temp/
+artifacts/step3/checkpoint-4/release-custom-protocol-20261018/temp/
 artifacts/step3/checkpoint-3/temp/
 artifacts/step3/checkpoint-2/temp/
 artifacts/step3/checkpoint-2/runs/
 !artifacts/step3/staging-reports/
 !artifacts/step3/staging-reports/*
+
+artifacts/step3/checkpoint-4/release-custom-protocol-20261018/final-canonical-20261019/temp/
