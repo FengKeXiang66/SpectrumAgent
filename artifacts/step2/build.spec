@@ -1,25 +1,29 @@
 # -*- mode: python ; coding: utf-8 -*-
 """Canonical onedir build. Invoke with the project's explicit Python 3.12."""
 from pathlib import Path
+import sys
 
 from PyInstaller.config import CONF
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 OUTPUT = Path(SPECPATH).resolve()
 ROOT = OUTPUT.parents[1]
+# collect_submodules runs before Analysis applies pathex.
+sys.path.insert(0, str(ROOT / "src-python"))
 # Output locations are part of the spec, not ad-hoc command-line build options.
 CONF["distpath"] = str(OUTPUT / "dist")
 CONF["workpath"] = str(OUTPUT / "build")
 Path(CONF["workpath"]).mkdir(parents=True, exist_ok=True)
 
-hiddenimports = collect_submodules("rasterio") + collect_submodules("uvicorn")
+hiddenimports = (collect_submodules("rasterio") + collect_submodules("uvicorn")
+                 + collect_submodules("spectrumagent") + collect_submodules("spectral"))
 datas = collect_data_files("rasterio")
 # Do not collect DLLs manually or set GDAL_DATA / PROJ_DATA / PROJ_LIB.
 # Analysis resolves rasterio's extension dependencies into rasterio.libs.
 # __main__.py calls freeze_support() before any engine import/initialization.
 a = Analysis(
     [str(ROOT / "backend" / "__main__.py")],
-    pathex=[str(ROOT)], binaries=[], datas=datas,
+    pathex=[str(ROOT), str(ROOT / "src-python")], binaries=[], datas=datas,
     hiddenimports=hiddenimports, hookspath=[], hooksconfig={},
     runtime_hooks=[], excludes=[], noarchive=False, optimize=0,
 )

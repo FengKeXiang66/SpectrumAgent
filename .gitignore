@@ -28,6 +28,11 @@ artifacts/step2/*
 !artifacts/step2/build-output.log
 !artifacts/step2/revision-01/
 !artifacts/step2/revision-20261018-smoke-headers/
+!artifacts/step2/revision-20261019-m02/
+artifacts/step2/revision-20261019-m02/build/
+artifacts/step2/revision-20261019-m02/dist/
+artifacts/step2/revision-20261019-m02/staged/
+artifacts/step2/revision-20261019-m02/temp/
 artifacts/step2/revision-20261018-smoke-headers/build/
 artifacts/step2/revision-20261018-smoke-headers/dist/
 artifacts/step2/revision-20261018-smoke-headers/staged/
