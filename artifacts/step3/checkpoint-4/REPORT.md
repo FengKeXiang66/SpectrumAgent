@@ -1,3 +1,11 @@
+## #03 P0：负责人裁定的三项补丁（2026-10-19）
+
+本节为 #03 执行提示词明确授权的文档收尾；下文保留原检查点历史。#01 已封账，最终交付仍固定为 22a13e6a / d8492536，不改安装包或既有冻结批次。封账权威详见 `release-custom-protocol-20261018/final-canonical-20261019/REPORT.md`。
+
+1. **记忆键归属改正**：`HKCU\Software\spectrumagent\SpectrumAgent` 是 **Tauri 2 NSIS 安装器标准行为**，不是 harness 残留。`src-tauri/nsis/installer.nsi:68-69` 定义 MANUKEY/MANUPRODUCTKEY，`:698` 写入安装目录，`:164-166` 配置 Installer Language，`:889` 在勾选清理应用数据且非更新时删除该键。安装后、首跑关窗后、重启后三时点按安装器标准行为判读；reboot 独立轮和记忆键值细节仍记缓测，不用历史消失异常倒推归属。
+2. **握手残留拍板 A**：负责人已裁定记已知问题、**不进 0.1.1 热修、不阻塞封账**；无孤儿进程/端口、每 boot 随机 token、陈旧握手自愈已实测两次。保留“未用脚本删除冒充修复”的原始判定，不为清理该残留改封版二进制。
+3. **计时档位订正**：24.146ms 尚未获负责人指认轮次，**不采用**。可采的 engine 算法档位为 211.154ms（22a 宿主：`release-custom-protocol-20261018/final-canonical-20261019/analysis-20261019T015517607982Z.json` 的 `timing.metrics.elapsed_ms`），以及 208.095ms（最终安装态 PID18680 的真实 smoke，见同目录 REPORT 的安装态响应与 `installed-delivery-engine.jsonl`）。desktop 呈现档位 1292/1060/1178ms，分别在同目录 `original-source-snapshot/shell-20261019.log:966/:2257/:3025` 的 desktop_presented 事件；该历史日志的 SHADOW 血缘按封账报告既有裁定引用，只说明对应 UI 呈现档位。desktop 呈现、engine 算法耗时和包含人工等待的首次完成耗时不得混用；这些历史值不充当 #03 成品或干净机计时。
+
 ## 完成到哪一步
 
 检查点 4：最终 release 宿主机验收、FaultFixture/Canonical 暂存、资源 resolver、两 exe 的 RT_MANIFEST、三段计时、完整 DOM/存储审计及三组各 10 轮进程矩阵已执行，提交负责人复核。NSIS 工具下载及安装目录提案等待明确批准，setup.exe 尚未产生，安装/卸载/断网安装均未执行。第 3 步尚不关闭。

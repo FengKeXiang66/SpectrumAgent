@@ -1,0 +1,9 @@
+{
+  "milestone02_head": "f4e5c90b8bad9144150d7d0b377834c2cc9909e2",
+  "locks": {
+    "requirements-lock.txt": "58e24b59da34461a17fd942b4047071e42b5120b3d474ba976a7e28535d40bcc",
+    "package-lock.json": "ea6a555e6389274fb938849fed4cc53ff1ae6b7dd1ac0b9bc4f31e3aef2b030b",
+    "src-tauri/Cargo.lock": "e28b95eccf2af5dff5dba7aaa553f670086a2646b324812678606ba6217407f6"
+  },
+  "protocol_version": "\"\"\"SpectrumAgent foundation engine. No production spectral operators.\"\"\"\n\n__version__ = \"0.1.0\"\n"
+}
