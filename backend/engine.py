@@ -4,7 +4,6 @@ import httpx
 import structlog
 import uvicorn
 
-from backend.app import create_app
 from backend.handshake import HandshakeError, publish, remove_if_owned, sweep_stale
 from backend.identity import EngineIdentity
 from backend.paths import AppPaths
@@ -39,6 +38,9 @@ class HandshakeServer(uvicorn.Server):
 
 
 def main(paths: AppPaths) -> None:
+    # Both source/dev and frozen/release boot the same composed application.
+    from spectrumagent.app import create_app
+
     identity = EngineIdentity()
     structlog.contextvars.bind_contextvars(boot_id=identity.boot_id, pid=identity.pid)
     app = create_app(paths, identity)

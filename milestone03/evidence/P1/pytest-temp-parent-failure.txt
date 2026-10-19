@@ -1,0 +1,34 @@
+EE.                                                                      [100%]
+=================================== ERRORS ====================================
+______ ERROR at setup of test_engine_entry_selects_composed_dataset_app _______
+
+self = WindowsPath('E:/AI_Agent/.runtime/m03-tests/P1'), mode = 448
+parents = False, exist_ok = False
+
+    def mkdir(self, mode=0o777, parents=False, exist_ok=False):
+        """
+        Create a new directory at this given path.
+        """
+        try:
+>           os.mkdir(self, mode)
+E           FileNotFoundError: [WinError 3] 系统找不到指定的路径。: 'E:\\AI_Agent\\.runtime\\m03-tests\\P1'
+
+C:\Users\Administrator\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\pathlib.py:1311: FileNotFoundError
+_ ERROR at setup of test_data_root_override_keeps_default_protocol_and_selects_explicit_root _
+
+self = WindowsPath('E:/AI_Agent/.runtime/m03-tests/P1'), mode = 448
+parents = False, exist_ok = False
+
+    def mkdir(self, mode=0o777, parents=False, exist_ok=False):
+        """
+        Create a new directory at this given path.
+        """
+        try:
+>           os.mkdir(self, mode)
+E           FileNotFoundError: [WinError 3] 系统找不到指定的路径。: 'E:\\AI_Agent\\.runtime\\m03-tests\\P1'
+
+C:\Users\Administrator\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\pathlib.py:1311: FileNotFoundError
+=========================== short test summary info ===========================
+ERROR backend/tests/test_packaging_entry.py::test_engine_entry_selects_composed_dataset_app
+ERROR backend/tests/test_packaging_entry.py::test_data_root_override_keeps_default_protocol_and_selects_explicit_root
+1 passed, 2 errors in 0.19s

@@ -1,0 +1,28 @@
+F..                                                                      [100%]
+================================== FAILURES ===================================
+_______________ test_engine_entry_selects_composed_dataset_app ________________
+
+tmp_path = WindowsPath('E:/AI_Agent/.runtime/m03-tests/P1/test_engine_entry_selects_comp0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000260F3D6FA40>
+
+    def test_engine_entry_selects_composed_dataset_app(tmp_path, monkeypatch):
+        import backend.engine as engine
+    
+        routes = []
+        monkeypatch.setattr(engine.HandshakeServer, "run", lambda self: routes.extend(route.path for route in self.config.app.routes))
+>       engine.main(AppPaths(tmp_path))
+
+backend\tests\test_packaging_entry.py:10: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+paths = AppPaths(root=WindowsPath('E:/AI_Agent/.runtime/m03-tests/P1/test_engine_entry_selects_comp0'))
+
+    def main(paths: AppPaths) -> None:
+        # Both source/dev and frozen/release boot the same composed application.
+>       from spectrumagent.app import create_app
+E       ModuleNotFoundError: No module named 'spectrumagent'
+
+backend\engine.py:42: ModuleNotFoundError
+=========================== short test summary info ===========================
+FAILED backend/tests/test_packaging_entry.py::test_engine_entry_selects_composed_dataset_app
+1 failed, 2 passed in 0.27s

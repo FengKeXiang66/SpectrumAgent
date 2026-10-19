@@ -1,12 +1,18 @@
 # 里程碑 #03 · 0.1.1 打包执行记录
 
-状态：P0 完成，P1–P6 待执行，P7 等负责人本机冒烟。未宣布过闸。
+状态：P0、P1 完成，P2–P6 待执行，P7 等负责人本机冒烟。未宣布过闸。
 
 依据：TASK-03-打包里程碑.md 与负责人执行提示词；冲突以执行提示词为准。D1=A（仅转正 datasets_forward）、D2=产品0.1.1；握手协议版本仍0.1.0。每P独立提交，不安装新包，三份lock字节保持不变。
 
 ## P0 · #01 文档补丁
 
 仅在获准的 `artifacts/step3/checkpoint-4/REPORT.md` 增补三项负责人裁定：记忆键为Tauri 2 NSIS标准行为（含MANUPRODUCTKEY源码行）；握手残留拍板A，不进0.1.1热修，自愈已实测两次且不以脚本删除冒充修复；不采未指认的24.146ms，以有档位/来源的211.154ms与208.095ms engine值及1292/1060/1178ms desktop值引用。既有冻结revision、原始输出、安装包未改。旧root REPORT主体为历史，不改写成新批次通过。
+
+## P1 · 组合应用入口统一
+
+`backend.engine.main` 改用 `spectrumagent.app.create_app`；dev_sidecar.py 原样不动。dev/release 在应用入口层共用同一create_app，解释器分别来自venv/onedir；既有debug双PID进程适配仍按#02隔离，不将它误称与release进程形态完全相同。源码入口补入src-python搜索路径；冻结由pathex收集。为P6明确要求，入口支持 `--data-root <绝对路径>`，默认LOCALAPPDATA约定及协议版本0.1.0不变。
+
+新增3项测试验证：实际入口组合路由、数据根覆盖、拒绝相对数据根；`evidence/P1/pytest.txt` 为3 passed。预期最终pytest计数由141增至144，未减少既有测试。初次执行缺pytest临时目录父目录、随后测试直接调用内部main绕过源码bootstrap，各自失败输出保留；修正测试执行目录与入口调用方式后通过。既有TestClient弃用提示不通过装包处理。
 
 ## 后续门槛
 

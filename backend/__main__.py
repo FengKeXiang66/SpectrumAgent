@@ -3,6 +3,11 @@
 import multiprocessing
 import os
 import sys
+from pathlib import Path
+
+# Source execution needs the same package root that PyInstaller's pathex uses.
+if not getattr(sys, "frozen", False):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src-python"))
 
 
 def main(argv=None) -> int:
@@ -12,7 +17,15 @@ def main(argv=None) -> int:
     import structlog
 
     arguments = sys.argv[1:] if argv is None else argv
-    paths = AppPaths.from_environment()
+    if len(arguments) == 2 and arguments[0] == "--data-root":
+        root = Path(arguments[1])
+        if not root.is_absolute() or "\0" in arguments[1]:
+            print("--data-root 必须是有效绝对路径", file=sys.stderr)
+            return 2
+        paths = AppPaths(root)
+        arguments = []
+    else:
+        paths = AppPaths.from_environment()
     configure_logging(paths.logs)
     logger = structlog.get_logger("engine")
     try:
