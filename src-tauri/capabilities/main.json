@@ -1,6 +1,6 @@
 {
   "identifier": "main",
-  "description": "主窗口订阅状态及四个地基命令；datasets-forward 仅 debug 注册，固定本代127.0.0.1端口的/api/v1/datasets/*，限GET/POST、8MiB并核验身份。release不注册该handler；不开放通用网络能力。",
+  "description": "主窗口订阅状态并调用五个固定业务命令；datasets-forward 固定本代127.0.0.1握手端口的/api/v1/datasets/*，限GET/POST、8MiB并核验身份与代次。原生选择仅允许open，不开放通用网络能力。",
   "windows": ["main"],
   "permissions": [
     "core:event:allow-listen", "core:event:allow-unlisten",

@@ -71,7 +71,6 @@ pub enum SupervisorEvent {
 }
 
 enum Message {
-    #[cfg(debug_assertions)]
     DatasetIdentity(Sender<Result<(u64, Arc<Handshake>), &'static str>>),
     Retry,
     Stop,
@@ -105,7 +104,6 @@ pub struct SupervisorHandle {
 }
 
 impl SupervisorHandle {
-    #[cfg(debug_assertions)]
     pub fn dataset_identity(&self) -> Result<(u64, Arc<Handshake>), &'static str> {
         let (reply, response) = mpsc::channel();
         self.tx.send(Message::DatasetIdentity(reply)).map_err(|_| "ENGINE_NOT_READY")?;
@@ -595,7 +593,6 @@ impl Actor {
                 Err(RecvTimeoutError::Disconnected) => Message::Stop,
             };
             match message {
-                #[cfg(debug_assertions)]
                 Message::DatasetIdentity(reply) => {
                     let identity = self.verified.as_ref()
                         .filter(|_| self.machine.phase() == Phase::Ready)

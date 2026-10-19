@@ -80,12 +80,13 @@ export default function App() {
   const failure = status.failure;
   return <div className="app" data-phase={status.phase}>
     <main>
-      <h1>光谱数据 AI Agent · {import.meta.env.DEV ? '数据接入' : '地基演示'}</h1>
+      <h1>光谱数据 AI Agent · 数据接入</h1>
+      <p aria-label="产品版本">版本 {__SPECTRUM_PRODUCT_VERSION__}</p>
       {status.phase === 'Ready' && <>
         <p role="status">引擎已就绪</p>
-        <p>{import.meta.env.DEV ? '选择数据目录，查看数据集与单波段预览。' : '本页为阶段一骨架占位；仅提供 ENVI / SNV 冒烟演示。'}</p>
+        <p>选择数据目录，查看数据集与单波段预览。</p>
         <p>进程 {status.pid} · 端口 {status.port} · 启动代次 {status.generation_id}</p>
-        {import.meta.env.DEV && <DatasetPanel key={status.generation_id} api={datasets} />}
+        <DatasetPanel key={status.generation_id} api={datasets} />
         {metrics && <pre aria-label="冒烟测试真实结果">{JSON.stringify(metrics, null, 2)}</pre>}
       </>}
       {status.phase === 'Failed' && <section role="alert">

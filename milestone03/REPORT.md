@@ -1,6 +1,6 @@
 # 里程碑 #03 · 0.1.1 打包执行记录
 
-状态：P0、P1 完成，P2–P6 待执行，P7 等负责人本机冒烟。未宣布过闸。
+状态：P0、P1、P2 完成，P3–P6 待执行，P7 等负责人本机冒烟。未宣布过闸。
 
 依据：TASK-03-打包里程碑.md 与负责人执行提示词；冲突以执行提示词为准。D1=A（仅转正 datasets_forward）、D2=产品0.1.1；握手协议版本仍0.1.0。每P独立提交，不安装新包，三份lock字节保持不变。
 
@@ -13,6 +13,14 @@
 `backend.engine.main` 改用 `spectrumagent.app.create_app`；dev_sidecar.py 原样不动。dev/release 在应用入口层共用同一create_app，解释器分别来自venv/onedir；既有debug双PID进程适配仍按#02隔离，不将它误称与release进程形态完全相同。源码入口补入src-python搜索路径；冻结由pathex收集。为P6明确要求，入口支持 `--data-root <绝对路径>`，默认LOCALAPPDATA约定及协议版本0.1.0不变。
 
 新增3项测试验证：实际入口组合路由、数据根覆盖、拒绝相对数据根；`evidence/P1/pytest.txt` 为3 passed。预期最终pytest计数由141增至144，未减少既有测试。初次执行缺pytest临时目录父目录、随后测试直接调用内部main绕过源码bootstrap，各自失败输出保留；修正测试执行目录与入口调用方式后通过。既有TestClient弃用提示不通过装包处理。
+
+## P2 · release 受限 IPC 与产品版本
+
+D1=A：release handler 精确为 engine_status / retry_engine / run_smoke / open_data_directory / datasets_forward；转发模块与通用代次查询转为无条件。debug venv 收养、Win32/Job、启动路径源文件与 #02 基线逐字不变，dev handler 不变；main capability 权限集合不变，仅订正文案，cargo check 再生 capabilities schema 已归档。转发 host/端口、路由、方法、8MiB 与身份校验实现未改。
+
+产品配置仅 version=0.1.1；协议0.1.0与三份锁保持原字节。补齐发布 UI 必要入口：取消数据面板的 import.meta.env.DEV 门控；Vite 从 tauri.conf.json 编译期注入产品版本，页面显示版本0.1.1，无需新增 Tauri 核心权限。保留模块原名 datasets_dev 以控制 diff。
+
+`evidence/P2/` 保存 cargo check --locked --offline（exit0）、tsc --noEmit（exit0）、Vite production build 与 release-boundary.json 审计通过证据；实际 custom-protocol release 编译留待 P4，不用 debug check 冒充 release 验证。
 
 ## 后续门槛
 

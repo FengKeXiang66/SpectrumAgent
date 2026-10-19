@@ -45,8 +45,7 @@ async fn run_smoke(state: tauri::State<'_, Desktop>) -> Result<SmokeMetrics, Smo
         .await
         .map_err(|_| SmokeFailure::Transport)?
 }
-// DEV ONLY: release never registers this command or compiles its transport.
-#[cfg(debug_assertions)]
+// Approved D1: the same constrained dataset command serves debug and release.
 #[tauri::command]
 async fn datasets_forward(
     state: tauri::State<'_, Desktop>,
@@ -154,7 +153,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     let builder = builder.invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, datasets_forward]);
     #[cfg(not(debug_assertions))]
     let builder = builder
-        .invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory]);
+        .invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, datasets_forward]);
     let app = builder.setup(move |app| {
             setup_log.event("single_instance_lock_acquired", json!({}))?;
             let resource = app.path().resolve("resources/backend/app.exe", tauri::path::BaseDirectory::Resource)?;

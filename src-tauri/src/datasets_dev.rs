@@ -1,4 +1,4 @@
-//! DEV ONLY: typed dataset requests, never a caller-controlled HTTP proxy.
+//! Typed dataset requests for debug and release; never a caller-controlled HTTP proxy.
 use crate::handshake::Handshake;
 use reqwest::{Method, Url, blocking::Client};
 use serde::{Deserialize, Serialize};

@@ -9,7 +9,7 @@ fn main() {
             "retry_engine",
             "run_smoke",
             "open_data_directory",
-            // Permission is declarative; only the debug binary registers its handler.
+            // Permission is declarative; the handler enforces fixed routes and identity.
             "datasets_forward",
         ]));
     if let Err(error) = tauri_build::try_build(attributes) {
