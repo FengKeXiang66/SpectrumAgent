@@ -111,8 +111,8 @@ foreach ($t in $targets) {
 }
 Save 'registry-uninstall.json' $regRows
 
-# ---------------------------------------------------- 2. memory key (harness)
-Sec 'REGISTRY / MEMORY KEY (expected ABSENT when installed by pure installer)'
+# ---------------------------------------------------- 2. memory key (Tauri 2 NSIS installer MANUPRODUCTKEY - standard behavior, MUST exist after pure install)
+Sec 'REGISTRY / MEMORY KEY (Tauri NSIS standard: expected PRESENT, values = INSTDIR + Installer Language=1033)'
 $mkRows = @()
 foreach ($t in @(
     @{ Hive='HKCU'; Path=('HKCU:\' + $MANUKEY) },

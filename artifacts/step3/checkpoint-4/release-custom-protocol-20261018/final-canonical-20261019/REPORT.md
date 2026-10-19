@@ -2,7 +2,7 @@
 
 ## 完成到哪一步
 
-交付仍为 **22a13e6a / d8492536**。已完成负责人本轮要求的归档、同源重编结案、真实宿主安装态 DOM/单实例与卸载回归，停止在进入干净 VM 之前。**不是全绿关账：正常关窗后握手文件残留，握手清理项未通过；第 2 步仍为“待 VM 实机”，exit code=70 原因仍未验证。** 不改封版引擎、不重 bundle、不把 29a 行为复验升级为交付候选。
+交付固定为 **22a13e6a / d8492536**，不再改动、不重打包。**VM 实机项已于2026-10-19由两轮云电脑实测等效关闭，检查点4正式封账**（负责人裁定：关键路径全覆盖、无红线命中）。本地 Hyper-V 不再阻塞本里程碑，VM 保留 pristine→accept-4 链供后续补测。握手残留记已知问题、不进 0.1.1 热修、不阻塞封账；exit code=70 与注册键历史消失原因仍维持“未定位/未验证”，不追查、不互相解释。缓测项不记为通过。不改封版引擎、不重 bundle、不把 29a 行为复验升级为交付候选。
 
 | 对象 | SHA256（全小写） | 字节数 |
 |---|---|---:|
@@ -131,15 +131,17 @@ StartupTimeout约30010ms；Starting heartbeat298，最大gap104ms、queue8ms；S
 
 全程同一final-canonical目录。Install守卫只判state文件/程序目录/卸载注册键三项，任一存在即throw；记忆键独立OWNED_PRIOR_TEST_KEY交叉核验、不触发三项守卫。本轮未绕过守卫、未删记忆键、未新建证据目录。卸载成功后立即UTC改名归档state并记录源/目标SHA；旧10:03state、reprostate、交付state三份历史均保留。
 
-当前repro两步卸载初次原始结果出现before=1/after=16，是PowerShell5 ConvertFrom-Json数组作为单pipeline对象的harness错误；两个原始快照实际各16项。`real-task-RecoverRepro-result.json` 独立逐行比较16项路径/尺寸/SHA全同，原卸载exit0且程序已移除，然后归档state；旧失败输出不改。本次交付回归脚本已修正数组解包，结果未靠此历史纠错推导。
+负责人2026-10-19复核裁定：同目录 repro-real-cleanup 原始结果（1→16、bytes_unchanged=false）属于复现链场景，卸载前注册键本就不存在、窗口内应用自生成文件，非卸载毁数据。原始输出、`real-task-RecoverRepro-result.json` 及先前脚本计数解包诊断均保留，不将该场景作为封账依据；本次卸载封账依据固定为 `host-uninstall-result.json`（真实数据17→17、字节不变、uninstaller exit0）。
 
 最终交付PrepareUninstall→Uninstall在所有相关进程退出之后执行，data-before/after各17文件（含db sqlite3/-shm/-wal、logs、run、testdata与acceptance实际条目），逐字节一致；run/logs/testdata三个本轮preservation标记SHA均未变。program目录移除，卸载器exit0。`data-before-uninstall.json`、`data-after-uninstall.json`、`uninstall-markers.json`、`host-uninstall-result.json` 是本次交付真实根依据。前后快照以字面路径与01:47血缘为依据，不靠脚本写出的路径字符串证明来源；本轮数据与db条目在所有相关进程退出后冻结，不把运行态shm/wal变化算卸载失败。仅在通过判定和state归档后清理三个确切自有标记，标记为 **TEST_HYGIENE_ONLY，不作为通过依据**；没有清洗剩余握手。
 
 **注册键异常仍未定位。** 负责人11:17/11:31看到卸载键与记忆键在HKCU/HKLM及WOW6432Node四视图均缺失而程序完好，已记录。旧repro卸载前真实卸载键也已缺失，因此其DeleteRegKey为空操作，不能证明键清理；之前sandbox看见键不是宿主真实视图。本次非重定向重装则确实创建两个真实HKCU键，首次正常关闭后两键仍在；本次最终卸载前卸载键存在、卸载后消失，记忆键仍在且未人工删除。**本次成功不解释先前消失原因。**
 
+记忆键归属（2026-10-19负责人确认，并与源码逐行核对）：`HKCU\Software\spectrumagent\SpectrumAgent` 为 **Tauri 2 NSIS 标准安装器行为，非 harness 残留**。`src-tauri/nsis/installer.nsi:68-69` 定义 MANUKEY/MANUPRODUCTKEY，`:698` 写入默认值为安装目录，`:164-166` 配置同键的 `Installer Language` 值，`:889` 在勾选删除应用数据且非更新时删除该键。纯安装后该键应存在；值内容细节按下述缓测清单记录，不把未归档细节补写为通过。
+
 会话历史 `registry-history-audit.json` 扫描811条工具输入、无手动reg写入/删键等命令；本轮此后脚本也没有手动注册表写删操作。NSIS安装/卸载本身的WriteRegStr/DeleteRegKey另列为预期安装器行为。未找到手动操作来源，原因未定位。影响：键缺失时Add/Remove Programs入口缺失；程序运行与uninstall.exe直跑不受影响。
 
-VM三时点必测已写入版本控制内 **VM-BUILD-Win11Clean.md 第101行**：安装后尚未启动、首次运行正常关闭后、VM重启后，卸载键均须存在；任一缺失记异常。干净VM也消失则升级产品缺陷（应用列表不可见/无法从列表卸载），不得用宿主成功替代。当前状态待VM实机。
+VM注册键三时点判据及验收流程修正见 `VM-BUILD-Win11Clean.md` 与 `VM-ACCEPTANCE-CHECKPOINT4.md`。**VM 实机项已于2026-10-19由两轮云电脑实测等效关闭，检查点4正式封账**（负责人裁定），本地 Hyper-V 不再阻塞本里程碑。`reboot` 独立采集轮、截图三件、`timings.txt` 精确值、记忆键值细节、长路径>260、exit code=70、签名/SmartScreen 详录均列为**缓测，不记通过**；历史注册键消失原因维持未定位，不追查、不互相解释。
 
 卸载页“删除应用数据”复选框实际删除APPDATA/LOCALAPPDATA下的 `com.spectrumagent.desktop`（BUNDLEID，WebView2用户目录），**对真实 `%LOCALAPPDATA%\SpectrumAgent` 数据根无效**。不能用复选框作为真实数据保留/删除验收证据；产品级“删除真实应用数据”缺口记后续项。本轮按批准范围仅改模板currentUser默认安装目录一行，未扩改卸载逻辑。
 
@@ -157,8 +159,8 @@ VM三时点必测已写入版本控制内 **VM-BUILD-Win11Clean.md 第101行**�
 | 8 四态可见性 | 晨间五DOM/注入Failed及本次安装态Starting7/Ready210/Stopping4。Starting隐藏以日志证明。 |
 | 9 单实例 | 已核Starting/Ready；本次安装态第二PID30580exit0、single_instance_activation、只剩primary18680。 |
 | 10 常驻条/invoke | 旧同源五DOM、Ctrl+K/Ctrl+Enter/unknown/retry证据；本次安装态smoke208.095ms与DOM真实结果。 |
-| 11 三段计时 | 22a宿主1070.768ms就绪/1153.768ms可交互/首次完成19252.768ms（含手动等待17879ms；调用往返220ms、算法211.154ms）。新WebViewprofile但OS缓存未清，**VM冷启动待实机，不声称≤3s验收通过**。 |
-| 12 正常关窗10轮 | 已核22a的Close10轮进程/端口0残留；本次安装态再证无孤儿。**本次额外“握手清理”未通过，残留死PID握手，不混入进程回收通过结论。** |
+| 11 三段计时 | 22a宿主1070.768ms就绪/1153.768ms可交互/首次完成19252.768ms（含手动等待17879ms；调用往返220ms、算法211.154ms）。新WebViewprofile但OS缓存未清，负责人2026-10-19裁定VM实机项经两轮云电脑实测等效关闭；timings.txt精确值仍缓测，不补写≤3s精确值通过。 |
+| 12 正常关窗10轮 | 已核22a的Close10轮进程/端口0残留；本次安装态再证无孤儿。**本次额外“握手清理”未通过，残留死PID握手，不混入进程回收通过结论；2026-10-19负责人裁定为已知问题、不进0.1.1热修、不阻塞封账。** |
 | 13 强杀Ready10轮 | 已核22a KillReady10，Explorer父进程不在Job，独立release非npm/dev父Job掩盖。 |
 | 14 握手前强杀10轮 | 已核22a KillStarting10，精确子PID/路径判孤儿，端口未发布null不假造端口。 |
 | 15 陈旧握手隔离 | 已核新旧boot/pid；本次真实安装启动 engine stale_handshake_removed，未把旧死PID就绪。 |
@@ -166,7 +168,7 @@ VM三时点必测已写入版本控制内 **VM-BUILD-Win11Clean.md 第101行**�
 | 17 状态机 | 已核四态，app_exit独立事件；Failed20按帧归属，不叫第五态。 |
 | 18 resolver/布局 | 生产资源--no-bundle实际544，release忽略无效env；本次安装实际resources/backend/app.exe，资源未入库，无test-probes。 |
 | 19 locks/git | 三锁SHA未变，final-locks-and-product-source.json；最终提交后git-status-after-final-commit.txt只允许两份负责人md。 |
-| 20 manifest | 源release+安装态双exe RT_MANIFEST实际提取、XML/SHA绑定；LongPathsEnabled历史值0，>260字符实际文件访问**待VM实机**。 |
+| 20 manifest | 源release+安装态双exe RT_MANIFEST实际提取、XML/SHA绑定；LongPathsEnabled历史值0，>260字符实际文件访问列为**缓测，不记通过**；不阻塞负责人裁定的检查点4封账。 |
 
 ## 工具、签名、安装目录与交付说明
 
@@ -192,25 +194,29 @@ NoBundle29a的dom25144 Starting15/Ready269/Stopping3；故障DOM23628/11548/2658
 
 ## 遇到的问题与待办
 
-1. **未通过：安装态正常关窗握手清理。** 无进程/端口残留，但真实根仍有该死PID握手。没有修改封版契约、没有改交付二进制、没有用脚本删除冒充修复；后续需负责人裁定此额外要求的处理范围。
+1. **未通过：安装态正常关窗握手清理。** 无进程/端口残留，但真实根仍有该死PID握手。没有修改封版契约、没有改交付二进制、没有用脚本删除冒充修复。**负责人2026-10-19裁定：记已知问题、不进 0.1.1 热修、不阻塞封账。** 理由：功能零影响，无孤儿进程/端口，token 每 boot 随机，`stale_handshake_removed` 自愈已实测两次；修复需动封版二进制、换包并重做全链证据，本轮不修。
 2. 不可字节复现：已明确定位链接期元数据，结案口径按负责人裁定；未声称字节可复现。
 3. 先前注册键无因消失、18188退出、1412原因、exit code=70内部原因均未定位/未验证，分别记录，不互相解释。
 4. 真实数据删除复选框产品缺口后续处理；本轮未擅改模板卸载逻辑。
 5. 证据提取engine_boot缺boot_id与WinPS5数组计数两项harness问题已修正，失败输出保留；46文件SHADOW污染撤回主张并用本次REAL17文件回归替代。
 
-## 下一步与VM待实机清单
+## 检查点4封账与缓测清单
 
-先停下交负责人复核本报告与“握手清理未通过”项；**本轮不进入VM验收**。第2步不正式关闭。
+**VM 实机项已于2026-10-19由两轮云电脑实测等效关闭，检查点4正式封账。** 此为负责人裁定（关键路径全覆盖、无红线命中），不冒充本地 Hyper-V 新增实测；本地 Hyper-V 不再阻塞本里程碑，VM 保留 pristine→accept-4 链供后续补测，本轮不执行恢复、删检查点或重新验收。
 
-- 恢复当前pristine f7ea81cf-6c3a-4823-9a7b-5fe77f4c2300并验证恢复结果（旧bb3d1cac已作废）。Hyper-V当前Enabled/vmms运行，不执行启用或重启命令。
-- 无Python/Node/Rust干净Win11、currentUser标准用户安装、默认Programs路径、不触数据根。
-- 断网安装WebView2 offlineInstaller，安装前后记录Runtime pv并核载荷版本；三类签名状态与SmartScreen照实说明。
-- 冷启动三段计时、离线health/smoke、正常关闭/强杀无孤儿；握手残留另项不能跳过。
-- 安装后/首次正常关闭后/VM重启后三时点卸载键均存在，任一缺失记异常；复现即升级产品缺陷。
-- 程序目录移除，真实db/run/logs/testdata全量逐字节保留；复选框真实数据删除缺口单列。
-- 记录系统LongPathsEnabled，外壳/引擎分别实测>260字符路径；仅manifest通过不能顶替。
+以下全部记为**缓测，不记通过**，不阻塞本次封账：
 
-VM手册第5步仍指向 artifacts/step4/setup.exe，未改该路径。第101行已增注册键三时点条目并提交；VM相关状态均保留“待VM实机”。
+- `reboot` 独立采集轮。
+- 截图三件（按验收流程补齐原始截图）。
+- `timings.txt` 精确值；未坐实的 smoke 计时不写入本报告，待负责人指认轮次后另笔提交。
+- 记忆键值细节。
+- 长路径>260字符的实际访问。
+- exit code=70：维持未定位/未验证，不追查，不与注册键历史消失互相解释。
+- 签名/SmartScreen 详录；已有setup/外壳/引擎NotSigned与WebView2 Valid/Microsoft事实记录保留，不将待补详录写为通过。
+
+注册键历史消失原因维持“未定位/未验证”，并列缓测，不追查、不互相解释。既有18188退出与1412记录保持原状。
+
+VM手册第5步仍指向 artifacts/step4/setup.exe，不改交付包；负责人已修改的 `VM-ACCEPTANCE-CHECKPOINT4.md`、`VM-BUILD-Win11Clean.md`、`collect-vm-evidence.ps1` 随本次收尾提交归档。完成本次文档提交后原地等待里程碑 #02 任务卡指令；仅将 `TASK-02-数据接入.md` 纳入版本控制，不自行开工。
 
 ## 归档与提交纪律
 

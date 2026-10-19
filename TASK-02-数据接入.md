@@ -1,0 +1,214 @@
+# 里程碑 #02：数据接入（Data Ingestion）
+
+**任务卡编号**：TASK-02-数据接入  
+**前置里程碑**：#01 地基演示（已封账）  
+**定稿日期**：2026-10-19（基于当日探针实测）  
+**能力断言背书**：venv `spectral` 0.25 实测通过（标准 ENVI）+ 边界矩阵构造测试通过（三种非标准场景）
+
+---
+
+## 1. 目标
+
+实现 SpectrumAgent 对高光谱数据文件的读取能力，支持：
+- **P0**：标准 ENVI 格式（`.hdr` + `.img`/`.raw`/`.bin`）— 用 `spectral` 库
+- **P0**：纯二进制 + 独立头文件（`.bin` + `.json`/`.txt`）— 自研解析器（numpy memmap）
+- **P1**：非标准 ENVI 边界 case（缺 interleave、ENVI5 JSON、头声明 vs 实际大小不符）— 自研兜底
+
+血缘链位置：数据接入 → 标注(L1) → 预处理 → PLS/指标 → 入库 → 检索 → Agent
+
+---
+
+## 2. 采集端样本集（已确认）
+
+**来源**：科祥提供 `E:\高光谱数据集\plastic\`
+- 三个子目录：`pe/`（聚乙烯）、`pet/`（聚对苯二甲酸乙二醇酯）、`pp/`（聚丙烯）
+- 格式：**标准 ENVI**，`.hdr` + `.img`
+- 规格一致：640×231×200 像素，BIL 交错，data type=12（uint16），小端序，offset=0
+- 波段范围：881.85–1714.13 nm（近红外）
+- reflectance scale factor = 65535
+- 文件大小验证：59,136,000 B = 640×231×200×2 ✅
+
+**spectral 实测结果**：`envi.open_image()` 成功，shape=(231,640,200)，类型 `BilFile`，`read_band()` 返回 (231,640)，值域 0.0–1.0（已除 scale factor）。
+
+**2026-10-19 全量复核（11/11 通过）**：open 1.7–7ms、read_band ≤37ms；read_band / read_pixel / read_subregion 返回值与 numpy memmap 直读的 DN/65535 逐值相等；BIL memmap 布局为 (lines=231, bands=200, samples=640)。
+
+---
+
+## 3. 能力断言（基于 2026-10-19 探针实测）
+
+| 断言 | 实测结果 | 对 #02 的影响 |
+|---|---|---|
+| spectral 0.25 可读标准 ENVI（BSQ/BIL/BIP） | ✅ 通过（塑料数据集验证） | 标准格式全由 spectral 覆盖，自研解析器只兜底 |
+| spectral 缺 interleave 字段 | ❌ 不支持，报 MissingEnviHeaderParameter | 自研解析器必须实现默认 interleave 策略 |
+| spectral 支持 ENVI 5 JSON 头 | ❌ 不支持，报 FileNotAnEnviHeader | 自研解析器必须覆盖 JSON 头解析 |
+| spectral 校验头声明 vs 实际文件大小 | ❌ 不校验，静默忽略多余字节 | 自研解析器必须实现大小校验，发现即报 |
+| spectral 读数精度分层（2026-10-19 实数勘误） | `read_band`/`read_bands` → **float64**（已除 scale factor）；`load()` → **float32**（已除）；`asarray()` → **uint16 原始 DN memmap**（未除，逻辑索引 (lines,samples,bands)，与 numpy memmap 直读逐值相等） | raw=True 直接用 `img.asarray()`，不必自写 memmap；卡片旧文"uint16→float32"作废 |
+| spectral 扩展名限制 | ⚠️ 必须给 `.hdr`，直开 `.img` 失败 | API 封装层做 hdr→img 自动关联 |
+| spectral shape 约定 | (lines, samples, bands) | 文档写清楚，避免 (samples, lines, bands) 混淆 |
+
+---
+
+## 4. 开发任务（按执行顺序）
+
+### 4.1 数据模型与接口定义（先定 schema，再实现）
+
+定义 `SpectrumDataSet` 数据类（Python，sidecar 层）：
+- 字段：`name`, `shape` (L×S×B), `dtype`, `interleave`, `wavelengths` (nm 列表), `fwhm` (可选), `data_path`, `header_path`, `metadata` (dict)
+- 方法：`read_band(i)`, `read_pixel(l,s)`, `read_region(l0,l1,s0,s1)`, `to_numpy()`
+- 必须支持**延迟加载**（lazy）：大文件不一次全读进内存
+
+### 4.2 ENVI 标准格式接入（P0，spectral 封装）
+
+实现 `EnviReader` 类：
+- 输入：`.hdr` 路径（自动关联同目录 `.img`/`.raw`/`.dat`）
+- 内部：调用 `spectral.open_image()`
+- 输出：`SpectrumDataSet` 实例
+- **精度策略**：
+  - 默认模式：返回 spectral 的缩放 reflectance（read_band/read_bands → float64，load() → float32）
+  - `raw=True` 模式：直接用 `img.asarray()`（uint16 memmap，逻辑索引 (lines,samples,bands)，已实测与 numpy memmap 直读逐值相等），返回 DN 原值并显式标注"未除 scale factor=65535"
+- API 细节（2026-10-19 真实样本实测）：
+  - `envi.open_image()` / `spectral.open_image()` 必须传 `.hdr`（直传 `.img` 报 FileNotAnEnviHeader）；数据文件名与头不一致时用 `envi.open(hdr, image=<数据路径>)`
+  - `read_bands([...])` 返回 (lines, samples, n)，**波段在最后一轴**
+  - `read_pixel(row, col)` 参数 = (lines 下标, samples 下标)，返回全部波段
+  - `read_subregion((r0,r1),(c0,c1))` 返回全波段立方体 (lines, samples, bands)；显式索引用 `read_subimage(rows, cols, bands)`
+  - 取值入口：`img.nbands`、`img.metadata['reflectance scale factor']`、`img.bands.centers`；塑料数据 `map_info=None`（无地理参考）
+- 异常处理：文件不存在、头格式错误、数据大小不符 → 结构化错误信息（非抛裸异常）
+
+### 4.3 纯二进制 + 独立头文件接入（P0，自研解析器）
+
+实现 `BinaryReader` 类：
+- 输入：数据文件路径 + 头文件路径（JSON 或简化 TXT）
+- 头文件 schema（JSON 示例）：
+  ```json
+  {
+    "shape": [231, 640, 200],
+    "dtype": "uint16",
+    "interleave": "bil",
+    "byte_order": "little",
+    "header_offset": 0,
+    "wavelengths": [881.85, 886.03, ...],
+    "scale_factor": 65535
+  }
+  ```
+- 内部：numpy memmap 读数据文件
+- 输出：`SpectrumDataSet` 实例（接口与 EnviReader 完全一致）
+
+### 4.4 非标准 ENVI 边界兜底（P1）
+
+实现 `FallbackEnviReader`：
+- 缺 interleave：默认按 BSQ 解析，日志警告
+- ENVI5 JSON 头：解析 JSON 结构，映射到标准字段
+- 大小校验：读取前比较 `header声明大小` vs `os.path.getsize(数据文件)`，不符即报
+- 兜底链：`EnviReader` 失败 → `FallbackEnviReader` → 仍失败 → 报错
+
+### 4.5 FastAPI 端点暴露
+
+sidecar 新增路由：
+- `POST /api/v1/datasets/import`：接收文件路径（前端通过 Tauri fs API 获取），返回 dataset metadata
+- `GET /api/v1/datasets/{id}`：获取已导入数据集信息
+- `GET /api/v1/datasets/{id}/preview`：返回缩略图 / 单波段预览（PNG base64）
+- `POST /api/v1/datasets/{id}/band/{i}`：读取指定波段数据（JSON 数组，小区域）
+
+### 4.6 前端 UI 适配
+
+- 文件选择器（Tauri `dialog:open`，多选/目录）
+- 导入进度条（大文件读取）
+- 数据集列表页（名称、维度、波段范围、缩略图）
+- 单波段预览（Canvas 2D 渲染灰度图）
+
+---
+
+## 5. 验收标准（Checklist）
+
+### 5.1 功能验收
+
+- [ ] `EnviReader` 能读塑料数据集全部样本，shape/dtype/wavelengths 正确
+- [ ] `EnviReader` 的 `raw=True` 返回 uint16 DN，值域 0–65535
+- [ ] `BinaryReader` 能读构造的纯二进制样本（与 ENVI 同一数据，不同头格式）
+- [ ] `FallbackEnviReader` 能处理三种边界 case（缺 interleave、JSON 头、大小不符报错）
+- [ ] FastAPI 端点返回 JSON schema 稳定（字段名、类型、空值语义不变）
+- [ ] 前端能选文件 → 导入 → 列表展示 → 单波段预览，全程无白屏/卡死
+
+### 5.2 性能验收
+
+- [ ] 读取 59MB 数据集（塑料样本）metadata 耗时 ≤ 500ms（只读头）
+- [ ] 读取单波段（231×640）耗时 ≤ 100ms
+- [ ] 内存占用：懒加载模式下，不触发全量数据读取
+- [ ] 并发：同时导入 3 个数据集不阻塞 sidecar
+
+### 5.3 数据正确性验收
+
+- [ ] spectral 读取结果与 numpy memmap 直读结果对比，reflectance 值一致（容差 1e-5）
+- [ ] shape 转换正确：spectral (lines,samples,bands) → 前端展示 (samples,lines) 不转置错误
+- [ ] 波长列表顺序与波段索引一一对应
+
+### 5.4 异常验收
+
+- [ ] 文件不存在 → HTTP 400 + 结构化错误
+- [ ] 头格式损坏 → HTTP 400 + 结构化错误
+- [ ] 数据大小不符 → HTTP 400 + 结构化错误（不静默忽略）
+- [ ] 超大文件（>2GB）→ 内存不爆炸（验证 memmap 生效）
+
+---
+
+## 6. 交付物
+
+| 交付物 | 位置 | 说明 |
+|---|---|---|
+| `SpectrumDataSet` 数据模型 | `src-python/spectrumagent/data/` | Pydantic dataclass |
+| `EnviReader` / `BinaryReader` / `FallbackEnviReader` | `src-python/spectrumagent/data/readers/` | 解析器实现 |
+| FastAPI 路由 | `src-python/spectrumagent/api/datasets.py` | REST 端点 |
+| 前端数据集管理页 | `src/components/datasets/` | React + Canvas 2D |
+| 单元测试 | `src-python/tests/data/` | 覆盖全部 reader + 边界 case |
+| 构造测试样本 | `src-python/tests/fixtures/` | 标准 ENVI + 三种边界 + 纯二进制 |
+| API 文档 | 自动从 Pydantic schema 生成 | 供前端对接 |
+
+---
+
+## 7. 依赖与阻塞
+
+| 依赖项 | 状态 | 说明 |
+|---|---|---|
+| spectral 0.25 | ✅ 已装（venv） | 标准 ENVI 读取 |
+| numpy | ✅ 已装 | memmap + 数组操作 |
+| Pydantic | ✅ 已装 | 数据模型 + API schema |
+| 前端文件选择器 | ⏳ 待实现 | Tauri dialog API |
+| 采集端真实样本 | ✅ 已确认 | 塑料数据集，标准 ENVI |
+
+---
+
+## 8. 已知风险
+
+1. **spectral 精度损失**：uint16 → float32 转换中，超过 2²⁴ 的 DN 值会丢精度。塑料数据集 scale factor=65535，最大值 65535 < 2²⁴，安全。但未来若遇到更大 scale factor 或 32-bit 数据，需切换 raw 模式。
+2. **大文件内存**：塑料数据集 59MB 较小，未来若遇到 GB 级数据，memmap 是底线，但前端预览生成缩略图时可能仍需全量扫描——需设计采样策略（每 N 行取一点）。
+3. **前端渲染性能**：231×640 单波段 = 147k 像素，Canvas 2D 直接渲染无压力。但 200 波段全量预览（伪彩合成）需降采样。
+
+---
+
+## 9. 排期建议
+
+| 阶段 | 内容 | 估算 |
+|---|---|---|
+| 9.1 | 数据模型 + EnviReader | 1 天 |
+| 9.2 | BinaryReader + FallbackEnviReader | 1 天 |
+| 9.3 | FastAPI 端点 + 单元测试 | 1 天 |
+| 9.4 | 前端 UI（导入 → 列表 → 预览） | 2 天 |
+| 9.5 | 集成测试 + 性能调优 | 1 天 |
+| **合计** | | **6 工作日** |
+
+（基于 1 人全职，codex 执行速度参考 #01 实际耗时调整）
+
+---
+
+## 10. 红线（不可妥协项）
+
+1. **任何文件读取不得静默失败** — 大小不符、格式错误必须显式报错
+2. **大文件必须懒加载** — 不允许 `read()` 全量读进内存
+3. **前端不得直接操作文件路径** — 所有文件操作经 Tauri API → sidecar，禁止浏览器端 `fs`
+4. **数据模型 schema 必须带 JSON Schema** — 供 LLM Agent 后续步骤理解数据结构
+
+---
+
+**任务卡签发人**：待科祥确认  
+**任务卡执行人**：codex（GPT-6.1 Sol）  
+**复核人**：科祥（按验收 checklist 逐项确认）
