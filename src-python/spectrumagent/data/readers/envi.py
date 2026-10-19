@@ -33,8 +33,8 @@ class EnviReader:
             validate_size(data, header)
             return image.asarray()  # DN memmap; never image.load().
         class Access(MemmapAccess):
-            def read(self, rows, columns, bands):
+            def asarray(self):
                 validate_size(data, header)
-                return super().read(rows, columns, bands)
+                return super().asarray()
         metadata = dict(header.metadata, scale_factor=header.scale, scale_applied=not raw, value_mode="raw_dn" if raw else "reflectance", value_description=f"DN原值，未除scale factor={header.scale:g}" if raw else f"float64，DN / {header.scale:g}", byte_order=0 if header.dtype.byteorder in ("<", "=", "|") else 1, header_offset=header.offset, reader="spectral")
         return SpectrumDataSet(name=path.stem, shape=header.shape, dtype=header.dtype.name, interleave=header.interleave, wavelengths=header.wavelengths, fwhm=header.fwhm, data_path=str(data), header_path=str(path), metadata=metadata).bind(Access(mapping), raw=raw, scale_factor=header.scale)

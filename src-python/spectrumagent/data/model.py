@@ -87,6 +87,8 @@ class SpectrumDataSet:
             result = access.read(rows, columns, bands)
             if getattr(self, "_raw", False):
                 return result
+            if np.iscomplexobj(result):
+                raise DataError("UNSUPPORTED_DTYPE", "复数不能静默丢弃虚部转为float64；请用raw模式读取")
             return np.asarray(result, dtype=np.float64) / self._scale
         except DataError:
             raise
