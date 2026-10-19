@@ -1,0 +1,20 @@
+{
+  "checks": {
+    "1_exe_exists_and_new_batch_bytes": true,
+    "2_exe_sha_matches_source_manifest": true,
+    "3_internal_543_files_238793334_bytes": true,
+    "4_python312_dll_exists": true,
+    "5_rasterio_36_dll": true,
+    "6_rasterio_15_pyd": true,
+    "7_no_experimental_residue": true
+  },
+  "all_passed": true,
+  "old_exe_bytes": 16771455,
+  "new_exe_bytes": 16895372,
+  "byte_change_basis": "Milestone03 approved composed dataset app; source manifest verifies all backend/spectrumagent embedded code",
+  "internal_changed_paths": [
+    "_internal/base_library.zip"
+  ],
+  "zip_order_only_payloads_identical": true,
+  "old_evidence_unchanged": true
+}

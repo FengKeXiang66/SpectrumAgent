@@ -1,6 +1,6 @@
 # 里程碑 #03 · 0.1.1 打包执行记录
 
-状态：P0、P1、P2 完成，P3–P6 待执行，P7 等负责人本机冒烟。未宣布过闸。
+状态：P0–P3 完成，P4–P6 待执行，P7 等负责人本机冒烟。未宣布过闸。
 
 依据：TASK-03-打包里程碑.md 与负责人执行提示词；冲突以执行提示词为准。D1=A（仅转正 datasets_forward）、D2=产品0.1.1；握手协议版本仍0.1.0。每P独立提交，不安装新包，三份lock字节保持不变。
 
@@ -21,6 +21,14 @@ D1=A：release handler 精确为 engine_status / retry_engine / run_smoke / open
 产品配置仅 version=0.1.1；协议0.1.0与三份锁保持原字节。补齐发布 UI 必要入口：取消数据面板的 import.meta.env.DEV 门控；Vite 从 tauri.conf.json 编译期注入产品版本，页面显示版本0.1.1，无需新增 Tauri 核心权限。保留模块原名 datasets_dev 以控制 diff。
 
 `evidence/P2/` 保存 cargo check --locked --offline（exit0）、tsc --noEmit（exit0）、Vite production build 与 release-boundary.json 审计通过证据；实际 custom-protocol release 编译留待 P4，不用 debug check 冒充 release 验证。
+
+## P3 · 新 revision 冻结与资源全量暂存
+
+批次：`artifacts/step2/revision-20261019-m02/`。artifact_source_commit=f637fe2fe752161ceeebcae39f21de7c6fe161f9，manifest_generator_commit=ebfd09f（详见product-manifest.json完整值），两提交分离。沿用#01 batch_manifest.py生成器，扩展源码收录与嵌入源码核对到spectrumagent，保留七项硬校验原阈值；并非用旧清单冒充新包。
+
+真实构建exit0；25个backend/spectrumagent模块嵌入代码与源码相等，无matplotlib。544文件/255,688,706B，app.exe 16,895,372B / SHA256 36e56a560c6d929690d8f4975cd73dae6a226997007d76a25dea77b49bc758e9；_internal仍543文件/238,793,334B，rasterio仍36DLL/15pyd。与封版smoke-headers批次相比，依赖只有base_library.zip顺序变化（成员内容、逐项元数据相同）；七项全部通过后生成新product-manifest。
+
+Canonical暂存与src-tauri/resources/backend逐项全量比对544文件一致，旧ignored资源树移存.runtime供核查，未触碰旧冻结目录。build.spec仅补src-python发现路径与spectrumagent/spectral收集；collect_submodules先于Analysis，故显式加入sys.path；revision副本仅按目录深度调整ROOT。无GDAL/PROJ注入与手收DLL。PyInstaller日志实际分析工作目录为E:\AI_Agent\build\build（既有工具行为），dist位于本新revision；TEMP/TMP与缓存均E盘。依赖探针、构建原始输出及manifest见新revision，资源比对见evidence/P3。
 
 ## 后续门槛
 

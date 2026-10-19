@@ -1,0 +1,16 @@
+{
+  "timestamp": "2026-10-19T16:03:11.484177+00:00",
+  "manifest": "E:\\AI_Agent\\artifacts\\step2\\revision-20261019-m02\\product-manifest.json",
+  "manifest_sha256": "9e5d65a9a407d452faa5a219ff2f738f01fd2c7b376ac5e80d4b39090625bc06",
+  "source": "E:\\AI_Agent\\artifacts\\step2\\revision-20261019-m02\\staged\\backend",
+  "destination": "E:\\AI_Agent\\src-tauri\\resources\\backend",
+  "previous_stage_preserved_at": "E:\\AI_Agent\\.runtime\\m03-prior-resources-backend",
+  "matched_files": 544,
+  "bytes": 255688706,
+  "app": {
+    "path": "app.exe",
+    "bytes": 16895372,
+    "sha256": "36e56a560c6d929690d8f4975cd73dae6a226997007d76a25dea77b49bc758e9"
+  },
+  "fault_fixture": false
+}

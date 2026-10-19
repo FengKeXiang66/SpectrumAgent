@@ -1,0 +1,9 @@
+{
+  "mode": "Canonical",
+  "source": "E:\\AI_Agent\\artifacts\\step2\\revision-20261019-m02\\dist\\app",
+  "destination": "E:\\AI_Agent\\artifacts\\step2\\revision-20261019-m02\\staged\\backend",
+  "manifest": "E:\\AI_Agent\\artifacts\\step2\\revision-20261019-m02\\product-manifest.json",
+  "matched_files": 544,
+  "fault_fixture": false,
+  "scope": "new engine batch staging only; not final Tauri resource resolver/release validation"
+}
