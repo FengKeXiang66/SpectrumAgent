@@ -1,0 +1,392 @@
+{
+  "recorded_utc": "2026-10-19T04:14:01.555805+00:00",
+  "historical_cba_vs_22a": {
+    "left": "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-custom-protocol-20261018\\temp\\canonical-cba991aa47d8\\spectrum-agent.exe",
+    "right": "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-custom-protocol-20261018\\final-canonical-20261019\\temp\\canonical-22a13e6a4d2e\\spectrum-agent.exe",
+    "left_bytes": 10786304,
+    "right_bytes": 10786304,
+    "left_sha256": "cba991aa47d8ecb0b63610935e45868c37219359b611e5b7172a5e9a535f2ece",
+    "right_sha256": "22a13e6a4d2ec88cf58fa349aad7f22e61fa11331adca11e11eec9c781f73471",
+    "byte_identical": false,
+    "different_byte_count": 28,
+    "metadata_normalized_equal": true,
+    "unexplained_different_byte_count": 0,
+    "unexplained_first_offsets": [],
+    "sections": [
+      {
+        "name": ".text",
+        "left_offset": 1024,
+        "right_offset": 1024,
+        "left_bytes": 7621632,
+        "right_bytes": 7621632,
+        "left_sha256": "83731619f78d1cc98f2c82278ce4834085d16d30de4419738d3e374a427d0bde",
+        "right_sha256": "83731619f78d1cc98f2c82278ce4834085d16d30de4419738d3e374a427d0bde",
+        "raw_equal": true,
+        "metadata_normalized_equal": true
+      },
+      {
+        "name": ".rdata",
+        "left_offset": 7622656,
+        "right_offset": 7622656,
+        "left_bytes": 2689536,
+        "right_bytes": 2689536,
+        "left_sha256": "c7eacddf1e867e4783f0c277eb38ab703d26933acf97d09994fccf21fa58677b",
+        "right_sha256": "000ebc3976b92ad2eb88aca686ef7bb24fe1cdb449ed03f34572ad20dc2c9295",
+        "raw_equal": false,
+        "metadata_normalized_equal": true
+      },
+      {
+        "name": ".data",
+        "left_offset": 10312192,
+        "right_offset": 10312192,
+        "left_bytes": 4096,
+        "right_bytes": 4096,
+        "left_sha256": "5c21440280af6c5aad5f7429bee80b6413ff6555aaf8831f644bccc27433a3fe",
+        "right_sha256": "5c21440280af6c5aad5f7429bee80b6413ff6555aaf8831f644bccc27433a3fe",
+        "raw_equal": true,
+        "metadata_normalized_equal": true
+      },
+      {
+        "name": ".pdata",
+        "left_offset": 10316288,
+        "right_offset": 10316288,
+        "left_bytes": 441856,
+        "right_bytes": 441856,
+        "left_sha256": "e9da47c642c62b4857de7e1e98298113624cd889b440ba99cde2d668a68d3af3",
+        "right_sha256": "e9da47c642c62b4857de7e1e98298113624cd889b440ba99cde2d668a68d3af3",
+        "raw_equal": true,
+        "metadata_normalized_equal": true
+      },
+      {
+        "name": ".rsrc",
+        "left_offset": 10758144,
+        "right_offset": 10758144,
+        "left_bytes": 6144,
+        "right_bytes": 6144,
+        "left_sha256": "9c0fb3e3a9f545768b401edd2084c696e2d46cdc0a1d752d76ce3d27a7ff73eb",
+        "right_sha256": "9c0fb3e3a9f545768b401edd2084c696e2d46cdc0a1d752d76ce3d27a7ff73eb",
+        "raw_equal": true,
+        "metadata_normalized_equal": true
+      },
+      {
+        "name": ".reloc",
+        "left_offset": 10764288,
+        "right_offset": 10764288,
+        "left_bytes": 22016,
+        "right_bytes": 22016,
+        "left_sha256": "5ffbff72a359d2dfa7a31881ec820dda358d5516c062b2f062e5637c366e5fa3",
+        "right_sha256": "5ffbff72a359d2dfa7a31881ec820dda358d5516c062b2f062e5637c366e5fa3",
+        "raw_equal": true,
+        "metadata_normalized_equal": true
+      }
+    ],
+    "left_metadata": [
+      {
+        "kind": "COFF.TimeDateStamp",
+        "offset": 248,
+        "size": 4,
+        "value": 1792337049
+      },
+      {
+        "kind": "DEBUG.TimeDateStamp",
+        "offset": 8510228,
+        "size": 4,
+        "value": 1792337049
+      },
+      {
+        "kind": "CodeView.RSDS.GUID_age_path",
+        "offset": 8511864,
+        "size": 39,
+        "pdb_path": "spectrum_agent.pdb",
+        "guid_bytes": "cd829e4946c38d43b7aafc9f918a8851"
+      },
+      {
+        "kind": "DEBUG.SizeOfData",
+        "offset": 8510240,
+        "size": 4,
+        "value": 43
+      },
+      {
+        "kind": "DEBUG.TimeDateStamp",
+        "offset": 8510256,
+        "size": 4,
+        "value": 1792337049
+      },
+      {
+        "kind": "DEBUG.TimeDateStamp",
+        "offset": 8510284,
+        "size": 4,
+        "value": 1792337049
+      }
+    ],
+    "right_metadata": [
+      {
+        "kind": "COFF.TimeDateStamp",
+        "offset": 248,
+        "size": 4,
+        "value": 1792374342
+      },
+      {
+        "kind": "DEBUG.TimeDateStamp",
+        "offset": 8510228,
+        "size": 4,
+        "value": 1792374342
+      },
+      {
+        "kind": "CodeView.RSDS.GUID_age_path",
+        "offset": 8511864,
+        "size": 39,
+        "pdb_path": "spectrum_agent.pdb",
+        "guid_bytes": "af87bc6e723c0f4a83ea89fa2898cba7"
+      },
+      {
+        "kind": "DEBUG.SizeOfData",
+        "offset": 8510240,
+        "size": 4,
+        "value": 43
+      },
+      {
+        "kind": "DEBUG.TimeDateStamp",
+        "offset": 8510256,
+        "size": 4,
+        "value": 1792374342
+      },
+      {
+        "kind": "DEBUG.TimeDateStamp",
+        "offset": 8510284,
+        "size": 4,
+        "value": 1792374342
+      }
+    ],
+    "left_debug": [
+      {
+        "type": 2,
+        "raw_offset": 8511860,
+        "size": 43
+      },
+      {
+        "type": 12,
+        "raw_offset": 8511904,
+        "size": 20
+      },
+      {
+        "type": 13,
+        "raw_offset": 8511924,
+        "size": 1044
+      }
+    ],
+    "right_debug": [
+      {
+        "type": 2,
+        "raw_offset": 8511860,
+        "size": 43
+      },
+      {
+        "type": 12,
+        "raw_offset": 8511904,
+        "size": 20
+      },
+      {
+        "type": 13,
+        "raw_offset": 8511924,
+        "size": 1044
+      }
+    ],
+    "IMAGE_DEBUG_TYPE_REPRO_present": false
+  },
+  "true_recompile_vs_22a": {
+    "left": "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-custom-protocol-20261018\\final-canonical-20261019\\temp\\canonical-22a13e6a4d2e\\spectrum-agent.exe",
+    "right": "E:\\AI_Agent\\src-tauri\\target\\repro-check\\release\\spectrum-agent.exe",
+    "left_bytes": 10786304,
+    "right_bytes": 10786304,
+    "left_sha256": "22a13e6a4d2ec88cf58fa349aad7f22e61fa11331adca11e11eec9c781f73471",
+    "right_sha256": "29a2829b2a74d185f8c4341e2f577cc5a000c13bc4e891d64b0d8b70daf0e28c",
+    "byte_identical": false,
+    "different_byte_count": 24,
+    "metadata_normalized_equal": true,
+    "unexplained_different_byte_count": 0,
+    "unexplained_first_offsets": [],
+    "sections": [
+      {
+        "name": ".text",
+        "left_offset": 1024,
+        "right_offset": 1024,
+        "left_bytes": 7621632,
+        "right_bytes": 7621632,
+        "left_sha256": "83731619f78d1cc98f2c82278ce4834085d16d30de4419738d3e374a427d0bde",
+        "right_sha256": "83731619f78d1cc98f2c82278ce4834085d16d30de4419738d3e374a427d0bde",
+        "raw_equal": true,
+        "metadata_normalized_equal": true
+      },
+      {
+        "name": ".rdata",
+        "left_offset": 7622656,
+        "right_offset": 7622656,
+        "left_bytes": 2689536,
+        "right_bytes": 2689536,
+        "left_sha256": "000ebc3976b92ad2eb88aca686ef7bb24fe1cdb449ed03f34572ad20dc2c9295",
+        "right_sha256": "c73deb239e311c8ea540c0843f6a6ec708dd55b664f9cce52c6f4579479e0686",
+        "raw_equal": false,
+        "metadata_normalized_equal": true
+      },
+      {
+        "name": ".data",
+        "left_offset": 10312192,
+        "right_offset": 10312192,
+        "left_bytes": 4096,
+        "right_bytes": 4096,
+        "left_sha256": "5c21440280af6c5aad5f7429bee80b6413ff6555aaf8831f644bccc27433a3fe",
+        "right_sha256": "5c21440280af6c5aad5f7429bee80b6413ff6555aaf8831f644bccc27433a3fe",
+        "raw_equal": true,
+        "metadata_normalized_equal": true
+      },
+      {
+        "name": ".pdata",
+        "left_offset": 10316288,
+        "right_offset": 10316288,
+        "left_bytes": 441856,
+        "right_bytes": 441856,
+        "left_sha256": "e9da47c642c62b4857de7e1e98298113624cd889b440ba99cde2d668a68d3af3",
+        "right_sha256": "e9da47c642c62b4857de7e1e98298113624cd889b440ba99cde2d668a68d3af3",
+        "raw_equal": true,
+        "metadata_normalized_equal": true
+      },
+      {
+        "name": ".rsrc",
+        "left_offset": 10758144,
+        "right_offset": 10758144,
+        "left_bytes": 6144,
+        "right_bytes": 6144,
+        "left_sha256": "9c0fb3e3a9f545768b401edd2084c696e2d46cdc0a1d752d76ce3d27a7ff73eb",
+        "right_sha256": "9c0fb3e3a9f545768b401edd2084c696e2d46cdc0a1d752d76ce3d27a7ff73eb",
+        "raw_equal": true,
+        "metadata_normalized_equal": true
+      },
+      {
+        "name": ".reloc",
+        "left_offset": 10764288,
+        "right_offset": 10764288,
+        "left_bytes": 22016,
+        "right_bytes": 22016,
+        "left_sha256": "5ffbff72a359d2dfa7a31881ec820dda358d5516c062b2f062e5637c366e5fa3",
+        "right_sha256": "5ffbff72a359d2dfa7a31881ec820dda358d5516c062b2f062e5637c366e5fa3",
+        "raw_equal": true,
+        "metadata_normalized_equal": true
+      }
+    ],
+    "left_metadata": [
+      {
+        "kind": "COFF.TimeDateStamp",
+        "offset": 248,
+        "size": 4,
+        "value": 1792374342
+      },
+      {
+        "kind": "DEBUG.TimeDateStamp",
+        "offset": 8510228,
+        "size": 4,
+        "value": 1792374342
+      },
+      {
+        "kind": "CodeView.RSDS.GUID_age_path",
+        "offset": 8511864,
+        "size": 39,
+        "pdb_path": "spectrum_agent.pdb",
+        "guid_bytes": "af87bc6e723c0f4a83ea89fa2898cba7"
+      },
+      {
+        "kind": "DEBUG.SizeOfData",
+        "offset": 8510240,
+        "size": 4,
+        "value": 43
+      },
+      {
+        "kind": "DEBUG.TimeDateStamp",
+        "offset": 8510256,
+        "size": 4,
+        "value": 1792374342
+      },
+      {
+        "kind": "DEBUG.TimeDateStamp",
+        "offset": 8510284,
+        "size": 4,
+        "value": 1792374342
+      }
+    ],
+    "right_metadata": [
+      {
+        "kind": "COFF.TimeDateStamp",
+        "offset": 248,
+        "size": 4,
+        "value": 1792383234
+      },
+      {
+        "kind": "DEBUG.TimeDateStamp",
+        "offset": 8510228,
+        "size": 4,
+        "value": 1792383234
+      },
+      {
+        "kind": "CodeView.RSDS.GUID_age_path",
+        "offset": 8511864,
+        "size": 39,
+        "pdb_path": "spectrum_agent.pdb",
+        "guid_bytes": "66d43739c5a30448a80a17a54a14bb0e"
+      },
+      {
+        "kind": "DEBUG.SizeOfData",
+        "offset": 8510240,
+        "size": 4,
+        "value": 43
+      },
+      {
+        "kind": "DEBUG.TimeDateStamp",
+        "offset": 8510256,
+        "size": 4,
+        "value": 1792383234
+      },
+      {
+        "kind": "DEBUG.TimeDateStamp",
+        "offset": 8510284,
+        "size": 4,
+        "value": 1792383234
+      }
+    ],
+    "left_debug": [
+      {
+        "type": 2,
+        "raw_offset": 8511860,
+        "size": 43
+      },
+      {
+        "type": 12,
+        "raw_offset": 8511904,
+        "size": 20
+      },
+      {
+        "type": 13,
+        "raw_offset": 8511924,
+        "size": 1044
+      }
+    ],
+    "right_debug": [
+      {
+        "type": 2,
+        "raw_offset": 8511860,
+        "size": 43
+      },
+      {
+        "type": 12,
+        "raw_offset": 8511904,
+        "size": 20
+      },
+      {
+        "type": 13,
+        "raw_offset": 8511924,
+        "size": 1044
+      }
+    ],
+    "IMAGE_DEBUG_TYPE_REPRO_present": false
+  },
+  "verdict": "���ɸ��֣������ֽڸ��֣�"
+}

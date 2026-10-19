@@ -1,0 +1,76 @@
+﻿[
+    {
+        "event":  "shell_log_started",
+        "timestamp":  "2026-10-18T15:31:31.669Z"
+    },
+    {
+        "event":  "shell_started",
+        "pid":  12964,
+        "timestamp":  "2026-10-18T15:31:31.669Z"
+    },
+    {
+        "event":  "single_instance_lock_acquired",
+        "timestamp":  "2026-10-18T15:31:32.061Z"
+    },
+    {
+        "event":  "shell_log_started",
+        "timestamp":  "2026-10-18T15:31:32.062Z"
+    },
+    {
+        "event":  "engine_start_attempt",
+        "exe":  "\\\\?\\E:\\AI_Agent\\src-tauri\\target\\release\\resources\\backend\\app.exe",
+        "generation_id":  1,
+        "selection_source":  "resolved_resource",
+        "timestamp":  "2026-10-18T15:31:32.062Z"
+    },
+    {
+        "event":  "preexisting_handshake_snapshot",
+        "generation_id":  1,
+        "old_identity":  {
+                             "boot_id":  "e35acc54",
+                             "pid":  18684,
+                             "port":  59643,
+                             "process_created_at_ms":  1792337445641
+                         },
+        "preexisting_handshake_invalid":  null,
+        "timestamp":  "2026-10-18T15:31:32.063Z"
+    },
+    {
+        "event":  "process_created_suspended",
+        "generation_id":  1,
+        "pid":  23448,
+        "timestamp":  "2026-10-18T15:31:32.085Z"
+    },
+    {
+        "event":  "job_assigned",
+        "generation_id":  1,
+        "pid":  23448,
+        "timestamp":  "2026-10-18T15:31:32.085Z"
+    },
+    {
+        "event":  "thread_resumed_and_closed",
+        "generation_id":  1,
+        "pid":  23448,
+        "timestamp":  "2026-10-18T15:31:32.085Z"
+    },
+    {
+        "event":  "process_identity_recorded",
+        "generation_id":  1,
+        "pid":  23448,
+        "process_created_at_ms":  1792337492079,
+        "timestamp":  "2026-10-18T15:31:32.085Z"
+    },
+    {
+        "event":  "window_hidden",
+        "generation_id":  1,
+        "success":  true,
+        "timestamp":  "2026-10-18T15:31:32.086Z",
+        "visible":  false
+    },
+    {
+        "event":  "handshake_ignored",
+        "generation_id":  1,
+        "reason":  "foreign_identity",
+        "timestamp":  "2026-10-18T15:31:32.086Z"
+    }
+]

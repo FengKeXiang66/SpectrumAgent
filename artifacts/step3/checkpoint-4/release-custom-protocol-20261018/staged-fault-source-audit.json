@@ -1,0 +1,27 @@
+{
+  "scan_original_before_copy": true,
+  "records": [
+    {
+      "source": "C:/Users/Administrator/AppData/Local/SpectrumAgent/logs/shell-20261019.log",
+      "bytes": 662546,
+      "sha256": "9813d4d4df22326a5f5a38486c57a898b91f90fb5eb2552f7371d71146a0704b",
+      "json_lines": 2225,
+      "actual_token_samples": 8,
+      "full_handshake_samples": 6,
+      "exact_token_hits": 0,
+      "whole_handshake_hits": 0,
+      "authorization_bearer": false
+    },
+    {
+      "source": "C:/Users/Administrator/AppData/Local/SpectrumAgent/acceptance/dom-29764.jsonl",
+      "bytes": 386797,
+      "sha256": "a2ae16db6f37d3c0610500acff01423e224c1c7853d2a8be0217c6c437f9b900",
+      "json_lines": 172,
+      "actual_token_samples": 8,
+      "full_handshake_samples": 6,
+      "exact_token_hits": 0,
+      "whole_handshake_hits": 0,
+      "authorization_bearer": false
+    }
+  ]
+}

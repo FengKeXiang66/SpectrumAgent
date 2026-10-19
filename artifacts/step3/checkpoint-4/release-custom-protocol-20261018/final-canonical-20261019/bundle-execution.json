@@ -1,0 +1,9 @@
+{
+  "exit_code": 1,
+  "features": "custom-protocol",
+  "test_probes_enabled": false,
+  "channel": "direct; no HTTP_PROXY/HTTPS_PROXY/ALL_PROXY; NO_PROXY=*; cached tools",
+  "shell_sha256": "22A13E6A4D2EC88CF58FA349AAD7F22E61FA11331ADCA11E11EEC9C781F73471",
+  "setup_sha256": "3BD0E6A4F6960C0B924FC4E182B31A606B712D12BDABB7AD4EE24CABE78B2E4B",
+  "setup_bytes": 287173510
+}

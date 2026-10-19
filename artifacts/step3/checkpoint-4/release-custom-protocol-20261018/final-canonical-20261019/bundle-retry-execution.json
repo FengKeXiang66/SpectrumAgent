@@ -1,0 +1,9 @@
+{
+  "exit_code": 1,
+  "features": "custom-protocol",
+  "test_probes_enabled": false,
+  "channel": "direct; proxy=None; NO_PROXY=*; cached NSIS tools",
+  "shell_sha256": "22A13E6A4D2EC88CF58FA349AAD7F22E61FA11331ADCA11E11EEC9C781F73471",
+  "setup_sha256": "C9BFB28AB880197E4A6AC09F8A93FADCBAF7CF127F1ABD6C4AC5D4EC99C5EACA",
+  "setup_bytes": 287153441
+}

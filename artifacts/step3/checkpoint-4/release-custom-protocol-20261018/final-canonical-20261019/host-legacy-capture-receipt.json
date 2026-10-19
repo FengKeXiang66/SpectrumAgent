@@ -1,0 +1,228 @@
+{
+    "status":  "passed",
+    "checked_utc":  "2026-10-19T04:32:21.6656281Z",
+    "error":  null,
+    "context":  "existing Explorer broker -\u003e Windows PowerShell host process",
+    "related_processes":  [
+
+                          ],
+    "program":  "C:\\Users\\Administrator\\AppData\\Local\\Programs\\SpectrumAgent",
+    "installed_shell_sha256":  "29a2829b2a74d185f8c4341e2f577cc5a000c13bc4e891d64b0d8b70daf0e28c",
+    "uninstaller_exists":  true,
+    "registry_keys":  [
+                          {
+                              "path":  "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\SpectrumAgent",
+                              "exists":  false
+                          },
+                          {
+                              "path":  "HKCU:\\Software\\spectrumagent\\SpectrumAgent",
+                              "exists":  false
+                          }
+                      ],
+    "records":  [
+                    {
+                        "source":  "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\shell-20261019.log",
+                        "source_bytes":  132026,
+                        "source_sha256":  "01cdf477ead5ad4020eb91ac61f2069591fa5d8095e81377b4e0db22354f6654",
+                        "archive":  "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-custom-protocol-20261018\\final-canonical-20261019\\legacy-6236-shell.jsonl",
+                        "archive_bytes":  3115,
+                        "archive_sha256":  "8a5a15fa2650853740b9f81760c3828f61cf614a13dd15bd926bbd4d9ecb13ba",
+                        "first_timestamp":  "2026-10-19T02:23:38.992Z",
+                        "last_timestamp":  "2026-10-19T02:23:47.936Z",
+                        "lines":  [
+                                      {
+                                          "line":  531,
+                                          "byte_offset":  64269,
+                                          "bytes":  69
+                                      },
+                                      {
+                                          "line":  532,
+                                          "byte_offset":  64338,
+                                          "bytes":  76
+                                      },
+                                      {
+                                          "line":  533,
+                                          "byte_offset":  64414,
+                                          "bytes":  81
+                                      },
+                                      {
+                                          "line":  534,
+                                          "byte_offset":  64495,
+                                          "bytes":  69
+                                      },
+                                      {
+                                          "line":  535,
+                                          "byte_offset":  64564,
+                                          "bytes":  239
+                                      },
+                                      {
+                                          "line":  536,
+                                          "byte_offset":  64803,
+                                          "bytes":  237
+                                      },
+                                      {
+                                          "line":  537,
+                                          "byte_offset":  65040,
+                                          "bytes":  107
+                                      },
+                                      {
+                                          "line":  538,
+                                          "byte_offset":  65147,
+                                          "bytes":  94
+                                      },
+                                      {
+                                          "line":  539,
+                                          "byte_offset":  65241,
+                                          "bytes":  107
+                                      },
+                                      {
+                                          "line":  540,
+                                          "byte_offset":  65348,
+                                          "bytes":  145
+                                      },
+                                      {
+                                          "line":  541,
+                                          "byte_offset":  65493,
+                                          "bytes":  115
+                                      },
+                                      {
+                                          "line":  542,
+                                          "byte_offset":  65608,
+                                          "bytes":  114
+                                      },
+                                      {
+                                          "line":  543,
+                                          "byte_offset":  65722,
+                                          "bytes":  109
+                                      },
+                                      {
+                                          "line":  544,
+                                          "byte_offset":  65831,
+                                          "bytes":  168
+                                      },
+                                      {
+                                          "line":  545,
+                                          "byte_offset":  65999,
+                                          "bytes":  110
+                                      },
+                                      {
+                                          "line":  546,
+                                          "byte_offset":  66109,
+                                          "bytes":  152
+                                      },
+                                      {
+                                          "line":  547,
+                                          "byte_offset":  66261,
+                                          "bytes":  129
+                                      },
+                                      {
+                                          "line":  548,
+                                          "byte_offset":  66390,
+                                          "bytes":  121
+                                      },
+                                      {
+                                          "line":  549,
+                                          "byte_offset":  66511,
+                                          "bytes":  85
+                                      },
+                                      {
+                                          "line":  550,
+                                          "byte_offset":  66596,
+                                          "bytes":  226
+                                      },
+                                      {
+                                          "line":  551,
+                                          "byte_offset":  66822,
+                                          "bytes":  146
+                                      },
+                                      {
+                                          "line":  552,
+                                          "byte_offset":  66968,
+                                          "bytes":  133
+                                      },
+                                      {
+                                          "line":  553,
+                                          "byte_offset":  67101,
+                                          "bytes":  116
+                                      },
+                                      {
+                                          "line":  554,
+                                          "byte_offset":  67217,
+                                          "bytes":  78
+                                      },
+                                      {
+                                          "line":  555,
+                                          "byte_offset":  67295,
+                                          "bytes":  89
+                                      }
+                                  ]
+                    },
+                    {
+                        "source":  "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\engine-20261019.jsonl",
+                        "source_bytes":  79708,
+                        "source_sha256":  "2dbe4447956b493fe2f0c1868a2ca3bc0e75a921387e6f39926000a4e986e872",
+                        "archive":  "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-custom-protocol-20261018\\final-canonical-20261019\\legacy-6236-engine.jsonl",
+                        "archive_bytes":  2242,
+                        "archive_sha256":  "78f33a19e780df8de85764ea20054e5743a7ce3da82b0d9432b21d0a8fcd25f4",
+                        "first_timestamp":  "2026-10-19T02:23:40.188638Z",
+                        "last_timestamp":  "2026-10-19T02:23:45.928383Z",
+                        "lines":  [
+                                      {
+                                          "line":  212,
+                                          "byte_offset":  38805,
+                                          "bytes":  170
+                                      },
+                                      {
+                                          "line":  213,
+                                          "byte_offset":  38975,
+                                          "bytes":  305
+                                      },
+                                      {
+                                          "line":  214,
+                                          "byte_offset":  39280,
+                                          "bytes":  172
+                                      },
+                                      {
+                                          "line":  215,
+                                          "byte_offset":  39452,
+                                          "bytes":  169
+                                      },
+                                      {
+                                          "line":  216,
+                                          "byte_offset":  39621,
+                                          "bytes":  204
+                                      },
+                                      {
+                                          "line":  217,
+                                          "byte_offset":  39825,
+                                          "bytes":  187
+                                      },
+                                      {
+                                          "line":  218,
+                                          "byte_offset":  40012,
+                                          "bytes":  199
+                                      },
+                                      {
+                                          "line":  219,
+                                          "byte_offset":  40211,
+                                          "bytes":  160
+                                      },
+                                      {
+                                          "line":  220,
+                                          "byte_offset":  40371,
+                                          "bytes":  187
+                                      },
+                                      {
+                                          "line":  221,
+                                          "byte_offset":  40558,
+                                          "bytes":  303
+                                      },
+                                      {
+                                          "line":  222,
+                                          "byte_offset":  40861,
+                                          "bytes":  186
+                                      }
+                                  ]
+                    }
+                ]
+}

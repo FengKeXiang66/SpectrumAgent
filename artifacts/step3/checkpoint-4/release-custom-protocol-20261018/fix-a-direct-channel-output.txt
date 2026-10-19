@@ -1,0 +1,32 @@
+FIX_A_CHANNEL env proxy variables cleared; NO_PROXY=*; curl explicit --noproxy *; system WinINET configuration unchanged
+
+Name     Value
+----     -----
+NO_PROXY *
+
+COMMAND: target-level cache directories
+
+FullName
+--------
+E:\AI_Agent\src-tauri\target\.tauri
+E:\AI_Agent\src-tauri\target\causality-runtime
+E:\AI_Agent\src-tauri\target\checkpoint2-fixtures
+E:\AI_Agent\src-tauri\target\debug
+E:\AI_Agent\src-tauri\target\fake-cleanup-17664-1792319628128
+E:\AI_Agent\src-tauri\target\fake-cleanup-18384-1792310364380
+E:\AI_Agent\src-tauri\target\fake-cleanup-18396-1792336993101
+E:\AI_Agent\src-tauri\target\fake-cleanup-22356-1792308318664
+E:\AI_Agent\src-tauri\target\fake-cleanup-24224-1792325716235
+E:\AI_Agent\src-tauri\target\fake-cleanup-24336-1792325777442
+E:\AI_Agent\src-tauri\target\fake-cleanup-25736-1792315811605
+E:\AI_Agent\src-tauri\target\fake-cleanup-6584-1792307736701
+E:\AI_Agent\src-tauri\target\fake-cleanup-8396-1792332047739
+E:\AI_Agent\src-tauri\target\fake-cleanup-9260-1792316884828
+E:\AI_Agent\src-tauri\target\release
+E:\AI_Agent\src-tauri\target\stub-runtime
+E:\AI_Agent\src-tauri\target\tmp
+{"path":"src-tauri/target/tauri","exists":false}
+{"path":"src-tauri/target/.tauri","exists":true}
+COMMAND: explicit direct NSIS HEAD
+FINAL_HTTP=000 REMOTE_IP=
+curl: (28) Failed to connect to github.com port 443 after 21050 ms: Couldn't connect to server

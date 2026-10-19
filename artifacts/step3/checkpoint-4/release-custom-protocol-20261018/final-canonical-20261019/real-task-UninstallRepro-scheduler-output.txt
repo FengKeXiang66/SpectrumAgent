@@ -1,0 +1,33 @@
+﻿成功: 成功创建计划任务 "SpectrumAgent-Acceptance-UninstallRepro-20261019T063018995Z"。
+成功: 尝试运行 "SpectrumAgent-Acceptance-UninstallRepro-20261019T063018995Z"。
+
+文件夹: \
+主机名:                             WIN-RTKE72PB5BE
+任务名:                             \SpectrumAgent-Acceptance-UninstallRepro-20261019T063018995Z
+下次运行时间:                       2026/10/19 14:33:19
+模式:                               就绪
+登录状态:                           只使用交互方式
+上次运行时间:                       2026/10/19 14:30:19
+上次结果:                           0
+创建者:                             N/A
+要运行的任务:                       C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -File "E:\AI_Agent\artifacts\step3\checkpoint-4\release-custom-protocol-20261018\final-canonical-20261019\host_task_worker.ps1" -Action UninstallRep
+起始于:                             E:\AI_Agent
+注释:                               One-time SpectrumAgent authorized acceptance UninstallRepro
+计划任务状态:                       已启用
+空闲时间:                           已禁用
+电源管理:                           
+作为用户运行:                       Administrator
+删除没有计划的任务:                 已禁用
+如果运行了 X 小时 X 分钟，停止任务: 00:15:00
+计划:                               计划数据在此格式中不可用。
+计划类型:                           一次性
+开始时间:                           14:33:19
+开始日期:                           2026/10/19
+结束日期:                           N/A
+天:                                 N/A
+月:                                 N/A
+重复: 每:                           已禁用
+重复: 截止: 时间:                   已禁用
+重复: 截止: 持续时间:               已禁用
+重复: 如果还在运行，停止:           已禁用
+成功: 计划的任务 "SpectrumAgent-Acceptance-UninstallRepro-20261019T063018995Z" 被成功删除。

@@ -1,0 +1,246 @@
+[
+  {
+    "path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\run\\uninstall-preservation-0fb8e2c7-f90e-4533-a4a1-629a0bcd422c.txt",
+    "sha256": "D3BF74174848ED8DC5BD99B6C203B836EAE9138D2879AC0D8779A1FC3A006C90"
+  },
+  {
+    "path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\uninstall-preservation-0fb8e2c7-f90e-4533-a4a1-629a0bcd422c.txt",
+    "sha256": "D3BF74174848ED8DC5BD99B6C203B836EAE9138D2879AC0D8779A1FC3A006C90"
+  },
+  {
+    "path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\testdata\\uninstall-preservation-0fb8e2c7-f90e-4533-a4a1-629a0bcd422c.txt",
+    "sha256": "D3BF74174848ED8DC5BD99B6C203B836EAE9138D2879AC0D8779A1FC3A006C90"
+  }
+]
+[
+  {
+    "path": "acceptance/dom-10452.jsonl",
+    "bytes": 475944,
+    "sha256": "ABD3BF6897970003335257930F1325AF0DB8AC2F8525A19AF85A0295745ED392"
+  },
+  {
+    "path": "acceptance/dom-11548.jsonl",
+    "bytes": 7390,
+    "sha256": "C51F650B2C5B1AF7108AAC5754F0B7EC0559C52B53730DF2CEEF342C2BE2E92F"
+  },
+  {
+    "path": "acceptance/dom-11612.jsonl",
+    "bytes": 2742,
+    "sha256": "4E9865436ED62DC6B26CAA9430B801B32CBE5D26A5165D769A8F91E41A6770DB"
+  },
+  {
+    "path": "acceptance/dom-14044.jsonl",
+    "bytes": 6644,
+    "sha256": "668B1F2D6930159E4C2A2A3C64E84C6F7AA6A3BB396E11D91F301EAFFDE661B9"
+  },
+  {
+    "path": "acceptance/dom-14352.jsonl",
+    "bytes": 629689,
+    "sha256": "2F99B1E764B2C555EA53198E885681C676CE89967DB219F27732CD78176336D3"
+  },
+  {
+    "path": "acceptance/dom-15820.jsonl",
+    "bytes": 415388,
+    "sha256": "C7BF06EDA59BF529FDB0EE20353CC852775F1E398C46BB8C4D35659A15F7ED8A"
+  },
+  {
+    "path": "acceptance/dom-16036.jsonl",
+    "bytes": 2929,
+    "sha256": "80BB261C2350591B7A8D85B840648EF4923DAD1EA9C24A46986B914F766E18E5"
+  },
+  {
+    "path": "acceptance/dom-17240.jsonl",
+    "bytes": 4141,
+    "sha256": "CB0C23BBDF1CCF10BFC77A7CBB89D7FA6C25B686F3FB70CE85CED110FE4E6601"
+  },
+  {
+    "path": "acceptance/dom-17852.jsonl",
+    "bytes": 650294,
+    "sha256": "C3F187A49EB41A777A51BD17FD82C34184F9BBF31764F446169F69D3C65F2A64"
+  },
+  {
+    "path": "acceptance/dom-18072.jsonl",
+    "bytes": 6644,
+    "sha256": "D1801814344C719BC1060C2D90EA84BAA68BC95EA3796DE4B64D6D0FDE638B86"
+  },
+  {
+    "path": "acceptance/dom-18188.jsonl",
+    "bytes": 650532,
+    "sha256": "34D68C688F14F32C79D1B381DEEA36F90B025361F92FEEF5421282A0518FBA1C"
+  },
+  {
+    "path": "acceptance/dom-19480.jsonl",
+    "bytes": 7354,
+    "sha256": "B3C4A55A20E8C84171A303507D8C101A2506F9F3BCD74298D6CBF268D2539175"
+  },
+  {
+    "path": "acceptance/dom-21520.jsonl",
+    "bytes": 6646,
+    "sha256": "2BFB0D06724FCF50B1A58E3A0C82A7054EDC668A2A95B6ED7C440284E135BB18"
+  },
+  {
+    "path": "acceptance/dom-21624.jsonl",
+    "bytes": 2334,
+    "sha256": "A1F8546A3FF4FAE6969C37B4AEB2982C15EBA4BBB1237CEFEB65755708BE05E9"
+  },
+  {
+    "path": "acceptance/dom-22192.jsonl",
+    "bytes": 977831,
+    "sha256": "1F31530490E84C4D70D340E0B0A012244BDE2A38C06123AD50FA3185CD320DC1"
+  },
+  {
+    "path": "acceptance/dom-22748.jsonl",
+    "bytes": 477081,
+    "sha256": "2E5AFBB0DC6BFC831860F63415B7229ECF6DD552E6BB9F23E68D7C4941183605"
+  },
+  {
+    "path": "acceptance/dom-23628.jsonl",
+    "bytes": 8191,
+    "sha256": "E7255A41341000998155EF7C263FC99CC660F62E50C61AD25243C7450666B774"
+  },
+  {
+    "path": "acceptance/dom-24032.jsonl",
+    "bytes": 6646,
+    "sha256": "DC3D8AA5C1E0BE030DFC4A9E755992567429BD79CA8780B13764B7A679362F40"
+  },
+  {
+    "path": "acceptance/dom-24452.jsonl",
+    "bytes": 652950,
+    "sha256": "EDDA62776EC7511D510396D601730BF63604EE57D4D44749EAD8AA3726947932"
+  },
+  {
+    "path": "acceptance/dom-25088.jsonl",
+    "bytes": 638616,
+    "sha256": "2AA955DDD64ED66E1BA49E772970952C72C8A18C4675A46AE4CFF704B2C5F63D"
+  },
+  {
+    "path": "acceptance/dom-25144.jsonl",
+    "bytes": 427862,
+    "sha256": "CAE45B186137EA9B76829A2693A49DAB858B7D6E76B36AF3FB3D840C7B37609F"
+  },
+  {
+    "path": "acceptance/dom-26588.jsonl",
+    "bytes": 2930,
+    "sha256": "70690A96854521F5518B8FD508016C21A5D7F15B5B6375B7D91AF86A30C76883"
+  },
+  {
+    "path": "acceptance/dom-26608.jsonl",
+    "bytes": 1015562,
+    "sha256": "53102257DBDA04AF47F6AB4ADD78EBA81DC402C40937610E26C111A90044A9CF"
+  },
+  {
+    "path": "acceptance/dom-26736.jsonl",
+    "bytes": 7397,
+    "sha256": "047035C236DA71F0FCF00AF4B014568215A773D3BA703E829452A007E14F4F32"
+  },
+  {
+    "path": "acceptance/dom-26856.jsonl",
+    "bytes": 656188,
+    "sha256": "5C2894AE3AFA84FF465A17DB572C0FBCCB644FD1C3DFAB2CDDB51909EDC87018"
+  },
+  {
+    "path": "acceptance/dom-27528.jsonl",
+    "bytes": 637356,
+    "sha256": "4218CCE16D985C0BB021677D0490BDBFBCF7148F800F7CB36D32121BCE54D942"
+  },
+  {
+    "path": "acceptance/dom-28200.jsonl",
+    "bytes": 7397,
+    "sha256": "BB2381105121C1D1B135F271A1B6BD0C777CBD1DA5140D6C9F5BDE2E34810826"
+  },
+  {
+    "path": "acceptance/dom-29448.jsonl",
+    "bytes": 649882,
+    "sha256": "D9015ECFA8A66B153D54E48C174D6F203793A5BFF2F22C1B81F18D0B3683DE04"
+  },
+  {
+    "path": "acceptance/dom-29764.jsonl",
+    "bytes": 386797,
+    "sha256": "A2AE16DB6F37D3C0610500ACFF01423E224C1C7853D2A8BE0217C6C437F9B900"
+  },
+  {
+    "path": "acceptance/dom-30208.jsonl",
+    "bytes": 8199,
+    "sha256": "4EB6342FBB4170F33D978BDBD016AB0A7FDBBF5F94A4B1A6C4E4A910E4AB4235"
+  },
+  {
+    "path": "acceptance/dom-3040.jsonl",
+    "bytes": 8190,
+    "sha256": "246061A14C7F034F23DFDA69B33E82B079E199C1AFA27ECAB465EB43C7909C1A"
+  },
+  {
+    "path": "acceptance/dom-3996.jsonl",
+    "bytes": 661883,
+    "sha256": "371CF42677FF8943154A1B4E419EB17E76BD3DEB810582AB9DAA44E398B07484"
+  },
+  {
+    "path": "acceptance/dom-6568.jsonl",
+    "bytes": 519972,
+    "sha256": "5CEA98BF95A32039C9F254A40956272CB6D58FEC20FCA55A9D2CB0204F313B93"
+  },
+  {
+    "path": "db/spectrum-agent.sqlite3",
+    "bytes": 4096,
+    "sha256": "5C9DEC1886CC01F5F2307EE1EA87F9B32A4CEF0F8F9A2C68BEEBC558013BEDAB"
+  },
+  {
+    "path": "db/spectrum-agent.sqlite3-shm",
+    "bytes": 32768,
+    "sha256": "FD4C9FDA9CD3F9AE7C962B0DDF37232294D55580E1AA165AA06129B8549389EB"
+  },
+  {
+    "path": "db/spectrum-agent.sqlite3-wal",
+    "bytes": 0,
+    "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+  },
+  {
+    "path": "logs/engine-20261018.jsonl",
+    "bytes": 900701,
+    "sha256": "08C660D139827CC1030BD6BEEA63B94326298524D3DE5887D922DB232477DA38"
+  },
+  {
+    "path": "logs/engine-20261019.jsonl",
+    "bytes": 17493,
+    "sha256": "DD4028208EAD4298AD249A628491AAD373523D84492449A53881AF3E945C0860"
+  },
+  {
+    "path": "logs/shell-20261018.log",
+    "bytes": 2786470,
+    "sha256": "090F00AC3497C84FA8F31CA1F66B06BB37A706541082B83D9073C54346C258BE"
+  },
+  {
+    "path": "logs/shell-20261019.log",
+    "bytes": 1536114,
+    "sha256": "B746143CB98ADD4E05980507D577A5B8DF82FB3527E3B7040F373BBCFDC84845"
+  },
+  {
+    "path": "logs/uninstall-preservation-0fb8e2c7-f90e-4533-a4a1-629a0bcd422c.txt",
+    "bytes": 60,
+    "sha256": "D3BF74174848ED8DC5BD99B6C203B836EAE9138D2879AC0D8779A1FC3A006C90"
+  },
+  {
+    "path": "run/handshake.json",
+    "bytes": 225,
+    "sha256": "DD717F0B6785F692AB687A7A0DB14870F0091CDA585AFEBE87679FFDC45D1E40"
+  },
+  {
+    "path": "run/uninstall-preservation-0fb8e2c7-f90e-4533-a4a1-629a0bcd422c.txt",
+    "bytes": 60,
+    "sha256": "D3BF74174848ED8DC5BD99B6C203B836EAE9138D2879AC0D8779A1FC3A006C90"
+  },
+  {
+    "path": "testdata/smoke-8x8x8.dat",
+    "bytes": 2048,
+    "sha256": "B7BBFD324222984C5F69EEFED6BDAFACD76D4F8B9834AFD5A835A4ACC5FD1398"
+  },
+  {
+    "path": "testdata/smoke-8x8x8.hdr",
+    "bytes": 136,
+    "sha256": "0B1B6041443AD9815726F424CDE3A4F16CDFA21A5B7E5A592D1419C7A1DC9C97"
+  },
+  {
+    "path": "testdata/uninstall-preservation-0fb8e2c7-f90e-4533-a4a1-629a0bcd422c.txt",
+    "bytes": 60,
+    "sha256": "D3BF74174848ED8DC5BD99B6C203B836EAE9138D2879AC0D8779A1FC3A006C90"
+  }
+]

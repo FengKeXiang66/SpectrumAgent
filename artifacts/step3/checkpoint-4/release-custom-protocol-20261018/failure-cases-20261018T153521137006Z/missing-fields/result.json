@@ -1,0 +1,50 @@
+{
+  "case": "missing-fields",
+  "shell_pid": 26736,
+  "shell_sha256": "cba991aa47d8ecb0b63610935e45868c37219359b611e5b7172a5e9a535f2ece",
+  "engine_pid": 10428,
+  "failure": {
+    "data_directory": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent",
+    "engine_error": "HANDSHAKE_INVALID_FIELDS",
+    "exit_reason": {
+      "ProcessExit": {
+        "code": 1
+      }
+    },
+    "handshake_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\run\\handshake.json",
+    "kind": "HandshakeInvalid",
+    "log_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\engine-20261018.jsonl",
+    "preexisting_handshake_invalid": "InvalidFields"
+  },
+  "causal_rows": [
+    {
+      "error": "HANDSHAKE_INVALID_FIELDS",
+      "phase": "startup",
+      "event": "handshake_error",
+      "pid": 10428,
+      "boot_id": "815ff96d",
+      "logger": "engine.handshake",
+      "level": "error",
+      "timestamp": "2026-10-18T15:35:45.146376Z"
+    },
+    {
+      "error": "HANDSHAKE_INVALID_FIELDS",
+      "phase": "finally",
+      "event": "handshake_error",
+      "pid": 10428,
+      "boot_id": "815ff96d",
+      "logger": "engine.handshake",
+      "level": "error",
+      "timestamp": "2026-10-18T15:35:45.147376Z"
+    }
+  ],
+  "fixture_bytes_unchanged": true,
+  "failure_page_observed": true,
+  "elapsed_ms_to_dom_observation": 1285.625,
+  "fault_fixture": false,
+  "fault_fixture_resource_files": null,
+  "failed_second_instance_pid": 25244,
+  "failed_second_instance_exit": 0,
+  "engine_start_attempts": 1,
+  "activation_received": true
+}

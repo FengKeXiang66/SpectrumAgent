@@ -1,0 +1,19 @@
+{
+  "exit_code": 1,
+  "shell_sha256_before": "CBA991AA47D8ECB0B63610935E45868C37219359B611E5B7172A5E9A535F2ECE",
+  "shell_sha256_after": "CBA991AA47D8ECB0B63610935E45868C37219359B611E5B7172A5E9A535F2ECE",
+  "locks_after": [
+    {
+      "Path": "E:\\AI_Agent\\requirements-lock.txt",
+      "Hash": "58E24B59DA34461A17FD942B4047071E42B5120B3D474BA976A7E28535D40BCC"
+    },
+    {
+      "Path": "E:\\AI_Agent\\package-lock.json",
+      "Hash": "5122B8E2DBD8B84CE2D7365088D01E657DE7C178037533194AB17504EB7ECB14"
+    },
+    {
+      "Path": "E:\\AI_Agent\\src-tauri\\Cargo.lock",
+      "Hash": "19677A37D746C188184F4948D8BC5739759BE755E3AFEAA2C9F58471FEC13B12"
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "checked_utc": "2026-10-19T02:02:06.1298564Z",
+  "state_exists": false,
+  "program_exists": false,
+  "uninstall_key_exists": false,
+  "remembered_key_exists": true,
+  "remembered_values": {
+    "(default)": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\SpectrumAgent"
+  },
+  "prior_owned_install_state": {
+    "scope": "host installation only; VM installation remains pending",
+    "installed_utc": "2026-10-19T01:32:57.4042013Z",
+    "setup": "E:\\AI_Agent\\src-tauri\\target\\release\\bundle\\nsis\\SpectrumAgent_0.1.0_x64-setup.exe",
+    "setup_sha256": "56B7551F048BF7C85D0A3CB9CDB94B80642CEEE9F78E0BAC666A1B8D2008A2AF",
+    "installer_pid": 29908,
+    "installer_exit": 0,
+    "program": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\SpectrumAgent",
+    "data": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent",
+    "registry_key": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\SpectrumAgent",
+    "registry_install_location": "\"C:\\Users\\Administrator\\AppData\\Local\\Programs\\SpectrumAgent\"",
+    "shell_sha256": "cba991aa47d8ecb0b63610935e45868c37219359b611e5b7172a5e9a535f2ece",
+    "features": "custom-protocol",
+    "install_mode": "currentUser",
+    "admin_requirement_test": "NSIS RequestExecutionLevel user; standard-user VM test still pending"
+  },
+  "prior_owned_uninstall": {
+    "scope": "host only; VM uninstall remains pending",
+    "uninstaller_pid": 24044,
+    "initial_uninstaller_exit": 0,
+    "uninstaller_sha256": "8BC969A8974EA4C886FCE3048BF3D096DFD87863811F9973D6661D0AAC5E20C4",
+    "program": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\SpectrumAgent",
+    "program_directory_removed": true,
+    "data": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent",
+    "data_directory_preserved": true,
+    "data_files_before": 35,
+    "data_files_after": 35,
+    "all_data_bytes_unchanged": true,
+    "directories_preserved": {
+      "run": true,
+      "logs": true,
+      "testdata": true
+    },
+    "test_hygiene_not_yet_applied": true
+  }
+}

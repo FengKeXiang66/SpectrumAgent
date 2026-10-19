@@ -1,0 +1,131 @@
+[
+  {
+    "case": "invalid-json",
+    "shell_pid": 23628,
+    "shell_sha256": "29a2829b2a74d185f8c4341e2f577cc5a000c13bc4e891d64b0d8b70daf0e28c",
+    "engine_pid": 6564,
+    "failure": {
+      "data_directory": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent",
+      "engine_error": "HANDSHAKE_INVALID_JSON",
+      "exit_reason": {
+        "ProcessExit": {
+          "code": 1
+        }
+      },
+      "handshake_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\run\\handshake.json",
+      "kind": "HandshakeInvalid",
+      "log_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\engine-20261019.jsonl",
+      "preexisting_handshake_invalid": "InvalidJson"
+    },
+    "causal_rows": [
+      {
+        "error": "HANDSHAKE_INVALID_JSON",
+        "phase": "startup",
+        "event": "handshake_error",
+        "pid": 6564,
+        "boot_id": "fb67fd4f",
+        "logger": "engine.handshake",
+        "level": "error",
+        "timestamp": "2026-10-19T04:21:14.019288Z"
+      },
+      {
+        "error": "HANDSHAKE_INVALID_JSON",
+        "phase": "finally",
+        "event": "handshake_error",
+        "pid": 6564,
+        "boot_id": "fb67fd4f",
+        "logger": "engine.handshake",
+        "level": "error",
+        "timestamp": "2026-10-19T04:21:14.019788Z"
+      }
+    ],
+    "fixture_bytes_unchanged": true,
+    "failure_page_observed": true,
+    "elapsed_ms_to_dom_observation": 1302.557,
+    "fault_fixture": false,
+    "fault_fixture_resource_files": null,
+    "failed_second_instance_pid": 1132,
+    "failed_second_instance_exit": 0,
+    "engine_start_attempts": 1,
+    "activation_received": true
+  },
+  {
+    "case": "missing-fields",
+    "shell_pid": 11548,
+    "shell_sha256": "29a2829b2a74d185f8c4341e2f577cc5a000c13bc4e891d64b0d8b70daf0e28c",
+    "engine_pid": 6464,
+    "failure": {
+      "data_directory": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent",
+      "engine_error": "HANDSHAKE_INVALID_FIELDS",
+      "exit_reason": {
+        "ProcessExit": {
+          "code": 1
+        }
+      },
+      "handshake_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\run\\handshake.json",
+      "kind": "HandshakeInvalid",
+      "log_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\engine-20261019.jsonl",
+      "preexisting_handshake_invalid": "InvalidFields"
+    },
+    "causal_rows": [
+      {
+        "error": "HANDSHAKE_INVALID_FIELDS",
+        "phase": "startup",
+        "event": "handshake_error",
+        "pid": 6464,
+        "boot_id": "7d3b66f6",
+        "logger": "engine.handshake",
+        "level": "error",
+        "timestamp": "2026-10-19T04:21:15.318717Z"
+      },
+      {
+        "error": "HANDSHAKE_INVALID_FIELDS",
+        "phase": "finally",
+        "event": "handshake_error",
+        "pid": 6464,
+        "boot_id": "7d3b66f6",
+        "logger": "engine.handshake",
+        "level": "error",
+        "timestamp": "2026-10-19T04:21:15.319202Z"
+      }
+    ],
+    "fixture_bytes_unchanged": true,
+    "failure_page_observed": true,
+    "elapsed_ms_to_dom_observation": 1235.73,
+    "fault_fixture": false,
+    "fault_fixture_resource_files": null,
+    "failed_second_instance_pid": 22604,
+    "failed_second_instance_exit": 0,
+    "engine_start_attempts": 1,
+    "activation_received": true
+  },
+  {
+    "case": "missing-dll-plus-invalid-json",
+    "shell_pid": 26588,
+    "shell_sha256": "29a2829b2a74d185f8c4341e2f577cc5a000c13bc4e891d64b0d8b70daf0e28c",
+    "engine_pid": 28936,
+    "failure": {
+      "data_directory": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent",
+      "engine_error": null,
+      "exit_reason": {
+        "ProcessExit": {
+          "code": 4294967295
+        }
+      },
+      "handshake_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\run\\handshake.json",
+      "kind": "ExitedBeforeReady",
+      "log_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\engine-20261019.jsonl",
+      "preexisting_handshake_invalid": "InvalidJson"
+    },
+    "causal_rows": [],
+    "fixture_bytes_unchanged": true,
+    "failure_page_observed": true,
+    "elapsed_ms_to_dom_observation": 666.865,
+    "fault_fixture": true,
+    "fault_fixture_resource_files": 543,
+    "failed_second_instance_pid": 29952,
+    "failed_second_instance_exit": 0,
+    "engine_start_attempts": 1,
+    "activation_received": true
+  }
+]

@@ -1,0 +1,34 @@
+{
+  "callbacks": 289,
+  "phases": {
+    "Starting": 8,
+    "Ready": 278,
+    "Stopping": 3
+  },
+  "urls": [
+    "http://tauri.localhost/"
+  ],
+  "stopping_fields": [
+    [
+      {
+        "disabled": true,
+        "id": "agent-input",
+        "value": ""
+      }
+    ],
+    [
+      {
+        "disabled": true,
+        "id": "agent-input",
+        "value": ""
+      }
+    ],
+    [
+      {
+        "disabled": true,
+        "id": "agent-input",
+        "value": ""
+      }
+    ]
+  ]
+}

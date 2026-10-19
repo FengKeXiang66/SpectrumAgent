@@ -1,0 +1,10 @@
+﻿{
+    "task":  "SpectrumAgent-Acceptance-UninstallRepro-20261019T063018995Z",
+    "action":  "UninstallRepro",
+    "identity":  "WIN-RTKE72PB5BE\\Administrator",
+    "sid":  "S-1-5-21-748973980-1164980183-4033859671-500",
+    "xml":  "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-custom-protocol-20261018\\final-canonical-20261019\\real-task-UninstallRepro.xml",
+    "receipt_exists":  true,
+    "deleted_exit":  0,
+    "finished_utc":  "2026-10-19T06:30:21.6938878Z"
+}

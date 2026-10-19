@@ -1,0 +1,16 @@
+﻿{
+    "scope":  "host installation only; VM installation remains pending",
+    "installed_utc":  "2026-10-19T06:32:44.6922824Z",
+    "setup":  "E:\\AI_Agent\\src-tauri\\target\\release\\bundle\\nsis\\SpectrumAgent_0.1.0_x64-setup.exe",
+    "setup_sha256":  "D849253611C1AC985CB08A60A7073E17ED6C89B74E8230532D0C3D2157CC8107",
+    "installer_pid":  8860,
+    "installer_exit":  0,
+    "program":  "C:\\Users\\Administrator\\AppData\\Local\\Programs\\SpectrumAgent",
+    "data":  "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent",
+    "registry_key":  "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\SpectrumAgent",
+    "registry_install_location":  "\"C:\\Users\\Administrator\\AppData\\Local\\Programs\\SpectrumAgent\"",
+    "shell_sha256":  "22a13e6a4d2ec88cf58fa349aad7f22e61fa11331adca11e11eec9c781f73471",
+    "features":  "custom-protocol",
+    "install_mode":  "currentUser",
+    "admin_requirement_test":  "NSIS RequestExecutionLevel user; standard-user VM test still pending"
+}

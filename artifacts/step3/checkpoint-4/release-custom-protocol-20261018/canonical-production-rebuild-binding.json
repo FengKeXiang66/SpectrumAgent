@@ -1,0 +1,9 @@
+{
+  "rebuilt_utc": "2026-10-19T01:45:42.6664467Z",
+  "mode": "Canonical",
+  "features": "custom-protocol",
+  "shell_sha256": "22a13e6a4d2ec88cf58fa349aad7f22e61fa11331adca11e11eec9c781f73471",
+  "previous_matrix_sha256": "cba991aa47d8ecb0b63610935e45868c37219359b611e5b7172a5e9a535f2ece",
+  "byte_sha_equal": false,
+  "resource_files": 544
+}

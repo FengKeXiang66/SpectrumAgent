@@ -1,0 +1,17 @@
+
+> spectrum-agent@0.1.0 tauri
+> tauri bundle --bundles nsis --no-binary-patching --features custom-protocol --verbose
+
+       Debug [tauri_cli::helpers::app_paths] Found Tauri project inside E:\AI_Agent\src-tauri on early lookup
+        Warn [tauri_bundler::bundle] Skipping binary patching for E:\AI_Agent\src-tauri\target\release\spectrum-agent.exe due to --no-binary-patching flag.
+        Info [tauri_bundler::bundle::windows::nsis] Verifying NSIS package
+ Downloading [tauri_bundler::utils::http_utils] https://github.com/tauri-apps/binary-releases/releases/download/nsis-3.13/nsis-3.13.zip
+       Debug [ureq::run] GET https://github.com/******
+       Debug [ureq::unversioned::resolver] Resolved: ArrayVec { len: 1, arr: [127.0.0.1:7897] }
+       Debug [ureq::unversioned::transport::tcp] Connected TcpStream to 127.0.0.1:7897
+       Debug [rustls::client::hs] No cached session for DnsName("github.com")
+       Debug [rustls::client::hs] Not resuming any session
+       Debug [ureq::tls::rustls] Wrapped TLS
+       Debug [ureq::run] Request { method: GET, uri: https://github.com/******, version: HTTP/1.1, headers: {"accept-encoding": "gzip", "user-agent": "tauri-bundler/2.10.3", "accept": "*/*", "host": "github.com"} }
+failed to bundle project: `io: unexpected end of file`
+       Error [tauri_cli_node] failed to bundle project: `io: unexpected end of file`

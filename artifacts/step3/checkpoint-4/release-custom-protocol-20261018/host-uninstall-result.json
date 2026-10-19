@@ -1,0 +1,19 @@
+{
+  "scope": "host only; VM uninstall remains pending",
+  "uninstaller_pid": 24044,
+  "initial_uninstaller_exit": 0,
+  "uninstaller_sha256": "8BC969A8974EA4C886FCE3048BF3D096DFD87863811F9973D6661D0AAC5E20C4",
+  "program": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\SpectrumAgent",
+  "program_directory_removed": true,
+  "data": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent",
+  "data_directory_preserved": true,
+  "data_files_before": 35,
+  "data_files_after": 35,
+  "all_data_bytes_unchanged": true,
+  "directories_preserved": {
+    "run": true,
+    "logs": true,
+    "testdata": true
+  },
+  "test_hygiene_not_yet_applied": true
+}

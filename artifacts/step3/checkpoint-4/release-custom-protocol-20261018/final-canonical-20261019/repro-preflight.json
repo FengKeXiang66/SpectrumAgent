@@ -1,0 +1,11 @@
+{
+  "checked_utc": "2026-10-19T04:11:40.2987212Z",
+  "cargo": "C:\\Users\\Administrator\\.cargo\\bin\\cargo.exe",
+  "rustc": "C:\\Users\\Administrator\\.cargo\\bin\\rustc.exe",
+  "cargo_home": "E:\\AI_Agent\\.cargo-home",
+  "target": "E:\\AI_Agent\\src-tauri\\target\\repro-check",
+  "rustflags_before": "",
+  "disk_free_bytes": 868185894912,
+  "primary_sha256": "22A13E6A4D2EC88CF58FA349AAD7F22E61FA11331ADCA11E11EEC9C781F73471",
+  "product_source_diff": []
+}

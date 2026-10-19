@@ -1,0 +1,21 @@
+{
+    "status":  "passed",
+    "checked_utc":  "2026-10-19T04:35:33.4179881Z",
+    "error":  null,
+    "primary_pid":  29012,
+    "secondary_pid":  11528,
+    "secondary_exit":  0,
+    "handshake_bytes_unchanged":  true,
+    "remaining_shells":  [
+                             {
+                                 "ProcessId":  29012,
+                                 "ExecutablePath":  "C:\\Users\\Administrator\\AppData\\Local\\Programs\\SpectrumAgent\\spectrum-agent.exe"
+                             }
+                         ],
+    "engine_processes":  [
+                             {
+                                 "ProcessId":  8516,
+                                 "ExecutablePath":  "\\\\?\\C:\\Users\\Administrator\\AppData\\Local\\Programs\\SpectrumAgent\\resources\\backend\\app.exe"
+                             }
+                         ]
+}

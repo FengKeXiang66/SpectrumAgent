@@ -1,0 +1,11 @@
+{
+  "pid": 29448,
+  "launch_before_utc": "2026-10-19T01:35:40.6529706Z",
+  "exe": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\SpectrumAgent\\spectrum-agent.exe",
+  "features": "custom-protocol",
+  "sha256": "cba991aa47d8ecb0b63610935e45868c37219359b611e5b7172a5e9a535f2ece",
+  "working_directory": "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-custom-protocol-20261018\\temp",
+  "invalid_engine_override": "E:\\AI_Agent\\invalid-installed-override\\app.exe",
+  "vite_port1420_listeners": 0,
+  "scope": "host installation smoke; clean VM still pending"
+}

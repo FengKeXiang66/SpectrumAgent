@@ -1,0 +1,14 @@
+{
+  "launch_before_utc": "2026-10-19T04:28:31.0955404Z",
+  "pid": 25144,
+  "process_created_utc": "2026-10-19T04:28:31.1109612Z",
+  "shell_sha256": "29a2829b2a74d185f8c4341e2f577cc5a000c13bc4e891d64b0d8b70daf0e28c",
+  "features": "custom-protocol",
+  "working_directory": "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-custom-protocol-20261018\\final-canonical-20261019\\temp",
+  "invalid_engine_override": "E:\\AI_Agent\\invalid-production-override\\app.exe",
+  "vite_port1420_listeners": 0,
+  "webview_profile": "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-custom-protocol-20261018\\final-canonical-20261019\\temp\\webview-repro-smoke-20261019T042827328Z",
+  "cold_definition": "new WebView profile; OS file cache not purged",
+  "acceptance_probe": true,
+  "acceptance_close_observation_ms": 350
+}

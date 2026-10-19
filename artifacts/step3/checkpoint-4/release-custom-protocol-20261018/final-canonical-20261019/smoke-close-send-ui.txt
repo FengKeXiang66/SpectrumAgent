@@ -1,0 +1,47 @@
+Window: "光谱数据 AI Agent", App: spectrum-agent.exe.
+	0 窗口 光谱数据 AI Agent Secondary Actions: Raise
+		1 窗格
+			2 窗格 光谱数据 AI Agent
+				3 窗格 (disabled)
+				4 区域 光谱数据 AI Agent - Web 内容
+					5 区域
+						6 区域
+							7 区域
+								8 区域
+								9 区域
+									10 区域
+										11 区域
+											12 区域
+												13 区域
+												23 文档 光谱数据 AI Agent Value: http://tauri.localhost/ ID: RootWebArea
+													24 组 ID: root
+														25 主要
+															26 标题 光谱数据 AI Agent · 地基演示
+															27 状态
+																28 文本 引擎已就绪
+															29 文本 本页为阶段一骨架占位；仅提供 ENVI / SNV 冒烟演示。
+															30 文本 进程
+															31 文本 28712
+															32 文本 · 端口
+															33 文本 55254
+															34 文本 · 启动代次
+															35 文本 1
+														36 页脚 常驻对话条
+															37 状态
+																38 文本 正在运行冒烟测试…
+															39 文本 hello 对话条
+															40 编辑 (disabled) hello 对话条 Description: 运行冒烟测试（Ctrl+K 聚焦，Ctrl+Enter 发送） ID: agent-input
+															41 按钮 (disabled) 运行中
+								14 区域
+						15 区域
+						16 区域
+		17 标题栏 (settable, string) Value: 光谱数据 AI Agent
+			18 菜单栏 系统 ID: MenuBar
+				19 菜单项目 系统
+			20 按钮 最小化
+			21 按钮 最大化
+			22 按钮 关闭
+
+Document text: ```
+￼
+```

@@ -1,0 +1,1 @@
+GENERIC_WRITE_OPEN_EXISTING_NO_WRITE file=E:\AI_Agent\src-tauri\target\release\spectrum-agent.exe success=True winerror=0

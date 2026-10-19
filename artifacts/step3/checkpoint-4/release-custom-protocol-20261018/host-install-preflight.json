@@ -1,0 +1,8 @@
+{
+  "expected_program_directory": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\SpectrumAgent",
+  "program_directory_exists": false,
+  "uninstall_key_exists": false,
+  "manufacturer_key_exists": false,
+  "data_directory": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent",
+  "data_directory_exists": true
+}

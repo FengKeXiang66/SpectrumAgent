@@ -1,0 +1,10 @@
+{
+  "finished_utc": "2026-10-19T04:13:54.2352402Z",
+  "exe": "E:\\AI_Agent\\src-tauri\\target\\repro-check\\release\\spectrum-agent.exe",
+  "bytes": 10786304,
+  "sha256": "29a2829b2a74d185f8c4341e2f577cc5a000c13bc4e891d64b0d8b70daf0e28c",
+  "baseline_sha256": "22a13e6a4d2ec88cf58fa349aad7f22e61fa11331adca11e11eec9c781f73471",
+  "baseline_unchanged": true,
+  "byte_identical": false,
+  "dist_full_manifest_identical": true
+}

@@ -1,0 +1,13 @@
+{"pid": 8516, "event": "engine_boot", "logger": "engine", "level": "info", "timestamp": "2026-10-19T04:34:35.713855Z"}
+{"event": "Started server process [8516]", "pid": 8516, "boot_id": "270bc788", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-19T04:34:36.507033Z"}
+{"reason": "dead_pid", "old_boot_id": "bebd7fec", "old_pid": 30204, "old_process_created_at": "2026-10-19T04:20:36.943Z", "old_port": 50305, "event": "stale_handshake_removed", "pid": 8516, "boot_id": "270bc788", "logger": "engine.handshake", "level": "info", "timestamp": "2026-10-19T04:34:36.508971Z"}
+{"event": "Waiting for application startup.", "pid": 8516, "boot_id": "270bc788", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-19T04:34:36.509534Z"}
+{"event": "Application startup complete.", "pid": 8516, "boot_id": "270bc788", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-19T04:34:36.518752Z"}
+{"event": "Uvicorn running on http://127.0.0.1:57070 (Press CTRL+C to quit)", "pid": 8516, "boot_id": "270bc788", "logger": "uvicorn.error", "level": "info", "timestamp": "2026-10-19T04:34:36.519454Z"}
+{"event": "127.0.0.1:57071 - \"GET /health HTTP/1.1\" 200", "pid": 8516, "boot_id": "270bc788", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T04:34:36.556069Z"}
+{"event": "HTTP Request: GET http://127.0.0.1:57070/health \"HTTP/1.1 200 OK\"", "pid": 8516, "boot_id": "270bc788", "logger": "httpx", "level": "info", "timestamp": "2026-10-19T04:34:36.557071Z"}
+{"boot_id": "270bc788", "pid": 8516, "port": 57070, "event": "engine_ready", "logger": "engine", "level": "info", "timestamp": "2026-10-19T04:34:36.561536Z"}
+{"event": "127.0.0.1:57072 - \"GET /health HTTP/1.1\" 200", "pid": 8516, "boot_id": "270bc788", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T04:34:36.574435Z"}
+{"event": "127.0.0.1:57074 - \"GET /health HTTP/1.1\" 200", "pid": 8516, "boot_id": "270bc788", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T04:34:36.626567Z"}
+{"blocks": 1, "nan_ratio": 0.0, "reflectance_range": [-1.5275289241381491, 1.5275289241381491], "bands": 8, "shape": [8, 8, 8], "elapsed_ms": 249.442, "event": "smoke_completed", "pid": 8516, "boot_id": "270bc788", "logger": "engine.http", "level": "info", "timestamp": "2026-10-19T04:35:04.820101Z"}
+{"event": "127.0.0.1:57146 - \"GET /smoke HTTP/1.1\" 200", "pid": 8516, "boot_id": "270bc788", "logger": "uvicorn.access", "level": "info", "timestamp": "2026-10-19T04:35:04.820601Z"}

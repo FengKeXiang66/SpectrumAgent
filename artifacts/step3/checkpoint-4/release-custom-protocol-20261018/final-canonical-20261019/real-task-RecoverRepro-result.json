@@ -1,0 +1,57 @@
+{
+    "action":  "RecoverRepro",
+    "started_utc":  "2026-10-19T06:31:34.0654360Z",
+    "status":  "passed",
+    "error":  null,
+    "context":  "one-time scheduled task; interactive host token",
+    "identity":  "WIN-RTKE72PB5BE\\Administrator",
+    "sid":  "S-1-5-21-748973980-1164980183-4033859671-500",
+    "lineage":  {
+                    "source":  "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\shell-20261019.log",
+                    "source_root":  "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent",
+                    "creation_time_utc":  "2026-10-19T01:47:35.9303040Z",
+                    "first_timestamp":  "2026-10-19T01:47:35.930Z",
+                    "snapshot":  "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-custom-protocol-20261018\\final-canonical-20261019\\real-task-RecoverRepro-live-shell-source.log",
+                    "bytes":  757146,
+                    "sha256":  "f9643ffd48c473e9470d20519250b13fa8c2e603ab0231b402b46a4d3ab37039",
+                    "identity":  "WIN-RTKE72PB5BE\\Administrator",
+                    "sid":  "S-1-5-21-748973980-1164980183-4033859671-500",
+                    "captured_utc":  "2026-10-19T06:31:34.2020900Z"
+                },
+    "registry_before":  [
+                            {
+                                "path":  "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\SpectrumAgent",
+                                "exists":  false
+                            },
+                            {
+                                "path":  "HKCU:\\Software\\spectrumagent\\SpectrumAgent",
+                                "exists":  false
+                            }
+                        ],
+    "snapshot_comparison":  {
+                                "before":  16,
+                                "after":  16,
+                                "all_data_bytes_unchanged":  true,
+                                "original_result_preserved":  true,
+                                "harness_error":  "Windows PowerShell5 array pipeline wrapped as one item; corrected by direct assignment"
+                            },
+    "state_archive":  {
+                          "source":  "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-custom-protocol-20261018\\final-canonical-20261019\\host-install-state.json",
+                          "destination":  "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-custom-protocol-20261018\\final-canonical-20261019\\host-install-state.20261019T063134248Z.json",
+                          "sha256":  "1db92c7dd2cafb78d491400ca30694bb1da386627dcd5f67f33569f0773a622b",
+                          "archived_utc":  "2026-10-19T06:31:34.2534361Z",
+                          "reason":  "uninstall exit0/program removed; independent actual16-row comparison passed; same-directory archival"
+                      },
+    "hygiene":  "TEST_HYGIENE_ONLY: exact3markers removed after byte comparison; not a product predicate",
+    "registry_after":  [
+                           {
+                               "path":  "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\SpectrumAgent",
+                               "exists":  false
+                           },
+                           {
+                               "path":  "HKCU:\\Software\\spectrumagent\\SpectrumAgent",
+                               "exists":  false
+                           }
+                       ],
+    "finished_utc":  "2026-10-19T06:31:34.2907236Z"
+}

@@ -1,0 +1,61 @@
+Window: "光谱数据 AI Agent", App: spectrum-agent.exe.
+	0 窗口 光谱数据 AI Agent Secondary Actions: Raise
+		1 窗格
+			2 窗格 光谱数据 AI Agent
+				3 窗格 (disabled)
+				4 区域 光谱数据 AI Agent - Web 内容
+					5 区域
+						6 区域
+							7 区域
+								8 区域
+								9 区域
+									10 区域
+										11 区域
+											12 区域
+												13 区域
+												14 文档 光谱数据 AI Agent Value: http://tauri.localhost/ ID: RootWebArea
+													15 组 ID: root
+														16 主要
+															17 标题 光谱数据 AI Agent · 地基演示
+															18 警报
+																19 标题 引擎启动或运行失败
+																20 文本 引擎在就绪前退出，请检查程序文件与日志。
+																21 文本 退出码：4294967295
+																22 文本 握手路径：
+																23 文本 C:\Users\Administrator\AppData\Local\SpectrumAgent\run\handshake.json
+																24 文本 日志路径：
+																25 文本 C:\Users\Administrator\AppData\Local\SpectrumAgent\logs\engine-20261019.jsonl
+																26 文本 数据目录：
+																27 文本 C:\Users\Administrator\AppData\Local\SpectrumAgent
+																28 按钮 重试
+																29 按钮 打开数据目录
+														30 页脚 常驻对话条
+															31 状态
+																32 文本 引擎不可用，请查看失败原因与诊断入口。
+															33 文本 hello 对话条
+															34 编辑 (disabled) hello 对话条 Description: 运行冒烟测试（Ctrl+K 聚焦，Ctrl+Enter 发送） ID: agent-input
+															35 按钮 (disabled) 发送
+								36 区域
+						37 区域
+						38 区域
+		39 标题栏 (settable, string) Value: 光谱数据 AI Agent
+			40 菜单栏 系统 ID: MenuBar
+				41 菜单项目 系统
+			42 按钮 最小化
+			43 按钮 最大化
+			44 按钮 关闭
+
+Document text: ```
+光谱数据 AI Agent · 地基演示
+引擎启动或运行失败
+引擎在就绪前退出，请检查程序文件与日志。
+退出码：4294967295
+握手路径：C:\Users\Administrator\AppData\Local\SpectrumAgent\run\handshake.json
+日志路径：C:\Users\Administrator\AppData\Local\SpectrumAgent\logs\engine-20261019.jsonl
+数据目录：C:\Users\Administrator\AppData\Local\SpectrumAgent
+重试打开数据目录
+引擎不可用，请查看失败原因与诊断入口。
+hello 对话条
+￼
+发送
+```

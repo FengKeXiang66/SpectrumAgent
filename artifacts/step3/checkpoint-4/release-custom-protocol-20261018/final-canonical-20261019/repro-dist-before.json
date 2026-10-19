@@ -1,0 +1,17 @@
+[
+  {
+    "path": "assets/index-BVBpdjoe.js",
+    "bytes": 226311,
+    "sha256": "31a6f86e4147f8fe05a4b3b20db1eae235e4b50170ffb045798bb0017c968b9b"
+  },
+  {
+    "path": "assets/index-DlY-5qsv.css",
+    "bytes": 558,
+    "sha256": "6dbcf3f08085b2e363eb80c46ab005f2438021f62227d1c16ea3b279b3c6ae75"
+  },
+  {
+    "path": "index.html",
+    "bytes": 372,
+    "sha256": "b8e9cca90bc43c2f66502fbefe92415db40b1837c264b33fc8465a90eb3fb519"
+  }
+]

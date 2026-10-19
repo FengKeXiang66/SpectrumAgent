@@ -1,0 +1,160 @@
+{
+    "action":  "CaptureComplete",
+    "started_utc":  "2026-10-19T06:30:07.8888357Z",
+    "status":  "passed",
+    "error":  null,
+    "context":  "one-time scheduled task; interactive host token",
+    "identity":  "WIN-RTKE72PB5BE\\Administrator",
+    "sid":  "S-1-5-21-748973980-1164980183-4033859671-500",
+    "lineage":  {
+                    "source":  "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\shell-20261019.log",
+                    "source_root":  "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent",
+                    "creation_time_utc":  "2026-10-19T01:47:35.9303040Z",
+                    "first_timestamp":  "2026-10-19T01:47:35.930Z",
+                    "snapshot":  "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-custom-protocol-20261018\\final-canonical-20261019\\real-task-CaptureComplete-live-shell-source.log",
+                    "bytes":  757146,
+                    "sha256":  "f9643ffd48c473e9470d20519250b13fa8c2e603ab0231b402b46a4d3ab37039",
+                    "identity":  "WIN-RTKE72PB5BE\\Administrator",
+                    "sid":  "S-1-5-21-748973980-1164980183-4033859671-500",
+                    "captured_utc":  "2026-10-19T06:30:08.0461979Z"
+                },
+    "registry_before":  [
+                            {
+                                "path":  "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\SpectrumAgent",
+                                "exists":  false
+                            },
+                            {
+                                "path":  "HKCU:\\Software\\spectrumagent\\SpectrumAgent",
+                                "exists":  false
+                            }
+                        ],
+    "engine":  {
+                   "source":  "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\engine-20261019.jsonl",
+                   "creation_time_utc":  "2026-10-19T01:47:36.7680197Z",
+                   "source_snapshot":  "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-custom-protocol-20261018\\final-canonical-20261019\\legacy-6236-engine-complete-v2-source.jsonl",
+                   "source_sha256":  "afa5e7bc9dfad432fdd067329b58204da149bea1303ca509191e81d4d0e320b4",
+                   "archive":  "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-custom-protocol-20261018\\final-canonical-20261019\\legacy-6236-engine-complete.jsonl",
+                   "archive_sha256":  "4acb2bb985a89bb6cbdd21e4aaa4143928a17b86ca86bbb017fef55ded386869",
+                   "records":  [
+                                   {
+                                       "line":  211,
+                                       "byte_offset":  38684,
+                                       "bytes":  121,
+                                       "timestamp":  "2026-10-19T02:23:39.846349Z",
+                                       "event":  "engine_boot",
+                                       "pid":  26088,
+                                       "boot_id":  null
+                                   },
+                                   {
+                                       "line":  212,
+                                       "byte_offset":  38805,
+                                       "bytes":  170,
+                                       "timestamp":  "2026-10-19T02:23:40.188638Z",
+                                       "event":  "Started server process [26088]",
+                                       "pid":  26088,
+                                       "boot_id":  "11222372"
+                                   },
+                                   {
+                                       "line":  213,
+                                       "byte_offset":  38975,
+                                       "bytes":  305,
+                                       "timestamp":  "2026-10-19T02:23:40.191643Z",
+                                       "event":  "stale_handshake_removed",
+                                       "pid":  26088,
+                                       "boot_id":  "11222372"
+                                   },
+                                   {
+                                       "line":  214,
+                                       "byte_offset":  39280,
+                                       "bytes":  172,
+                                       "timestamp":  "2026-10-19T02:23:40.191643Z",
+                                       "event":  "Waiting for application startup.",
+                                       "pid":  26088,
+                                       "boot_id":  "11222372"
+                                   },
+                                   {
+                                       "line":  215,
+                                       "byte_offset":  39452,
+                                       "bytes":  169,
+                                       "timestamp":  "2026-10-19T02:23:40.197787Z",
+                                       "event":  "Application startup complete.",
+                                       "pid":  26088,
+                                       "boot_id":  "11222372"
+                                   },
+                                   {
+                                       "line":  216,
+                                       "byte_offset":  39621,
+                                       "bytes":  204,
+                                       "timestamp":  "2026-10-19T02:23:40.197787Z",
+                                       "event":  "Uvicorn running on http://127.0.0.1:55857 (Press CTRL+C to quit)",
+                                       "pid":  26088,
+                                       "boot_id":  "11222372"
+                                   },
+                                   {
+                                       "line":  217,
+                                       "byte_offset":  39825,
+                                       "bytes":  187,
+                                       "timestamp":  "2026-10-19T02:23:40.233572Z",
+                                       "event":  "127.0.0.1:55858 - \"GET /health HTTP/1.1\" 200",
+                                       "pid":  26088,
+                                       "boot_id":  "11222372"
+                                   },
+                                   {
+                                       "line":  218,
+                                       "byte_offset":  40012,
+                                       "bytes":  199,
+                                       "timestamp":  "2026-10-19T02:23:40.234571Z",
+                                       "event":  "HTTP Request: GET http://127.0.0.1:55857/health \"HTTP/1.1 200 OK\"",
+                                       "pid":  26088,
+                                       "boot_id":  "11222372"
+                                   },
+                                   {
+                                       "line":  219,
+                                       "byte_offset":  40211,
+                                       "bytes":  160,
+                                       "timestamp":  "2026-10-19T02:23:40.239094Z",
+                                       "event":  "engine_ready",
+                                       "pid":  26088,
+                                       "boot_id":  "11222372"
+                                   },
+                                   {
+                                       "line":  220,
+                                       "byte_offset":  40371,
+                                       "bytes":  187,
+                                       "timestamp":  "2026-10-19T02:23:40.247478Z",
+                                       "event":  "127.0.0.1:55859 - \"GET /health HTTP/1.1\" 200",
+                                       "pid":  26088,
+                                       "boot_id":  "11222372"
+                                   },
+                                   {
+                                       "line":  221,
+                                       "byte_offset":  40558,
+                                       "bytes":  303,
+                                       "timestamp":  "2026-10-19T02:23:45.927858Z",
+                                       "event":  "smoke_completed",
+                                       "pid":  26088,
+                                       "boot_id":  "11222372"
+                                   },
+                                   {
+                                       "line":  222,
+                                       "byte_offset":  40861,
+                                       "bytes":  186,
+                                       "timestamp":  "2026-10-19T02:23:45.928383Z",
+                                       "event":  "127.0.0.1:55873 - \"GET /smoke HTTP/1.1\" 200",
+                                       "pid":  26088,
+                                       "boot_id":  "11222372"
+                                   }
+                               ]
+               },
+    "registry_after":  [
+                           {
+                               "path":  "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\SpectrumAgent",
+                               "exists":  false
+                           },
+                           {
+                               "path":  "HKCU:\\Software\\spectrumagent\\SpectrumAgent",
+                               "exists":  false
+                           }
+                       ],
+    "finished_utc":  "2026-10-19T06:30:08.3624354Z"
+}

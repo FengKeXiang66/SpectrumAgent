@@ -1,0 +1,23 @@
+{
+  "checked_utc": "2026-10-19T06:39:22.606307+00:00",
+  "locks": {
+    "requirements-lock.txt": "58e24b59da34461a17fd942b4047071e42b5120b3d474ba976a7e28535d40bcc",
+    "package-lock.json": "5122b8e2dbd8b84ce2d7365088d01e657de7c178037533194ab17504eb7ecb14",
+    "src-tauri/Cargo.lock": "19677a37d746c188184f4948d8bc5739759be755e3afeaa2c9f58471fec13b12"
+  },
+  "product_source_commit": "a53030d47fc169ddfa67057e45c464fc0f1db2cd",
+  "head_when_checked": "1fe7db2ee7b262d7c61da7b7d90aad9f9aa8442b",
+  "product_paths": [
+    "src-tauri/src",
+    "src-tauri/Cargo.toml",
+    "src-tauri/Cargo.lock",
+    "src-tauri/tauri.conf.json",
+    "src-tauri/build.rs",
+    "src-tauri/nsis",
+    "src",
+    "package.json"
+  ],
+  "committed_product_diff": "",
+  "working_product_diff": "",
+  "dependencies_added_this_run": false
+}

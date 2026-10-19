@@ -1,0 +1,8 @@
+﻿{
+    "mode":  "KillStarting",
+    "rounds":  10,
+    "runner_pid":  500,
+    "console":  "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-custom-protocol-20261018\\explorer-KillStarting-20261018T153120267Z-console.txt",
+    "status":  "passed",
+    "error":  null
+}

@@ -1,0 +1,40 @@
+{
+  "checked_utc": "2026-10-19T04:22:51.5544304Z",
+  "localappdata": "C:\\Users\\Administrator\\AppData\\Local",
+  "program_exists": true,
+  "installed_shell_sha256": "22a13e6a4d2ec88cf58fa349aad7f22e61fa11331adca11e11eec9c781f73471",
+  "keys": [
+    {
+      "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\SpectrumAgent",
+      "exists": true
+    },
+    {
+      "path": "HKCU:\\Software\\spectrumagent\\SpectrumAgent",
+      "exists": true
+    },
+    {
+      "path": "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\SpectrumAgent",
+      "exists": false
+    },
+    {
+      "path": "HKLM:\\Software\\spectrumagent\\SpectrumAgent",
+      "exists": false
+    },
+    {
+      "path": "HKCU:\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\SpectrumAgent",
+      "exists": false
+    },
+    {
+      "path": "HKCU:\\Software\\WOW6432Node\\spectrumagent\\SpectrumAgent",
+      "exists": false
+    },
+    {
+      "path": "HKLM:\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\SpectrumAgent",
+      "exists": false
+    },
+    {
+      "path": "HKLM:\\Software\\WOW6432Node\\spectrumagent\\SpectrumAgent",
+      "exists": false
+    }
+  ]
+}

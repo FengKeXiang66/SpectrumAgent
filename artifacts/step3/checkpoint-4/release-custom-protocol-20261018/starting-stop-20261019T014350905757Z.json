@@ -1,0 +1,27 @@
+{
+  "command": [
+    "E:\\AI_Agent\\src-tauri\\target\\debug\\supervisor-probe.exe",
+    "--resource-exe",
+    "E:\\AI_Agent\\src-tauri\\target\\release\\resources\\backend\\app.exe",
+    "--injected-exe",
+    "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-custom-protocol-20261018\\temp\\timeout-stub\\app.exe"
+  ],
+  "scope": "current-source core acceptance harness; not Tauri UI or single-instance evidence",
+  "source_commit": "a53030d47fc169ddfa67057e45c464fc0f1db2cd",
+  "probe_sha256": "f7507d11afa5863a25b750706f68036de3d4dd5b1443dcec0c24aa1a7b997f25",
+  "stub_sha256": "9cacd0a837b8a30eb5b53d6935a735b029b21204fdf53453d16d78c9f9ae2599",
+  "exit_code": 0,
+  "transitions": [
+    {
+      "event": "state_transition",
+      "from": "Starting",
+      "generation_id": 1,
+      "reason": "application_close",
+      "timestamp": "2026-10-19T01:43:51.322Z",
+      "to": "Stopping"
+    }
+  ],
+  "app_exit_count": 1,
+  "log_sha256": "c50d08eff826b0a4cdf47d926e31f5108ad3f9ec8c08c1cef89441d6659f1e31",
+  "log": "starting-stop-20261019T014350905757Z.shell.log"
+}

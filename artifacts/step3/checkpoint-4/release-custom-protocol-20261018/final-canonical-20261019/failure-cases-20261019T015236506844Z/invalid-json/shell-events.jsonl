@@ -1,0 +1,44 @@
+{"event": "shell_log_started", "timestamp": "2026-10-19T01:52:49.088Z"}
+{"event": "shell_started", "pid": 30208, "timestamp": "2026-10-19T01:52:49.088Z"}
+{"event": "single_instance_lock_acquired", "timestamp": "2026-10-19T01:52:49.526Z"}
+{"event": "shell_log_started", "timestamp": "2026-10-19T01:52:49.527Z"}
+{"event": "engine_start_attempt", "exe": "\\\\?\\E:\\AI_Agent\\src-tauri\\target\\release\\resources\\backend\\app.exe", "generation_id": 1, "selection_source": "resolved_resource", "timestamp": "2026-10-19T01:52:49.527Z"}
+{"duration_ms": 45000, "event": "acceptance_probe_started", "period_ms": 100, "pid": 30208, "timestamp": "2026-10-19T01:52:49.528Z"}
+{"event": "preexisting_handshake_snapshot", "generation_id": 1, "old_identity": null, "preexisting_handshake_invalid": "InvalidJson", "timestamp": "2026-10-19T01:52:49.536Z"}
+{"elapsed_ms": 453, "event": "acceptance_heartbeat", "pid": 30208, "queue_ms": 5, "tick": 0, "timestamp": "2026-10-19T01:52:49.541Z", "visible": false}
+{"event": "process_created_suspended", "generation_id": 1, "pid": 15348, "timestamp": "2026-10-19T01:52:49.556Z"}
+{"event": "job_assigned", "generation_id": 1, "pid": 15348, "timestamp": "2026-10-19T01:52:49.557Z"}
+{"event": "thread_resumed_and_closed", "generation_id": 1, "pid": 15348, "timestamp": "2026-10-19T01:52:49.557Z"}
+{"event": "process_identity_recorded", "generation_id": 1, "pid": 15348, "process_created_at_ms": 1792374769550, "timestamp": "2026-10-19T01:52:49.557Z"}
+{"event": "window_hidden", "generation_id": 1, "success": true, "timestamp": "2026-10-19T01:52:49.558Z", "visible": false}
+{"event": "handshake_wait", "generation_id": 1, "reason": "not_valid_yet", "timestamp": "2026-10-19T01:52:49.558Z"}
+{"authorization_bearer": false, "bytes": 678, "elapsed_ms": 485, "event": "acceptance_dom_audit", "exact_token_hits": 0, "interactive": false, "invoke": {"pending": true}, "phase": "Starting", "pid": 30208, "tick": 0, "timestamp": "2026-10-19T01:52:49.573Z", "token_samples": 0}
+{"elapsed_ms": 548, "event": "acceptance_heartbeat", "pid": 30208, "queue_ms": 0, "tick": 1, "timestamp": "2026-10-19T01:52:49.636Z", "visible": false}
+{"authorization_bearer": false, "bytes": 826, "elapsed_ms": 549, "event": "acceptance_dom_audit", "exact_token_hits": 0, "interactive": false, "invoke": {"ok": true, "value": {"boot_id": null, "cleanup_complete": false, "failure": null, "generation_id": 1, "pending_activation": false, "phase": "Starting", "pid": 15348, "port": null}}, "phase": "Starting", "pid": 30208, "tick": 1, "timestamp": "2026-10-19T01:52:49.637Z", "token_samples": 0}
+{"elapsed_ms": 649, "event": "acceptance_heartbeat", "pid": 30208, "queue_ms": 0, "tick": 2, "timestamp": "2026-10-19T01:52:49.737Z", "visible": false}
+{"authorization_bearer": false, "bytes": 826, "elapsed_ms": 650, "event": "acceptance_dom_audit", "exact_token_hits": 0, "interactive": false, "invoke": {"ok": true, "value": {"boot_id": null, "cleanup_complete": false, "failure": null, "generation_id": 1, "pending_activation": false, "phase": "Starting", "pid": 15348, "port": null}}, "phase": "Starting", "pid": 30208, "tick": 2, "timestamp": "2026-10-19T01:52:49.738Z", "token_samples": 0}
+{"elapsed_ms": 749, "event": "acceptance_heartbeat", "pid": 30208, "queue_ms": 0, "tick": 3, "timestamp": "2026-10-19T01:52:49.837Z", "visible": false}
+{"authorization_bearer": false, "bytes": 826, "elapsed_ms": 750, "event": "acceptance_dom_audit", "exact_token_hits": 0, "interactive": false, "invoke": {"ok": true, "value": {"boot_id": null, "cleanup_complete": false, "failure": null, "generation_id": 1, "pending_activation": false, "phase": "Starting", "pid": 15348, "port": null}}, "phase": "Starting", "pid": 30208, "tick": 3, "timestamp": "2026-10-19T01:52:49.838Z", "token_samples": 0}
+{"elapsed_ms": 850, "event": "acceptance_heartbeat", "pid": 30208, "queue_ms": 0, "tick": 4, "timestamp": "2026-10-19T01:52:49.938Z", "visible": false}
+{"authorization_bearer": false, "bytes": 826, "elapsed_ms": 852, "event": "acceptance_dom_audit", "exact_token_hits": 0, "interactive": false, "invoke": {"ok": true, "value": {"boot_id": null, "cleanup_complete": false, "failure": null, "generation_id": 1, "pending_activation": false, "phase": "Starting", "pid": 15348, "port": null}}, "phase": "Starting", "pid": 30208, "tick": 4, "timestamp": "2026-10-19T01:52:49.940Z", "token_samples": 0}
+{"elapsed_ms": 950, "event": "acceptance_heartbeat", "pid": 30208, "queue_ms": 0, "tick": 5, "timestamp": "2026-10-19T01:52:50.038Z", "visible": false}
+{"authorization_bearer": false, "bytes": 826, "elapsed_ms": 951, "event": "acceptance_dom_audit", "exact_token_hits": 0, "interactive": false, "invoke": {"ok": true, "value": {"boot_id": null, "cleanup_complete": false, "failure": null, "generation_id": 1, "pending_activation": false, "phase": "Starting", "pid": 15348, "port": null}}, "phase": "Starting", "pid": 30208, "tick": 5, "timestamp": "2026-10-19T01:52:50.039Z", "token_samples": 0}
+{"elapsed_ms": 1052, "event": "acceptance_heartbeat", "pid": 30208, "queue_ms": 0, "tick": 6, "timestamp": "2026-10-19T01:52:50.140Z", "visible": false}
+{"authorization_bearer": false, "bytes": 826, "elapsed_ms": 1053, "event": "acceptance_dom_audit", "exact_token_hits": 0, "interactive": false, "invoke": {"ok": true, "value": {"boot_id": null, "cleanup_complete": false, "failure": null, "generation_id": 1, "pending_activation": false, "phase": "Starting", "pid": 15348, "port": null}}, "phase": "Starting", "pid": 30208, "tick": 6, "timestamp": "2026-10-19T01:52:50.141Z", "token_samples": 0}
+{"elapsed_ms": 1152, "event": "acceptance_heartbeat", "pid": 30208, "queue_ms": 0, "tick": 7, "timestamp": "2026-10-19T01:52:50.240Z", "visible": false}
+{"authorization_bearer": false, "bytes": 826, "elapsed_ms": 1153, "event": "acceptance_dom_audit", "exact_token_hits": 0, "interactive": false, "invoke": {"ok": true, "value": {"boot_id": null, "cleanup_complete": false, "failure": null, "generation_id": 1, "pending_activation": false, "phase": "Starting", "pid": 15348, "port": null}}, "phase": "Starting", "pid": 30208, "tick": 7, "timestamp": "2026-10-19T01:52:50.241Z", "token_samples": 0}
+{"event": "engine_process_exit", "exit_code": 1, "generation_id": 1, "pid": 15348, "timestamp": "2026-10-19T01:52:50.275Z", "wait_error": null}
+{"event": "state_transition", "from": "Starting", "generation_id": 1, "reason": "engine_failure", "timestamp": "2026-10-19T01:52:50.276Z", "to": "Failed"}
+{"event": "engine_failure", "failure": {"data_directory": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent", "engine_error": "HANDSHAKE_INVALID_JSON", "exit_reason": {"ProcessExit": {"code": 1}}, "handshake_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\run\\handshake.json", "kind": "HandshakeInvalid", "log_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\engine-20261019.jsonl", "preexisting_handshake_invalid": "InvalidJson"}, "generation_id": 1, "timestamp": "2026-10-19T01:52:50.276Z"}
+{"activated": true, "event": "window_shown", "generation_id": 1, "success": true, "timestamp": "2026-10-19T01:52:50.288Z", "visible": true}
+{"elapsed_ms": 1200, "event": "desktop_presented", "generation_id": 1, "phase": "Failed", "timestamp": "2026-10-19T01:52:50.289Z"}
+{"complete": true, "errors": [], "event": "generation_cleanup", "generation_id": 1, "timestamp": "2026-10-19T01:52:50.289Z"}
+{"elapsed_ms": 1253, "event": "acceptance_heartbeat", "pid": 30208, "queue_ms": 0, "tick": 8, "timestamp": "2026-10-19T01:52:50.341Z", "visible": true}
+{"authorization_bearer": false, "bytes": 2158, "elapsed_ms": 1255, "event": "acceptance_dom_audit", "exact_token_hits": 0, "interactive": false, "invoke": {"ok": true, "value": {"boot_id": null, "cleanup_complete": false, "failure": null, "generation_id": 1, "pending_activation": false, "phase": "Starting", "pid": 15348, "port": null}}, "phase": "Failed", "pid": 30208, "tick": 8, "timestamp": "2026-10-19T01:52:50.343Z", "token_samples": 0}
+{"event": "shell_log_started", "timestamp": "2026-10-19T01:52:50.369Z"}
+{"event": "shell_started", "pid": 17884, "timestamp": "2026-10-19T01:52:50.370Z"}
+{"event": "single_instance_activation", "timestamp": "2026-10-19T01:52:50.376Z"}
+{"event": "activation_requested", "generation_id": 1, "pending_activation": true, "phase": "Failed", "timestamp": "2026-10-19T01:52:50.377Z"}
+{"activated": true, "event": "window_shown", "generation_id": 1, "success": true, "timestamp": "2026-10-19T01:52:50.377Z", "visible": true}
+{"activated": true, "event": "window_shown", "generation_id": 1, "success": true, "timestamp": "2026-10-19T01:52:50.378Z", "visible": true}
+{"elapsed_ms": 1290, "event": "desktop_presented", "generation_id": 1, "phase": "Failed", "timestamp": "2026-10-19T01:52:50.378Z"}

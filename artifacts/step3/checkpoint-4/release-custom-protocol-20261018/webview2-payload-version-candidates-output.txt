@@ -1,0 +1,47 @@
+{
+  "unpacked_bytes": 218971276,
+  "prefix_uint32": [
+    218900480,
+    218131388,
+    499060,
+    270032,
+    70776
+  ],
+  "named_strings": [
+    "MicrosoftEdgeUpdate.exe",
+    "MicrosoftEdgeUpdate_unsigned.pdb",
+    "MicrosoftEdge",
+    "MicrosoftEdgeUpdateSetup",
+    "MicrosoftEdgeUpdate",
+    "MicrosoftEdgeUpdateBroker.exe",
+    "MicrosoftEdgeUpdateBroker_unsigned.pdb",
+    "MicrosoftEdgeUpdateOnDemand.exe",
+    "MicrosoftEdgeUpdateOnDemand_unsigned.pdb",
+    "MicrosoftEdgeUpdateComRegisterShell64.exe",
+    "MicrosoftEdgeUpdateComRegisterShell64_unsigned.pdb",
+    "MicrosoftEdgeComRegisterShellARM64.exe",
+    "MicrosoftEdgeComRegisterShellARM64_unsigned.pdb",
+    "MicrosoftEdgeUpdate.exe",
+    "MicrosoftEdgeUpdateCore.exe",
+    "MicrosoftEdgeUpdateCore_unsigned.pdb",
+    "MicrosoftEdge_X64_155.0.4283.62.exe.{0D50BFEC-CD6A-4F9A-964C-C7416E3ACB10}",
+    "MicrosoftEdge_X64_155.0.4283.62.exe\" hash_sha256=\"daf767004075269b786200fdacadb1991ed5b936e6bb636b6d8fb5009e7c6fca\" size=\"207695224\" required=\"true\"/>",
+    "MicrosoftEdge_X64_155.0.4283.62.exe\" arguments=\"--msedge --verbose-logging --do-not-launch-msedge --system-level\" needsadmin=\"true\"/>",
+    "MicrosoftEdge_X64_155.0.4283.62.exe\" hash_sha256=\"daf767004075269b786200fdacadb1991ed5b936e6bb636b6d8fb5009e7c6fca\" size=\"207695224\" required=\"true\"/>",
+    "MicrosoftEdge_X64_155.0.4283.62.exe\" arguments=\"--msedge-beta --verbose-logging --do-not-launch-msedge --system-level\" needsadmin=\"true\"/>",
+    "MicrosoftEdge_X64_155.0.4283.62.exe\" hash_sha256=\"daf767004075269b786200fdacadb1991ed5b936e6bb636b6d8fb5009e7c6fca\" size=\"207695224\" required=\"true\"/>",
+    "MicrosoftEdge_X64_155.0.4283.62.exe\" arguments=\"--msedge-dev --verbose-logging --do-not-launch-msedge --system-level\" needsadmin=\"true\"/>",
+    "MicrosoftEdgeWebview_X64_155.0.4283.62.exe\" hash_sha256=\"daf767004075269b786200fdacadb1991ed5b936e6bb636b6d8fb5009e7c6fca\" size=\"207695224\" required=\"true\"/>",
+    "MicrosoftEdgeWebview_X64_155.0.4283.62.exe\" arguments=\"--msedgewebview --verbose-logging --do-not-launch-msedge\" needsadmin=\"prefers\"/>",
+    "MicrosoftEdge_X64_155.0.4283.62.exe\" hash_sha256=\"daf767004075269b786200fdacadb1991ed5b936e6bb636b6d8fb5009e7c6fca\" size=\"207695224\" required=\"true\"/>",
+    "MicrosoftEdge_X64_155.0.4283.62.exe\" arguments=\"--mscopilot --verbose-logging --do-not-launch-msedge --system-level\" needsadmin=\"true\"/>",
+    "MicrosoftEdge_X64_155.0.4283.62.exe\" hash_sha256=\"daf767004075269b786200fdacadb1991ed5b936e6bb636b6d8fb5009e7c6fca\" size=\"207695224\" required=\"true\"/>",
+    "MicrosoftEdge_X64_155.0.4283.62.exe\" arguments=\"--mscopilot-dev --verbose-logging --do-not-launch-msedge --system-level --allow-downgrade\" needsadmin=\"true\"/>",
+    "MicrosoftEdgeUpdateSetup.exe"
+  ],
+  "ascii_version_candidates": [
+    "10.0.18362.0",
+    "155.0.4283.62"
+  ],
+  "scope": "read-only payload inspection; candidates alone are not an asserted installed runtime version"
+}

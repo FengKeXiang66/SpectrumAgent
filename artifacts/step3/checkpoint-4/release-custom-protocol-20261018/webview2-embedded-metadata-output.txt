@@ -1,0 +1,12 @@
+{
+  "file": "E:\\AI_Agent\\src-tauri\\target\\.tauri\\downloads\\MicrosoftEdgeWebView2RuntimeInstallerX64.exe",
+  "container": "PE resource B102 -> LZMA_ALONE -> 20-byte prefix + TAR",
+  "entries": [
+    {
+      "name": "MicrosoftEdgeUpdate.exe",
+      "bytes": 207192
+    }
+  ],
+  "metadata": [],
+  "executed_installer": false
+}

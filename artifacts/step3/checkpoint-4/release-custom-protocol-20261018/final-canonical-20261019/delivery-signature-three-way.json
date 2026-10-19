@@ -1,0 +1,30 @@
+[
+  {
+    "path": "E:\\AI_Agent\\src-tauri\\target\\release\\bundle\\nsis\\SpectrumAgent_0.1.0_x64-setup.exe",
+    "bytes": 287156790,
+    "sha256": "d849253611c1ac985cb08a60a7073e17ed6c89b74e8230532d0c3d2157cc8107",
+    "status": "NotSigned",
+    "signer_subject": null
+  },
+  {
+    "path": "E:\\AI_Agent\\src-tauri\\target\\release\\spectrum-agent.exe",
+    "bytes": 10786304,
+    "sha256": "22a13e6a4d2ec88cf58fa349aad7f22e61fa11331adca11e11eec9c781f73471",
+    "status": "NotSigned",
+    "signer_subject": null
+  },
+  {
+    "path": "E:\\AI_Agent\\src-tauri\\target\\release\\resources\\backend\\app.exe",
+    "bytes": 16771455,
+    "sha256": "3f62c1895152a01eb0a92b61a733985c15ca7888d233fd9408ca5b9dc61d7703",
+    "status": "NotSigned",
+    "signer_subject": null
+  },
+  {
+    "path": "E:\\AI_Agent\\src-tauri\\target\\repro-check\\.tauri\\x64\\35871e19-d11b-432d-9d1e-7be0ff286540\\MicrosoftEdgeWebView2RuntimeInstallerX64.exe",
+    "bytes": 214156024,
+    "sha256": "0625fb5c1e75be58a164e14f95aa58a3e5badb859b3d17c952385f3e4a9ff3e8",
+    "status": "Valid",
+    "signer_subject": "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
+  }
+]

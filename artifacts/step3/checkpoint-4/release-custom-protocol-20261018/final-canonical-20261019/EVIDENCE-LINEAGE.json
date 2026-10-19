@@ -1,0 +1,224 @@
+{
+  "real_root": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent",
+  "shadow_root": "C:\\Users\\Administrator\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\SpectrumAgent",
+  "classification_basis": "byte-preserved source snapshot first line, not a logical path string",
+  "sources": [
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/20261018T153024933Z-KillReady/original-shell.log",
+      "bytes": 182536,
+      "sha256": "c8f613acef267631e3858c9910422e6a185b6f8ad5a85c2acac0fb851c182887",
+      "first_timestamp": "2026-10-18T10:13:18.036Z",
+      "origin": "UNVERIFIED/segment/other date; inspect receipt"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/20261018T153120404Z-KillStarting/original-shell.log",
+      "bytes": 196831,
+      "sha256": "9a17f49ea00cd821fd7c175ec227a949aadafe0deca1dd32808372013de4f578",
+      "first_timestamp": "2026-10-18T10:13:18.036Z",
+      "origin": "UNVERIFIED/segment/other date; inspect receipt"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/20261018T153152196Z-Close/original-shell.log",
+      "bytes": 224628,
+      "sha256": "f93344559c26c7676a5036709ceae9541757bb3ba075e47424bc71c9ee130553",
+      "first_timestamp": "2026-10-18T10:13:18.036Z",
+      "origin": "UNVERIFIED/segment/other date; inspect receipt"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/failure-cases-20261018T153521137006Z/original-shell.log",
+      "bytes": 2286366,
+      "sha256": "637c4946c71bc9bcfec2d31c2d84588d2c2497e421b26bb3d828e8d22dce9894",
+      "first_timestamp": "2026-10-18T07:57:13.099Z",
+      "origin": "UNVERIFIED/segment/other date; inspect receipt"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/final-canonical-20261019/20261019T014735255Z-KillReady/original-shell.log",
+      "bytes": 22182,
+      "sha256": "8a5cf92fd05ba2b52a25111fdd614c731dae2db3480c6f69dcc72617625c0eb3",
+      "first_timestamp": "2026-10-19T01:47:35.930Z",
+      "origin": "REAL host (01:47:35.930Z lineage)"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/final-canonical-20261019/20261019T014824696Z-KillStarting/original-shell.log",
+      "bytes": 36468,
+      "sha256": "1268a24c605f79e26039323ae2ea12e722e04cf17bbfb2e4e2fa916662b30a71",
+      "first_timestamp": "2026-10-19T01:47:35.930Z",
+      "origin": "REAL host (01:47:35.930Z lineage)"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/final-canonical-20261019/20261019T014911877Z-Close/original-shell.log",
+      "bytes": 64269,
+      "sha256": "42db62c6da408920f529abd25599e9537ea9ef5c06f9c3d133bb49dd249de996",
+      "first_timestamp": "2026-10-19T01:47:35.930Z",
+      "origin": "REAL host (01:47:35.930Z lineage)"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/final-canonical-20261019/failure-cases-20261019T015236506844Z/original-shell.log",
+      "bytes": 857035,
+      "sha256": "c160d0557f2f7157c2c06a9229fae37b471c1ce4691d9ab43ad879cb65368e9a",
+      "first_timestamp": "2026-10-19T01:20:15.703Z",
+      "origin": "SHADOW MSIX (01:20:15.703Z lineage)"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/final-canonical-20261019/installed-delivery-after-live-shell-source.log",
+      "bytes": 880826,
+      "sha256": "b7cca4ad787b94fe66529238d33450c316e2a40d9cbffeb4932fcc0d2d68cfe3",
+      "first_timestamp": "2026-10-19T01:47:35.930Z",
+      "origin": "REAL host (01:47:35.930Z lineage)"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/final-canonical-20261019/installed-delivery-before-live-shell-source.log",
+      "bytes": 757146,
+      "sha256": "f9643ffd48c473e9470d20519250b13fa8c2e603ab0231b402b46a4d3ab37039",
+      "first_timestamp": "2026-10-19T01:47:35.930Z",
+      "origin": "REAL host (01:47:35.930Z lineage)"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/final-canonical-20261019/installed-delivery-shell.jsonl.source-snapshot",
+      "bytes": 880826,
+      "sha256": "b7cca4ad787b94fe66529238d33450c316e2a40d9cbffeb4932fcc0d2d68cfe3",
+      "first_timestamp": "2026-10-19T01:47:35.930Z",
+      "origin": "REAL host (01:47:35.930Z lineage)"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/final-canonical-20261019/original-source-snapshot/shell-20261019.log",
+      "bytes": 1108005,
+      "sha256": "c3b955f8fa33b3b8d25ae7b200d6f9ed54989f9b2b15411c20592412e3064eaa",
+      "first_timestamp": "2026-10-19T01:20:15.703Z",
+      "origin": "SHADOW MSIX (01:20:15.703Z lineage)"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/final-canonical-20261019/PrepareUninstall-live-shell-source.log",
+      "bytes": 880826,
+      "sha256": "b7cca4ad787b94fe66529238d33450c316e2a40d9cbffeb4932fcc0d2d68cfe3",
+      "first_timestamp": "2026-10-19T01:47:35.930Z",
+      "origin": "REAL host (01:47:35.930Z lineage)"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/final-canonical-20261019/real-task-Capture-live-shell-source.log",
+      "bytes": 757146,
+      "sha256": "f9643ffd48c473e9470d20519250b13fa8c2e603ab0231b402b46a4d3ab37039",
+      "first_timestamp": "2026-10-19T01:47:35.930Z",
+      "origin": "REAL host (01:47:35.930Z lineage)"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/final-canonical-20261019/real-task-CaptureComplete-live-shell-source.log",
+      "bytes": 757146,
+      "sha256": "f9643ffd48c473e9470d20519250b13fa8c2e603ab0231b402b46a4d3ab37039",
+      "first_timestamp": "2026-10-19T01:47:35.930Z",
+      "origin": "REAL host (01:47:35.930Z lineage)"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/final-canonical-20261019/real-task-InstallDelivery-live-shell-source.log",
+      "bytes": 757146,
+      "sha256": "f9643ffd48c473e9470d20519250b13fa8c2e603ab0231b402b46a4d3ab37039",
+      "first_timestamp": "2026-10-19T01:47:35.930Z",
+      "origin": "REAL host (01:47:35.930Z lineage)"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/final-canonical-20261019/real-task-ProbeDelivery-live-shell-source.log",
+      "bytes": 757146,
+      "sha256": "f9643ffd48c473e9470d20519250b13fa8c2e603ab0231b402b46a4d3ab37039",
+      "first_timestamp": "2026-10-19T01:47:35.930Z",
+      "origin": "REAL host (01:47:35.930Z lineage)"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/final-canonical-20261019/real-task-RecoverRepro-live-shell-source.log",
+      "bytes": 757146,
+      "sha256": "f9643ffd48c473e9470d20519250b13fa8c2e603ab0231b402b46a4d3ab37039",
+      "first_timestamp": "2026-10-19T01:47:35.930Z",
+      "origin": "REAL host (01:47:35.930Z lineage)"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/final-canonical-20261019/real-task-UninstallDelivery-live-shell-source.log",
+      "bytes": 880826,
+      "sha256": "b7cca4ad787b94fe66529238d33450c316e2a40d9cbffeb4932fcc0d2d68cfe3",
+      "first_timestamp": "2026-10-19T01:47:35.930Z",
+      "origin": "REAL host (01:47:35.930Z lineage)"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/final-canonical-20261019/real-task-UninstallRepro-live-shell-source.log",
+      "bytes": 757146,
+      "sha256": "f9643ffd48c473e9470d20519250b13fa8c2e603ab0231b402b46a4d3ab37039",
+      "first_timestamp": "2026-10-19T01:47:35.930Z",
+      "origin": "REAL host (01:47:35.930Z lineage)"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/final-canonical-20261019/repro-20261019T041645178Z-KillReady-original-shell.log",
+      "bytes": 89690,
+      "sha256": "6d3fb92c1686e1d8ba8df04caa0cdcc4c6d27c9e5ede52790f1b30249745a303",
+      "first_timestamp": "2026-10-19T01:47:35.930Z",
+      "origin": "REAL host (01:47:35.930Z lineage)"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/final-canonical-20261019/repro-20261019T041754731Z-KillStarting-original-shell.log",
+      "bytes": 104105,
+      "sha256": "c19b9c45afdbfc532677f8b6186c8aa2033b8593e94eb157f80d789155440a58",
+      "first_timestamp": "2026-10-19T01:47:35.930Z",
+      "origin": "REAL host (01:47:35.930Z lineage)"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/final-canonical-20261019/repro-20261019T041849809Z-Close-original-shell.log",
+      "bytes": 132026,
+      "sha256": "01cdf477ead5ad4020eb91ac61f2069591fa5d8095e81377b4e0db22354f6654",
+      "first_timestamp": "2026-10-19T01:47:35.930Z",
+      "origin": "REAL host (01:47:35.930Z lineage)"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/final-canonical-20261019/repro-failure-20261019T042054691552Z-original-shell.log",
+      "bytes": 1376683,
+      "sha256": "cd1c536bbbc968ffe2f2d592211e1d3a15af76a2070c59ffc133266aa589faf1",
+      "first_timestamp": "2026-10-19T01:20:15.703Z",
+      "origin": "SHADOW MSIX (01:20:15.703Z lineage)"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/final-canonical-20261019/repro-real-cleanup-PrepareUninstall-live-shell-source.log",
+      "bytes": 757146,
+      "sha256": "f9643ffd48c473e9470d20519250b13fa8c2e603ab0231b402b46a4d3ab37039",
+      "first_timestamp": "2026-10-19T01:47:35.930Z",
+      "origin": "REAL host (01:47:35.930Z lineage)"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/final-canonical-20261019/repro-real-cleanup-Uninstall-live-shell-source.log",
+      "bytes": 757146,
+      "sha256": "f9643ffd48c473e9470d20519250b13fa8c2e603ab0231b402b46a4d3ab37039",
+      "first_timestamp": "2026-10-19T01:47:35.930Z",
+      "origin": "REAL host (01:47:35.930Z lineage)"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/final-canonical-20261019/Uninstall-live-shell-source.log",
+      "bytes": 880826,
+      "sha256": "b7cca4ad787b94fe66529238d33450c316e2a40d9cbffeb4932fcc0d2d68cfe3",
+      "first_timestamp": "2026-10-19T01:47:35.930Z",
+      "origin": "REAL host (01:47:35.930Z lineage)"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/installed-original-source-snapshot/shell-20261019.log",
+      "bytes": 497562,
+      "sha256": "74352aca43be370df46904139737ef669f02b795175d9c1ab0bbea727863231c",
+      "first_timestamp": "2026-10-19T01:20:15.703Z",
+      "origin": "SHADOW MSIX (01:20:15.703Z lineage)"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/original-source-snapshot/shell-20261019.log",
+      "bytes": 249073,
+      "sha256": "dff9ebbc14679ff5a100050f32315afcc95d523cbe8b8bc95aaa04f5c5656d91",
+      "first_timestamp": "2026-10-19T01:20:15.703Z",
+      "origin": "SHADOW MSIX (01:20:15.703Z lineage)"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/staged-fault-original-source-snapshot/shell-20261019.log",
+      "bytes": 662546,
+      "sha256": "9813d4d4df22326a5f5a38486c57a898b91f90fb5eb2552f7371d71146a0704b",
+      "first_timestamp": "2026-10-19T01:20:15.703Z",
+      "origin": "SHADOW MSIX (01:20:15.703Z lineage)"
+    },
+    {
+      "archive": "artifacts/step3/checkpoint-4/release-custom-protocol-20261018/starting-stop-20261019T014350905757Z.shell.log",
+      "bytes": 1513,
+      "sha256": "c50d08eff826b0a4cdf47d926e31f5108ad3f9ec8c08c1cef89441d6659f1e31",
+      "first_timestamp": "2026-10-19T01:43:50.940Z",
+      "origin": "UNVERIFIED/segment/other date; inspect receipt"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "pid": 6568,
+  "launch_before_utc": "2026-10-19T01:20:15.6317990Z",
+  "debug_shell_sha256": "8D1D29DD1373CD63FDFB306025BE0CA9F69BCF0DFAA1D451EAD45F483B5643A7",
+  "injected_stub": "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-custom-protocol-20261018\\temp\\timeout-stub\\app.exe",
+  "stub_sha256": "9CACD0A837B8A30EB5B53D6935A735B029B21204FDF53453D16D78C9F9AE2599",
+  "features": "custom-protocol",
+  "scope": "current source Tauri debug test host; actual 30-second timeout, hidden Starting; not final release lifecycle matrix"
+}

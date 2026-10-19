@@ -1,0 +1,13 @@
+{
+  "finished_utc": "2026-10-19T04:27:58.6303299Z",
+  "exit_code": 0,
+  "features": "custom-protocol",
+  "test_probes_enabled": false,
+  "CARGO_TARGET_DIR": "E:\\AI_Agent\\src-tauri\\target\\repro-check",
+  "channel": "direct; NO_PROXY=*; approved official caches reused",
+  "shell": "E:\\AI_Agent\\src-tauri\\target\\repro-check\\release\\spectrum-agent.exe",
+  "shell_sha256": "29a2829b2a74d185f8c4341e2f577cc5a000c13bc4e891d64b0d8b70daf0e28c",
+  "setup": "E:\\AI_Agent\\src-tauri\\target\\repro-check\\release\\bundle\\nsis\\SpectrumAgent_0.1.0_x64-setup.exe",
+  "setup_sha256": "2b734cc7fef0a22130d626100af012e68f57cead56b42f0090914c691599950b",
+  "setup_bytes": 287155358
+}

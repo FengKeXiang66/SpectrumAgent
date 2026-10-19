@@ -1,0 +1,11 @@
+{
+  "checked_utc": "2026-10-19T06:49:16.155265+00:00",
+  "status": "passed_archive_checks",
+  "product_acceptance_not_rerun": true,
+  "real_data_rows": 17,
+  "real_dom_pid": 18680,
+  "known_failed_handshake_cleanup_preserved": true,
+  "locks_unchanged": true,
+  "raw_blob_files": 1611,
+  "source_text_files": 82
+}

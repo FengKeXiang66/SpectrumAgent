@@ -1,0 +1,30 @@
+{
+  "resource_type": "B",
+  "resource_name": 102,
+  "compression": "LZMA_ALONE (stdlib decoder succeeded)",
+  "decoded_prefix_bytes": 16384,
+  "prefix_ascii": "b'\\x00(\\x0c\\r\\xbck\\x00\\rt\\x9d\\x07\\x00\\xd0\\x1e\\x04\\x00x\\x14\\x01\\x00MicrosoftEdgeUpdate.exe\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x000000777\\x000000000\\x000000000\\x0000000624530\\x001526'",
+  "ascii_strings": [
+    "MicrosoftEdgeUpdate.exe",
+    "00000624530",
+    "15264314231",
+    "!This program cannot be run in DOS mode.",
+    "ADVAPI32.dll",
+    "SHELL32.dll",
+    "AcquireSRWLockExclusive",
+    "ReleaseSRWLockExclusive",
+    "Unknown exception",
+    "bad allocation",
+    "address family not supported",
+    "address in use",
+    "address not available",
+    "already connected",
+    "argument list too long",
+    "argument out of domain",
+    "bad address",
+    "bad file descriptor",
+    "bad message",
+    "broken pipe"
+  ],
+  "scope": "prefix read-only probe; not runtime-version assertion"
+}

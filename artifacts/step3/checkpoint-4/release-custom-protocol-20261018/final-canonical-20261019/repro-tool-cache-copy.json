@@ -1,0 +1,8 @@
+{
+  "copied_utc": "2026-10-19T04:24:15.3674089Z",
+  "source": "E:\\AI_Agent\\src-tauri\\target\\.tauri",
+  "target": "E:\\AI_Agent\\src-tauri\\target\\repro-check\\.tauri",
+  "reason": "independent target has an empty local tools cache; reuse already approved official tools without download",
+  "nsis_exe_sha1": "6D45D4E8CCF18FE1FDAC9164058F356102A2ECF2",
+  "plugin_sha1": "75197FEE3C6A814FE035788D1C34EAD39349B860"
+}

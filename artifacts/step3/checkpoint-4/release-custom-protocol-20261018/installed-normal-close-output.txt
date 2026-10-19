@@ -1,0 +1,10 @@
+{
+  "checked_utc": "2026-10-19T01:40:28.1469196Z",
+  "normal_close": "Sky Alt+F4",
+  "shell_pid": 29448,
+  "engine_pid": 21020,
+  "remaining_processes": [],
+  "port": 62898,
+  "remaining_listeners": 0,
+  "handshake_exists": true
+}

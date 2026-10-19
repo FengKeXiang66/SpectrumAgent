@@ -1,0 +1,15 @@
+{
+  "recorded_utc": "2026-10-19T04:28:04.6304652Z",
+  "requested_source": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\shell-20261019.log",
+  "requested_lines": "531-555",
+  "requested_shell_pid": 6236,
+  "requested_engine_pid": 26088,
+  "requested_boot_id": "11222372",
+  "requested_window": "2026-10-19T02:23:38.992Z .. 2026-10-19T02:23:47.936Z",
+  "actual_source_bytes": 1376683,
+  "actual_source_sha256": "cd1c536bbbc968ffe2f2d592211e1d3a15af76a2070c59ffc133266aa589faf1",
+  "actual_requested_lines_owner": "pid6568, 01:20:41.934Z..01:20:43.145Z",
+  "requested_session_found": false,
+  "status": "awaiting actual source/backup path; no fabricated segment",
+  "scope": "current visible data root only; owner historical verification retained separately"
+}

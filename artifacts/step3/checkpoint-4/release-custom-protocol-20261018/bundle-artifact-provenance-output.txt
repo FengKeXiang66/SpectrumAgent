@@ -1,0 +1,45 @@
+COMMAND: final bundle source shell and installer hashes
+E:\AI_Agent\src-tauri\target\release\spectrum-agent.exe SHA256=CBA991AA47D8ECB0B63610935E45868C37219359B611E5B7172A5E9A535F2ECE
+E:\AI_Agent\src-tauri\target\release\bundle\nsis\SpectrumAgent_0.1.0_x64-setup.exe SHA256=56B7551F048BF7C85D0A3CB9CDB94B80642CEEE9F78E0BAC666A1B8D2008A2AF
+COMMAND: actual cache signatures and versions
+{
+  "path": "E:\\AI_Agent\\src-tauri\\target\\.tauri\\x64\\35871e19-d11b-432d-9d1e-7be0ff286540\\MicrosoftEdgeWebView2RuntimeInstallerX64.exe",
+  "bytes": 214156024,
+  "sha256": "0625FB5C1E75BE58A164E14F95AA58A3E5BADB859B3D17C952385F3E4A9FF3E8",
+  "signature_status": "Valid",
+  "signer": "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+  "file_version": "1.3.287.9",
+  "product_version": "1.3.287.9"
+}
+{
+  "path": "src-tauri/target/.tauri/NSIS/NSIS.exe",
+  "sha256": "78E17DE55FA013BE7620487E85B6676C204C6C51D7EBABB74EE8A9CFCE6252A0",
+  "signature_status": "NotSigned",
+  "signer": null
+}
+{
+  "path": "src-tauri/target/.tauri/NSIS/Bin/makensis.exe",
+  "sha256": "65343C225EC88393CC4453B0963CAF63F763F42F48CB55736D51893FF2E29D4A",
+  "signature_status": "NotSigned",
+  "signer": null
+}
+{
+  "path": "src-tauri/target/.tauri/NSIS/Plugins/x86-unicode/additional/nsis_tauri_utils.dll",
+  "sha256": "5BA143B5DB4A87D32D6E7802E033330AAE56CBCEABE0D1E3BA41948385AD4709",
+  "signature_status": "NotSigned",
+  "signer": null
+}
+COMMAND: generated NSIS install-path guard and excluded test binaries
+48: !define MAINBINARYSRCPATH "E:\AI_Agent\src-tauri\target\release\spectrum-agent.exe"
+59: !define WEBVIEW2INSTALLERPATH "E:\AI_Agent\src-tauri\target\.tauri\x64\35871e19-d11b-432d-9d1e-7be0ff286540\MicrosoftEdgeWebView2RuntimeInstallerX64.exe"
+81: !define PLACEHOLDER_INSTALL_DIR "placeholder\${PRODUCTNAME}"
+82: InstallDir "${PLACEHOLDER_INSTALL_DIR}"
+499:   ${If} $INSTDIR == "${PLACEHOLDER_INSTALL_DIR}"
+504:           StrCpy $INSTDIR "$PROGRAMFILES64\${PRODUCTNAME}"
+506:           StrCpy $INSTDIR "$PROGRAMFILES64\${PRODUCTNAME}"
+508:           StrCpy $INSTDIR "$PROGRAMFILES\${PRODUCTNAME}"
+511:         StrCpy $INSTDIR "$PROGRAMFILES\${PRODUCTNAME}"
+514:       StrCpy $INSTDIR "$LOCALAPPDATA\Programs\${PRODUCTNAME}"
+593:         File "/oname=$TEMP\MicrosoftEdgeWebView2RuntimeInstaller.exe" "${WEBVIEW2INSTALLERPATH}"
+654:   File "${MAINBINARYSRCPATH}"
+2116:     StrCpy $INSTDIR $4

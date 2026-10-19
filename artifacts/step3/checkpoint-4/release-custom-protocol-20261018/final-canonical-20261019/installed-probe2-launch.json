@@ -1,0 +1,12 @@
+{
+    "launch_before_utc":  "2026-10-19T04:37:11.0129537Z",
+    "pid":  28972,
+    "exe":  "C:\\Users\\Administrator\\AppData\\Local\\Programs\\SpectrumAgent\\spectrum-agent.exe",
+    "shell_sha256":  "29a2829b2a74d185f8c4341e2f577cc5a000c13bc4e891d64b0d8b70daf0e28c",
+    "features":  "custom-protocol",
+    "data_root":  "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent",
+    "shell_log_before_bytes":  380695,
+    "engine_log_before_bytes":  82245,
+    "invalid_engine_override":  "E:\\AI_Agent\\invalid-host-installed-override\\app.exe",
+    "uninstall_registry_before_launch":  false
+}

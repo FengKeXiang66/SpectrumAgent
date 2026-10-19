@@ -1,0 +1,215 @@
+{
+  "source_commit": "a53030d47fc169ddfa67057e45c464fc0f1db2cd",
+  "recorded_at": "2026-10-18T15:25:23.930225+00:00",
+  "features": "custom-protocol",
+  "test_probes_enabled": false,
+  "shell_path": "E:\\AI_Agent\\src-tauri\\target\\release\\spectrum-agent.exe",
+  "shell_sha256": "cba991aa47d8ecb0b63610935e45868c37219359b611e5b7172a5e9a535f2ece",
+  "shell_bytes": 10786304,
+  "engine_manifest": "E:\\AI_Agent\\artifacts\\step2\\revision-20261018-smoke-headers\\product-manifest.json",
+  "engine_manifest_sha256": "4d10246996bd3ac2a002bd62b50c6e59df8f194477bbac7546bef1e5b6619f2c",
+  "engine_sha256": "3f62c1895152a01eb0a92b61a733985c15ca7888d233fd9408ca5b9dc61d7703",
+  "engine_artifact_source_commit": "3acd979f3b5a94ad32283eb1608c95f0b8721696",
+  "engine_manifest_generator_commit": "e7c3c9d90f83d23639a4ee54832c8b4bc75bf706",
+  "resource_files": 544,
+  "resource_bytes": 255564789,
+  "resource_full_manifest_match": true,
+  "canonical_backup": "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-custom-protocol-20261018\\temp\\canonical-cba991aa47d8",
+  "fingerprints": [
+    {
+      "path": "src-tauri\\target\\release\\.fingerprint\\spectrum-agent-c40864bf6e45df4b\\bin-spectrum-agent.json",
+      "sha256": "2cce9fca882273f748207e6a67543cc081f3a77cc08e955d9d79956f012ed3c8",
+      "contents": {
+        "rustc": 222933465615791797,
+        "features": "[\"custom-protocol\"]",
+        "declared_features": "[\"custom-protocol\", \"test-probes\"]",
+        "target": 17430140133399687574,
+        "profile": 5585871892529064040,
+        "path": 4942398508502643691,
+        "deps": [
+          [
+            6557439603276904804,
+            "serde",
+            false,
+            14286790417395013755
+          ],
+          [
+            6568467691589961976,
+            "windows_sys",
+            false,
+            10089495826754376398
+          ],
+          [
+            7057899838653257008,
+            "spectrum_agent",
+            false,
+            4594649015667764983
+          ],
+          [
+            7057899838653257008,
+            "build_script_build",
+            false,
+            16258686598634458809
+          ],
+          [
+            7102883790009483138,
+            "tauri",
+            false,
+            7905770285646193729
+          ],
+          [
+            8160210889872729633,
+            "serde_json",
+            false,
+            11498244372024972556
+          ],
+          [
+            9477436350722826549,
+            "tauri_plugin_opener",
+            false,
+            18276765718076533285
+          ],
+          [
+            13196351783047880178,
+            "reqwest",
+            false,
+            10453295229116006491
+          ],
+          [
+            13242183202771126592,
+            "tauri_plugin_single_instance",
+            false,
+            17692128294280103973
+          ],
+          [
+            16117757646811882223,
+            "chrono",
+            false,
+            2032549988034398795
+          ]
+        ],
+        "local": [
+          {
+            "CheckDepInfo": {
+              "dep_info": "release\\.fingerprint\\spectrum-agent-c40864bf6e45df4b\\dep-bin-spectrum-agent",
+              "checksum": false
+            }
+          }
+        ],
+        "rustflags": [],
+        "config": 9396254390672932401,
+        "compile_kind": 0
+      }
+    },
+    {
+      "path": "src-tauri\\target\\release\\.fingerprint\\spectrum-agent-64d55396542f9690\\lib-spectrum_agent.json",
+      "sha256": "514e3b47a9d7d46068b62d7e1bda99c0d03a16fafb5066cddcfe415114cdf8b5",
+      "contents": {
+        "rustc": 222933465615791797,
+        "features": "[\"custom-protocol\"]",
+        "declared_features": "[\"custom-protocol\", \"test-probes\"]",
+        "target": 2862124891048517366,
+        "profile": 5585871892529064040,
+        "path": 10763286916239946207,
+        "deps": [
+          [
+            6557439603276904804,
+            "serde",
+            false,
+            14286790417395013755
+          ],
+          [
+            6568467691589961976,
+            "windows_sys",
+            false,
+            10089495826754376398
+          ],
+          [
+            7057899838653257008,
+            "build_script_build",
+            false,
+            16258686598634458809
+          ],
+          [
+            7102883790009483138,
+            "tauri",
+            false,
+            7905770285646193729
+          ],
+          [
+            8160210889872729633,
+            "serde_json",
+            false,
+            11498244372024972556
+          ],
+          [
+            9477436350722826549,
+            "tauri_plugin_opener",
+            false,
+            18276765718076533285
+          ],
+          [
+            13196351783047880178,
+            "reqwest",
+            false,
+            10453295229116006491
+          ],
+          [
+            13242183202771126592,
+            "tauri_plugin_single_instance",
+            false,
+            17692128294280103973
+          ],
+          [
+            16117757646811882223,
+            "chrono",
+            false,
+            2032549988034398795
+          ]
+        ],
+        "local": [
+          {
+            "CheckDepInfo": {
+              "dep_info": "release\\.fingerprint\\spectrum-agent-64d55396542f9690\\dep-lib-spectrum_agent",
+              "checksum": false
+            }
+          }
+        ],
+        "rustflags": [],
+        "config": 9396254390672932401,
+        "compile_kind": 0
+      }
+    },
+    {
+      "path": "src-tauri\\target\\release\\.fingerprint\\spectrum-agent-5ccecd25f3bc7bca\\build-script-build-script-build.json",
+      "sha256": "2b1c37e6ae4c2745ec34491004dc482f70a051ecd28fdce6959e6cafc0243df4",
+      "contents": {
+        "rustc": 222933465615791797,
+        "features": "[\"custom-protocol\"]",
+        "declared_features": "[\"custom-protocol\", \"test-probes\"]",
+        "target": 2835126046236718539,
+        "profile": 14728096039640814685,
+        "path": 13767053534773805487,
+        "deps": [
+          [
+            3193973027333350079,
+            "tauri_build",
+            false,
+            3632788939628220026
+          ]
+        ],
+        "local": [
+          {
+            "CheckDepInfo": {
+              "dep_info": "release\\.fingerprint\\spectrum-agent-5ccecd25f3bc7bca\\dep-build-script-build-script-build",
+              "checksum": false
+            }
+          }
+        ],
+        "rustflags": [],
+        "config": 9396254390672932401,
+        "compile_kind": 0
+      }
+    }
+  ]
+}

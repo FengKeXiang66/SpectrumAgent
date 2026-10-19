@@ -1,0 +1,30 @@
+{"event": "shell_log_started", "timestamp": "2026-10-19T04:21:15.589Z"}
+{"event": "shell_started", "pid": 26588, "timestamp": "2026-10-19T04:21:15.591Z"}
+{"event": "single_instance_lock_acquired", "timestamp": "2026-10-19T04:21:16.052Z"}
+{"event": "shell_log_started", "timestamp": "2026-10-19T04:21:16.054Z"}
+{"duration_ms": 45000, "event": "acceptance_probe_started", "period_ms": 100, "pid": 26588, "timestamp": "2026-10-19T04:21:16.056Z"}
+{"event": "engine_start_attempt", "exe": "\\\\?\\E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-custom-protocol-20261018\\final-canonical-20261019\\temp\\failure-release-20261019T042054691552Z\\resources\\backend\\app.exe", "generation_id": 1, "selection_source": "resolved_resource", "timestamp": "2026-10-19T04:21:16.057Z"}
+{"event": "preexisting_handshake_snapshot", "generation_id": 1, "old_identity": null, "preexisting_handshake_invalid": "InvalidJson", "timestamp": "2026-10-19T04:21:16.058Z"}
+{"event": "process_created_suspended", "generation_id": 1, "pid": 28936, "timestamp": "2026-10-19T04:21:16.067Z"}
+{"event": "job_assigned", "generation_id": 1, "pid": 28936, "timestamp": "2026-10-19T04:21:16.068Z"}
+{"event": "thread_resumed_and_closed", "generation_id": 1, "pid": 28936, "timestamp": "2026-10-19T04:21:16.068Z"}
+{"event": "process_identity_recorded", "generation_id": 1, "pid": 28936, "process_created_at_ms": 1792383676059, "timestamp": "2026-10-19T04:21:16.068Z"}
+{"event": "handshake_wait", "generation_id": 1, "reason": "not_valid_yet", "timestamp": "2026-10-19T04:21:16.069Z"}
+{"elapsed_ms": 482, "event": "acceptance_heartbeat", "pid": 26588, "queue_ms": 13, "tick": 0, "timestamp": "2026-10-19T04:21:16.071Z", "visible": false}
+{"event": "window_hidden", "generation_id": 1, "success": true, "timestamp": "2026-10-19T04:21:16.071Z", "visible": false}
+{"event": "engine_process_exit", "exit_code": 4294967295, "generation_id": 1, "pid": 28936, "timestamp": "2026-10-19T04:21:16.099Z", "wait_error": null}
+{"event": "state_transition", "from": "Starting", "generation_id": 1, "reason": "engine_failure", "timestamp": "2026-10-19T04:21:16.099Z", "to": "Failed"}
+{"event": "engine_failure", "failure": {"data_directory": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent", "engine_error": null, "exit_reason": {"ProcessExit": {"code": 4294967295}}, "handshake_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\run\\handshake.json", "kind": "ExitedBeforeReady", "log_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\engine-20261019.jsonl", "preexisting_handshake_invalid": "InvalidJson"}, "generation_id": 1, "timestamp": "2026-10-19T04:21:16.100Z"}
+{"complete": true, "errors": [], "event": "generation_cleanup", "generation_id": 1, "timestamp": "2026-10-19T04:21:16.111Z"}
+{"activated": true, "event": "window_shown", "generation_id": 1, "success": true, "timestamp": "2026-10-19T04:21:16.115Z", "visible": true}
+{"elapsed_ms": 526, "event": "desktop_presented", "generation_id": 1, "phase": "Failed", "timestamp": "2026-10-19T04:21:16.115Z"}
+{"authorization_bearer": false, "bytes": 678, "elapsed_ms": 526, "event": "acceptance_dom_audit", "exact_token_hits": 0, "interactive": false, "invoke": {"pending": true}, "phase": "Starting", "pid": 26588, "tick": 0, "timestamp": "2026-10-19T04:21:16.115Z", "token_samples": 0}
+{"elapsed_ms": 570, "event": "acceptance_heartbeat", "pid": 26588, "queue_ms": 0, "tick": 1, "timestamp": "2026-10-19T04:21:16.158Z", "visible": true}
+{"authorization_bearer": false, "bytes": 2503, "elapsed_ms": 576, "event": "acceptance_dom_audit", "exact_token_hits": 0, "interactive": false, "invoke": {"ok": true, "value": {"boot_id": null, "cleanup_complete": true, "failure": {"data_directory": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent", "engine_error": null, "exit_reason": {"ProcessExit": {"code": 4294967295.0}}, "handshake_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\run\\handshake.json", "kind": "ExitedBeforeReady", "log_path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\engine-20261019.jsonl", "preexisting_handshake_invalid": "InvalidJson"}, "generation_id": 1, "pending_activation": false, "phase": "Failed", "pid": 28936, "port": null}}, "phase": "Failed", "pid": 26588, "tick": 1, "timestamp": "2026-10-19T04:21:16.165Z", "token_samples": 0}
+{"event": "shell_log_started", "timestamp": "2026-10-19T04:21:16.188Z"}
+{"event": "shell_started", "pid": 29952, "timestamp": "2026-10-19T04:21:16.189Z"}
+{"event": "single_instance_activation", "timestamp": "2026-10-19T04:21:16.199Z"}
+{"event": "activation_requested", "generation_id": 1, "pending_activation": true, "phase": "Failed", "timestamp": "2026-10-19T04:21:16.200Z"}
+{"activated": true, "event": "window_shown", "generation_id": 1, "success": true, "timestamp": "2026-10-19T04:21:16.200Z", "visible": true}
+{"activated": true, "event": "window_shown", "generation_id": 1, "success": true, "timestamp": "2026-10-19T04:21:16.203Z", "visible": true}
+{"elapsed_ms": 614, "event": "desktop_presented", "generation_id": 1, "phase": "Failed", "timestamp": "2026-10-19T04:21:16.203Z"}

@@ -1,0 +1,8 @@
+       Debug [tauri_cli::helpers::app_paths] Found Tauri project inside E:\AI_Agent\src-tauri on early lookup
+        Warn [tauri_bundler::bundle] Skipping binary patching for E:\AI_Agent\src-tauri\target\repro-check\release\spectrum-agent.exe due to --no-binary-patching flag.
+        Info [tauri_bundler::bundle::windows::nsis] Verifying NSIS package
+ Downloading [tauri_bundler::utils::http_utils] https://github.com/tauri-apps/binary-releases/releases/download/nsis-3.13/nsis-3.13.zip
+       Debug [ureq::run] GET https://github.com/******
+       Debug [ureq::unversioned::resolver] Resolved: ArrayVec { len: 1, arr: [20.205.243.166:443] }
+failed to bundle project: `timeout: global`
+       Error [tauri_cli_node] failed to bundle project: `timeout: global`

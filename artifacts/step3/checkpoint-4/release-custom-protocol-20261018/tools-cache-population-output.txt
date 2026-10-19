@@ -1,0 +1,12 @@
+{
+  "timestamp": "2026-10-19T01:23:32.257036+00:00",
+  "incoming_root": "E:\\AI_Agent\\src-tauri\\target\\tauri",
+  "actual_cli_tools_root": "E:\\AI_Agent\\src-tauri\\target\\.tauri",
+  "nsis_root": "E:\\AI_Agent\\src-tauri\\target\\.tauri\\NSIS",
+  "plugin_path": "E:\\AI_Agent\\src-tauri\\target\\.tauri\\NSIS\\Plugins\\x86-unicode\\additional\\nsis_tauri_utils.dll",
+  "required_file_count": 13,
+  "required_files_all_present": true,
+  "NSIS_exe_sha1": "6D45D4E8CCF18FE1FDAC9164058F356102A2ECF2",
+  "plugin_sha1": "75197FEE3C6A814FE035788D1C34EAD39349B860",
+  "note": "CLI validation still required; no assertion that bundling passed"
+}

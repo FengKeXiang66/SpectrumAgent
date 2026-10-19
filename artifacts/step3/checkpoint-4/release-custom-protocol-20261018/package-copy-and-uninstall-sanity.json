@@ -1,0 +1,13 @@
+{
+  "checked_utc": "2026-10-19T01:41:58.1905039Z",
+  "setup": "E:\\AI_Agent\\artifacts\\step4\\setup.exe",
+  "setup_bytes": 287150573,
+  "setup_sha256": "56B7551F048BF7C85D0A3CB9CDB94B80642CEEE9F78E0BAC666A1B8D2008A2AF",
+  "copy_matches_bundle": true,
+  "generated_nsis_sha256": "4EF972174D583C4599E2ED374E67AAEB5E40469D0E7C48495A195187661F8CC2",
+  "generated_script_probes": 0,
+  "installed_program_exists": false,
+  "uninstall_registry_exists": false,
+  "data_exists": true,
+  "remaining_owned_processes": []
+}

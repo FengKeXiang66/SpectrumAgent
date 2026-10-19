@@ -1,0 +1,50 @@
+{
+  "analysis": "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-custom-protocol-20261018\\final-canonical-20261019\\analysis-20261019T015517607982Z.json",
+  "shell_sha256": "22a13e6a4d2ec88cf58fa349aad7f22e61fa11331adca11e11eec9c781f73471",
+  "matrix": {
+    "KillReady": 10,
+    "KillStarting": 10,
+    "Close": 10
+  },
+  "production_dom_phases": {
+    "Starting": 31,
+    "Ready": 727,
+    "Stopping": 4,
+    "Failed": 20
+  },
+  "timing": {
+    "engine_ready_ms": 1070.768,
+    "interactive_ms": 1153.768,
+    "first_smoke_completed_ms": 19252.768,
+    "manual_wait_before_smoke_ms": 17879.0,
+    "smoke_round_trip_ms": 220.0,
+    "metrics": {
+      "bands": 8,
+      "elapsed_ms": 211.154,
+      "nan_ratio": 0.0,
+      "reflectance_range": [
+        -1.5275289241381491,
+        1.5275289241381491
+      ],
+      "shape": [
+        8,
+        8,
+        8
+      ]
+    },
+    "cold_definition": "new WebView profile; OS file cache not purged",
+    "clean_vm": false
+  },
+  "timeout_test_host": {
+    "starting_heartbeats": 298,
+    "max_queue_ms": 8,
+    "max_gap_ms": 104.0,
+    "starting_visible_true": 0,
+    "elapsed_start_to_failure_ms": 30010.0,
+    "pending_activation": true,
+    "internal_invoke_returned_starting": true,
+    "scope": "current-source Tauri debug test host"
+  },
+  "template_single_line_verified": true,
+  "three_locks_unchanged": true
+}

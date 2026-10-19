@@ -1,0 +1,103 @@
+﻿[
+    {
+        "path":  "acceptance/dom-26620.jsonl",
+        "bytes":  359539,
+        "sha256":  "754366B6A803B44BF0C8267884115BA98E6177E71DF4A3B3F645BAA5F6F8B1CF"
+    },
+    {
+        "path":  "acceptance/dom-28972.jsonl",
+        "bytes":  665215,
+        "sha256":  "FDEDD958B3A2409B81F4C5DE50E253441B165DDC743615AC04C8C61E791704DB"
+    },
+    {
+        "path":  "acceptance/dom-29012.jsonl",
+        "bytes":  677976,
+        "sha256":  "86AD724F94EDD7A49241C0A1E94F44A61080399C9DFAABA6EA5BEF07D2E03912"
+    },
+    {
+        "path":  "db/spectrum-agent.sqlite3",
+        "bytes":  4096,
+        "sha256":  "5C9DEC1886CC01F5F2307EE1EA87F9B32A4CEF0F8F9A2C68BEEBC558013BEDAB"
+    },
+    {
+        "path":  "db/spectrum-agent.sqlite3-shm",
+        "bytes":  32768,
+        "sha256":  "FD4C9FDA9CD3F9AE7C962B0DDF37232294D55580E1AA165AA06129B8549389EB"
+    },
+    {
+        "path":  "db/spectrum-agent.sqlite3-wal",
+        "bytes":  0,
+        "sha256":  "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+        "path":  "logs/engine-20261018.jsonl",
+        "bytes":  217950,
+        "sha256":  "327D09AA0C7DE709959C1DEF7A5B6C146F6ED32973CB9F9906D587AAE6FBC17C"
+    },
+    {
+        "path":  "logs/engine-20261019.jsonl",
+        "bytes":  87346,
+        "sha256":  "AFA5E7BC9DFAD432FDD067329B58204DA149BEA1303CA509191E81D4D0E320B4"
+    },
+    {
+        "path":  "logs/shell-20261018.log",
+        "bytes":  224628,
+        "sha256":  "F93344559C26C7676A5036709CEAE9541757BB3BA075E47424BC71C9EE130553"
+    },
+    {
+        "path":  "logs/shell-20261019.log",
+        "bytes":  757146,
+        "sha256":  "F9643FFD48C473E9470D20519250B13FA8C2E603AB0231B402B46A4D3AB37039"
+    },
+    {
+        "path":  "logs/uninstall-preservation-5c04037b-65ad-4549-80f1-c6fa047fa8f9.txt",
+        "bytes":  60,
+        "sha256":  "A118540E21B1F8F485B09EAA6E7D94C34A303002746ED23F60E4C772E65565AC"
+    },
+    {
+        "path":  "run/handshake.json",
+        "bytes":  225,
+        "sha256":  "DD1892BBB0C9632E1064BBC3DAE0E764654A04B16BB02FC715FC0A55BD3D5263"
+    },
+    {
+        "path":  "run/uninstall-preservation-5c04037b-65ad-4549-80f1-c6fa047fa8f9.txt",
+        "bytes":  60,
+        "sha256":  "A118540E21B1F8F485B09EAA6E7D94C34A303002746ED23F60E4C772E65565AC"
+    },
+    {
+        "path":  "testdata/smoke-8x8x8.dat",
+        "bytes":  2048,
+        "sha256":  "B7BBFD324222984C5F69EEFED6BDAFACD76D4F8B9834AFD5A835A4ACC5FD1398"
+    },
+    {
+        "path":  "testdata/smoke-8x8x8.hdr",
+        "bytes":  136,
+        "sha256":  "0B1B6041443AD9815726F424CDE3A4F16CDFA21A5B7E5A592D1419C7A1DC9C97"
+    },
+    {
+        "path":  "testdata/uninstall-preservation-5c04037b-65ad-4549-80f1-c6fa047fa8f9.txt",
+        "bytes":  60,
+        "sha256":  "A118540E21B1F8F485B09EAA6E7D94C34A303002746ED23F60E4C772E65565AC"
+    }
+]
+{
+    "scope":  "host only; VM uninstall remains pending",
+    "uninstaller_pid":  19676,
+    "initial_uninstaller_exit":  0,
+    "uninstaller_sha256":  "8BC969A8974EA4C886FCE3048BF3D096DFD87863811F9973D6661D0AAC5E20C4",
+    "program":  "C:\\Users\\Administrator\\AppData\\Local\\Programs\\SpectrumAgent",
+    "program_directory_removed":  true,
+    "data":  "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent",
+    "data_directory_preserved":  true,
+    "data_files_before":  1,
+    "data_files_after":  16,
+    "all_data_bytes_unchanged":  false,
+    "directories_preserved":  {
+                                  "run":  true,
+                                  "logs":  true,
+                                  "testdata":  true
+                              },
+    "uninstall_registry_key_existed_before":  false,
+    "uninstall_registry_key_exists_after":  false,
+    "test_hygiene_not_yet_applied":  true
+}

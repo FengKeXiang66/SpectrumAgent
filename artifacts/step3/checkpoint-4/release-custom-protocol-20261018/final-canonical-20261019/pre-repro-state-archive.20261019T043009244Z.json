@@ -1,0 +1,7 @@
+{
+  "archived_utc": "2026-10-19T04:30:09.2491335Z",
+  "source": "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-custom-protocol-20261018\\final-canonical-20261019\\host-install-state.json",
+  "destination": "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-custom-protocol-20261018\\final-canonical-20261019\\host-install-state.20261019T043009244Z.json",
+  "sha256": "128597f7b02149b357b8243b9ada986dba6060fcc66d81eedf58aa63d20b6a49",
+  "reason": "successful uninstall; same-directory state archival; no Install guard bypass"
+}

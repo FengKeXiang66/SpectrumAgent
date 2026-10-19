@@ -1,0 +1,9 @@
+{
+  "built_utc": "2026-10-19T01:43:48.3287128Z",
+  "mode": "FaultFixture",
+  "features": "custom-protocol",
+  "test_probes_enabled": false,
+  "shell_sha256": "BE1BEBF6A1ED81036B44C07C235D13FE2863F69486D55FD5FB151757BE5BFF98",
+  "resources_file_count": 544,
+  "missing_python_dll": false
+}

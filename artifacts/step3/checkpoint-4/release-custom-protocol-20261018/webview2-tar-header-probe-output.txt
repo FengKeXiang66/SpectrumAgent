@@ -1,0 +1,17 @@
+{
+  "tar_headers_validated": [
+    {
+      "offset": 20,
+      "name": "MicrosoftEdgeUpdate.exe",
+      "size": 207192,
+      "type": "b'0'"
+    },
+    {
+      "offset": 21,
+      "name": "icrosoftEdgeUpdate.exe",
+      "size": 207192,
+      "type": "b'\\x00'"
+    }
+  ],
+  "scope": "read-only archive-header probe"
+}

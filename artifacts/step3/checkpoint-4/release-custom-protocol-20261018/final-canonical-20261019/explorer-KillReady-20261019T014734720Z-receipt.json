@@ -1,0 +1,8 @@
+﻿{
+    "mode":  "KillReady",
+    "rounds":  10,
+    "runner_pid":  30612,
+    "console":  "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-custom-protocol-20261018\\final-canonical-20261019\\explorer-KillReady-20261019T014734720Z-console.txt",
+    "status":  "passed",
+    "error":  null
+}

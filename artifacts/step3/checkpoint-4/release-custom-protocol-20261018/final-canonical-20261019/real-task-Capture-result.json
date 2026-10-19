@@ -1,0 +1,32 @@
+{
+    "action":  "Capture",
+    "started_utc":  "2026-10-19T06:29:33.2729071Z",
+    "status":  "failed",
+    "error":  "System.Management.Automation.RuntimeException: Missing required engine_boot",
+    "context":  "one-time scheduled task; interactive host token",
+    "identity":  "WIN-RTKE72PB5BE\\Administrator",
+    "sid":  "S-1-5-21-748973980-1164980183-4033859671-500",
+    "lineage":  {
+                    "source":  "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\shell-20261019.log",
+                    "source_root":  "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent",
+                    "creation_time_utc":  "2026-10-19T01:47:35.9303040Z",
+                    "first_timestamp":  "2026-10-19T01:47:35.930Z",
+                    "snapshot":  "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-custom-protocol-20261018\\final-canonical-20261019\\real-task-Capture-live-shell-source.log",
+                    "bytes":  757146,
+                    "sha256":  "f9643ffd48c473e9470d20519250b13fa8c2e603ab0231b402b46a4d3ab37039",
+                    "identity":  "WIN-RTKE72PB5BE\\Administrator",
+                    "sid":  "S-1-5-21-748973980-1164980183-4033859671-500",
+                    "captured_utc":  "2026-10-19T06:29:33.4756170Z"
+                },
+    "registry_before":  [
+                            {
+                                "path":  "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\SpectrumAgent",
+                                "exists":  false
+                            },
+                            {
+                                "path":  "HKCU:\\Software\\spectrumagent\\SpectrumAgent",
+                                "exists":  false
+                            }
+                        ],
+    "finished_utc":  "2026-10-19T06:29:33.7833030Z"
+}

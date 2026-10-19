@@ -1,0 +1,2 @@
+validated_absolute_target=E:\AI_Agent\src-tauri\resources\backend source=E:\AI_Agent\artifacts\step3\checkpoint-4\release-custom-protocol-20261018\temp\failure-release-20261018T153521137006Z\resources\backend mode=FaultFixture
+report=E:\AI_Agent\artifacts\step3\staging-reports\20261019T014319120Z-FaultFixture-26847864.json matched_files=543 fault_fixture=True source_unchanged=true

@@ -1,0 +1,50 @@
+{
+  "analysis": "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-custom-protocol-20261018\\analysis-20261019T012659237850Z.json",
+  "shell_sha256": "cba991aa47d8ecb0b63610935e45868c37219359b611e5b7172a5e9a535f2ece",
+  "matrix": {
+    "KillReady": 10,
+    "KillStarting": 10,
+    "Close": 10
+  },
+  "production_dom_phases": {
+    "Starting": 38,
+    "Ready": 1164,
+    "Stopping": 3,
+    "Failed": 3
+  },
+  "timing": {
+    "engine_ready_ms": 1145.632,
+    "interactive_ms": 1200.632,
+    "first_smoke_completed_ms": 44888.632,
+    "manual_wait_before_smoke_ms": 43487.0,
+    "smoke_round_trip_ms": 201.0,
+    "metrics": {
+      "bands": 8,
+      "elapsed_ms": 195.982,
+      "nan_ratio": 0.0,
+      "reflectance_range": [
+        -1.5275289241381491,
+        1.5275289241381491
+      ],
+      "shape": [
+        8,
+        8,
+        8
+      ]
+    },
+    "cold_definition": "new WebView profile; OS file cache not purged",
+    "clean_vm": false
+  },
+  "timeout_test_host": {
+    "starting_heartbeats": 298,
+    "max_queue_ms": 8,
+    "max_gap_ms": 104.0,
+    "starting_visible_true": 0,
+    "elapsed_start_to_failure_ms": 30010.0,
+    "pending_activation": true,
+    "internal_invoke_returned_starting": true,
+    "scope": "current-source Tauri debug test host"
+  },
+  "template_single_line_verified": true,
+  "three_locks_unchanged": true
+}

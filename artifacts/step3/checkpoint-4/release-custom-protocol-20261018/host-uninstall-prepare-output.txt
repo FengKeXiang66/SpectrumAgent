@@ -1,0 +1,191 @@
+[
+  {
+    "path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\run\\uninstall-preservation-25695486-b36b-473a-9bb7-83f45e779d0f.txt",
+    "sha256": "E7217BB1C8F25E8EE31142D8869E15939143FDF28C0A949D406A858CD9A08450"
+  },
+  {
+    "path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\uninstall-preservation-25695486-b36b-473a-9bb7-83f45e779d0f.txt",
+    "sha256": "E7217BB1C8F25E8EE31142D8869E15939143FDF28C0A949D406A858CD9A08450"
+  },
+  {
+    "path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\testdata\\uninstall-preservation-25695486-b36b-473a-9bb7-83f45e779d0f.txt",
+    "sha256": "E7217BB1C8F25E8EE31142D8869E15939143FDF28C0A949D406A858CD9A08450"
+  }
+]
+[
+  {
+    "path": "acceptance/dom-11612.jsonl",
+    "bytes": 2742,
+    "sha256": "4E9865436ED62DC6B26CAA9430B801B32CBE5D26A5165D769A8F91E41A6770DB"
+  },
+  {
+    "path": "acceptance/dom-14044.jsonl",
+    "bytes": 6644,
+    "sha256": "668B1F2D6930159E4C2A2A3C64E84C6F7AA6A3BB396E11D91F301EAFFDE661B9"
+  },
+  {
+    "path": "acceptance/dom-14352.jsonl",
+    "bytes": 629689,
+    "sha256": "2F99B1E764B2C555EA53198E885681C676CE89967DB219F27732CD78176336D3"
+  },
+  {
+    "path": "acceptance/dom-15820.jsonl",
+    "bytes": 415388,
+    "sha256": "C7BF06EDA59BF529FDB0EE20353CC852775F1E398C46BB8C4D35659A15F7ED8A"
+  },
+  {
+    "path": "acceptance/dom-16036.jsonl",
+    "bytes": 2929,
+    "sha256": "80BB261C2350591B7A8D85B840648EF4923DAD1EA9C24A46986B914F766E18E5"
+  },
+  {
+    "path": "acceptance/dom-17852.jsonl",
+    "bytes": 650294,
+    "sha256": "C3F187A49EB41A777A51BD17FD82C34184F9BBF31764F446169F69D3C65F2A64"
+  },
+  {
+    "path": "acceptance/dom-18072.jsonl",
+    "bytes": 6644,
+    "sha256": "D1801814344C719BC1060C2D90EA84BAA68BC95EA3796DE4B64D6D0FDE638B86"
+  },
+  {
+    "path": "acceptance/dom-19480.jsonl",
+    "bytes": 7354,
+    "sha256": "B3C4A55A20E8C84171A303507D8C101A2506F9F3BCD74298D6CBF268D2539175"
+  },
+  {
+    "path": "acceptance/dom-21520.jsonl",
+    "bytes": 6646,
+    "sha256": "2BFB0D06724FCF50B1A58E3A0C82A7054EDC668A2A95B6ED7C440284E135BB18"
+  },
+  {
+    "path": "acceptance/dom-21624.jsonl",
+    "bytes": 2334,
+    "sha256": "A1F8546A3FF4FAE6969C37B4AEB2982C15EBA4BBB1237CEFEB65755708BE05E9"
+  },
+  {
+    "path": "acceptance/dom-22192.jsonl",
+    "bytes": 977831,
+    "sha256": "1F31530490E84C4D70D340E0B0A012244BDE2A38C06123AD50FA3185CD320DC1"
+  },
+  {
+    "path": "acceptance/dom-22748.jsonl",
+    "bytes": 477081,
+    "sha256": "2E5AFBB0DC6BFC831860F63415B7229ECF6DD552E6BB9F23E68D7C4941183605"
+  },
+  {
+    "path": "acceptance/dom-24032.jsonl",
+    "bytes": 6646,
+    "sha256": "DC3D8AA5C1E0BE030DFC4A9E755992567429BD79CA8780B13764B7A679362F40"
+  },
+  {
+    "path": "acceptance/dom-24452.jsonl",
+    "bytes": 652950,
+    "sha256": "EDDA62776EC7511D510396D601730BF63604EE57D4D44749EAD8AA3726947932"
+  },
+  {
+    "path": "acceptance/dom-25088.jsonl",
+    "bytes": 638616,
+    "sha256": "2AA955DDD64ED66E1BA49E772970952C72C8A18C4675A46AE4CFF704B2C5F63D"
+  },
+  {
+    "path": "acceptance/dom-26608.jsonl",
+    "bytes": 1015562,
+    "sha256": "53102257DBDA04AF47F6AB4ADD78EBA81DC402C40937610E26C111A90044A9CF"
+  },
+  {
+    "path": "acceptance/dom-26736.jsonl",
+    "bytes": 7397,
+    "sha256": "047035C236DA71F0FCF00AF4B014568215A773D3BA703E829452A007E14F4F32"
+  },
+  {
+    "path": "acceptance/dom-26856.jsonl",
+    "bytes": 656188,
+    "sha256": "5C2894AE3AFA84FF465A17DB572C0FBCCB644FD1C3DFAB2CDDB51909EDC87018"
+  },
+  {
+    "path": "acceptance/dom-27528.jsonl",
+    "bytes": 637356,
+    "sha256": "4218CCE16D985C0BB021677D0490BDBFBCF7148F800F7CB36D32121BCE54D942"
+  },
+  {
+    "path": "acceptance/dom-29448.jsonl",
+    "bytes": 649882,
+    "sha256": "D9015ECFA8A66B153D54E48C174D6F203793A5BFF2F22C1B81F18D0B3683DE04"
+  },
+  {
+    "path": "acceptance/dom-3040.jsonl",
+    "bytes": 8190,
+    "sha256": "246061A14C7F034F23DFDA69B33E82B079E199C1AFA27ECAB465EB43C7909C1A"
+  },
+  {
+    "path": "acceptance/dom-6568.jsonl",
+    "bytes": 519972,
+    "sha256": "5CEA98BF95A32039C9F254A40956272CB6D58FEC20FCA55A9D2CB0204F313B93"
+  },
+  {
+    "path": "db/spectrum-agent.sqlite3",
+    "bytes": 4096,
+    "sha256": "5C9DEC1886CC01F5F2307EE1EA87F9B32A4CEF0F8F9A2C68BEEBC558013BEDAB"
+  },
+  {
+    "path": "db/spectrum-agent.sqlite3-shm",
+    "bytes": 32768,
+    "sha256": "FD4C9FDA9CD3F9AE7C962B0DDF37232294D55580E1AA165AA06129B8549389EB"
+  },
+  {
+    "path": "db/spectrum-agent.sqlite3-wal",
+    "bytes": 0,
+    "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+  },
+  {
+    "path": "logs/engine-20261018.jsonl",
+    "bytes": 900701,
+    "sha256": "08C660D139827CC1030BD6BEEA63B94326298524D3DE5887D922DB232477DA38"
+  },
+  {
+    "path": "logs/engine-20261019.jsonl",
+    "bytes": 2551,
+    "sha256": "59C2AF7E6B16E7373B0238F16DF2D068FA135D3B8B9CC6DD2C23A8E45FD6C796"
+  },
+  {
+    "path": "logs/shell-20261018.log",
+    "bytes": 2786470,
+    "sha256": "090F00AC3497C84FA8F31CA1F66B06BB37A706541082B83D9073C54346C258BE"
+  },
+  {
+    "path": "logs/shell-20261019.log",
+    "bytes": 497562,
+    "sha256": "74352ACA43BE370DF46904139737EF669F02B795175D9C1AB0BBEA727863231C"
+  },
+  {
+    "path": "logs/uninstall-preservation-25695486-b36b-473a-9bb7-83f45e779d0f.txt",
+    "bytes": 60,
+    "sha256": "E7217BB1C8F25E8EE31142D8869E15939143FDF28C0A949D406A858CD9A08450"
+  },
+  {
+    "path": "run/handshake.json",
+    "bytes": 225,
+    "sha256": "F01DF52E7A0E8ABF9C5766DAF3BE104716E9446FA86F180A83C0C75A020E418E"
+  },
+  {
+    "path": "run/uninstall-preservation-25695486-b36b-473a-9bb7-83f45e779d0f.txt",
+    "bytes": 60,
+    "sha256": "E7217BB1C8F25E8EE31142D8869E15939143FDF28C0A949D406A858CD9A08450"
+  },
+  {
+    "path": "testdata/smoke-8x8x8.dat",
+    "bytes": 2048,
+    "sha256": "B7BBFD324222984C5F69EEFED6BDAFACD76D4F8B9834AFD5A835A4ACC5FD1398"
+  },
+  {
+    "path": "testdata/smoke-8x8x8.hdr",
+    "bytes": 136,
+    "sha256": "0B1B6041443AD9815726F424CDE3A4F16CDFA21A5B7E5A592D1419C7A1DC9C97"
+  },
+  {
+    "path": "testdata/uninstall-preservation-25695486-b36b-473a-9bb7-83f45e779d0f.txt",
+    "bytes": 60,
+    "sha256": "E7217BB1C8F25E8EE31142D8869E15939143FDF28C0A949D406A858CD9A08450"
+  }
+]

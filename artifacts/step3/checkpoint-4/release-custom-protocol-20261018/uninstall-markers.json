@@ -1,0 +1,14 @@
+[
+  {
+    "path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\run\\uninstall-preservation-25695486-b36b-473a-9bb7-83f45e779d0f.txt",
+    "sha256": "E7217BB1C8F25E8EE31142D8869E15939143FDF28C0A949D406A858CD9A08450"
+  },
+  {
+    "path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\logs\\uninstall-preservation-25695486-b36b-473a-9bb7-83f45e779d0f.txt",
+    "sha256": "E7217BB1C8F25E8EE31142D8869E15939143FDF28C0A949D406A858CD9A08450"
+  },
+  {
+    "path": "C:\\Users\\Administrator\\AppData\\Local\\SpectrumAgent\\testdata\\uninstall-preservation-25695486-b36b-473a-9bb7-83f45e779d0f.txt",
+    "sha256": "E7217BB1C8F25E8EE31142D8869E15939143FDF28C0A949D406A858CD9A08450"
+  }
+]

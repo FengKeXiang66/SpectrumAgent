@@ -1,0 +1,24 @@
+Window: "光谱数据 AI Agent", App: spectrum-agent.exe.
+	0 窗口 光谱数据 AI Agent Secondary Actions: Raise
+		1 窗格
+			2 窗格 光谱数据 AI Agent
+				3 窗格 (disabled)
+				4 区域 光谱数据 AI Agent - Web 内容
+					5 区域
+						6 区域
+							7 区域
+								8 区域
+								9 区域
+									10 区域
+										11 区域
+											12 区域
+												13 区域
+								14 区域
+						15 区域
+						16 区域
+		17 标题栏 (settable, string) Value: 光谱数据 AI Agent
+			18 菜单栏 系统 ID: MenuBar
+				19 菜单项目 系统
+			20 按钮 最小化
+			21 按钮 最大化
+			22 按钮 关闭

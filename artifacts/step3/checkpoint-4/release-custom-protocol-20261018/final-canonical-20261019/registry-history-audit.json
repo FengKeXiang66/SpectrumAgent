@@ -1,0 +1,19 @@
+{
+  "recorded_utc": "2026-10-19T04:25:37.798033+00:00",
+  "thread_id": "01a14c1f-ac00-75d2-afb8-bf4fe20cc166",
+  "source": "C:\\Users\\Administrator\\.codex\\sessions\\2026\\10\\18\\rollout-2026-10-18T07-08-26-01a14c1f-ac00-75d2-afb8-bf4fe20cc166.jsonl",
+  "source_prefix_bytes": 29027894,
+  "source_prefix_sha256": "221f7d07071d254815713c2a02d54cfa01941758228078c6f66b24b4c05d70f2",
+  "executed_tool_inputs_checked": 811,
+  "patterns": {
+    "powershell_property_mutation": "\\b(?:Set|New|Remove)-ItemProperty\\b",
+    "reg_mutation": "\\breg(?:\\.exe)?\\s+(?:add|delete|import|restore|load|unload)\\b",
+    "registry_provider_mutation": "\\b(?:Set|New|Remove)-Item\\b[^\\n;]{0,160}HK(?:CU|LM|U):",
+    "dotnet_value_mutation": "\\.SetValue\\s*\\(",
+    "dotnet_key_mutation": "\\.(?:DeleteSubKey|DeleteValue|CreateSubKey)\\s*\\("
+  },
+  "candidates": [],
+  "scope": "this chat's tool inputs through the recorded prefix; external host sessions are outside this audit",
+  "manual_registry_mutations_found": 0,
+  "installer_internal_registry_writes": "NSIS template WriteRegStr/DeleteRegKey are installer behavior; not manual reg commands"
+}

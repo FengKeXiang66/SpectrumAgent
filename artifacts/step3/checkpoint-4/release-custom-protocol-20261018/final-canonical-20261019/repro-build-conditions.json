@@ -1,0 +1,22 @@
+{
+  "started_utc": "2026-10-19T04:12:34.3756347Z",
+  "rustc": [
+    "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "binary: rustc",
+    "commit-hash: 58cf8f9c35b355199727627d07ae34a4e2846d67",
+    "commit-date: 2026-10-13",
+    "host: x86_64-pc-windows-msvc",
+    "release: 1.99.1",
+    "LLVM version: 23.1.1"
+  ],
+  "profile": "release",
+  "features": "custom-protocol",
+  "RUSTFLAGS": "",
+  "CARGO_HOME": "E:\\AI_Agent\\.cargo-home",
+  "CARGO_TARGET_DIR": "E:\\AI_Agent\\src-tauri\\target\\repro-check",
+  "TEMP": "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\temp",
+  "baseline_sha256": "22a13e6a4d2ec88cf58fa349aad7f22e61fa11331adca11e11eec9c781f73471",
+  "source_commit": "a53030d47fc169ddfa67057e45c464fc0f1db2cd",
+  "source_diff": [],
+  "cache_policy": "copy dependency artifacts only; all spectrum-agent own fingerprints/build outputs/deps excluded; own crate truly recompiles"
+}

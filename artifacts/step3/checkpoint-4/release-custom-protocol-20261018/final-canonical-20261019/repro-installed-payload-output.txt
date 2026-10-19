@@ -1,0 +1,17 @@
+{
+  "timestamp": "2026-10-19T04:39:02.179711+00:00",
+  "program": "C:\\Users\\Administrator\\AppData\\Local\\Programs\\SpectrumAgent",
+  "features": "custom-protocol",
+  "source_and_installed_shell_bytes_equal": true,
+  "shell_sha256": "29a2829b2a74d185f8c4341e2f577cc5a000c13bc4e891d64b0d8b70daf0e28c",
+  "shell_bytes": 10786304,
+  "source_and_installed_engine_bytes_equal": true,
+  "engine_sha256": "3f62c1895152a01eb0a92b61a733985c15ca7888d233fd9408ca5b9dc61d7703",
+  "resources_full_manifest_match": true,
+  "resources_files": 544,
+  "internal_files": 543,
+  "persistent_files": 546,
+  "persistent_payload": "main shell + resources/backend; NSIS generated uninstall.exe additionally present",
+  "test_probe_binaries_present": false,
+  "scope": "host installer payload; not a clean-VM claim"
+}

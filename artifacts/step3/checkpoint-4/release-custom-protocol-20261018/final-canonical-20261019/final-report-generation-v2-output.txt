@@ -1,0 +1,13 @@
+warning: unable to access 'C:\Users\Administrator/.config/git/ignore': Permission denied
+{
+  "report": "E:\\AI_Agent\\artifacts\\step3\\checkpoint-4\\release-custom-protocol-20261018\\final-canonical-20261019\\REPORT.md",
+  "report_sha256": "188d9f97663b91446fe8f90797e1e52ad6e96794cabf5cc2bbb9cb05fe8b3cc7",
+  "real_dom_pid": 18680,
+  "data_before_after": [
+    17,
+    17
+  ],
+  "handshake_cleanup_passed": false,
+  "delivery_unchanged": true,
+  "vm_status": "待VM实机"
+}

@@ -1,0 +1,21 @@
+XML_BEFORE_TARGET b'0.4283.62.exe" arguments="--msedge-beta --verbose-logging --do-not-launch-msedge --system-level" needsadmin="true"/>\r\n        </actions>\r\n       </manifest>\r\n    </updatecheck>\r\n  </app>\r\n  <app appid="{0D50BFEC-CD6A-4F9A-964C-C7416E3ACB10}" status="ok">\r\n    <updatecheck status="ok">\r\n      <manifest version="155.0.4283.62">\r\n        <packages>\r\n          <package name="MicrosoftEdge_X64_155.0.4283.62.exe" hash_sha256="daf767004075269b786200fdacadb1991ed5b936e6bb636b6d8fb5009e7c6fca" size="207695224" required="true"/>\r\n        </packages>\r\n        <actions>\r\n          <action event="install" run="MicrosoftEdge_X64_155.0.4283.62.exe" arguments="--msedge-dev --verbose-logging --do-not-launch-msedge --system-level" needsadmin="true"/>\r\n        </actions>\r\n       </manifest>\r\n    </updatecheck>\r\n  </app>\r\n  <app appid="{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" status="ok">\r\n    <updatecheck status="ok">\r\n      <manifest version="155.0.4283.62">\r\n        <packages>\r\n          <package name="'
+XML_AFTER_TARGET b'MicrosoftEdgeWebview_X64_155.0.4283.62.exe" hash_sha256="daf767004075269b786200fdacadb1991ed5b936e6bb636b6d8fb5009e7c6fca" size="207695224" required="true"/>\r\n        </packages>\r\n        <actions>\r\n          <!-- \r\n            For WebView standalone, we purposely omit the system-level flag to\r\n            instead let InstallManager dynamically add system/user-level to the\r\n            command line.\r\n          -->\r\n          <action event="install" run="MicrosoftEdgeWebview_X64_155.0.4283.62.exe" arguments="--msedgewebview --verbose-logging --do-not-launch-msedge" needsadmin="prefers"/>\r\n        </actions>\r\n       </manifest>\r\n    </updatecheck>\r\n  </app>\r\n  <app appid="{C50565E9-CCCF-44B4-BA15-5AC5C6569197}" status="ok">\r\n    <updatecheck status="ok">\r\n      <manifest version="155.0.4283.62">\r\n        <packages>\r\n          <package name="MicrosoftEdge_X64_155.0.4283.62.exe" hash_sha256="daf767004075269b786200fdacadb1991ed5b936e6bb636b6d8fb5009e7c6fca" size="207695224" required="true"/'
+{
+  "app": {
+    "appid": "{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}",
+    "status": "ok"
+  },
+  "manifest": {
+    "version": "155.0.4283.62"
+  },
+  "packages": [
+    {
+      "name": "MicrosoftEdgeWebview_X64_155.0.4283.62.exe",
+      "hash_sha256": "daf767004075269b786200fdacadb1991ed5b936e6bb636b6d8fb5009e7c6fca",
+      "size": "207695224",
+      "required": "true"
+    }
+  ],
+  "xml": "<app appid=\"{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}\" status=\"ok\">\n    <updatecheck status=\"ok\">\n      <manifest version=\"155.0.4283.62\">\n        <packages>\n          <package name=\"MicrosoftEdgeWebview_X64_155.0.4283.62.exe\" hash_sha256=\"daf767004075269b786200fdacadb1991ed5b936e6bb636b6d8fb5009e7c6fca\" size=\"207695224\" required=\"true\" />\n        </packages>\n        <actions>\n          \n          <action event=\"install\" run=\"MicrosoftEdgeWebview_X64_155.0.4283.62.exe\" arguments=\"--msedgewebview --verbose-logging --do-not-launch-msedge\" needsadmin=\"prefers\" />\n        </actions>\n       </manifest>\n    </updatecheck>\n  </app>\n  ",
+  "verified_from_signed_installer_metadata": true
+}
