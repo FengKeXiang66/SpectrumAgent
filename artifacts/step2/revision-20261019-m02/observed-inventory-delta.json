@@ -1,0 +1,12 @@
+{
+  "files": 544,
+  "bytes": 255688706,
+  "internal_files": 543,
+  "internal_bytes": 238793334,
+  "added": [],
+  "removed": [],
+  "changed": [
+    "_internal/base_library.zip",
+    "app.exe"
+  ]
+}

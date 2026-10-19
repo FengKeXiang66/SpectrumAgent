@@ -104,7 +104,7 @@ def seal():
     files = inventory(PRODUCT)
     internal = [r for r in files if r["path"].startswith("_internal/")]
     exe = PRODUCT / "app.exe"
-    old_manifest = json.loads((BATCH.parent / "product-manifest.json").read_text(encoding="utf-8"))
+    old_manifest = json.loads((BATCH.parent / "revision-20261018-smoke-headers/product-manifest.json").read_text(encoding="utf-8"))
     old_internal = [r for r in old_manifest["files"] if r["path"].startswith("_internal/")]
     checks = {
         "1_exe_exists_and_new_batch_bytes": exe.is_file() and exe.stat().st_size == source_manifest["exe_bytes"],
@@ -135,8 +135,8 @@ def seal():
             assert zip_order_only
     assert len(files) == 544
     write("seven-crosschecks.json", {"checks": checks, "all_passed": all(checks.values()),
-          "old_exe_bytes": 16771126, "new_exe_bytes": exe.stat().st_size,
-          "byte_change_basis": "Approved response-header amendment; new source manifest + embedded-code comparison",
+          "old_exe_bytes": next(r["bytes"] for r in old_manifest["files"] if r["path"] == "app.exe"), "new_exe_bytes": exe.stat().st_size,
+          "byte_change_basis": "Milestone03 approved composed dataset app; source manifest verifies all backend/spectrumagent embedded code",
           "internal_changed_paths": changed, "zip_order_only_payloads_identical": zip_order_only,
           "old_evidence_unchanged": True})
     assert all(checks.values()), "Do not issue authoritative product manifest on failed check"
