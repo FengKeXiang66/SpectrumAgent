@@ -1,0 +1,8 @@
+{
+  "command": "cargo test --manifest-path E:\\AI_Agent\\src-tauri\\Cargo.toml --locked --offline",
+  "CARGO_HOME": "E:\\AI_Agent\\.cargo-home",
+  "CARGO_TARGET_DIR": "E:\\AI_Agent\\src-tauri\\target\\milestone02",
+  "TEMP": "E:\\AI_Agent\\.runtime\\milestone02-temp",
+  "RUST_TEST_THREADS": null,
+  "NUMBER_OF_PROCESSORS": "20"
+}

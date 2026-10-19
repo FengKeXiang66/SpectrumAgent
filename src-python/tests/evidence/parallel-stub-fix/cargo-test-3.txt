@@ -1,0 +1,83 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.32s
+     Running unittests src\lib.rs (src-tauri\target\milestone02\debug\deps\spectrum_agent-fc5a2225eca9e0bc.exe)
+
+running 7 tests
+test datasets_dev::tests::no_generic_host_port_path_or_method_can_be_deserialized ... ok
+test datasets_dev::tests::all_operations_use_the_handshake_port_and_fixed_namespace ... ok
+test health::route_tests::closed_routes_always_use_numeric_loopback_and_literal_paths ... ok
+test datasets_dev::tests::structured_sidecar_errors_are_preserved_after_identity_validation ... ok
+test datasets_dev::tests::redirects_are_not_followed_and_sensitive_bodies_never_leave_rust ... ok
+test datasets_dev::tests::response_identity_precedes_status_and_body ... ok
+test datasets_dev::tests::declared_and_streaming_response_limits_are_enforced ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running unittests src\main.rs (src-tauri\target\milestone02\debug\deps\spectrum_agent-9760c85afe553455.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\causality.rs (src-tauri\target\milestone02\debug\deps\causality-36e4b6d833a263b9.exe)
+
+running 2 tests
+test midnight_files_and_preexisting_partial_line_are_handled_without_fallback ... ok
+test only_new_complete_lines_with_own_integer_pid_in_utc_window_can_be_cause ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests\contracts.rs (src-tauri\target\milestone02\debug\deps\contracts-6e34dbf97624c6bb.exe)
+
+running 6 tests
+test valid_handshake_values_and_integer_utc_comparison ... ok
+test exact_fields_and_top_level_are_enforced ... ok
+test all_transition_pairs_and_stopping_terminal_rule ... ok
+test late_generation_and_expected_exit_cannot_fail_current_attempt ... ok
+test times_reject_nonexistent_dates_leap_seconds_and_non_millisecond_formats ... ok
+test metadata_types_bounds_and_exact_strings_are_enforced ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\dev_identity.rs (src-tauri\target\milestone02\debug\deps\dev_identity-6600fcd409e08ea7.exe)
+
+running 1 test
+test same_job_creation_time_and_live_process_are_all_required ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\dev_lifecycle.rs (src-tauri\target\milestone02\debug\deps\dev_lifecycle-e7b10eb393a2d273.exe)
+
+running 1 test
+test real_venv_dual_pid_job_cleanup_and_stale_handshake_recovery ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.31s
+
+     Running tests\engine_path.rs (src-tauri\target\milestone02\debug\deps\engine_path-4dbb2bb02eb71cdc.exe)
+
+running 1 test
+test constructor_precedes_resource_and_rejects_non_engine_or_relative_paths ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\supervisor_stubs.rs (src-tauri\target\milestone02\debug\deps\supervisor_stubs-83764e59d4e58d2f.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\win32_failures.rs (src-tauri\target\milestone02\debug\deps\win32_failures-62b5ecc33cd4760b.exe)
+
+running 3 tests
+test success_closes_thread_immediately_and_cleanup_is_idempotent ... ok
+test five_injected_failures_use_correct_termination_wait_and_exact_handle_counts ... ok
+test unconfirmed_cleanup_is_preserved_and_blocks_retry ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+   Doc-tests spectrum_agent
+
+running 1 test
+test src\health.rs - health::HealthClient::smoke (line 101) - compile fail ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+

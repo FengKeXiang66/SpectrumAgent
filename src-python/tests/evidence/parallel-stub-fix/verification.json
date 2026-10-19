@@ -1,0 +1,63 @@
+{
+  "production_prefix_sha256_before": "d67675d1664453965e02e68c6f1ab0ca9862dc4fe1ed9c8a4d7d2da0a6295789",
+  "production_prefix_sha256_after": "d67675d1664453965e02e68c6f1ab0ca9862dc4fe1ed9c8a4d7d2da0a6295789",
+  "only_tracked_code_change": "src-tauri/src/datasets_dev.rs",
+  "scope": "tests module only",
+  "rounds": [
+    {
+      "round": 1,
+      "all_default_targets_passed": true,
+      "test_results": [
+        7,
+        0,
+        2,
+        6,
+        1,
+        1,
+        1,
+        0,
+        3,
+        1
+      ],
+      "total_passed_including_one_doctest": 22,
+      "sha256": "7969d33c5947270f77eb0e342b5cbee8f71c03f7b2bd62e3d0d28fab3f833130"
+    },
+    {
+      "round": 2,
+      "all_default_targets_passed": true,
+      "test_results": [
+        7,
+        0,
+        2,
+        6,
+        1,
+        1,
+        1,
+        0,
+        3,
+        1
+      ],
+      "total_passed_including_one_doctest": 22,
+      "sha256": "ad442c1fc96b94f3048e7e21368800aa4f7fb3815870e84a56514466ffe99d36"
+    },
+    {
+      "round": 3,
+      "all_default_targets_passed": true,
+      "test_results": [
+        7,
+        0,
+        2,
+        6,
+        1,
+        1,
+        1,
+        0,
+        3,
+        1
+      ],
+      "total_passed_including_one_doctest": 22,
+      "sha256": "15b2bb849a5ea765071de829580871628546f61ea0260204fbe7ba98e67fbf22"
+    }
+  ],
+  "source_commit": "451597a11e3f08ed5214f48e4e79595334d44a1b"
+}

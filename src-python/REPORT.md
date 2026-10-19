@@ -23,13 +23,21 @@
 |---|---|---|
 | Python 回归 | `.venv\Scripts\python.exe -m pytest backend/tests src-python/tests/data -q --basetemp .runtime/m02-tests/4.6-regression`；`tests/evidence/4.6-python-regression.txt` | 141 passed，10 warnings，5.62s；其中 #02 为102项 |
 | 真 HTTP | `.venv\Scripts\python.exe scripts/selfcheck_milestone02.py`；`4.6-live-http.txt` | health200/无token401/import200/缺文件400，幂等、raw覆盖、PNG、3路并发及health200，JSON日志21行、凭证匹配0 |
-| Rust 当前源码 | `cargo test --locked --offline --lib --test dev_identity --test dev_lifecycle -- --nocapture --test-threads=1`；`4.6-rust-tests-final.txt` | 9/9：6个datasets安全用例、1个既有closed-route用例、1个身份拒绝矩阵、1个真实双PID两轮生命周期 |
+| Rust 当前源码 | `cargo test --manifest-path E:\AI_Agent\src-tauri\Cargo.toml --locked --offline`；`tests/evidence/parallel-stub-fix/cargo-test-{1,2,3}.txt` | **默认并行模式连跑三次通过**；每轮21项普通测试+1项compile_fail文档测试，无失败；未传任何test-threads参数，RUST_TEST_THREADS已清除 |
 | clippy | `cargo clippy --locked --offline --all-targets -- -D warnings`；`4.6-clippy-final.txt` | 通过；unwrap_used/expect_used/panic deny 未放宽 |
 | Rust格式 | rustfmt --check 仅本轮新增3个模块、2个测试文件 | exit0；不声称全仓fmt通过，不重排原release代码行 |
 | 前端 | Node24.19.0 执行 tsc --noEmit、Node --test、Vite build | 类型检查exit0，Node2/2；`4.6-ui-unit-final.txt`、`4.6-vite-build-final.txt`；产物仅在.runtime/m02-vite-dist |
 | 真实数据 | `scripts/verify_plastic_dataset.py`；`tests/evidence/plastic-11.txt` | 11/11，逐值 raw==memmap、每波段scaled==DN/65535，metadata与只读约束通过；完整输出附后 |
 
 所有 Python 命令实际使用 E:\AI_Agent\.venv\Scripts\python.exe。Cargo_HOME=E:\AI_Agent\.cargo-home，CARGO_TARGET_DIR=E:\AI_Agent\src-tauri\target\milestone02，TEMP/TMP 在 E 盘；详见 `4.6-build-environment.json`。没有构建release，没有复跑#01发布态矩阵或安装回归。
+
+## #02 复核阻塞项订正
+
+负责人默认并行复跑三次有两次失败，错误为 Windows 10035/WouldBlock，失败的 datasets 测试随机。此前仅用 `--test-threads=1` 得到串行通过，掩盖了这一并行偶发失败；原先的串行结果不能证明默认 cargo test 通过。旧串行原始输出保留为历史证据，不再作为当前通过依据。
+
+测试桩的非阻塞 listener 接受连接后，Windows accepted socket 仍可能非阻塞，read timeout 无法使它等待请求。修复提交 **451597a11e3f08ed5214f48e4e79595334d44a1b** 只改 `datasets_dev.rs` 的 tests 模块：accept 后先 `socket.set_nonblocking(false)?` 再设 read timeout；5秒 accept deadline 到期返回 `TimedOut: stub server: accept timeout`，不再原样抛 WouldBlock。产品代码、release/权限/依赖未修改；tests 模块之前的产品代码 SHA256 前后一致，见 `tests/evidence/parallel-stub-fix/verification.json`。
+
+修复后完整默认 cargo test 连跑三次，每次退出0；没有库/测试目标过滤、没有线程数参数、RUST_TEST_THREADS为空。环境与完整原始输出分别在该目录的 `environment.json`、`cargo-test-1.txt`、`cargo-test-2.txt`、`cargo-test-3.txt`。三轮均为22项通过（含1项文档测试），rustfmt --check 通过。修复源码与本次报告/证据分开提交，便于独立核验源码diff仅限测试桩。该项现等负责人复跑确认，不自行宣布过闸。
 
 ## 依赖审计与授权落地
 
