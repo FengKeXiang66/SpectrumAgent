@@ -56,6 +56,7 @@
 - 字段：`name`, `shape` (L×S×B), `dtype`, `interleave`, `wavelengths` (nm 列表), `fwhm` (可选), `data_path`, `header_path`, `metadata` (dict)
 - 方法：`read_band(i)`, `read_pixel(l,s)`, `read_region(l0,l1,s0,s1)`, `to_numpy()`
 - 必须支持**延迟加载**（lazy）：大文件不一次全读进内存
+- **返回契约（2026-10-19 裁定，codex 4.1 问询答复）**：`to_numpy()` 仅在 raw 模式可用——返回原始 DN 的 np.memmap（uint16、逻辑索引 (lines,samples,bands)、**未除 scale factor**、零拷贝视图）；默认缩放模式下 `to_numpy()` 必须**显式报结构化错误**，禁止隐式分配整个立方体。红线"禁止全量读取"禁的是**隐式全量**，不禁调用方显式 `read_region(全图)`（有界接口、调用方知情）。**不实现懒缩放视图类**（非 ndarray、下游 np.asarray/库调用会静默物化或破裂，契约污染）。缩放读数一律走 read_band / read_bands / read_pixel / read_subregion 等有界接口。验收用例：缩放模式 `to_numpy()` 抛错；raw 模式返回 `isinstance(x, np.memmap)` 且值 == DN 原值。
 
 ### 4.2 ENVI 标准格式接入（P0，spectral 封装）
 
@@ -78,27 +79,56 @@
 
 实现 `BinaryReader` 类：
 - 输入：数据文件路径 + 头文件路径（JSON 或简化 TXT）
-- 头文件 schema（JSON 示例）：
+- **字段词汇表统一为 ENVI 标准字段名**（域内标准；采集端未来的头文件只可能是 ENVI 衍生），JSON 与 TXT 共用同一套 schema 和同一个键规范化器（键名大小写 / 空格 / 下划线不敏感，brace list 解析与 classic ENVI 路径共享，不写两套）。*（2026-10-19 勘误：卡片原 JSON 示例的 `shape`/`dtype` 词汇作废，以本节为准。）*
+- JSON 头 schema（示例）：
   ```json
   {
-    "shape": [231, 640, 200],
-    "dtype": "uint16",
+    "samples": 640,
+    "lines": 231,
+    "bands": 200,
+    "data_type": 12,
     "interleave": "bil",
-    "byte_order": "little",
+    "byte_order": 0,
     "header_offset": 0,
-    "wavelengths": [881.85, 886.03, ...],
-    "scale_factor": 65535
+    "wavelengths": [881.85, 886.03],
+    "scale_factor": 65535,
+    "data_file": "sample.bin"
   }
   ```
-- 内部：numpy memmap 读数据文件
+- 简化 TXT 头语法（UTF-8；`#` 起始为注释行；空行忽略；`key = value` 两侧空白任意；brace list `{a, b, c}` 可跨行，ENVI classic 风格）：
+  ```
+  # comment
+  samples = 640
+  lines   = 231
+  bands   = 200
+  data_type = 12
+  interleave = bil
+  byte_order = 0
+  header_offset = 0
+  wavelength = {881.85, 886.03, ...}
+  reflectance scale factor = 65535
+  data file = sample.bin
+  ```
+- 规范化与校验规则（TXT/JSON/ENVI5 三路共用）：
+  - 必填：`samples`/`lines`/`bands`/`data_type`，任一缺失 → 结构化错误
+  - `interleave` 可缺省 → 默认 `bsq` + 警告日志；取值 `bsq`/`bil`/`bip`（大小写不敏感）
+  - `data_type`：ENVI 码 1–15（1=uint8/byte、2=int16、3=int32、4=float32、5=float64、12=uint16、13=uint32、14=int64、15=uint64；探针实测 1/2/3/5/12/13 可读）**或**字符串别名（`uint16`/`<u2`/`int16`/`float32` 等）→ 归一为 numpy dtype
+  - `byte_order`：`0`/`1` 或 `little`/`big`（不敏感）；`header_offset`：≥0 整数，默认 0
+  - `wavelengths`/`fwhm`：数字列表，存在时长度必须 == `bands`，否则结构化错误
+  - `scale_factor`：正数，可选；`data_file`：可选，脱离同基名的数据文件名（相对头文件目录解析）
+  - 未知键：收入 metadata + 警告，不致命
+  - 数据文件解析顺序：显式路径参数 > `data_file` 键 > 同基名候选扩展名（`.bin`/`.raw`/`.dat`/`.img`/`.bsq`/`.bil`/`.bip`/无扩展名）> 结构化错误
+  - **大小校验（红线）**：读前比对 `header_offset + samples×lines×bands×itemsize` vs `os.path.getsize(数据文件)`，不符即结构化错误，禁止静默
+- 内部：numpy memmap 读数据文件（或经共用 schema 层归一化后由 SpectrumDataSet 管理）
 - 输出：`SpectrumDataSet` 实例（接口与 EnviReader 完全一致）
+- 单元测试 fixture：JSON 头+.bin（bil/uint16 已知值回读相等）；TXT 头+.bin（bsq/float32）；TXT 含注释 / 跨行 brace list / 空白变体；JSON 字符串 dtype 别名；缺必填键 / 波长长度不符 / 大小不符 → 结构化错误；interleave 缺省 → bsq+警告；`data_file` 脱离命名可解析
 
 ### 4.4 非标准 ENVI 边界兜底（P1）
 
 实现 `FallbackEnviReader`：
-- 缺 interleave：默认按 BSQ 解析，日志警告
-- ENVI5 JSON 头：解析 JSON 结构，映射到标准字段
-- 大小校验：读取前比较 `header声明大小` vs `os.path.getsize(数据文件)`，不符即报
+- 缺 interleave：默认按 BSQ 解析，日志警告（与 4.3 同策略）
+- ENVI5 JSON 头：ENVI 5 头文件惯例为 JSON、标准字段集中于顶层 `header` 对象内；解析以此为主路径，**同时容忍同一批键出现在顶层**（防版本漂移，不得因字段位置包裹形式不同而解析失败）。字段名走 4.3 同一规范化器；`data type` 接受 ENVI 数字码或字符串别名；其余顶层键（如 `coordinate system string`）收入 metadata。fixture 需覆盖 header 包裹式与扁平式两种写法，均须读通
+- 大小校验：读取前比较 `header声明大小` vs `os.path.getsize(数据文件)`，不符即报（与 4.3 同一校验函数）
 - 兜底链：`EnviReader` 失败 → `FallbackEnviReader` → 仍失败 → 报错
 
 ### 4.5 FastAPI 端点暴露
