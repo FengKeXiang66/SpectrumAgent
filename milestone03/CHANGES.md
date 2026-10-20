@@ -2,6 +2,7 @@
 
 基线 f4e5c90；以下为本里程碑完整入库文件清单（源码、文档、原始输出及新revision）。安装包另存 ignored artifacts/milestone03，不计入Git源码文件。两份负责人公司文档不纳入。
 
+- `.gitattributes`
 - `.gitignore`
 - `TASK-03-打包里程碑.md`
 - `artifacts/step2/build.spec`
@@ -63,6 +64,7 @@
 - `milestone03/evidence/P5/tsc.txt`
 - `milestone03/evidence/P5/vite.txt`
 - `milestone03/evidence/P6/comparison-output.txt`
+- `milestone03/evidence/P6/evidence-byte-audit.json`
 - `milestone03/evidence/P6/git-status-final.txt`
 - `milestone03/evidence/P6/onedir-output.txt`
 - `milestone03/evidence/P6/onedir-result.json`

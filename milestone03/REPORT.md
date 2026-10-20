@@ -72,7 +72,7 @@ Canonical暂存与src-tauri/resources/backend逐项全量比对544文件一致�
 
 实现补齐：P1增加--data-root以满足P6；P2取消发布UI的DEV门控并从唯一产品配置注入版本显示；P3 collect_submodules前补src-python路径，revision副本仅调整ROOT层级。这些为任务目标所需最小改动，未扩权限/依赖/协议。Cargo/npm包版本仍0.1.0以保持锁字节不动，产品与UI为0.1.1；握手/OpenAPI仍0.1.0。第一次bundle的10013及P1两次测试准备失败原样保留，最终输出另存；未擦除失败证据。P5 summary仅作计数/用途说明，不将相对路径拒绝描述为HTTP结构化错误。
 
-完整变更文件清单见CHANGES.md（含新revision与原始证据）。各P分别提交；P3按来源→生成器→清单三笔同范围提交，artifact_source_commit与manifest_generator_commit分开。安装包为ignored构建产物，证据/清单已入库。最终提交后git status复核存档，除两份负责人公司文档外，无未跟踪、无修改。
+完整变更文件清单见CHANGES.md（含新revision与原始证据）。各P分别提交；P3按来源→生成器→清单三笔同范围提交，artifact_source_commit与manifest_generator_commit分开。安装包为ignored构建产物，证据/清单已入库。新revision与milestone03/evidence已补齐.gitattributes的-text规则，保留原始输出换行字节，evidence-byte-audit.json逐项核对暂存区；最终提交后git status复核存档，除两份负责人公司文档外，无未跟踪、无修改。
 
 ## 后续门槛
 

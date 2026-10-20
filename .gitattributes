@@ -35,3 +35,9 @@ artifacts/step3/checkpoint-4/cdn-official-asset-urls.md -text -whitespace
 artifacts/step3/checkpoint-4/release-custom-protocol-20261018/REPORT.md -text -whitespace
 artifacts/step3/checkpoint-4/release-custom-protocol-20261018/final-canonical-20261019/REPORT.md -text -whitespace
 artifacts/step3/**/*.source-snapshot -text -whitespace
+# Milestone03 raw evidence: retain the producer's exact bytes and line endings.
+artifacts/step2/revision-20261019-m02/**/*.txt -text -whitespace
+artifacts/step2/revision-20261019-m02/**/*.json -text -whitespace
+artifacts/step2/revision-20261019-m02/**/*.log -text -whitespace
+artifacts/step2/revision-20261019-m02/**/*.jsonl -text -whitespace
+milestone03/evidence/** -text -whitespace
