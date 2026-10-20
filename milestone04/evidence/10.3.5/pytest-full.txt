@@ -1,0 +1,29 @@
+........................................................................ [ 24%]
+........................................................................ [ 48%]
+........................................................................ [ 73%]
+........................................................................ [ 97%]
+.......                                                                  [100%]
+============================== warnings summary ===============================
+.venv\Lib\site-packages\fastapi\testclient.py:1
+  E:\AI_Agent\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+backend/tests/test_foundation.py::test_http_contract_and_real_envi_snv
+backend/tests/test_foundation.py::test_http_contract_and_real_envi_snv
+backend/tests/test_foundation.py::test_cancel_after_first_running_block_keeps_partial_metrics
+  E:\AI_Agent\.venv\Lib\site-packages\spectral\io\spyfile.py:217: DeprecationWarning: Setting the shape on a NumPy array has been deprecated in NumPy 2.5.
+  As an alternative, you can create a new view using np.reshape (with copy=False if needed).
+    npArray.shape = (self.nrows, self.ncols, self.nbands)
+
+backend/tests/test_foundation.py::test_http_contract_and_real_envi_snv
+backend/tests/test_foundation.py::test_http_contract_and_real_envi_snv
+backend/tests/test_foundation.py::test_http_contract_and_real_envi_snv
+backend/tests/test_foundation.py::test_http_contract_and_real_envi_snv
+backend/tests/test_foundation.py::test_cancel_after_first_running_block_keeps_partial_metrics
+backend/tests/test_foundation.py::test_cancel_after_first_running_block_keeps_partial_metrics
+  E:\AI_Agent\.venv\Lib\site-packages\spectral\image.py:24: DeprecationWarning: Setting the dtype on a NumPy array has been deprecated in NumPy 2.5.
+  Instead of changing the dtype on an array x, create a new array with x.view(new_dtype)
+    self.dtype = params.dtype
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+295 passed, 10 warnings in 27.59s
