@@ -1,0 +1,37 @@
+{
+  "python_commit": "c328ab02874315b998f43dd57d249dd970e73887",
+  "pytest": {
+    "passed": 337,
+    "failed": 0,
+    "skipped": 0,
+    "warnings": 10,
+    "mode": "repository root; python.exe -m pytest backend/tests src-python/tests -q; default parameters; PYTEST_DEBUG_TEMPROOT in same command",
+    "exit_code": 0
+  },
+  "cargo": {
+    "passed": 35,
+    "failed": 0,
+    "ignored": 0,
+    "regular_tests": 34,
+    "doc_tests": 1,
+    "added_annotation_tests": 13,
+    "mode": "cargo test; default parallel; no --test-threads; RUST_TEST_THREADS unset; existing E drive cache offline",
+    "exit_code": 0
+  },
+  "clippy": {
+    "command": "cargo clippy -- -D warnings",
+    "exit_code": 0,
+    "warnings": 0
+  },
+  "clippy_all_targets": {
+    "command": "cargo clippy --all-targets -- -D warnings",
+    "exit_code": 0,
+    "warnings": 0
+  },
+  "boundary_audit_exit_code": 0,
+  "unchanged_readonly_sha256": {
+    "TASK-04-标注L1.md": "fd34459542b93f155aed676ac27b099c1886bb2bb9654fed775bced6969e1b20",
+    "milestone04/evidence/seeds_20.json": "388ed3a86bdf60c5054e8df9a5eb197a96a112b0bf2fc59efa1bcf1a29f648d2"
+  },
+  "initial_cargo_attempt": "offline cache miss at default Cargo cache; no download; resolved using existing E:/AI_Agent/.cargo-home"
+}

@@ -1,0 +1,95 @@
+diff --git a/milestone03/audit_boundary.py b/milestone03/audit_boundary.py
+index 3fcaeb9..34ca031 100644
+--- a/milestone03/audit_boundary.py
++++ b/milestone03/audit_boundary.py
+@@ -1 +1 @@
+-"""Read-only D1/D2 boundary audit. Does not rewrite milestone02 history."""
++"""D1/D2 boundary audit extended only by TASK-04 §5.7 approval (2026-10-20)."""
+@@ -25 +25 @@ def main():
+-    expected = "tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, datasets_forward]"
++    expected = "tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, datasets_forward, annotations_forward]"
+@@ -28 +28,2 @@ def main():
+-    assert dev_handler(source) == dev_handler(old_source)
++    assert dev_handler(source) == expected
++    assert dev_handler(source).replace(", annotations_forward", "") == dev_handler(old_source)
+@@ -29,0 +31 @@ def main():
++    assert "#[cfg(debug_assertions)]\n#[tauri::command]\nasync fn annotations_forward" not in source
+@@ -32,0 +35 @@ def main():
++    assert "pub mod annotation;" in lib and "#[cfg(debug_assertions)]\npub mod annotation;" not in lib
+@@ -37 +40,8 @@ def main():
+-    assert capability["permissions"] == json.loads(original("src-tauri/capabilities/main.json"))["permissions"]
++    old_permissions = json.loads(original("src-tauri/capabilities/main.json"))["permissions"]
++    assert capability["permissions"].count("allow-annotations-forward") == 1
++    assert [p for p in capability["permissions"] if p != "allow-annotations-forward"] == old_permissions
++    commands = ["engine_status", "retry_engine", "run_smoke", "open_data_directory", "datasets_forward", "annotations_forward"]
++    build_commands = re.search(r'\.commands\(&\[(.*?)\]\)', read("src-tauri/build.rs"), re.S).group(1)
++    assert re.findall(r'"([a-z_]+)"', build_commands) == commands
++    acl = json.loads(read("src-tauri/gen/schemas/acl-manifests.json"))["__app-acl__"]["permissions"]
++    assert {c for p in acl.values() for c in p["commands"]["allow"]} == set(commands)
+@@ -48,3 +58,4 @@ def main():
+-    result = {"authorization":"TASK-03 D1=A; D2=0.1.1", "prior_milestone_head":BASE,
+-              "release_handler_literal":literal,"release_handler_count":5,"dev_handler_unchanged":True,
+-              "unchanged_debug_adoption_and_identity_files":isolated,"capability_permissions_unchanged":True,
++    result = {"authorization":"TASK-03 D1=A; D2=0.1.1; TASK-04 §5.7 annotations_forward only (2026-10-20)", "prior_milestone_head":BASE,
++              "release_handler_literal":literal,"release_handler_count":6,"dev_handler_matches_release":True,
++              "commands":commands,"only_added_command":"annotations_forward",
++              "unchanged_debug_adoption_and_identity_files":isolated,"only_added_permission":"allow-annotations-forward",
+@@ -53 +64,2 @@ def main():
+-    output = ROOT / "milestone03/evidence/P2/release-boundary.json"
++    # Keep historical #03 evidence immutable; this approved extension has its own evidence.
++    output = ROOT / "milestone04/evidence/10.5/release-boundary.json"
+diff --git a/src-tauri/build.rs b/src-tauri/build.rs
+index 2e9f112..bc10ca5 100644
+--- a/src-tauri/build.rs
++++ b/src-tauri/build.rs
+@@ -13,0 +14 @@ fn main() {
++            "annotations_forward",
+diff --git a/src-tauri/capabilities/main.json b/src-tauri/capabilities/main.json
+index 09af2cd..3d7984d 100644
+--- a/src-tauri/capabilities/main.json
++++ b/src-tauri/capabilities/main.json
+@@ -3 +3 @@
+-  "description": "主窗口订阅状态并调用五个固定业务命令；datasets-forward 固定本代127.0.0.1握手端口的/api/v1/datasets/*，限GET/POST、8MiB并核验身份与代次。原生选择仅允许open，不开放通用网络能力。",
++  "description": "主窗口订阅状态并调用六个固定业务命令；datasets-forward 与 annotations-forward 固定本代127.0.0.1握手端口的/api/v1/datasets/*，限GET/POST、8MiB并核验身份与代次。原生选择仅允许open，不开放通用网络能力。",
+@@ -8 +8 @@
+-    "allow-datasets-forward", "dialog:allow-open"
++    "allow-datasets-forward", "allow-annotations-forward", "dialog:allow-open"
+diff --git a/src-tauri/src/lib.rs b/src-tauri/src/lib.rs
+index 80e40ce..c7c340d 100644
+--- a/src-tauri/src/lib.rs
++++ b/src-tauri/src/lib.rs
+@@ -14,0 +15 @@ pub mod datasets_dev;
++pub mod annotation;
+diff --git a/src-tauri/src/main.rs b/src-tauri/src/main.rs
+index f8048bc..3195550 100644
+--- a/src-tauri/src/main.rs
++++ b/src-tauri/src/main.rs
+@@ -67,0 +68,22 @@ async fn datasets_forward(
++// TASK-04 §5.7: annotations_forward release registration approved 2026-10-20.
++#[tauri::command]
++async fn annotations_forward(
++    state: tauri::State<'_, Desktop>,
++    request: serde_json::Value,
++) -> Result<serde_json::Value, spectrum_agent::annotation::ForwardError> {
++    use spectrum_agent::annotation::{ForwardError, forward, parse_request};
++    // Convert enum deserialization errors into ForwardError before any I/O.
++    let request = parse_request(request)?;
++    let supervisor = state.supervisor.clone();
++    tauri::async_runtime::spawn_blocking(move || {
++        let (generation, identity) = supervisor.dataset_identity()
++            .map_err(|_| ForwardError::new("ENGINE_NOT_READY", "数据引擎尚未就绪"))?;
++        let result = forward(&identity, &request);
++        let current = supervisor.snapshot()
++            .map_err(|_| ForwardError::new("ENGINE_NOT_READY", "无法核验当前引擎代次"))?;
++        if current.generation_id != generation || current.phase != Phase::Ready {
++            return Err(ForwardError::new("STALE_RESPONSE", "引擎代次已变化，请重试"));
++        }
++        result
++    }).await.map_err(|_| ForwardError::new("WORKER_FAILED", "数据请求工作线程失败"))?
++}
+@@ -153 +175 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
+-    let builder = builder.invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, datasets_forward]);
++    let builder = builder.invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, datasets_forward, annotations_forward]);
+@@ -156 +178 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
+-        .invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, datasets_forward]);
++        .invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, datasets_forward, annotations_forward]);

@@ -1,0 +1,10 @@
+{
+  "CARGO_NET_OFFLINE": "true",
+  "command": "cargo test",
+  "TEMP": "E:/AI_Agent/.runtime/m04-ipc",
+  "RUST_TEST_THREADS": null,
+  "CARGO_HOME": "E:/AI_Agent/.cargo-home",
+  "TMP": "E:/AI_Agent/.runtime/m04-ipc",
+  "mode": "default parallel; no --test-threads",
+  "CARGO_TARGET_DIR": "E:/AI_Agent/src-tauri/target/milestone03"
+}

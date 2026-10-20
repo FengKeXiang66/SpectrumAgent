@@ -1,0 +1,93 @@
+[
+  {
+    "file": "src-tauri/gen/schemas/acl-manifests.json",
+    "changes": [
+      {
+        "path": "/__app-acl__/permissions/allow-annotations-forward",
+        "added": {
+          "identifier": "allow-annotations-forward",
+          "description": "Enables the annotations_forward command without any pre-configured scope.",
+          "commands": {
+            "allow": [
+              "annotations_forward"
+            ],
+            "deny": []
+          }
+        }
+      },
+      {
+        "path": "/__app-acl__/permissions/deny-annotations-forward",
+        "added": {
+          "identifier": "deny-annotations-forward",
+          "description": "Denies the annotations_forward command without any pre-configured scope.",
+          "commands": {
+            "allow": [],
+            "deny": [
+              "annotations_forward"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "file": "src-tauri/gen/schemas/capabilities.json",
+    "changes": [
+      {
+        "path": "/main/description",
+        "before": "主窗口订阅状态并调用五个固定业务命令；datasets-forward 固定本代127.0.0.1握手端口的/api/v1/datasets/*，限GET/POST、8MiB并核验身份与代次。原生选择仅允许open，不开放通用网络能力。",
+        "after": "主窗口订阅状态并调用六个固定业务命令；datasets-forward 与 annotations-forward 固定本代127.0.0.1握手端口的/api/v1/datasets/*，限GET/POST、8MiB并核验身份与代次。原生选择仅允许open，不开放通用网络能力。"
+      },
+      {
+        "path": "/main/permissions",
+        "added": [
+          "allow-annotations-forward"
+        ]
+      }
+    ]
+  },
+  {
+    "file": "src-tauri/gen/schemas/desktop-schema.json",
+    "changes": [
+      {
+        "path": "/definitions/Identifier/oneOf",
+        "added": [
+          {
+            "description": "Enables the annotations_forward command without any pre-configured scope.",
+            "type": "string",
+            "const": "allow-annotations-forward",
+            "markdownDescription": "Enables the annotations_forward command without any pre-configured scope."
+          },
+          {
+            "description": "Denies the annotations_forward command without any pre-configured scope.",
+            "type": "string",
+            "const": "deny-annotations-forward",
+            "markdownDescription": "Denies the annotations_forward command without any pre-configured scope."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "file": "src-tauri/gen/schemas/windows-schema.json",
+    "changes": [
+      {
+        "path": "/definitions/Identifier/oneOf",
+        "added": [
+          {
+            "description": "Enables the annotations_forward command without any pre-configured scope.",
+            "type": "string",
+            "const": "allow-annotations-forward",
+            "markdownDescription": "Enables the annotations_forward command without any pre-configured scope."
+          },
+          {
+            "description": "Denies the annotations_forward command without any pre-configured scope.",
+            "type": "string",
+            "const": "deny-annotations-forward",
+            "markdownDescription": "Denies the annotations_forward command without any pre-configured scope."
+          }
+        ]
+      }
+    ]
+  }
+]

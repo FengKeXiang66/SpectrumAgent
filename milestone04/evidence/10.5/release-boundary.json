@@ -1,0 +1,34 @@
+{
+  "authorization": "TASK-03 D1=A; D2=0.1.1; TASK-04 §5.7 annotations_forward only (2026-10-20)",
+  "prior_milestone_head": "f4e5c90b8bad9144150d7d0b377834c2cc9909e2",
+  "release_handler_literal": "tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, datasets_forward, annotations_forward]",
+  "release_handler_count": 6,
+  "dev_handler_matches_release": true,
+  "commands": [
+    "engine_status",
+    "retry_engine",
+    "run_smoke",
+    "open_data_directory",
+    "datasets_forward",
+    "annotations_forward"
+  ],
+  "only_added_command": "annotations_forward",
+  "unchanged_debug_adoption_and_identity_files": [
+    "src-tauri/src/dev_engine.rs",
+    "src-tauri/src/dev_supervision.rs",
+    "src-tauri/src/process.rs",
+    "src-tauri/src/win32.rs",
+    "src-tauri/src/handshake.rs",
+    "src-tauri/src/engine_path.rs"
+  ],
+  "only_added_permission": "allow-annotations-forward",
+  "product_version": "0.1.1",
+  "protocol_version": "0.1.0",
+  "locks_unchanged": {
+    "requirements-lock.txt": "58e24b59da34461a17fd942b4047071e42b5120b3d474ba976a7e28535d40bcc",
+    "package-lock.json": "ea6a555e6389274fb938849fed4cc53ff1ae6b7dd1ac0b9bc4f31e3aef2b030b",
+    "src-tauri/Cargo.lock": "e28b95eccf2af5dff5dba7aaa553f670086a2646b324812678606ba6217407f6"
+  },
+  "old_revision_tracked_diff_empty": true,
+  "frontend_dataset_panel_release_enabled": true
+}

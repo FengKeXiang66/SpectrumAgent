@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-annotations-forward"
+description = "Enables the annotations_forward command without any pre-configured scope."
+commands.allow = ["annotations_forward"]
+
+[[permission]]
+identifier = "deny-annotations-forward"
+description = "Denies the annotations_forward command without any pre-configured scope."
+commands.deny = ["annotations_forward"]

@@ -345,6 +345,12 @@
       "description": "Permission identifier",
       "oneOf": [
         {
+          "description": "Enables the annotations_forward command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-annotations-forward",
+          "markdownDescription": "Enables the annotations_forward command without any pre-configured scope."
+        },
+        {
           "description": "Enables the datasets_forward command without any pre-configured scope.",
           "type": "string",
           "const": "allow-datasets-forward",
@@ -373,6 +379,12 @@
           "type": "string",
           "const": "allow-run-smoke",
           "markdownDescription": "Enables the run_smoke command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the annotations_forward command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-annotations-forward",
+          "markdownDescription": "Denies the annotations_forward command without any pre-configured scope."
         },
         {
           "description": "Denies the datasets_forward command without any pre-configured scope.",

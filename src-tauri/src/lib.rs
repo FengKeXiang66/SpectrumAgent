@@ -12,3 +12,4 @@ pub mod win32;
 #[cfg(debug_assertions)]
 pub mod dev_engine;
 pub mod datasets_dev;
+pub mod annotation;

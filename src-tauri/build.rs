@@ -11,6 +11,7 @@ fn main() {
             "open_data_directory",
             // Permission is declarative; the handler enforces fixed routes and identity.
             "datasets_forward",
+            "annotations_forward",
         ]));
     if let Err(error) = tauri_build::try_build(attributes) {
         eprintln!("Tauri 构建失败：{error}");

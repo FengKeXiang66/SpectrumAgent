@@ -65,6 +65,28 @@ async fn datasets_forward(
         result
     }).await.map_err(|_| ForwardError::new("WORKER_FAILED", "数据请求工作线程失败"))?
 }
+// TASK-04 §5.7: annotations_forward release registration approved 2026-10-20.
+#[tauri::command]
+async fn annotations_forward(
+    state: tauri::State<'_, Desktop>,
+    request: serde_json::Value,
+) -> Result<serde_json::Value, spectrum_agent::annotation::ForwardError> {
+    use spectrum_agent::annotation::{ForwardError, forward, parse_request};
+    // Convert enum deserialization errors into ForwardError before any I/O.
+    let request = parse_request(request)?;
+    let supervisor = state.supervisor.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        let (generation, identity) = supervisor.dataset_identity()
+            .map_err(|_| ForwardError::new("ENGINE_NOT_READY", "数据引擎尚未就绪"))?;
+        let result = forward(&identity, &request);
+        let current = supervisor.snapshot()
+            .map_err(|_| ForwardError::new("ENGINE_NOT_READY", "无法核验当前引擎代次"))?;
+        if current.generation_id != generation || current.phase != Phase::Ready {
+            return Err(ForwardError::new("STALE_RESPONSE", "引擎代次已变化，请重试"));
+        }
+        result
+    }).await.map_err(|_| ForwardError::new("WORKER_FAILED", "数据请求工作线程失败"))?
+}
 #[tauri::command]
 async fn open_data_directory(
     app: tauri::AppHandle,
@@ -150,10 +172,10 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init());
     #[cfg(debug_assertions)]
-    let builder = builder.invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, datasets_forward]);
+    let builder = builder.invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, datasets_forward, annotations_forward]);
     #[cfg(not(debug_assertions))]
     let builder = builder
-        .invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, datasets_forward]);
+        .invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, datasets_forward, annotations_forward]);
     let app = builder.setup(move |app| {
             setup_log.event("single_instance_lock_acquired", json!({}))?;
             let resource = app.path().resolve("resources/backend/app.exe", tauri::path::BaseDirectory::Resource)?;
