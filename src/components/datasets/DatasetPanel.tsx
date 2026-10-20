@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { describeError, mergeRecords, type DatasetRecord, type DatasetTransport, type Preview } from './types';
+import AnnotationWorkbench from '../annotation/AnnotationWorkbench';
 
 function BandCanvas({ preview, thumbnail = false }: { preview: Preview; thumbnail?: boolean }) {
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -39,6 +40,7 @@ function Thumbnail({ record, api }: { record: DatasetRecord; api: DatasetTranspo
 
 export default function DatasetPanel({ api }: { api: DatasetTransport }) {
   const [records, setRecords] = useState<DatasetRecord[]>([]);
+  const [annotation, setAnnotation] = useState<DatasetRecord | null>(null);
   const [raw, setRaw] = useState(false);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
@@ -92,6 +94,9 @@ export default function DatasetPanel({ api }: { api: DatasetTransport }) {
     }
   };
 
+  if (annotation) return <AnnotationWorkbench key={annotation.id} record={annotation} records={records} datasets={api}
+    onNavigate={setAnnotation} onClose={() => setAnnotation(null)} />;
+
   return <section aria-label="数据集管理">
     <h2>数据接入</h2>
     <label><input type="checkbox" checked={raw} disabled={busy} onChange={event => setRaw(event.target.checked)} /> 原始 DN 模式（未除 scale factor）</label>{' '}
@@ -107,7 +112,8 @@ export default function DatasetPanel({ api }: { api: DatasetTransport }) {
           <td>{data.name}</td><td>{data.shape.join('×')}</td>
           <td>{data.wavelengths.length ? `${data.wavelengths[0]}–${data.wavelengths.at(-1)}` : '未提供'}</td>
           <td>{data.metadata.value_mode === 'raw_dn' ? 'DN 原值' : '反射率'}{record.existing ? '（已有）' : ''}</td>
-          <td><Thumbnail record={record} api={api} /><button onClick={() => { void loadPreview(record, 0); }}>预览 {data.name}</button></td>
+          <td><Thumbnail record={record} api={api} /><button onClick={() => { void loadPreview(record, 0); }}>预览 {data.name}</button>
+            <button disabled={busy} onClick={() => setAnnotation(record)}>标注 {data.name}</button></td>
         </tr>;
       })}</tbody>
     </table>

@@ -1,0 +1,54 @@
+{
+  "seam_commit": "507520d552ac346d6f3067844aa38111a6f3b6af",
+  "pytest": {
+    "passed": 340,
+    "failed": 0,
+    "skipped": 0,
+    "mode": "repository root python.exe -m pytest; default parameters; same-command PYTEST_DEBUG_TEMPROOT"
+  },
+  "cargo": {
+    "passed": 38,
+    "failed": 0,
+    "ignored": 0,
+    "mode": "cargo test; default parallel; RUST_TEST_THREADS unset"
+  },
+  "node_annotation": {
+    "passed": 29,
+    "failed": 0,
+    "skipped": 0,
+    "command": ".toolchains/node24.19.0-npm10.8.2/node.exe --test src/components/annotation/*.test.ts",
+    "mode": "built-in runner; default options"
+  },
+  "node_all": {
+    "passed": 31,
+    "failed": 0,
+    "skipped": 0,
+    "command": ".toolchains/node24.19.0-npm10.8.2/node.exe --test src/components/datasets/*.test.ts src/components/annotation/*.test.ts",
+    "mode": "built-in runner; default options; existing 2 tests retained"
+  },
+  "clippy": {
+    "command": "cargo clippy --all-targets -- -D warnings",
+    "warnings": 0,
+    "exit_code": 0
+  },
+  "build": {
+    "command": "npm run build (tsc --noEmit && vite build)",
+    "exit_code": 0
+  },
+  "annotation_routes_diff_bytes": 10673,
+  "protected_files_unchanged": [
+    "src/App.tsx",
+    "src/style.css",
+    "src-tauri/Cargo.toml",
+    "src-tauri/Cargo.lock",
+    "package.json",
+    "package-lock.json",
+    "requirements-lock.txt",
+    "src-python/spectrumagent/annotation/session.py"
+  ],
+  "manual_ui_smoke": "not run; reserved for 科祥",
+  "readonly_sha256": {
+    "TASK-04-标注L1.md": "b03aeabda6603ef2538c0cb135bd07fb4b16ad67cf872bd4f9a88b7dd86e3989",
+    "milestone04/evidence/seeds_20.json": "388ed3a86bdf60c5054e8df9a5eb197a96a112b0bf2fc59efa1bcf1a29f648d2"
+  }
+}

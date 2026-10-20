@@ -1,0 +1,37 @@
+✔ IPC superpixels: exact Rust variant, one command, no arbitrary route (1.2791ms)
+✔ IPC diffuse: exact Rust variant, one command, no arbitrary route (0.2025ms)
+✔ IPC regions: exact Rust variant, one command, no arbitrary route (0.1635ms)
+✔ IPC undo: exact Rust variant, one command, no arbitrary route (0.0976ms)
+✔ IPC working: exact Rust variant, one command, no arbitrary route (0.1101ms)
+✔ IPC validate: exact Rust variant, one command, no arbitrary route (0.1155ms)
+✔ IPC save: exact Rust variant, one command, no arbitrary route (0.1365ms)
+✔ IPC versions: exact Rust variant, one command, no arbitrary route (0.0892ms)
+✔ IPC version_overlay: exact Rust variant, one command, no arbitrary route (0.2109ms)
+✔ IPC projects: exact Rust variant, one command, no arbitrary route (0.1707ms)
+✔ IPC labels: exact Rust variant, one command, no arbitrary route (0.1269ms)
+✔ IPC add_label: exact Rust variant, one command, no arbitrary route (0.147ms)
+✔ IPC catalog: exact Rust variant, one command, no arbitrary route (0.0704ms)
+✔ optional defaults are left to Python; all prompt and geometry forms retain [line,sample] (0.1989ms)
+✔ all three structured label bodies match Python and carry the working project id (0.1671ms)
+✔ local estimates and display state cannot enter request projections (0.2951ms)
+✔ structured errors keep code, field messages and context; client never swallows rejection (0.6352ms)
+✔ 0 is background-only; 1–9 are numeric; unbound or out-of-range labels remain mouse-only (1.5351ms)
+✔ Enter / Z / D / E-B-P / arrows / Ctrl+S / space have the specified actions (0.2724ms)
+✔ typing never changes labels or undo; disabled settings suppress shortcuts; global chat keys pass through (0.1342ms)
+✔ local remapping is deterministic and rejects duplicates/reserved keys without altering server labels (0.3095ms)
+✔ each edit reads working again; write-response pixels, queue and statistics are never reconstructed (1.3159ms)
+✔ switching cubes and recovering after confirm use only GET working, never diffuse (0.236ms)
+✔ a failed edit propagates its envelope and cannot manufacture a successful redraw (0.3752ms)
+✔ R17 label indexes use sort_order plus SQLite BINARY code order, independent of tree grouping (0.1854ms)
+✔ local remaining-time estimate derives only from confirmation speed and handles no progress (0.1187ms)
+✔ catalog color proximity uses backend colors and the task-card <30 rule (0.9563ms)
+✔ viewport transforms preserve [line,sample], bounds, zoom anchors and half-open boxes (0.3716ms)
+✔ component wiring has no local label map or undo history and preserves the outer conversation bar (1.3869ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 142.2708

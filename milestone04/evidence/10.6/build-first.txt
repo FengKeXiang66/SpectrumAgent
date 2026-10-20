@@ -1,0 +1,6 @@
+
+> spectrum-agent@0.1.0 build
+> tsc --noEmit && vite build
+
+src/components/annotation/AnnotationWorkbench.tsx(4,162): error TS6133: 'SuperpixelOptions' is declared but its value is never read.
+EXIT_CODE=2 (unused type import; fixed before final build)
