@@ -1,0 +1,139 @@
+{
+  "concurrent_statuses": [
+    200,
+    200,
+    200
+  ],
+  "errors": {
+    "FILE_NOT_FOUND": {
+      "status": 400,
+      "top": "FILE_NOT_FOUND"
+    },
+    "HEADER_INVALID": {
+      "items": [
+        "HEADER_INVALID"
+      ],
+      "status": 400,
+      "top": "IMPORT_BATCH_INVALID"
+    },
+    "SIZE_MISMATCH": {
+      "items": [
+        "SIZE_MISMATCH"
+      ],
+      "status": 400,
+      "top": "IMPORT_BATCH_INVALID"
+    }
+  },
+  "health": {
+    "status": "ok",
+    "uptime_s": 0.203,
+    "version": "0.1.0"
+  },
+  "health_status": 200,
+  "idempotent": {
+    "same_id": true,
+    "status": 200,
+    "summary": {
+      "existing": 1,
+      "imported": 0,
+      "total": 1
+    }
+  },
+  "import": {
+    "datasets": [
+      {
+        "dataset": {
+          "dtype": "uint16",
+          "fwhm": [
+            0.1,
+            0.2,
+            0.3,
+            0.4
+          ],
+          "interleave": "bil",
+          "metadata": {
+            "byte_order": 0,
+            "header_offset": 0,
+            "reader": "spectral",
+            "scale_applied": false,
+            "scale_factor": 65535.0,
+            "value_description": "DN原值，未除scale factor=65535",
+            "value_mode": "raw_dn"
+          },
+          "name": "sample",
+          "shape": [
+            2,
+            3,
+            4
+          ],
+          "wavelengths": [
+            1.0,
+            2.0,
+            3.0,
+            4.0
+          ]
+        },
+        "existing": false
+      }
+    ],
+    "summary": {
+      "existing": 0,
+      "imported": 1,
+      "total": 1
+    }
+  },
+  "preview": {
+    "height": 2,
+    "png_sha256": "fd910d6a20cc75f08af1137f9b30d1dbe245df846b9d6a6442b942d965f7f991",
+    "status": 200,
+    "width": 3
+  },
+  "raw_band": {
+    "band": 2,
+    "raw": true,
+    "shape": [
+      2,
+      3
+    ],
+    "values": [
+      [
+        2,
+        6,
+        10
+      ],
+      [
+        14,
+        18,
+        22
+      ]
+    ]
+  },
+  "scaled_override": {
+    "band": 2,
+    "raw": false,
+    "shape": [
+      2,
+      3
+    ],
+    "values": [
+      [
+        3.0518043793392844e-05,
+        9.155413138017853e-05,
+        0.00015259021896696422
+      ],
+      [
+        0.0002136263065537499,
+        0.0002746623941405356,
+        0.0003356984817273213
+      ]
+    ]
+  },
+  "source_bytes_and_mtime_unchanged": true,
+  "unauthorized": {
+    "body": {
+      "detail": "需要本次引擎握手中的 Bearer token。",
+      "error": "UNAUTHORIZED"
+    },
+    "status": 401
+  }
+}
