@@ -300,7 +300,7 @@ def test_validate_save_list_uuid_overlay_note_overwrite_and_old_version(ready_ht
     assert calls == [second["id"]]
     unknown_version = str(uuid4())
     missing = h.client.get(h.base+f"/annotations/{unknown_version}/overlay")
-    assert missing.status_code == 400 and missing.json()["error"] == "VERSION_NOT_FOUND"
+    assert missing.status_code == 404 and missing.json()["error"] == "VERSION_NOT_FOUND"
     assert calls == [second["id"], unknown_version]
     with connect_database(h.case.paths.database) as db:
         assert db.execute("SELECT count(*) FROM annotation WHERE granularity!='sample' OR source!='manual'").fetchone()[0] == 0
@@ -357,7 +357,7 @@ def test_validation_has_no_body_and_uuid_only_version_errors(ready_http):
     h = ready_http
     assert h.client.post(h.base+"/annotations/validate", json={}).status_code == 400
     unknown = h.client.get(h.base+f"/annotations/{uuid4()}/overlay")
-    assert unknown.status_code == 400 and unknown.json()["error"] == "VERSION_NOT_FOUND"
+    assert unknown.status_code == 404 and unknown.json()["error"] == "VERSION_NOT_FOUND"
     for value in ("not-a-uuid", "1"):
         malformed = h.client.get(h.base+f"/annotations/{value}/overlay")
         assert malformed.status_code == 400 and malformed.json()["error"] == "INVALID_REQUEST"

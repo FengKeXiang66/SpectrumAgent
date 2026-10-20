@@ -352,7 +352,9 @@ class SessionStore:
         with self._lock, connect_database(self.database) as db:
             row = db.execute("SELECT snapshot_ref FROM annotation_version WHERE id=?", (str(version_id),)).fetchone()
             if row is None:
-                raise DataError("VERSION_NOT_FOUND", "标注版本不存在", version_id=version_id)
+                error = DataError("VERSION_NOT_FOUND", "标注版本不存在", version_id=version_id)
+                error.status_code = 404
+                raise error
             relative = PurePosixPath(row[0])
             if relative.is_absolute() or ".." in relative.parts or "\\" in row[0] or ":" in row[0]:
                 raise DataError("INVALID_SNAPSHOT_REF", "快照须为 POSIX 相对路径")
