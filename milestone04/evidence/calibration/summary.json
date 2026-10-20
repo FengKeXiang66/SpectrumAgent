@@ -1,0 +1,177 @@
+{
+  "grid_rows": 55,
+  "cube_count": 11,
+  "selected_compactness": 0.5,
+  "selection_basis": "11/11 cubes pass existing §6.1 n/area_cv/R/subdivision assertions at the current default",
+  "by_compactness": {
+    "0.2": {
+      "cubes": 11,
+      "all_structure_assertions_pass": 0,
+      "n_range": [
+        419,
+        443
+      ],
+      "area_cv_range": [
+        0.47233480511651416,
+        0.6257948475850645
+      ],
+      "R_range": [
+        1.6158349173443536,
+        1.706536137821479
+      ],
+      "subdivision_triggers_range": [
+        16,
+        29
+      ],
+      "n_after_range": [
+        460,
+        484
+      ]
+    },
+    "0.5": {
+      "cubes": 11,
+      "all_structure_assertions_pass": 11,
+      "n_range": [
+        751,
+        768
+      ],
+      "area_cv_range": [
+        0.17697612603829105,
+        0.2106243542553083
+      ],
+      "R_range": [
+        1.7521929474861682,
+        1.830736442183931
+      ],
+      "subdivision_triggers_range": [
+        55,
+        71
+      ],
+      "n_after_range": [
+        809,
+        838
+      ]
+    },
+    "1.0": {
+      "cubes": 11,
+      "all_structure_assertions_pass": 0,
+      "n_range": [
+        781,
+        782
+      ],
+      "area_cv_range": [
+        0.09617078512462776,
+        0.11130820806367527
+      ],
+      "R_range": [
+        1.2186139096447544,
+        1.3167889418133008
+      ],
+      "subdivision_triggers_range": [
+        64,
+        73
+      ],
+      "n_after_range": [
+        843,
+        854
+      ]
+    },
+    "2.0": {
+      "cubes": 11,
+      "all_structure_assertions_pass": 0,
+      "n_range": [
+        782,
+        782
+      ],
+      "area_cv_range": [
+        0.06987983756293643,
+        0.07221100745153748
+      ],
+      "R_range": [
+        0.9914237372115831,
+        1.071953148784262
+      ],
+      "subdivision_triggers_range": [
+        65,
+        74
+      ],
+      "n_after_range": [
+        800,
+        808
+      ]
+    },
+    "10.0": {
+      "cubes": 11,
+      "all_structure_assertions_pass": 0,
+      "n_range": [
+        782,
+        782
+      ],
+      "area_cv_range": [
+        0.06784891247070711,
+        0.06874941170180908
+      ],
+      "R_range": [
+        1.0136290249008721,
+        1.1075258226948645
+      ],
+      "subdivision_triggers_range": [
+        61,
+        76
+      ],
+      "n_after_range": [
+        804,
+        813
+      ]
+    }
+  },
+  "baseline": {
+    "cube": "pe/20260804205214_64.hdr",
+    "compactness": "0.5",
+    "n": "765",
+    "area_cv": "0.17697612603829105",
+    "R": "1.8282458263392618",
+    "sum_ratio_diagnostic": "0.20138744944428535",
+    "subdivision_triggers": "64",
+    "n_after": "830",
+    "tau": "0.11295262496789044",
+    "n_segments": "800",
+    "pca_components": "5",
+    "k": "3",
+    "block_size": "32",
+    "feature_version": "pca-global-zscore-clip3-unit-v1",
+    "convert2lab": "False",
+    "enforce_connectivity": "True",
+    "feature_bytes": "2956800",
+    "resident_feature_bytes": "5913600",
+    "baseline_rss_bytes": "132407296",
+    "peak_rss_bytes": "309776384",
+    "peak_rss_delta_bytes": "177369088",
+    "pca_seconds": "2.288896499987459",
+    "slic_seconds": "0.07777080000960268",
+    "total_seconds": "3.5371543999935966"
+  },
+  "feature_bytes": 2956800,
+  "raw_float64_cube_bytes": 236544000,
+  "peak_rss_bytes_range": [
+    308936704,
+    310222848
+  ],
+  "peak_rss_delta_bytes_range": [
+    176656384,
+    177893376
+  ],
+  "worst_peak_delta_fraction_of_raw_float64_cube": 0.7520519480519481,
+  "total_seconds_range": [
+    3.4316452000057325,
+    5.82942809999804
+  ],
+  "versions": {
+    "numpy": "2.5.4",
+    "scikit-image": "0.26.0",
+    "scikit-learn": "1.9.1",
+    "spectral": "0.25"
+  },
+  "source_commit": "fa44fe8af3ef0374154a91a539b3d98b6af02412",
+  "seed_sha256": "388ed3a86bdf60c5054e8df9a5eb197a96a112b0bf2fc59efa1bcf1a29f648d2"
+}

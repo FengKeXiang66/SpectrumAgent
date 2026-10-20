@@ -1,0 +1,122 @@
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='file type'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='sensor type'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='default stretch'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='band names'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key=relative
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='file type'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='sensor type'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='default stretch'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='band names'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key=relative
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='file type'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='sensor type'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='default stretch'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='band names'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key=relative
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='file type'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='sensor type'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='default stretch'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='band names'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key=relative
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='file type'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='sensor type'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='default stretch'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='band names'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key=relative
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='file type'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='sensor type'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='default stretch'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='band names'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key=relative
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='file type'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='sensor type'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='default stretch'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='band names'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key=relative
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='file type'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='sensor type'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='default stretch'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='band names'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key=relative
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='file type'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='sensor type'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='default stretch'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='band names'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key=relative
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='file type'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='sensor type'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='default stretch'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='band names'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key=relative
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='file type'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='sensor type'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='wavelength units'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='default stretch'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key='band names'
+2026-10-20 18:18:53 [warning  ] unknown_header_key             key=relative
+pe/20260804205214_64.hdr m=0.2: n=431 cv=0.529098 R=1.705914 split=21 -> 478 peak_delta=177401856B
+pe/20260804205214_64.hdr m=0.5: n=765 cv=0.176976 R=1.828246 split=64 -> 830 peak_delta=177369088B
+pe/20260804205214_64.hdr m=1: n=782 cv=0.101482 R=1.256461 split=69 -> 852 peak_delta=177233920B
+pe/20260804205214_64.hdr m=2: n=782 cv=0.070669 R=1.036547 split=70 -> 800 peak_delta=177389568B
+pe/20260804205214_64.hdr m=10: n=782 cv=0.067849 R=1.066951 split=67 -> 806 peak_delta=177364992B
+pe/20260804205217_70.hdr m=0.2: n=430 cv=0.523014 R=1.665032 split=24 -> 465 peak_delta=177393664B
+pe/20260804205217_70.hdr m=0.5: n=768 cv=0.190413 R=1.817532 split=64 -> 827 peak_delta=177336320B
+pe/20260804205217_70.hdr m=1: n=782 cv=0.105520 R=1.284608 split=68 -> 850 peak_delta=177430528B
+pe/20260804205217_70.hdr m=2: n=782 cv=0.070815 R=1.041259 split=69 -> 802 peak_delta=177393664B
+pe/20260804205217_70.hdr m=10: n=782 cv=0.068315 R=1.069269 split=69 -> 810 peak_delta=177348608B
+pe/20260804205301_143.hdr m=0.2: n=431 cv=0.472335 R=1.699925 split=27 -> 475 peak_delta=177393664B
+pe/20260804205301_143.hdr m=0.5: n=765 cv=0.192215 R=1.772734 split=61 -> 825 peak_delta=176656384B
+pe/20260804205301_143.hdr m=1: n=782 cv=0.101780 R=1.300720 split=70 -> 847 peak_delta=177348608B
+pe/20260804205301_143.hdr m=2: n=782 cv=0.070913 R=1.057869 split=74 -> 808 peak_delta=176656384B
+pe/20260804205301_143.hdr m=10: n=782 cv=0.068371 R=1.094235 split=69 -> 808 peak_delta=177389568B
+pet/20260804195714_53.hdr m=0.2: n=439 cv=0.533023 R=1.684679 split=23 -> 479 peak_delta=177405952B
+pet/20260804195714_53.hdr m=0.5: n=759 cv=0.196635 R=1.752193 split=58 -> 827 peak_delta=177364992B
+pet/20260804195714_53.hdr m=1: n=782 cv=0.096171 R=1.278938 split=71 -> 850 peak_delta=177426432B
+pet/20260804195714_53.hdr m=2: n=782 cv=0.069880 R=0.991424 split=73 -> 803 peak_delta=177356800B
+pet/20260804195714_53.hdr m=10: n=782 cv=0.068316 R=1.013696 split=76 -> 809 peak_delta=177467392B
+pet/20260804195723_72.hdr m=0.2: n=431 cv=0.625795 R=1.653537 split=27 -> 472 peak_delta=177332224B
+pet/20260804195723_72.hdr m=0.5: n=753 cv=0.201079 R=1.796873 split=62 -> 818 peak_delta=177467392B
+pet/20260804195723_72.hdr m=1: n=781 cv=0.111308 R=1.218614 split=67 -> 844 peak_delta=177360896B
+pet/20260804195723_72.hdr m=2: n=782 cv=0.071264 R=1.005188 split=74 -> 805 peak_delta=177893376B
+pet/20260804195723_72.hdr m=10: n=782 cv=0.068602 R=1.040866 split=76 -> 813 peak_delta=177590272B
+pet/20260804195732_93.hdr m=0.2: n=420 cv=0.499876 R=1.706536 split=29 -> 460 peak_delta=177414144B
+pet/20260804195732_93.hdr m=0.5: n=751 cv=0.210624 R=1.827904 split=62 -> 816 peak_delta=177389568B
+pet/20260804195732_93.hdr m=1: n=782 cv=0.097515 R=1.316789 split=66 -> 845 peak_delta=177451008B
+pet/20260804195732_93.hdr m=2: n=782 cv=0.071988 R=1.023406 split=70 -> 808 peak_delta=177364992B
+pet/20260804195732_93.hdr m=10: n=782 cv=0.068320 R=1.046428 split=70 -> 811 peak_delta=177393664B
+pet/20260804195826_186.hdr m=0.2: n=428 cv=0.547470 R=1.681285 split=21 -> 479 peak_delta=177434624B
+pet/20260804195826_186.hdr m=0.5: n=767 cv=0.193118 R=1.828798 split=71 -> 838 peak_delta=177537024B
+pet/20260804195826_186.hdr m=1: n=782 cv=0.102715 R=1.275278 split=73 -> 854 peak_delta=177872896B
+pet/20260804195826_186.hdr m=2: n=782 cv=0.070662 R=1.003132 split=74 -> 805 peak_delta=177360896B
+pet/20260804195826_186.hdr m=10: n=782 cv=0.068749 R=1.013629 split=74 -> 812 peak_delta=177311744B
+pp/20260804210313_15.hdr m=0.2: n=419 cv=0.527189 R=1.625340 split=16 -> 464 peak_delta=177430528B
+pp/20260804210313_15.hdr m=0.5: n=757 cv=0.202737 R=1.830736 split=58 -> 809 peak_delta=177401856B
+pp/20260804210313_15.hdr m=1: n=782 cv=0.096597 R=1.276772 split=66 -> 850 peak_delta=177442816B
+pp/20260804210313_15.hdr m=2: n=782 cv=0.070530 R=1.058969 split=66 -> 806 peak_delta=177389568B
+pp/20260804210313_15.hdr m=10: n=782 cv=0.068449 R=1.107526 split=65 -> 809 peak_delta=177328128B
+pp/20260804210353_75.hdr m=0.2: n=433 cv=0.523733 R=1.624366 split=25 -> 475 peak_delta=177369088B
+pp/20260804210353_75.hdr m=0.5: n=757 cv=0.200311 R=1.799489 split=57 -> 817 peak_delta=177340416B
+pp/20260804210353_75.hdr m=1: n=782 cv=0.103597 R=1.278574 split=68 -> 843 peak_delta=177410048B
+pp/20260804210353_75.hdr m=2: n=782 cv=0.072211 R=1.071953 split=67 -> 801 peak_delta=177397760B
+pp/20260804210353_75.hdr m=10: n=782 cv=0.068534 R=1.087194 split=68 -> 808 peak_delta=177405952B
+pp/20260804210443_152.hdr m=0.2: n=424 cv=0.567919 R=1.615835 split=24 -> 465 peak_delta=177401856B
+pp/20260804210443_152.hdr m=0.5: n=755 cv=0.198983 R=1.799364 split=55 -> 816 peak_delta=177836032B
+pp/20260804210443_152.hdr m=1: n=782 cv=0.099751 R=1.256009 split=66 -> 845 peak_delta=177356800B
+pp/20260804210443_152.hdr m=2: n=782 cv=0.070299 R=1.033363 split=69 -> 806 peak_delta=177381376B
+pp/20260804210443_152.hdr m=10: n=782 cv=0.067944 R=1.048214 split=66 -> 804 peak_delta=177405952B
+pp/20260804210509_189.hdr m=0.2: n=443 cv=0.588981 R=1.657324 split=22 -> 484 peak_delta=177385472B
+pp/20260804210509_189.hdr m=0.5: n=764 cv=0.194557 R=1.810341 split=58 -> 820 peak_delta=177377280B
+pp/20260804210509_189.hdr m=1: n=782 cv=0.102081 R=1.257684 split=64 -> 845 peak_delta=177369088B
+pp/20260804210509_189.hdr m=2: n=782 cv=0.071234 R=1.014532 split=65 -> 802 peak_delta=177405952B
+pp/20260804210509_189.hdr m=10: n=782 cv=0.068320 R=1.030521 split=61 -> 806 peak_delta=177356800B
+Saved 55 measured rows: E:\AI_Agent\milestone04\evidence\calibration\compactness.csv

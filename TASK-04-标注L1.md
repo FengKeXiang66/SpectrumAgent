@@ -238,9 +238,9 @@ ALTER TABLE dataset_registry ADD COLUMN project_id TEXT;   -- 回填默认项目
   3. `clip(±3)`（防热像素/死像素把全局范围撑坏）；
   4. 线性映射到 [0,1]（即 `(x+3)/6`，clip 后区间恒定，映射无歧义）。
   skimage 0.26 的 slic 内部还会做一次全局 min-max 归一化（`slic_superpixels.py:281-291`，注释明说为让 compactness 与输入尺度无关），所以**绝对尺度不用管，但分量间相对权重由本口径决定**——这正是 0.5 这个初值绑定的对象。
-- **slic 调用参数（写死，不许省）**：`n_segments=800`、`compactness=0.5`（**单 cube 初值，非红线**，见下）、`channel_axis=2`、**`convert2lab=False`（强制）**、`start_label=0`。
+- **slic 调用参数（写死，不许省）**：`n_segments=800`、`compactness=0.5`（**11 cube 标定选定值，非红线**，见下）、`channel_axis=2`、**`convert2lab=False`（强制）**、`start_label=0`。
   - `convert2lab=False` 不是卫生动作：默认 `None` 时**只要通道数等于 3 就会静默转 Lab**（`slic_superpixels.py:311-315`），而 `pca_components` 是 5.6 的暴露参数。实测 `pca_components=3` + 默认值：m=0.5 → **n=18**、m=10 → **n=193**（不抛异常、不告警）；显式 False 同参数 → 773 / 782。
-- **compactness 初值 0.5**：单 cube（pe/20260804205214_64）实测，口径如上——m=0.5 → n=765（**细分前**）、area_cv=0.182、R≈1.8（1.77–1.82，随分块浮动）；m=10 → n=782、area_cv=0.068、R≈1.07（≈规则网格，FR-E03 名存实亡）。**11 cube 全量标定后定稿**；标定表（m × {n, area_cv, R, 细分触发数, 细分后 n}）作为证据落档，选定值回填本处与 6.1。
+- **compactness 标定值 0.5**：单 cube（pe/20260804205214_64）实测，口径如上——m=0.5 → n=765（**细分前**）、area_cv=0.182、R≈1.8（1.77–1.82，随分块浮动）；m=10 → n=782、area_cv=0.068、R≈1.07（≈规则网格，FR-E03 名存实亡）。**11 cube × 5 档全量标定确认保留 0.5**（实现层标定值，非需求硬常数）：仅此档 11/11 同时满足现有结构断言；完整实测及选定依据见 `milestone04/evidence/calibration/compactness.csv`、`summary.json`。
 - 产出（工作态内存）：超像素图 `segments` int32 (L,S)、超像素数、每个超像素的**均值光谱**（按行块累积像素和与计数）、**逐波段标准差向量**（累积 sum 与 sumsq，形状 (n_super, B)）。
 - **块内高方差自动细分（无歧义定义，实现与验收共用；已按实测修订过一次，勿回退）**：
   - 对超像素 s，在其**原始波段空间**（反射率 0–1，非 PCA 空间）取逐波段标准差向量 `std_s ∈ R^B`，标量 `d_s = mean_b(std_s[b])`；
@@ -353,9 +353,9 @@ ALTER TABLE dataset_registry ADD COLUMN project_id TEXT;   -- 回填默认项目
 - [ ] `POST /labels` 三种 body 各成功一次；互斥混用/缺字段 → 422；custom 缺 `color_hex` → 422
 - [ ] 自定义 enum 的 `tree_path` 第一段无匹配 schema → 422；目录添加生成的 label `tree_path` = `材料/塑料/<code>`、`sort_order` = 目录序号（PE=1…SAN=21）；自定义 `sort_order` = max+1；预置四 label 的 `tree_path`/`sort_order` 与 §4.3 表逐点一致
 - [ ] 超像素（结构断言，全部绑定"选定 compactness 下的实测基线"，不写死 800 这个数）：
-  - **n 指细分前 SLIC 原始输出**，与基线偏差 ≤10%（初值 m=0.5 时基线 n=765 → 689–842）；**`pca_components=3` 与 `5` 两种设置都必须满足**（3 分量必须显式 `convert2lab=False`，否则实测塌到 n=18）；细分后 n 单独记录（实测 830），**不设 ±10% 断言**（随 k 与触发率变化）
-  - `area_cv ≥ 0.10`（m=0.5 实测 0.182；m=10 的网格化仅 0.068）
-  - **边界/内部谱距离比 R ≥ 1.5**（口径：PCA-5 z-score 特征空间、4-邻域、平方欧氏距离**均值比**；m=0.5 实测 1.77–1.82、m=10 实测 1.07）。R 是"FR-E03 是否退化成规则网格"的直接探针，**低于 1.5 即判超像素未按光谱切分**
+  - **n 指细分前 SLIC 原始输出**，与基线偏差 ≤10%（11 cube 标定 m=0.5、PCA-5 时 n=751–768；pe 基线 n=765 → 689–842，PCA-3 基线 n=773；来源：标定 CSV 与 pca3-baseline.json，实现层实测）；**`pca_components=3` 与 `5` 两种设置都必须满足**（3 分量必须显式 `convert2lab=False`，否则实测塌到 n=18）；细分后 n 单独记录（实测 830），**不设 ±10% 断言**（随 k 与触发率变化）
+  - `area_cv ≥ 0.10`（11 cube、PCA-5：m=0.5 实测 0.176976–0.210624；m=10 为 0.067849–0.068749；PCA-3 pe 基线 0.172421；来源：标定 CSV 与 pca3-baseline.json，实现层实测）
+  - **边界/内部谱距离比 R ≥ 1.5**（口径：PCA-5 z-score 特征空间、4-邻域、平方欧氏距离**均值比**；11 cube、PCA-5：m=0.5 实测 1.752193–1.830736、m=10 实测 1.013629–1.107526；PCA-3 pe 基线实测 1.623627；来源：标定 CSV 与 pca3-baseline.json，实现层实测）。R 是"FR-E03 是否退化成规则网格"的直接探针，**低于 1.5 即判超像素未按光谱切分**
     - **自检锚点**：分母必须是"段内相邻对的距离**均值**"，不是求和。本 cube 上按均值比得 **≈1.8**（分块不同在 1.77–1.82 间浮动）；若误写成求和比只得 **0.20**（差约 9 倍，因段内对数远多于跨界对）。数不对先查聚合方式，别先怀疑分割，更不得反向调参
   - 高方差细分：报告中的 `d_s > τ` 记录与超像素集合一致，**触发数 ≥ 1**（实测 k=3 触发 64/765 = 8.4%）；细分前/后 n 分别记录（实测 765 → 830）；k 为参数化默认 3，标定阶段可调，但调整须落进标定表并写明理由，**不得为了让断言通过而临时改 k**
   - 返回实际生效参数（pca_components / compactness / k / 特征口径版本）与降采样叠加图
@@ -394,7 +394,7 @@ ALTER TABLE dataset_registry ADD COLUMN project_id TEXT;   -- 回填默认项目
 ### 6.3 性能（实测记录，不预设承诺）
 
 - [ ] 超像素（231×640×200 = lines×samples×bands；磁盘 BIL 为 (231,200,640)）耗时记录；**回报 PCA 特征图字节数**（k=5 应为 2.96 MB）与进程峰值 RSS；峰值相对基线的增量须显著小于 236.5 MB（全量物化原始 float64 立方体的量级），以此证明未一次性物化原始立方体。（参考实测：PCA 3.2 s + SLIC 0.1 s，仅供 codex 判断量级，**不作验收阈值**）
-- [ ] 扩散（**细分后** n≈830，**初值锚点**，随标定后的 compactness/k 更新）耗时 ≤ 2 s（候选值，实测为准）
+- [ ] 扩散（**细分后** n=809–838，11 cube 在选定 compactness=0.5、k=3、PCA-5 下的标定范围；pe 基线 n=830；来源：`milestone04/evidence/calibration/compactness.csv`，实现层实测）耗时 ≤ 2 s（候选值，实测为准）
 - [ ] 保存版本（含聚合）耗时记录；不长期占用 SQLite 写事务（短事务）
 
 ### 6.4 异常与边界
@@ -493,6 +493,7 @@ ALTER TABLE dataset_registry ADD COLUMN project_id TEXT;   -- 回填默认项目
 | R12 | **codex 首触即停：两个真实缺口（十查漏项）**：①§4.4 目录 18 条色值无来源——补 HLS 生成规则（hue=j×20°、sat=55%、light=45%、**四舍五入**转 hex）+ 18 值表，PE/PET/PP 沿用 §4.3；②§5.6 `POST /labels` 三形态契约未定义——补从目录添加/自定义 enum/添加 schema 的字段区分、互斥校验、422 错误结构。配套 §6.1 加两条验收（色值逐点一致 + 契约三形态各成功一次）。**复核实跑三处订正**：(a) `j` 必须**从 PS 起算**（j=0..17），若按 §4.4 全表序号读则 PS=3、色值全错；(b) 必须 `round()` 而非截断，截断得 `#b13333` 一类、每通道系统性 −1；(c) 发现 `PBT #3488b2` 与 `PP #2f7fb0` 色距仅 10.5，已在 §4.4 记录为已知冲突并划入 10.6 提示项（不改生成规则：偏移 10°/20° 仍 10.5、15° 仅 19.7）。**纪律沉淀：备卡终读八查补第 5.5 条**——"每个落盘数值（含种子数据色值/默认值）必须有来源：文档值、规则产物、或空" | codex 执行期首检：十查漏了"落盘数值来源"与"端点请求体契约" |
 | R13 | **codex 二触即停：NOT NULL 列的写入来源未覆盖**：`label.schema_id` 是 NOT NULL FK，但 R12 契约的自定义 enum body 无 `schema_id`，卡内也无 `tree_path`→schema 定位规则；顺带暴露同一缺口族——预置四 label 与目录条目的 `tree_path`（同表 NOT NULL）也从未定义。补：①§4.1 种子明确 enum schema 的 `tree_path=材料`（**单段、不含 `/`**，含 `/` 则永远无法被 label 定位）+ R13 三条写入路径共用的定位规则（取 `label.tree_path` 第一段**精确匹配** `field_type='enum'` 的 schema tree_path，服务端据此定位 `schema_id`，**body 不收 `schema_id`**，无匹配 → 422）；②§4.3 预置四 label 补 tree_path 列 `材料/塑料/<code>`（BG 归 `材料` 是阶段一只有单 enum schema 的工程必然，"背景非材料"的语义别扭记录在案不另设 schema）；③§4.4 目录条目入项目 tree_path 同规则、由服务端生成（body 不收）；④§5.6 三种 body 各自标注"不收什么"；⑤6.1 加验收一条。**复核方主动扫全表补第三处**：`label.sort_order` 同列 NOT NULL 且三路径亦无供值规则（预置=4.3 sort 列 / 目录添加=目录序号 PE=1…SAN=21 / 自定义=max+1），与 `schema_id` 同源，一并纳入 R13 同块定义。**沉淀：八查补第 5.6 条**——每条 NOT NULL 列（及每个请求体缺省即无值的字段），在每条写入路径上都必须有显式供值来源（body 字段 / 服务端规则 / 种子数据，三者都不占即缺）；codex 三次即停（色值 / 请求契约 / schema 归属）全是这一条漏检；复核方按同一条规律主动扫全表，抓出第四处 `sort_order` | codex 执行期二检：十查只查了"列定义"，没查"写路径覆盖" |
 | R14 | **codex 三触即停：既有实现与卡内异常口径冲突（跨里程碑）**：`Registry.readable`（registry.py:140）直接调 `read_header` 无 try/except，源文件缺失时 reader 的 `FILE_NOT_FOUND` 原样传出；而 §6.4 要求"源移动/改动 → SOURCE_CHANGED"。裁定：**卡是对的、实现没对齐**——在 `readable` 内仅包 `read_header` 一步，任何 `DataError` 统一包装为 `SOURCE_CHANGED`（`context` 带 `source_error` 原码 + `source_detail` + 原 path，`from error` 链式；先剔同名键防碰撞）；字段比对循环原样保留（其 detail"源元数据与登记记录不一致"与新文案区分）。**边界三不动**：`get()` 的 `DATASET_NOT_FOUND`(404)、导入期 `candidates()` 的 `FILE_NOT_FOUND`、reader 单测行为。**跨里程碑影响**：#02 `preview`/`band`/`region` 对"已登记但源移动/缺失"由 `FILE_NOT_FOUND` 改报 `SOURCE_CHANGED`（HTTP 400 不变），v0.1.2 release notes 记账；`info` 走 `get()` 不受影响。必加 6 项测试：删 hdr / 改名 / 换小文件（source_error 实测后断言不猜）/ 未知 id 仍 404 / 引擎缓存命中后删源再 generate 不 force / HTTP 层 preview+superpixels → 400+SOURCE_CHANGED | codex 执行期三检：实现侧漏包装，卡无需改 |
+| 10.2 标定回填 | 55 格实测后保留 compactness=0.5（仅此档 11/11 满足既有结构断言）；仅回填 §5.2 compactness、§6.1 n/area_cv/R 基线与 §6.3 扩散规模，验收阈值不变；表、独立 R 复算脚本与汇总落档 | `milestone04/evidence/calibration/compactness.csv`、`calibrate.py`、`summary.json`、`pca3-baseline.json`（实现层实测） |
 
 **证据锚点**（供复核抽查）：pe/20260804205214_64，231×640×200，BIL；PCA 3.2 s / evr=[0.309,0.185,0.077,0.048,0.042]；m=0.5 → n=765（细分前）、area_cv=0.182、R≈1.8；m=10 → n=782、area_cv=0.068、R≈1.07；归一化特征图均值 0.492–0.501、std 0.129–0.164、值域 [0,1]；分块 32/64/128/单批 → n=765/765/765/766、area_cv=0.177–0.183；k=3 → τ=0.113、触发 64/765、64 父块拆成 129 子块、细分后 n=830、子块面积中位 86 px（全段面积中位 191 px，勿混）。
 
