@@ -137,7 +137,15 @@ class DatasetRegistry:
     def readable(self, identifier, raw=None):
         stored, default = self.get(identifier)
         mode = default if raw is None else raw
-        current = read_header(Path(stored.header_path), Path(stored.data_path), raw=mode)
+        try:
+            current = read_header(Path(stored.header_path), Path(stored.data_path), raw=mode)
+        except DataError as error:
+            context = dict(error.payload.context)
+            context.pop("source_error", None)
+            context.pop("source_detail", None)
+            raise DataError("SOURCE_CHANGED", "已登记数据集的源文件不可用",
+                            source_error=error.code, source_detail=error.payload.detail,
+                            **context) from error
         for field in ("shape", "dtype", "interleave", "wavelengths", "fwhm"):
             if getattr(current, field) != getattr(stored, field):
                 raise DataError("SOURCE_CHANGED", "源元数据与登记记录不一致", field=field)

@@ -7,13 +7,16 @@ from spectrumagent.api.datasets import make_router
 from spectrumagent.api.annotations import LABEL_PATHS, make_router as make_label_router
 from spectrumagent.api.registry import DatasetRegistry
 from spectrumagent.annotation.labels import LabelStore
+from spectrumagent.annotation.engines.superpixels import SuperpixelEngine
 from spectrumagent.data import DataError
 
 
 def create_app(paths, identity):
     app = foundation_app(paths, identity)
-    app.include_router(make_router(DatasetRegistry(paths.database)))
-    app.include_router(make_label_router(LabelStore(paths.database)))
+    registry = DatasetRegistry(paths.database)
+    app.include_router(make_router(registry))
+    app.state.superpixel_engine = SuperpixelEngine(registry)
+    app.include_router(make_label_router(LabelStore(paths.database), app.state.superpixel_engine))
     original_validation_handler = app.exception_handlers[RequestValidationError]
 
     @app.exception_handler(DataError)

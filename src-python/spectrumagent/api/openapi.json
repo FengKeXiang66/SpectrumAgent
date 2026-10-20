@@ -439,6 +439,57 @@
           }
         }
       }
+    },
+    "/api/v1/datasets/{identifier}/superpixels": {
+      "post": {
+        "tags": [
+          "annotation labels"
+        ],
+        "summary": "Superpixels",
+        "operationId": "superpixels_api_v1_datasets__identifier__superpixels_post",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Identifier"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuperpixelRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1006,6 +1057,36 @@
           "header_path"
         ],
         "title": "SpectrumDataSet"
+      },
+      "SuperpixelRequest": {
+        "properties": {
+          "n_segments": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "N Segments",
+            "default": 800
+          },
+          "compactness": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Compactness",
+            "default": 0.5
+          },
+          "pca_components": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Pca Components",
+            "default": 5
+          },
+          "force": {
+            "type": "boolean",
+            "title": "Force",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SuperpixelRequest"
       },
       "ValidationError": {
         "properties": {

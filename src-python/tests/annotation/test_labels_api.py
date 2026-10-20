@@ -126,4 +126,5 @@ def test_auth_identity_and_stage_boundary(label_api):
     assert result.headers["X-SpectrumAgent-Pid"] and result.headers["X-SpectrumAgent-Boot-Id"]
     assert client.headers["Authorization"][7:] not in result.text
     paths = client.app.openapi()["paths"]
-    assert not any("superpixels" in path or "/annotations" in path or "/diffuse" in path for path in paths)
+    assert "/api/v1/datasets/{identifier}/superpixels" in paths
+    assert not any("/annotations" in path or "/diffuse" in path for path in paths)
