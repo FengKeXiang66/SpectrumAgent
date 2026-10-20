@@ -190,8 +190,8 @@ ALTER TABLE dataset_registry ADD COLUMN project_id TEXT;   -- 回填默认项目
 
 - **落点与 `snapshot_ref`（R15 钉死）**：`paths.py` 增 `snapshots` property（与 db/logs/testdata 平级、随 `from_environment` 派生、**禁硬编码绝对路径、禁写源目录**）；实际路径 `<snapshots>/<cube_id>/v<version_no>/`；`annotation_version.snapshot_ref` 存**相对 `snapshots` 根的 POSIX 路径**（如 `<cube_id>/v1`），**不存绝对路径**（数据根可迁移，绝对路径会失效）。DB 短事务提交是唯一提交点；快照先写 `.tmp` 再 `os.replace`。
 - 工作态（未落库）的超像素图、工作 label map 存 sidecar 内存（按 cube_id + 参数），可随时按参数重算，不依赖会被清理的 scratch（教训记录：验收只读落库快照，不读运行期临时文件）。
-- **覆写语义（唯一解释，不得再分叉）**：`save` 默认**新建版本**（version_no 递增），**任何历史版本不可改**；"覆写"**仅指用当前工作态重写当前最新版本**（version_no 最大者，version_no 不变），必须携带 FR-D07 确认标记——未携带 → 409 结构化错误，携带 → 覆写事件随版本入库（**R17 钉死落点**：`annotation_version.note` 写 `{"event":"overwrite","at":"<ISO8601 UTC>"}` JSON；新建版本 `note=NULL`；`created_at` 保留版本首次创建时间、不随覆写改变；与旧行重写同一短事务 UPDATE）。不存在"覆写中间历史版本"的路径（FR-E05 的"覆写二次确认"即指此，见 5.6）。
-  - **覆写时的旧行处置（不写就是同版本重复行）**：在同一短事务内**先删**该 `version_id` 下的全部 `annotation` 与 `sample_spectrum` 行，**再重写**，并 `UPDATE annotation_version` 的 `n_pixels`/`labeled_pixels`/`snapshot_ref`/`created_at`。快照三件先写 `.tmp` 再 `os.replace` 覆盖同名文件，避免半写状态。
+- **覆写语义（唯一解释，不得再分叉）**：`save` 默认**新建版本**（version_no 递增），**任何历史版本不可改**；"覆写"**仅指用当前工作态重写当前最新版本**（version_no 最大者，version_no 不变），必须携带 FR-D07 确认标记——未携带 → 409 结构化错误，携带 → 覆写事件随版本入库（**R19 钉死，修订 R17**：`annotation_version.note` 唯一承载版本事件 JSON——覆写=`{"event":"overwrite","at":"<ISO8601 UTC>","text":<用户 note 或省略>}`；新建带用户 note=`{"event":"save","at":"...","text":"..."}`；**新建且无用户 note=NULL**（R17"新建 note=NULL"相应修订）；`created_at` 保留版本首次创建时间、不随覆写改变；与旧行重写同一短事务 UPDATE。`save` body 收 `note?`（用户备注，**≤2000 字符**，超长 → 400 `INVALID_VERSION_NOTE`；请求模型 `max_length` + 应用层双重校验）；`session.save` 仅增加 `note=None` 参数与 JSON 组装，其余逻辑不动）。不存在"覆写中间历史版本"的路径（FR-E05 的"覆写二次确认"即指此，见 5.6）。
+  - **覆写时的旧行处置（不写就是同版本重复行）**：在同一短事务内**先删**该 `version_id` 下的全部 `annotation` 与 `sample_spectrum` 行，**再重写**，并 `UPDATE annotation_version` 的 `snapshot_ref`/`n_pixels`/`labeled_pixels`/`auto_ratio`/`params`/`note`（**不含 `created_at`**——R19 钉死保留首次创建时间；与 10.3 实现 session.py 的 UPDATE 列表逐列一致）。快照三件先写 `.tmp` 再 `os.replace` 覆盖同名文件，避免半写状态。
   - 当前**无任何版本**时 `overwrite=true` → 409（无"最新版本"可覆写），不得静默降级为新建。
 
 ### 4.3 塑料项目初始标签（预置值）
@@ -263,6 +263,10 @@ ALTER TABLE dataset_registry ADD COLUMN project_id TEXT;   -- 回填默认项目
   - **种子画笔**（FR-E04）：种子像素/超像素集合；
   - **单击 / 框选 / 涂鸦**（FR-E18）：提示落到超像素上，取其均值谱为种子谱。
 - 扩散：计算种子均值谱与各超像素均值谱的**余弦相似度 `cos_s`**（以**种子谱**为参照，全图超像素共用同一列数）；从种子超像素出发，向**与当前区域成员相邻、且该相邻对的余弦 `cos_uv` ≥ 阈值**的超像素扩散（邻接对 single-linkage，图连通 + 谱相似双条件），阈值**初始默认 0.92、实时可调、前端可预览**（标注为"默认值"，非需求硬常数）。
+  - **增长邻接 = 4 邻域（R18 钉死）**：仅水平/垂直共享边界的超像素对算相邻，不用 8 邻域（与 `boundary_ratio` 同口径；角点接触会造成视觉断裂区域并扩大 single-linkage 泄漏面）。自检锚点：10.2 默认分割 pe 基线细分前 **765 段 2079 边**、细分后 **830 段 2256 边**（实施实测，逐像素双循环独立核过；**注意 R10 证据锚点的"766 段 2075 边"是另一套 segments，勿混**）。
+  - **多命中提示 = 合成单候选（R18 钉死）**：框选/涂鸦/集合命中多个超像素时，取提示覆盖的**全部像素**合成一条种子谱（像素等权，即按像素数加权的超像素均值平均），初始区域 = 这些超像素的并集，产出**一个**候选；**种子成员 `cos_s` 定义为 1**（不实算），`min_similarity` 只会因增长成员低于阈值。
+  - **涂鸦栅格化（R18 钉死）**：连接相邻坐标的 1 像素宽线段（Bresenham），含坐标点本身；不设线宽参数。
+  - **框选区间（R18 钉死）**：半开 `[l0,l1) × [s0,s1)`，与 `read_region` 切片语义一致；初始种子集 = 区间覆盖像素命中的全部超像素。
   - **两条余弦分工写死，不得混用（R10）**：**增长判据**用 `cos_uv`（相邻两个超像素之间）；**对外报告的相似度**用 `cos_s`（对种子谱）。若增长判据也写成 `cos_s`，则区域成员的 `cos_s` 恒 ≥ 阈值，"最小相似度"变成恒真式、`queue_min_similarity` 永久休眠——这正是 R10 争议的根源。
   - **余弦一律在"原谱超像素均值谱"（200 波段反射率，已除 scale）上算，不得改用 PCA 特征**：实测两种口径结论相反——原谱口径下 20 个种子有 4–15 个候选 `min_similarity` < 0.80（下限活跃），PCA-5 特征口径下个别 cube 为 0/20（下限不触发），且区域规模退化到中位 2–18 个超像素。允许驻留 `(n_seg, 200)` 均值谱（766×200 float64 ≈ 1.2 MB，不违反红线 4）。
 - 输出候选区域：超像素 id 列表、像素数、**`min_similarity` = 成员 `cos_s` 的最小值**、**`avg_similarity` = 成员 `cos_s` 的均值**（均以种子谱为参照，种子自身 `cos_s`=1 计入）、降采样叠加 PNG；不达扩散阈值的超像素不纳入（留白）。
@@ -316,6 +320,7 @@ ALTER TABLE dataset_registry ADD COLUMN project_id TEXT;   -- 回填默认项目
 
 ### 5.6 FastAPI 路由（新 router，组合进 `spectrumagent.app.create_app`）
 
+- **分割参数失配防护（R19 钉死，统一前置检查）**：`diffuse`/`regions`/`validate`/`save` 执行前，若工作态当前分割 params 与 SuperpixelEngine 缓存分割 params 不一致（换参未重新生成）→ 结构化错误 **`SEGMENTATION_STALE`（HTTP 409）**，要求先重新生成超像素；**不得静默同步到旧 segments**。`working` 端点不受此限（未生成/已生成均按现态返回）。错误码参数化：`AnnotationConflict` 的 code 可传，`ANNOTATION_CONFLICT` 与 `SEGMENTATION_STALE` 共用 409。
 - `GET  /api/v1/projects`
 - `GET  /api/v1/labels?project_id=`（schema + 标签值）
 - `POST /api/v1/labels`（添加 schema 字段 或 从目录/自定义添加 enum 标签）——三种操作按 body 必需字段隐式区分：
@@ -327,18 +332,39 @@ ALTER TABLE dataset_registry ADD COLUMN project_id TEXT;   -- 回填默认项目
 - `POST /api/v1/datasets/{id}/superpixels`　body：`{n_segments, compactness, pca_components, force?}`；引擎内部**强制 `convert2lab=False`**（不暴露给调用方），`pca_components` 取 3 与 5 均须可用（见 6.1）
 - `POST /api/v1/datasets/{id}/diffuse`　body：`{seed: {"point":[l,s]} | {"box":[l0,l1,s0,s1]} | {"doodle":[[l,s],...]}, "threshold": 0.92, "queue_min_similarity": 0.80}`；两个阈值都参数化可调（默认见 5.3），响应含候选列表（超像素 id 集合 + 像素数 + `min_similarity` / `avg_similarity` / `cos_s` 谱 + 降采样 PNG）及未入队原因统计
 - `POST /api/v1/datasets/{id}/annotations/regions`　body：`{label_id?, geometry: {"superpixels":[...]} | {"polygon":[...]}, action: "confirm"|"erase"|"uncertain"}`；`uncertain` 时 `label_id` 可省（写入 `-2`）；返回新的工作态统计
+  - **polygon 栅格化（R19 钉死）**：polygon geometry 转 label map 时，按**像素中心点 `(l+0.5, s+0.5)` 的 even-odd 内外判定**，中心恰在多边形边上时**计入内部**；不做边界膨胀、不设 `dilate` 参数（无出处）。与超像素集合路径（segments 命中像素并集）在同一张单值 label_map 上**后写覆盖先写**——这是请求内容决定的确定性语义，不得靠写序或膨胀凑结果。
 - `POST /api/v1/datasets/{id}/annotations/undo`　撤销一步（sidecar 栈 ≥5 步）；栈空 → 409；返回新的工作态统计
-- `GET  /api/v1/datasets/{id}/annotations/working`　**工作态读回**（未保存也有）：降采样 overlay PNG（已确认类色 + 不确定用问号/斜纹变体）+ 统计（超像素数、已标 %、**不确定 %**、留白 %、待确认、各类像素数）；前端重绘只认这个，不自行维护 label map。**未生成超像素时返回空统计与空图、不报错**
+- `GET  /api/v1/datasets/{id}/annotations/working`　**工作态读回**（未保存也有）：降采样 overlay PNG（已确认类色 + 不确定用问号/斜纹变体）+ 统计（超像素数、已标 %、**不确定 %**、留白 %、待确认、各类像素数）；前端重绘只认这个，不自行维护 label map。**未生成超像素时返回空统计与空图、不报错**。**R21 追加两个只读字段**：`project_id`（该 cube 所属项目，经既有 `registry.get` 通道查 `dataset_registry`）与 `queue`（与 `diffuse.queue` **同结构**，`deepcopy(state.candidates)` 含每项 overlay，空队列返回 `[]`）——编辑后/切图返回时可只读恢复右栏队列与画布候选层，**不得靠再调 `diffuse` 重建**（那会生成新候选）；**working overlay 语义不变**（候选不画进 working overlay，队列是独立字段）
 - `POST /api/v1/datasets/{id}/annotations/validate`　**无 body，校验当前工作态 label map**（与 save 时的自动校验同源、同一实现）
 - `POST /api/v1/datasets/{id}/annotations/save`　body：`{note?, overwrite?, confirm?}`；默认**新建版本**；`overwrite=true` 表示重写**当前最新版本**（version_no 不变），必须同时携带 FR-D07 确认标记 `confirm`——未带 → 409；试图指向历史版本 → 409（该路径不存在）
 - `GET  /api/v1/datasets/{id}/annotations`（版本列表 + 当前工作进度）
-- `GET  /api/v1/datasets/{id}/annotations/{version}/overlay`（降采样 PNG）
+- `GET  /api/v1/datasets/{id}/annotations/{version}/overlay`（降采样 PNG）——**`{version}` = `annotation_version.id`（UUID 字符串），不是 `version_no`**（R20 钉死：UUID 与表主键直连、全局唯一，`version_no` 仅用于 UI 显示与排序；`GET /annotations` 返回全列含 `id`，前端据此请求；**跨 cube 校验**：合法 UUID 但 `cube_id != {id}` → `VERSION_NOT_FOUND`(404)，不得暴露他 cube 快照）
 - 统一信封/错误风格沿用 #02：DataError 结构化错误；JSON 响应大小受 Rust 侧 8 MiB 上限约束，所有图像一律降采样 PNG。
 
 ### 5.7 Rust IPC 扩展（需显式批准点）
 
 - 新增 `src-tauri/src/annotation.rs`：沿用 `datasets_dev.rs` 的**类型化 enum** 模式（`AnnotationRequest`，`deny_unknown_fields`，目标路径由枚举变体固定，不接受自由 URL/路径），独立命令 `annotations_forward`；约束不变：仅 127.0.0.1 握手端口、GET/POST、8 MiB、响应身份头校验（boot_id/pid）、token 泄漏检查。
 - **dev 与 release 双分支均注册** `annotations_forward`——**release 注册已于 2026-10-20 由科祥批准，范围仅此一条新命令，不得扩散**。命令清单从原五命令（engine_status / retry_engine / run_smoke / open_data_directory / datasets_forward）扩为六命令，capabilities 同步、ACL/schema 重新生成、release 边界审计字面量按六命令更新。
+- **`AnnotationRequest` 变体表（13 个，R21 后；`deny_unknown_fields` 不变）**：
+
+  | 变体 | 方法 | 路径 | 引入 |
+  |---|---|---|---|
+  | Superpixels | POST | `/api/v1/datasets/{id}/superpixels` | 10.2 |
+  | Diffuse | POST | `/api/v1/datasets/{id}/diffuse` | 10.4 |
+  | Regions | POST | `/api/v1/datasets/{id}/annotations/regions` | 10.4 |
+  | Undo | POST | `/api/v1/datasets/{id}/annotations/undo` | 10.4 |
+  | Working | GET | `/api/v1/datasets/{id}/annotations/working` | 10.4 |
+  | Validate | POST | `/api/v1/datasets/{id}/annotations/validate` | 10.4 |
+  | Save | POST | `/api/v1/datasets/{id}/annotations/save` | 10.4 |
+  | Versions | GET | `/api/v1/datasets/{id}/annotations` | 10.4 |
+  | VersionOverlay | GET | `/api/v1/datasets/{id}/annotations/{version}/overlay` | 10.4 |
+  | Projects | GET | `/api/v1/projects` | R21 |
+  | Labels | GET | `/api/v1/labels?project_id=<uuid>` | R21 |
+  | AddLabel | POST | `/api/v1/labels` | R21 |
+  | Catalog | GET | `/api/v1/catalog/plastic` | R21 |
+
+- **路径构造分族（R21 钉死，实现要点）**：现有 `destination()`（annotation.rs:242）硬编码 `format!("/api/v1/datasets/{}/{suffix}", self.id())`，**四个新变体不属于 datasets 族、且没有 `id` 字段**，必须按变体分族构造——datasets 族 9 个沿用原逻辑；标签管理族 4 个用**固定字面量路径**，`Labels` 的 `project_id` 须经 `uuid()` 严格校验（**36 位、8-4-4-4-12 格式**，annotation.rs:144）+ `to_ascii_lowercase()` **规范化后** `set_query`（**以已验收实现为准**，annotation.rs:229/273；与 `Uuid::parse_str().to_string()` 效果等价，但卡文按实现写，R22），**不得把调用方原始字符串直接拼进 URL**（排除 `&`/`?`/`#`/`/` 注入）。Rust 原"无 query/fragment"测试口径改为"**无调用方可控 query**"，对自由 URL/host/port/path/method 的拒绝断言全部保留。
+- **`AddLabel` body 上限（R21 钉死）**：现有 `MAX_RESPONSE_BYTES = 8 MiB` 只限**响应**、不限请求；`serde_json::Value` 透传前须校验序列化后大小 **≤ 64 KiB**（标签 body 远小于此），超限拒绝——否则超大 body 直接进 Python 内存。**Python 请求模型仍是业务校验唯一权威**（三种 body / 互斥 / 422 契约不变），Rust 不复制业务校验、不复制默认值。
 - 前端封装为单一 annotation api client 模块（与 datasets api 同风格），禁止组件内散落 invoke。
 
 ### 5.8 前端 S05 标注工作台（阶段一最复杂组件）
@@ -351,7 +377,7 @@ ALTER TABLE dataset_registry ADD COLUMN project_id TEXT;   -- 回填默认项目
 - 画布：图层 + 视口模型（沿用 UI 6.5），缩放/平移，点击/框选/涂鸦作为提示；栅格类操作走 Canvas 2D。
 - 快捷键（可查/可改/可关闭，首入浮层提示）：`0–9` 选标签（0=背景；**>9 类时超出部分仅鼠标点选**）、`Enter` 确认候选、`Z` 撤销、`E/B/P` 工具、`←/→` 切换图、`Ctrl+S` 保存。
 - 入口：数据集列表每项加"标注"按钮 → 打开该 cube 的工作台（阶段一不做完整左导航，做最小视图切换；S05 层级指示器 L0–L4 静态展示，当前 L1）。
-- 标签管理最小 UI：标签栏"添加标签" → 目录选择（塑料目录）或自定义（code/中文名/颜色）；schema 字段管理可先做最简表单。
+- 标签管理最小 UI：标签栏"添加标签" → 目录选择（塑料目录）或自定义（code/中文名/颜色）；schema 字段管理可先做最简表单。**通道（R21）**：标签管理四个端点（projects / labels / AddLabel / catalog）经 `annotations_forward` 的**四个固定变体**到达，**不新开第七条命令**（命令总数仍六条）；前端只调 annotation api client 封装，禁止直连 sidecar（webview 拿不到端口与 token，直连不可行）。
 
 ---
 
@@ -509,6 +535,11 @@ ALTER TABLE dataset_registry ADD COLUMN project_id TEXT;   -- 回填默认项目
 | R15 | **10.3 开令前复核：排期失实修正 + 7 钉入卡 + 1 待决**。①**排期表失实**：§10 原写 10.2="超像素 + 扩散/提示引擎"，但 10.2 实交付只有超像素+R14+标定（`engines/` 仅 superpixels.py），FR-E04(P0) 悬空；**新增 10.3.5「扩散/提示分割引擎」子阶段**（1 天，不含路由），10.2 行改"实交付不含扩散引擎"，合计 10→11 天（科祥 2026-10-20 拍板）。②**7 钉入卡**（卡未写死、codex 只能自造的点）：`label_index` 空间=项目 label 按 `sort_order` 升序下标且已存版本映射不可变；`geometry` "全覆盖"=超像素全部像素同属该 label（混合块不进任何 geometry）；质量校验距离钉死余弦+原谱 200 波段均值谱（光谱角不并立）、阈值实测后落；`paths.py` 增 `snapshots` property + `snapshot_ref` 存相对 POSIX 路径；`version_no` 新建=max+1、覆写不变；三表 NOT NULL 列逐列报供值来源（R13 纪律）；撤销恢复=label_map 深拷贝+统计现算+"样品主标签"不落库不自造列。③**待决项（阻塞 10.3 实现）**：`annotation.granularity` 卡内冲突——4.1 注释"阶段一恒为 `'pixel'`，`'sample'` 为阶段二预留" vs 5.4 末"样本级：一个 cube 内按 label 各一条"；两选项语义与后果已写进 §5.4，**待科祥拍板**（未定前不实现该列取值） | 10.3 开令前对卡审核（agent 把关） |
 | R16 | **R15 待决项关闭：`annotation.granularity` = `'sample'`**。裁定依据（需求原文三处实证，agent 独立核验逐字吻合）：FR-E01（需求 671 行）"样本级（**整条平均谱一个标签**）"；§6.4.1（1782 行）"可由像素级标签自动聚合成样本级，**反之不成立**"；场景 S1（417 行）"人工确认/修正 → **自动聚合出样本级光谱集（带标签，共 N 条）；标注版本落库**"。**语义：`granularity` 描述记录粒度、非操作粒度**——阶段一操作在像素级（工作态 label_map，不落库），落库 `annotation` 行是聚合产物，取 `'sample'`；`'pixel'` 留给阶段二像素级明细记录（FR-E01"三级可共存"）；`'scene'` 无写入路径。4.1 原注释"阶段一恒为 'pixel'"系早期口径漂移，已改；§5.4 末补句；§6.1 scene 断言补"落库行全为 'sample'" | R15 待决项裁定（科祥取证 + agent 核验原文） |
 | R17 | **codex 四触即停：10.3 五个口径缺口，全部裁定并取证**。① **`label_index` 并列**：`label_sort_order`（labels.py:78-85）三路径可产生并列（custom max+1 vs 目录序号，如 custom=4 与目录 PS=4），排序钉死 **`(sort_order ASC, code ASC)`**——与已发货的 `LabelStore.tree()`（labels.py:130）`ORDER BY sort_order,code` 一致，`code` 项目内 UNIQUE 构成确定全序，不依赖时钟/uuid；`label_index.json` 持久化映射，历史版本免疫。② **混合超像素**：不跳过，按 `(label ∩ 超像素)` 部分均值对查（详见 §5.5 R17 条）。③ **阈值标定授权合成标注**：真实 cube + m=0.5 segments + `KMeans(4, random_state=0, n_init=10)`，仅用于阈值行为与植入离群验证，**不得冒充人工标注/不得用于标注质量断言**。④ **覆写事件落 `annotation_version.note`**（migrations.py:58 已有该列，**不加列**）：`{"event":"overwrite","at":"<ISO8601 UTC>"}`，新建 `note=NULL`，`created_at` 不变。⑤ **授权 `migrations.py` 仅同步 R16 granularity 注释**（diff 只许注释行、零 SQL 语义变化），因 `test_ddl_matches_card_verbatim`（test_storage.py:76）逐字比对卡内 SQL 块，改卡不同步必红；该文件进逐文件 add 清单并在回执点名 | codex 执行期四检：卡未写死口径 + 卡/实现 DDL 同步 |
+| R18 | **codex 10.3.5 五触即停：四处卡未写死裁定（种子参照与区域连通性）**：①**增长邻接 = 4 邻域**（与 `boundary_ratio` 同口径；角点接触致视觉断裂且扩大 single-linkage 泄漏面；锚点 **765 段 2079 边 / 830 段 2256 边** 实测，与 R10 锚点"766 段 2075 边"是两套 segments，勿混）；②**多命中提示 = 合成一条种子谱产一个候选**、像素等权（直读卡"取其均值谱为种子谱"单数）；**种子成员 `cos_s` 定义为 1 不实算**（直读"种子自身 cos_s=1 计入"）；③**涂鸦 = 相邻坐标间 1 像素宽 Bresenham**；④**框选 = 半开 `[l0,l1)×[s0,s1)`**。出处：卡 §5.3 + `boundary_ratio` 4 邻域惯例；0.80/0.92 出处不变 | codex 执行期五检：连通性与栅格化卡未写死 |
+| R19 | **10.4 开令前三条裁定（polygon / note / 参数失配）**：①**polygon 栅格化** = 像素中心点 `(l+0.5,s+0.5)` **even-odd** 判定、中心恰在边上计入内部、**不做边界膨胀、不设 `dilate`**（label_map 单值，膨胀致相邻区域互相覆盖、结果依赖写序）；②**note 列语义（修订 R17）** = 唯一承载版本事件 JSON：覆写 `{"event":"overwrite","at","text"?}` / 新建带备注 `{"event":"save","at","text"}` / 新建无备注 NULL；save body 收 `note?`（≤2000 字符，超长 400 `INVALID_VERSION_NOTE`）；**授权 `session.save` 仅加 `note=None` 参数与 JSON 组装、其余逻辑不动**（实测原签名 `save(cube_id,*,overwrite,confirm)` 不收 note，§5.6 body 的 `note?` 是真空缺）；③**分割参数失配防护** = `diffuse`/`regions`/`validate`/`save` 前比对 session params 与缓存分割 params，不一致 → **`SEGMENTATION_STALE`(409)**，不得静默同步；`working` 不受限 | 10.4 开令前 agent 研判 + 科祥裁定 |
+| R20 | **overlay 路径参数类型钉死（10.4 契约同步）**：`GET /datasets/{id}/annotations/{version}/overlay` 的 `{version}` = **`annotation_version.id`（UUID）**，非 `version_no`。理由：UUID 与表主键直连、全局唯一；`version_no` 仅用于 UI 显示与排序（同一 cube 内唯一、跨 cube 会撞"版本 3"）。配套：`GET /annotations` 返回全列含 `id`，前端据此请求 overlay；**跨 cube 校验**——合法 UUID 但 `cube_id != {id}` → `VERSION_NOT_FOUND`(404)，不得暴露他 cube 快照（10.4 实现已做，卡补记防被后续"优化"掉）。**契约同步两件**（10.4 提交同批）：①`test_labels_api.py:130` 的 10.1 阶段门否定断言改为肯定式完备端点集（9 个 datasets 端点全部在场，认证断言保留）；②`openapi.json` 用程序从真实 `app.openapi()` 重新生成，`test_api.py` 完整相等断言不过滤不削弱，diff 只许纯新增 | 10.4 落地时发现卡未定义项（agent 反推实现 + 科祥确认） |
+| R21 | **10.6 两项接缝授权（批准面实质扩大，科祥 2026-10-20 确认）**。**缺口属实**：①`AnnotationRequest` 仅 9 变体、全为 `/api/v1/datasets/*`，projects/labels/AddLabel/catalog 四端点无 IPC 路径，webview 拿不到端口/token 无法直连 → §5.8 标签管理成死条款；②`working_view` 只返回 `{superpixel_count,params,statistics,overlay}`，无 queue/project_id，编辑后/切图返回无法只读恢复右栏队列。**授权**：①`annotations_forward` 加 4 个固定变体（Projects/Labels/AddLabel/Catalog），**命令总数仍六条**——但路径族从 `/api/v1/datasets/*` 扩到 `/api/v1/{projects,labels,catalog}`，属**批准面实质扩大**（渠道数与约束未变，比新开第七条命令更保守，故批）；②`working` 加只读 `queue`（与 diffuse.queue 同结构）+ `project_id`。**实现要点（agent 核代码发现，规格比"加 4 个分支"大）**：`destination()`（annotation.rs:242）硬编码 datasets 前缀且新变体无 `id` 字段 → **必须按变体分族构造路径**；`Labels` 的 `project_id` 须 `Uuid::parse_str().to_string()` 规范化后 `set_query`，禁原始字符串拼接；`AddLabel` 的 `serde_json::Value` 透传前须校验 ≤64 KiB（现有 8 MiB 只限响应不限请求）。**Rust 原"无 query/fragment"测试改口径为"无调用方可控 query"**，自由 URL/host/port/path/method 拒绝断言全保留。业务校验唯一权威仍在 Python（三 body/互斥/422），Rust 不复制校验与默认值。门槛：pytest 337 只增不减、cargo 35 只增不减、clippy 零警告；提交分接缝 commit + 前端 commit | 10.6 执行期即停：IPC 通道缺失 + 队列无只读源（agent 核 Rust 代码 + 科祥裁定） |
+| R22 | **卡 366 行口径对齐已验收实现（tag 前事实源修正）**：R21 原写 `Labels` 的 `project_id` 用 `Uuid::parse_str(...).to_string()` 规范化，实现（annotation.rs:229/273）实际用 `uuid()` 严格校验（**36 位、8-4-4-4-12 格式**，144 行）+ `to_ascii_lowercase()`。二者**效果等价**（都产出标准小写 36 位 UUID），但**卡文按实现改写**——事实源必须与已验收实现一致，否则 v0.1.2 带病入库 | #04 收官前 agent 核实现（科祥指出卡/实现不一致） |
 | 10.2 标定回填 | 55 格实测后保留 compactness=0.5（仅此档 11/11 满足既有结构断言）；仅回填 §5.2 compactness、§6.1 n/area_cv/R 基线与 §6.3 扩散规模，验收阈值不变；表、独立 R 复算脚本与汇总落档 | `milestone04/evidence/calibration/compactness.csv`、`calibrate.py`、`summary.json`、`pca3-baseline.json`（实现层实测） |
 
 **证据锚点**（供复核抽查）：pe/20260804205214_64，231×640×200，BIL；PCA 3.2 s / evr=[0.309,0.185,0.077,0.048,0.042]；m=0.5 → n=765（细分前）、area_cv=0.182、R≈1.8；m=10 → n=782、area_cv=0.068、R≈1.07；归一化特征图均值 0.492–0.501、std 0.129–0.164、值域 [0,1]；分块 32/64/128/单批 → n=765/765/765/766、area_cv=0.177–0.183；k=3 → τ=0.113、触发 64/765、64 父块拆成 129 子块、细分后 n=830、子块面积中位 86 px（全段面积中位 191 px，勿混）。

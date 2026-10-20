@@ -1,0 +1,148 @@
+{
+  "mode": "repository-root python -m pytest; two tests x 10 repetitions, fresh process per repetition, default params, sequential; PYTEST_DEBUG_TEMPROOT set",
+  "tests": [
+    {
+      "key": "rollback",
+      "nodeid": "src-python/tests/annotation/test_session.py::test_db_failure_rolls_back_rows_and_snapshot_publication",
+      "expected": "2 passed"
+    },
+    {
+      "key": "validate",
+      "nodeid": "src-python/tests/annotation/test_routes.py::test_validation_has_no_body_and_uuid_only_version_errors",
+      "expected": "1 passed"
+    }
+  ],
+  "per_test": {
+    "src-python/tests/annotation/test_session.py::test_db_failure_rolls_back_rows_and_snapshot_publication": {
+      "passed": 10,
+      "failed": 0
+    },
+    "src-python/tests/annotation/test_routes.py::test_validation_has_no_body_and_uuid_only_version_errors": {
+      "passed": 10,
+      "failed": 0
+    }
+  },
+  "results": [
+    {
+      "test": "rollback",
+      "repetition": 1,
+      "exit_code": 0,
+      "output": "flake-rollback-01.txt"
+    },
+    {
+      "test": "rollback",
+      "repetition": 2,
+      "exit_code": 0,
+      "output": "flake-rollback-02.txt"
+    },
+    {
+      "test": "rollback",
+      "repetition": 3,
+      "exit_code": 0,
+      "output": "flake-rollback-03.txt"
+    },
+    {
+      "test": "rollback",
+      "repetition": 4,
+      "exit_code": 0,
+      "output": "flake-rollback-04.txt"
+    },
+    {
+      "test": "rollback",
+      "repetition": 5,
+      "exit_code": 0,
+      "output": "flake-rollback-05.txt"
+    },
+    {
+      "test": "rollback",
+      "repetition": 6,
+      "exit_code": 0,
+      "output": "flake-rollback-06.txt"
+    },
+    {
+      "test": "rollback",
+      "repetition": 7,
+      "exit_code": 0,
+      "output": "flake-rollback-07.txt"
+    },
+    {
+      "test": "rollback",
+      "repetition": 8,
+      "exit_code": 0,
+      "output": "flake-rollback-08.txt"
+    },
+    {
+      "test": "rollback",
+      "repetition": 9,
+      "exit_code": 0,
+      "output": "flake-rollback-09.txt"
+    },
+    {
+      "test": "rollback",
+      "repetition": 10,
+      "exit_code": 0,
+      "output": "flake-rollback-10.txt"
+    },
+    {
+      "test": "validate",
+      "repetition": 1,
+      "exit_code": 0,
+      "output": "flake-validate-01.txt"
+    },
+    {
+      "test": "validate",
+      "repetition": 2,
+      "exit_code": 0,
+      "output": "flake-validate-02.txt"
+    },
+    {
+      "test": "validate",
+      "repetition": 3,
+      "exit_code": 0,
+      "output": "flake-validate-03.txt"
+    },
+    {
+      "test": "validate",
+      "repetition": 4,
+      "exit_code": 0,
+      "output": "flake-validate-04.txt"
+    },
+    {
+      "test": "validate",
+      "repetition": 5,
+      "exit_code": 0,
+      "output": "flake-validate-05.txt"
+    },
+    {
+      "test": "validate",
+      "repetition": 6,
+      "exit_code": 0,
+      "output": "flake-validate-06.txt"
+    },
+    {
+      "test": "validate",
+      "repetition": 7,
+      "exit_code": 0,
+      "output": "flake-validate-07.txt"
+    },
+    {
+      "test": "validate",
+      "repetition": 8,
+      "exit_code": 0,
+      "output": "flake-validate-08.txt"
+    },
+    {
+      "test": "validate",
+      "repetition": 9,
+      "exit_code": 0,
+      "output": "flake-validate-09.txt"
+    },
+    {
+      "test": "validate",
+      "repetition": 10,
+      "exit_code": 0,
+      "output": "flake-validate-10.txt"
+    }
+  ],
+  "passed": true
+}
