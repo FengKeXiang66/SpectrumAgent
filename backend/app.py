@@ -2,7 +2,6 @@
 
 import asyncio
 import secrets
-import sqlite3
 from contextlib import asynccontextmanager, suppress
 from threading import Event
 
@@ -15,6 +14,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
 from backend.identity import EngineIdentity
+from backend.database import open_database
 from backend.handshake import remove_if_owned
 from backend.paths import AppPaths
 from backend.smoke import ensure_sample, run_smoke
@@ -26,9 +26,9 @@ def create_app(paths: AppPaths, identity: EngineIdentity) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         paths.create_directories()
-        connection = sqlite3.connect(paths.database)
+        connection = open_database(paths.database)
         connection.execute("PRAGMA journal_mode=WAL")
-        app.state.database = connection  # Connection placeholder; no schema or tables.
+        app.state.database = connection  # Shared connection for the application lifetime.
         try:
             app.state.sample = await asyncio.to_thread(ensure_sample, paths.testdata)
             yield

@@ -5,11 +5,13 @@ import json
 import os
 from pathlib import Path
 import re
-import sqlite3
 from threading import RLock
 from uuid import uuid4
 
 from pydantic import TypeAdapter
+
+from backend.database import connect_database
+from spectrumagent.annotation.migrations import default_project_id, migrate
 
 from spectrumagent.data import DataError, SpectrumDataSet
 from spectrumagent.data.readers import BinaryReader, FallbackEnviReader, open_envi
@@ -80,8 +82,9 @@ class DatasetRegistry:
         self.database = database
         self.lock = RLock()
         database.parent.mkdir(parents=True, exist_ok=True)
-        with sqlite3.connect(database) as db:
+        with connect_database(database) as db:
             db.execute("CREATE TABLE IF NOT EXISTS dataset_registry (id TEXT PRIMARY KEY, header_key TEXT NOT NULL, raw INTEGER NOT NULL, payload TEXT NOT NULL, UNIQUE(header_key,raw))")
+            migrate(db)
 
     def import_path(self, value: str, *, raw=False, data_path=None):
         root = absolute(value)
@@ -107,7 +110,7 @@ class DatasetRegistry:
         if errors:
             raise DataError("IMPORT_BATCH_INVALID", "整批导入未登记；请修复所有无效项", items=errors)
         records = []
-        with self.lock, sqlite3.connect(self.database, timeout=10) as db:
+        with self.lock, connect_database(self.database, timeout=10) as db:
             db.execute("BEGIN IMMEDIATE")
             for key, dataset in prepared:
                 row = db.execute("SELECT id,payload FROM dataset_registry WHERE header_key=? AND raw=?", (key, int(raw))).fetchone()
@@ -119,13 +122,13 @@ class DatasetRegistry:
                     records.append(DatasetRecord(id=row[0], dataset=stored, existing=True))
                 else:
                     identifier = str(uuid4())
-                    db.execute("INSERT INTO dataset_registry VALUES (?,?,?,?)", (identifier, key, int(raw), json.dumps(dataset.as_dict(), ensure_ascii=False)))
+                    db.execute("INSERT INTO dataset_registry (id,header_key,raw,payload,project_id) VALUES (?,?,?,?,?)", (identifier, key, int(raw), json.dumps(dataset.as_dict(), ensure_ascii=False), default_project_id(db)))
                     records.append(DatasetRecord(id=identifier, dataset=dataset, existing=False))
         existing = sum(r.existing for r in records)
         return ImportResponse(datasets=records, summary=ImportSummary(total=len(records), imported=len(records)-existing, existing=existing))
 
     def get(self, identifier):
-        with sqlite3.connect(self.database) as db:
+        with connect_database(self.database) as db:
             row = db.execute("SELECT payload,raw FROM dataset_registry WHERE id=?", (str(identifier),)).fetchone()
         if row is None:
             raise DataError("DATASET_NOT_FOUND", "数据集不存在", id=str(identifier))

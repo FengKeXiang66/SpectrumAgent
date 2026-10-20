@@ -313,6 +313,132 @@
           }
         }
       }
+    },
+    "/api/v1/projects": {
+      "get": {
+        "tags": [
+          "annotation labels"
+        ],
+        "summary": "Projects",
+        "operationId": "projects_api_v1_projects_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/labels": {
+      "get": {
+        "tags": [
+          "annotation labels"
+        ],
+        "summary": "Labels",
+        "operationId": "labels_api_v1_labels_get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "annotation labels"
+        ],
+        "summary": "Add Label",
+        "operationId": "add_label_api_v1_labels_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/CatalogRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CustomRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SchemaRequest"
+                  }
+                ],
+                "title": "Request"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/plastic": {
+      "get": {
+        "tags": [
+          "annotation labels"
+        ],
+        "summary": "Catalog",
+        "operationId": "catalog_api_v1_catalog_plastic_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -374,6 +500,100 @@
           "values"
         ],
         "title": "BandResponse"
+      },
+      "CatalogRequest": {
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "title": "Project Id"
+          },
+          "from_catalog": {
+            "type": "string",
+            "const": "plastic",
+            "title": "From Catalog"
+          },
+          "codes": {
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": ".*\\S.*"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Codes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "project_id",
+          "from_catalog",
+          "codes"
+        ],
+        "title": "CatalogRequest"
+      },
+      "CustomRequest": {
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "title": "Project Id"
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "title": "Name"
+          },
+          "tree_path": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "title": "Tree Path"
+          },
+          "color_hex": {
+            "type": "string",
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "title": "Color Hex"
+          },
+          "shortcut_key": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 9.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shortcut Key"
+          },
+          "is_background": {
+            "type": "boolean",
+            "title": "Is Background",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "project_id",
+          "code",
+          "name",
+          "tree_path",
+          "color_hex"
+        ],
+        "title": "CustomRequest"
       },
       "DatasetRecord": {
         "properties": {
@@ -629,6 +849,74 @@
           "values"
         ],
         "title": "RegionResponse"
+      },
+      "SchemaField": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "title": "Name"
+          },
+          "tree_path": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[^/\\s]+(?:[^/]*[^/\\s])?$",
+            "title": "Tree Path"
+          },
+          "field_type": {
+            "type": "string",
+            "enum": [
+              "enum",
+              "bool",
+              "continuous",
+              "ordinal"
+            ],
+            "title": "Field Type"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "config": {
+            "$ref": "#/components/schemas/JsonValue"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "tree_path",
+          "field_type"
+        ],
+        "title": "SchemaField"
+      },
+      "SchemaRequest": {
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "title": "Project Id"
+          },
+          "schema": {
+            "$ref": "#/components/schemas/SchemaField"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "project_id",
+          "schema"
+        ],
+        "title": "SchemaRequest"
       },
       "SpectrumDataSet": {
         "properties": {
