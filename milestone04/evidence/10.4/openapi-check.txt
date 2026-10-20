@@ -1,0 +1,12 @@
+{
+  "generation": "create_app(AppPaths(E:/AI_Agent/.runtime/m04-openapi/<uuid>), EngineIdentity()); json.dumps(app.openapi(), ensure_ascii=False, indent=2)",
+  "mechanical_filter": "git diff src-python/spectrumagent/api/openapi.json | grep '^-' | grep -v '^---'",
+  "equivalent_filter_result": [],
+  "added_lines": 580,
+  "deleted_lines": 0,
+  "auth_identity_assertions_unchanged": true,
+  "test_api_py_entire_file_unchanged": true,
+  "fastapi": "0.143.3",
+  "pydantic": "2.14.1",
+  "initial_check": "44 deleted lines; diagnosed duplicate RegionRequest model names; renamed NEW annotation model only; regenerated from app; no manual snapshot edits"
+}

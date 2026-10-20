@@ -1,0 +1,160 @@
+{
+  "source_level": "implementation measurement; authenticated HTTP / TASK-04 §6.1",
+  "header": "E:\\高光谱数据集\\plastic\\pe\\20260804205214_64.hdr",
+  "seed_sha256": "388ed3a86bdf60c5054e8df9a5eb197a96a112b0bf2fc59efa1bcf1a29f648d2",
+  "params": {
+    "threshold": 0.92,
+    "queue_min_similarity": 0.8
+  },
+  "n_before": 765,
+  "n_after": 830,
+  "enqueued": 10,
+  "blocked": 10,
+  "below_growth_threshold": 19,
+  "admitted_min_similarity": 0.8093943702234402,
+  "pending_union_pixels": 64183,
+  "observations": [
+    {
+      "row": 29,
+      "col": 64,
+      "min_similarity": 0.8117080463021955,
+      "enqueued": true,
+      "blocked": 0
+    },
+    {
+      "row": 29,
+      "col": 192,
+      "min_similarity": 0.8093943702234402,
+      "enqueued": true,
+      "blocked": 0
+    },
+    {
+      "row": 29,
+      "col": 320,
+      "min_similarity": 0.4369514174170881,
+      "enqueued": false,
+      "blocked": 1
+    },
+    {
+      "row": 29,
+      "col": 448,
+      "min_similarity": 0.8995713701008021,
+      "enqueued": true,
+      "blocked": 0
+    },
+    {
+      "row": 29,
+      "col": 576,
+      "min_similarity": 0.8353958142936784,
+      "enqueued": true,
+      "blocked": 0
+    },
+    {
+      "row": 87,
+      "col": 64,
+      "min_similarity": 0.7774489941409575,
+      "enqueued": false,
+      "blocked": 1
+    },
+    {
+      "row": 87,
+      "col": 192,
+      "min_similarity": 0.8144889224693571,
+      "enqueued": true,
+      "blocked": 0
+    },
+    {
+      "row": 87,
+      "col": 320,
+      "min_similarity": 0.41031719817525525,
+      "enqueued": false,
+      "blocked": 1
+    },
+    {
+      "row": 87,
+      "col": 448,
+      "min_similarity": 0.8502812853590824,
+      "enqueued": true,
+      "blocked": 0
+    },
+    {
+      "row": 87,
+      "col": 576,
+      "min_similarity": 0.7215686471416272,
+      "enqueued": false,
+      "blocked": 1
+    },
+    {
+      "row": 144,
+      "col": 64,
+      "min_similarity": 0.8504359258678486,
+      "enqueued": true,
+      "blocked": 0
+    },
+    {
+      "row": 144,
+      "col": 192,
+      "min_similarity": 0.7418241268103231,
+      "enqueued": false,
+      "blocked": 1
+    },
+    {
+      "row": 144,
+      "col": 320,
+      "min_similarity": 0.4116316392594652,
+      "enqueued": false,
+      "blocked": 1
+    },
+    {
+      "row": 144,
+      "col": 448,
+      "min_similarity": 0.9004642378470619,
+      "enqueued": true,
+      "blocked": 0
+    },
+    {
+      "row": 144,
+      "col": 576,
+      "min_similarity": 0.7876719366718863,
+      "enqueued": false,
+      "blocked": 1
+    },
+    {
+      "row": 202,
+      "col": 64,
+      "min_similarity": 0.7924159054434385,
+      "enqueued": false,
+      "blocked": 1
+    },
+    {
+      "row": 202,
+      "col": 192,
+      "min_similarity": 0.7940137528731125,
+      "enqueued": false,
+      "blocked": 1
+    },
+    {
+      "row": 202,
+      "col": 320,
+      "min_similarity": 0.46921624433458275,
+      "enqueued": false,
+      "blocked": 1
+    },
+    {
+      "row": 202,
+      "col": 448,
+      "min_similarity": 0.9085547815446008,
+      "enqueued": true,
+      "blocked": 0
+    },
+    {
+      "row": 202,
+      "col": 576,
+      "min_similarity": 1.0,
+      "enqueued": true,
+      "blocked": 0
+    }
+  ],
+  "feature_bytes": 2956800,
+  "peak_rss_bytes": 332038144
+}

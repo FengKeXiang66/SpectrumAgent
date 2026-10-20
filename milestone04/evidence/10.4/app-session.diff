@@ -1,0 +1,40 @@
+diff --git a/src-python/spectrumagent/annotation/session.py b/src-python/spectrumagent/annotation/session.py
+index 27a0d2d..cf4fd0d 100644
+--- a/src-python/spectrumagent/annotation/session.py
++++ b/src-python/spectrumagent/annotation/session.py
+@@ -28,2 +28,2 @@ class AnnotationConflict(DataError):
+-    def __init__(self, detail):
+-        super().__init__("ANNOTATION_CONFLICT", detail)
++    def __init__(self, detail, *, code="ANNOTATION_CONFLICT"):
++        super().__init__(code, detail)
+@@ -240 +240,3 @@ class SessionStore:
+-    def save(self, cube_id, *, overwrite=False, confirm=False):
++    def save(self, cube_id, *, overwrite=False, confirm=False, note: str | None = None):
++        if note is not None and (not isinstance(note, str) or len(note) > 2000):
++            raise DataError("INVALID_VERSION_NOTE", "版本备注须为不超过 2000 字符的文本")
+@@ -261 +263,3 @@ class SessionStore:
+-            note = json.dumps({"event": "overwrite", "at": timestamp}) if overwrite else None
++            note = (json.dumps({"event": "overwrite" if overwrite else "save", "at": timestamp,
++                                **({"text": note} if note is not None else {})})
++                    if overwrite or note is not None else None)
+diff --git a/src-python/spectrumagent/app.py b/src-python/spectrumagent/app.py
+index 6091bb5..cba7371 100644
+--- a/src-python/spectrumagent/app.py
++++ b/src-python/spectrumagent/app.py
+@@ -10,0 +11,2 @@ from spectrumagent.annotation.engines.superpixels import SuperpixelEngine
++from spectrumagent.annotation.engines.diffusion import DiffusionEngine
++from spectrumagent.annotation.session import SessionStore
+@@ -19 +21,4 @@ def create_app(paths, identity):
+-    app.include_router(make_label_router(LabelStore(paths.database), app.state.superpixel_engine))
++    app.state.annotation_sessions = SessionStore(registry, paths)
++    app.state.diffusion_engine = DiffusionEngine(app.state.superpixel_engine, app.state.annotation_sessions)
++    app.include_router(make_label_router(LabelStore(paths.database), app.state.superpixel_engine,
++                                        app.state.annotation_sessions, app.state.diffusion_engine))
+@@ -23,0 +29,3 @@ def create_app(paths, identity):
++        status_code = getattr(error, "status_code", None)
++        if status_code is not None:
++            return JSONResponse(error.as_dict(), status_code=status_code)
+@@ -33,0 +42,3 @@ def create_app(paths, identity):
++            if (request.url.path.endswith("/annotations/save")
++                    and any(e["loc"] == ("body", "note") for e in error.errors())):
++                return JSONResponse(DataError("INVALID_VERSION_NOTE", "版本备注须为不超过 2000 字符的文本").as_dict(), status_code=400)

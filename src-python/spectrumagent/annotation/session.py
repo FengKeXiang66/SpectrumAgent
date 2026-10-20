@@ -25,8 +25,8 @@ class AnnotationConflict(DataError):
     """Transport adapters can preserve the mandated HTTP 409 in §5.4."""
     status_code = 409
 
-    def __init__(self, detail):
-        super().__init__("ANNOTATION_CONFLICT", detail)
+    def __init__(self, detail, *, code="ANNOTATION_CONFLICT"):
+        super().__init__(code, detail)
 
 
 @dataclass
@@ -237,7 +237,9 @@ class SessionStore:
         if state.segments is None:
             raise DataError("SUPERPIXELS_REQUIRED", "请先生成超像素分割")
 
-    def save(self, cube_id, *, overwrite=False, confirm=False):
+    def save(self, cube_id, *, overwrite=False, confirm=False, note: str | None = None):
+        if note is not None and (not isinstance(note, str) or len(note) > 2000):
+            raise DataError("INVALID_VERSION_NOTE", "版本备注须为不超过 2000 字符的文本")
         cube_id = str(cube_id)
         with self._lock:
             state = self._state(cube_id)
@@ -258,7 +260,9 @@ class SessionStore:
             version_id = latest[0] if overwrite else str(uuid4())
             version_no = latest[1] if overwrite else (latest[1] + 1 if latest else 1)
             created = latest[2] if overwrite else timestamp
-            note = json.dumps({"event": "overwrite", "at": timestamp}) if overwrite else None
+            note = (json.dumps({"event": "overwrite" if overwrite else "save", "at": timestamp,
+                                **({"text": note} if note is not None else {})})
+                    if overwrite or note is not None else None)
             annotation_rows, spectrum_rows = self._aggregate_rows(
                 cube_id, version_id, state, aggregates, dataset.name, timestamp)
             relative = PurePosixPath(cube_id, f"v{version_no}").as_posix()

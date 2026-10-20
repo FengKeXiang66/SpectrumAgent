@@ -490,10 +490,420 @@
           }
         }
       }
+    },
+    "/api/v1/datasets/{identifier}/diffuse": {
+      "post": {
+        "tags": [
+          "annotation labels"
+        ],
+        "summary": "Diffuse",
+        "operationId": "diffuse_api_v1_datasets__identifier__diffuse_post",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Identifier"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiffuseRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/datasets/{identifier}/annotations/regions": {
+      "post": {
+        "tags": [
+          "annotation labels"
+        ],
+        "summary": "Regions",
+        "operationId": "regions_api_v1_datasets__identifier__annotations_regions_post",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Identifier"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnnotationRegionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/datasets/{identifier}/annotations/undo": {
+      "post": {
+        "tags": [
+          "annotation labels"
+        ],
+        "summary": "Undo",
+        "operationId": "undo_api_v1_datasets__identifier__annotations_undo_post",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Identifier"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/datasets/{identifier}/annotations/working": {
+      "get": {
+        "tags": [
+          "annotation labels"
+        ],
+        "summary": "Working",
+        "operationId": "working_api_v1_datasets__identifier__annotations_working_get",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Identifier"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/datasets/{identifier}/annotations/validate": {
+      "post": {
+        "tags": [
+          "annotation labels"
+        ],
+        "summary": "Validate",
+        "operationId": "validate_api_v1_datasets__identifier__annotations_validate_post",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Identifier"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/datasets/{identifier}/annotations/save": {
+      "post": {
+        "tags": [
+          "annotation labels"
+        ],
+        "summary": "Save",
+        "operationId": "save_api_v1_datasets__identifier__annotations_save_post",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Identifier"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/datasets/{identifier}/annotations": {
+      "get": {
+        "tags": [
+          "annotation labels"
+        ],
+        "summary": "Versions",
+        "operationId": "versions_api_v1_datasets__identifier__annotations_get",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Identifier"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/datasets/{identifier}/annotations/{version}/overlay": {
+      "get": {
+        "tags": [
+          "annotation labels"
+        ],
+        "summary": "Version Overlay",
+        "operationId": "version_overlay_api_v1_datasets__identifier__annotations__version__overlay_get",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Identifier"
+            }
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Version"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "AnnotationRegionRequest": {
+        "properties": {
+          "label_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label Id"
+          },
+          "geometry": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SuperpixelGeometry"
+              },
+              {
+                "$ref": "#/components/schemas/PolygonGeometry"
+              }
+            ],
+            "title": "Geometry"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "confirm",
+              "erase",
+              "uncertain"
+            ],
+            "title": "Action"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "geometry",
+          "action"
+        ],
+        "title": "AnnotationRegionRequest"
+      },
       "BandResponse": {
         "properties": {
           "id": {
@@ -551,6 +961,25 @@
           "values"
         ],
         "title": "BandResponse"
+      },
+      "BoxSeed": {
+        "properties": {
+          "box": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 4,
+            "title": "Box"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "box"
+        ],
+        "title": "BoxSeed"
       },
       "CatalogRequest": {
         "properties": {
@@ -670,6 +1099,67 @@
         ],
         "title": "DatasetRecord"
       },
+      "DiffuseRequest": {
+        "properties": {
+          "seed": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PointSeed"
+              },
+              {
+                "$ref": "#/components/schemas/BoxSeed"
+              },
+              {
+                "$ref": "#/components/schemas/DoodleSeed"
+              }
+            ],
+            "title": "Seed"
+          },
+          "threshold": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": -1.0,
+            "title": "Threshold",
+            "default": 0.92
+          },
+          "queue_min_similarity": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": -1.0,
+            "title": "Queue Min Similarity",
+            "default": 0.8
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "seed"
+        ],
+        "title": "DiffuseRequest"
+      },
+      "DoodleSeed": {
+        "properties": {
+          "doodle": {
+            "items": {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array",
+              "maxItems": 2,
+              "minItems": 2
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Doodle"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "doodle"
+        ],
+        "title": "DoodleSeed"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -760,6 +1250,48 @@
         "title": "ImportSummary"
       },
       "JsonValue": {},
+      "PointSeed": {
+        "properties": {
+          "point": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "title": "Point"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "point"
+        ],
+        "title": "PointSeed"
+      },
+      "PolygonGeometry": {
+        "properties": {
+          "polygon": {
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array",
+              "maxItems": 2,
+              "minItems": 2
+            },
+            "type": "array",
+            "minItems": 3,
+            "title": "Polygon"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "polygon"
+        ],
+        "title": "PolygonGeometry"
+      },
       "PreviewResponse": {
         "properties": {
           "id": {
@@ -900,6 +1432,35 @@
           "values"
         ],
         "title": "RegionResponse"
+      },
+      "SaveRequest": {
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "overwrite": {
+            "type": "boolean",
+            "title": "Overwrite",
+            "default": false
+          },
+          "confirm": {
+            "type": "boolean",
+            "title": "Confirm",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SaveRequest"
       },
       "SchemaField": {
         "properties": {
@@ -1057,6 +1618,25 @@
           "header_path"
         ],
         "title": "SpectrumDataSet"
+      },
+      "SuperpixelGeometry": {
+        "properties": {
+          "superpixels": {
+            "items": {
+              "type": "integer",
+              "minimum": 0.0
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Superpixels"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "superpixels"
+        ],
+        "title": "SuperpixelGeometry"
       },
       "SuperpixelRequest": {
         "properties": {

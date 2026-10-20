@@ -127,4 +127,8 @@ def test_auth_identity_and_stage_boundary(label_api):
     assert client.headers["Authorization"][7:] not in result.text
     paths = client.app.openapi()["paths"]
     assert "/api/v1/datasets/{identifier}/superpixels" in paths
-    assert not any("/annotations" in path or "/diffuse" in path for path in paths)
+    expected = {f"/api/v1/datasets/{{identifier}}/{suffix}" for suffix in (
+        "superpixels", "diffuse", "annotations/regions", "annotations/undo",
+        "annotations/working", "annotations/validate", "annotations/save",
+        "annotations", "annotations/{version}/overlay")}
+    assert expected <= paths.keys()
