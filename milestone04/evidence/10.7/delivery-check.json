@@ -1,0 +1,16 @@
+{
+  "source_level": "mechanical final artifact checks; repository state before commit",
+  "task_card_sha256_unchanged": "B03AEABDA6603EF2538C0CB135BD07FB4B16AD67CF872BD4F9A88B7DD86E3989",
+  "seed_sha256": "388ED3A86BDF60C5054E8DF9A5EB197A96A112B0BF2FC59EFA1BCF1A29F648D2",
+  "pytest_each": 340,
+  "pytest_full_runs": 2,
+  "flake_passed_cases": 20,
+  "cargo_total_including_doctest": 38,
+  "node_passed": 31,
+  "http_calls": 56,
+  "clippy_zero_warnings": true,
+  "frontend_build_passed": true,
+  "release_compile_check_passed": true,
+  "backend_and_dependencies_unchanged": true,
+  "actual_ephemeral_tokens_absent_from_evidence": true
+}

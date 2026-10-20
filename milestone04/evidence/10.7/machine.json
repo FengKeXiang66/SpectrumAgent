@@ -1,0 +1,13 @@
+{
+  "source": "Get-CimInstance; implementation measurement environment",
+  "cpu": {
+    "Name": "12th Gen Intel(R) Core(TM) i7-12700H",
+    "NumberOfCores": 14,
+    "NumberOfLogicalProcessors": 20
+  },
+  "os": {
+    "Caption": "Microsoft Windows 11 专业版",
+    "Version": "10.0.26100",
+    "OSArchitecture": "64 位"
+  }
+}

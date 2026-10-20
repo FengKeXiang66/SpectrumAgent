@@ -1,0 +1,123 @@
+{
+  "source_level": "implementation measurements; wall-clock perf_counter; not a product latency guarantee",
+  "e2e_source": "e2e-result.json",
+  "environment": {
+    "python": "3.12.13 (main, May 10 2026, 19:35:37) [MSC v.1944 64 bit (AMD64)]",
+    "platform": "Windows-11-10.0.26100-SP0",
+    "processor": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+    "logical_cpus": 20
+  },
+  "header": "E:\\高光谱数据集\\plastic\\pe\\20260804205214_64.hdr",
+  "shape": [
+    231,
+    640,
+    200
+  ],
+  "execution": "real isolated source sidecar / authenticated loopback HTTP / CPU / default parameters; measured before test and compile gates",
+  "params": {
+    "n_segments": 800,
+    "compactness": 0.5,
+    "pca_components": 5,
+    "k": 3,
+    "block_size": 32,
+    "feature_version": "pca-global-zscore-clip3-unit-v1",
+    "pca_batch_size": 20480
+  },
+  "superpixels": {
+    "pca_seconds": 2.2935308999731205,
+    "slic_seconds": 0.07728779999888502,
+    "total_seconds": 3.5352081999881193,
+    "n_before": 765,
+    "n_after": 830,
+    "feature_bytes": 2956800,
+    "resident_feature_bytes": 5913600,
+    "baseline_rss_bytes": 155533312,
+    "peak_rss_bytes": 332951552,
+    "peak_rss_delta_bytes": 177418240
+  },
+  "prior_10_2_pe_default": {
+    "source": "../calibration/compactness.csv",
+    "cube": "pe/20260804205214_64.hdr",
+    "compactness": "0.5",
+    "n": "765",
+    "area_cv": "0.17697612603829105",
+    "R": "1.8282458263392618",
+    "sum_ratio_diagnostic": "0.20138744944428535",
+    "subdivision_triggers": "64",
+    "n_after": "830",
+    "tau": "0.11295262496789044",
+    "n_segments": "800",
+    "pca_components": "5",
+    "k": "3",
+    "block_size": "32",
+    "feature_version": "pca-global-zscore-clip3-unit-v1",
+    "convert2lab": "False",
+    "enforce_connectivity": "True",
+    "feature_bytes": "2956800",
+    "resident_feature_bytes": "5913600",
+    "baseline_rss_bytes": "132407296",
+    "peak_rss_bytes": "309776384",
+    "peak_rss_delta_bytes": "177369088",
+    "pca_seconds": "2.288896499987459",
+    "slic_seconds": "0.07777080000960268",
+    "total_seconds": "3.5371543999935966"
+  },
+  "raw_float64_cube_bytes_reference": 236544000,
+  "rss_delta_fraction_of_raw_cube_reference": 0.7500432900432901,
+  "final_sidecar_peak_rss_bytes": 332951552,
+  "diffusion_fixed_twenty": {
+    "n_after": 830,
+    "threshold": 0.92,
+    "queue_min_similarity": 0.8,
+    "engine_min_seconds": 0.029760700010228902,
+    "engine_median_seconds": 0.03108484999393113,
+    "engine_max_seconds": 0.033136700018076226,
+    "http_min_seconds": 0.03747320000547916,
+    "http_median_seconds": 0.04466249998949934,
+    "http_max_seconds": 0.06697330001043156,
+    "candidate_two_second_value_met": true
+  },
+  "validate": {
+    "http_seconds": 0.9045011000125669,
+    "comparison_count": 364,
+    "suspicious_count": 49,
+    "threshold": 0.8579512304124653,
+    "threshold_level": "实现层默认、可调",
+    "not_applicable": {
+      "标签与聚类中心冲突": "无模型阶段不适用",
+      "类间重叠": "无模型阶段不适用"
+    }
+  },
+  "saves": [
+    {
+      "id": "ee0a35df-fd31-44fb-b0d4-9c10780ab967",
+      "snapshot_ref": "2d46a409-5cf4-4673-92b5-a0600e9c3437/v1",
+      "elapsed_seconds": 0.9240804000000935,
+      "transaction_seconds": 0.012157799996202812,
+      "note": null,
+      "http_seconds": 0.9358238000131678
+    },
+    {
+      "id": "06c7481b-4aef-472d-8303-188a8b0a9d5f",
+      "snapshot_ref": "2d46a409-5cf4-4673-92b5-a0600e9c3437/v2",
+      "elapsed_seconds": 0.9190012000035495,
+      "transaction_seconds": 0.01206769997952506,
+      "note": "{\"event\": \"save\", \"at\": \"2026-10-20T16:27:31.850209+00:00\", \"text\": \"10.7 HTTP integration save\"}",
+      "http_seconds": 0.9302510999841616
+    },
+    {
+      "id": "06c7481b-4aef-472d-8303-188a8b0a9d5f",
+      "snapshot_ref": "2d46a409-5cf4-4673-92b5-a0600e9c3437/v2",
+      "elapsed_seconds": 0.8866049000062048,
+      "transaction_seconds": 0.009773900004802272,
+      "note": "{\"event\": \"overwrite\", \"at\": \"2026-10-20T16:27:32.818652+00:00\", \"text\": \"10.7 HTTP integration overwrite\"}",
+      "http_seconds": 0.8969320000032894
+    }
+  ],
+  "timing_boundaries": {
+    "http": "client call through full response body; includes routing, header reads, JSON/PNG serialization and transport",
+    "diffusion_engine": "existing DiffusionEngine.generate elapsed_seconds: readable, growth, candidate PNG and queue deepcopy; excludes HTTP serialization",
+    "save_elapsed": "existing SessionStore.save elapsed_seconds: aggregation + quality + snapshot + DB; excludes prerequisite checks and HTTP serialization",
+    "write_transaction": "existing transaction_seconds: connect/BEGIN IMMEDIATE, os.replace publication, row writes and commit; aggregation and temporary snapshot preparation occur before it"
+  }
+}

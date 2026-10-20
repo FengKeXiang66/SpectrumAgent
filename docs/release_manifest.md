@@ -4,11 +4,13 @@
 
 | Version | Commit SHA | Installer File | File Bytes | SHA256 | Archive Location |
 |---|---|---|---|---|---|
+| v0.1.2 |  | SpectrumAgent_0.1.2_x64-setup.exe（待构建） | 待负责人复算 | 待负责人复算 | 待科祥打 tag 后归档 |
 | v0.1.1 | 29a4cdf | SpectrumAgent_0.1.1_x64-setup.exe | 287,410,501 | 93c717284866562b8986bd1ad06bdcdb11d0adeb0fa7b47bfcb1646fc21888e7 | 夸克网盘 [https://pan.quark.cn/s/11a84306ed1d](https://pan.quark.cn/s/11a84306ed1d) 提取码：3q9g |
 | v0.1.0 | 205f0ad | setup.exe | 287,156,790 | d849253611c1ac985cb08a60a7073e17ed6c89b74e8230532d0c3d2157cc8107 | 夸克网盘 [https://pan.quark.cn/s/b0fc57fc4a75](https://pan.quark.cn/s/b0fc57fc4a75) 提取码：peHG |
 
 ## 版本说明
 
+- **v0.1.2**（milestone 04）：L1 人工标注工作台、候选区域、版本快照与样本谱聚合；提交与验收证据见 `milestone04/evidence/10.7/`。本行仅为发布框架，Commit SHA 留空，安装包尚未生成；tag、最终 commit、安装包哈希与归档由科祥完成。
 - **v0.1.1**（milestone 02+03）：数据接入 + release 打包。新增 ENVI/纯二进制读取、目录原子导入、波段/区域预览；release 开放受限 datasets IPC；引擎冻结尾像含 spectrumagent 组合入口。tag `v0.1.1` → commit `29a4cdf`。
 - **v0.1.0**（milestone 01）：基础演示封版，核心框架定型。tag `v0.1.0` → commit `205f0ad`。
 

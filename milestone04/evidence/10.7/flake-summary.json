@@ -1,0 +1,80 @@
+{
+  "mode": "repository-root python -m pytest; selected test, default parametrization, sequential; fresh process per repetition",
+  "command": [
+    "E:\\AI_Agent\\.venv\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "src-python/tests/annotation/test_session.py::test_db_failure_rolls_back_rows_and_snapshot_publication",
+    "-q"
+  ],
+  "PYTEST_DEBUG_TEMPROOT": "E:\\AI_Agent\\.runtime\\pytest-tmp",
+  "parameters": [
+    false,
+    true
+  ],
+  "repetitions_per_parameter": 10,
+  "results": [
+    {
+      "repetition": 1,
+      "exit_code": 0,
+      "both_parameters_passed": true,
+      "output": "flake-01.txt"
+    },
+    {
+      "repetition": 2,
+      "exit_code": 0,
+      "both_parameters_passed": true,
+      "output": "flake-02.txt"
+    },
+    {
+      "repetition": 3,
+      "exit_code": 0,
+      "both_parameters_passed": true,
+      "output": "flake-03.txt"
+    },
+    {
+      "repetition": 4,
+      "exit_code": 0,
+      "both_parameters_passed": true,
+      "output": "flake-04.txt"
+    },
+    {
+      "repetition": 5,
+      "exit_code": 0,
+      "both_parameters_passed": true,
+      "output": "flake-05.txt"
+    },
+    {
+      "repetition": 6,
+      "exit_code": 0,
+      "both_parameters_passed": true,
+      "output": "flake-06.txt"
+    },
+    {
+      "repetition": 7,
+      "exit_code": 0,
+      "both_parameters_passed": true,
+      "output": "flake-07.txt"
+    },
+    {
+      "repetition": 8,
+      "exit_code": 0,
+      "both_parameters_passed": true,
+      "output": "flake-08.txt"
+    },
+    {
+      "repetition": 9,
+      "exit_code": 0,
+      "both_parameters_passed": true,
+      "output": "flake-09.txt"
+    },
+    {
+      "repetition": 10,
+      "exit_code": 0,
+      "both_parameters_passed": true,
+      "output": "flake-10.txt"
+    }
+  ],
+  "passed_cases": 20,
+  "passed": true
+}
