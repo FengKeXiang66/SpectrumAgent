@@ -69,7 +69,8 @@ def test_working_empty_versions_empty_and_single_registry_assembly(http_annotati
     h = http_annotation
     response = h.client.get(h.base+"/annotations/working")
     assert response.status_code == 200
-    assert response.json() == {"superpixel_count": 0, "params": None, "statistics": {}, "overlay": None}
+    assert response.json() == {"superpixel_count": 0, "params": None, "statistics": {}, "overlay": None,
+                               "project_id": h.case.project, "queue": []}
     listing = h.client.get(h.base+"/annotations").json()
     assert listing == {"versions": [], "working": response.json()}
     assert h.app.state.diffusion_engine.superpixels is h.engine
@@ -390,3 +391,46 @@ def test_missing_superpixels_http_structured_and_empty_undo_409(http_annotation)
         assert response.status_code == 400 and response.json()["error"] == "SUPERPIXELS_REQUIRED"
     empty = h.client.post(h.base+"/annotations/undo")
     assert empty.status_code == 409 and empty.json()["error"] == "ANNOTATION_CONFLICT"
+
+
+def test_r21_working_queue_readback_is_pure_and_contains_project_and_overlays(ready_http):
+    h = ready_http
+    produced = h.client.post(h.base+"/diffuse", json={"seed": {"point": [0, 0]},
+                                                   "threshold": 1, "queue_min_similarity": -1}).json()
+    before = deepcopy(state(h).candidates)
+    for _ in range(2):
+        working = h.client.get(h.base+"/annotations/working").json()
+        assert working["project_id"] == h.case.project
+        assert working["queue"] == produced["queue"] == before
+        decode_png(working["queue"][0]["overlay"])
+    working["queue"][0]["superpixels"].clear()
+    assert state(h).candidates == before  # JSON readback has no alias to server state.
+    assert h.client.get(h.base+"/annotations").json()["working"]["queue"] == before
+
+
+def test_r21_confirm_consumes_one_candidate_and_working_recovers_remainder(ready_http):
+    h = ready_http
+    for point in ([0, 0], [35, 10]):
+        assert h.client.post(h.base+"/diffuse", json={"seed": {"point": point},
+                            "threshold": 1, "queue_min_similarity": -1}).status_code == 200
+    before = h.client.get(h.base+"/annotations/working").json()["queue"]
+    assert len(before) == 2 and set(before[0]["superpixels"]).isdisjoint(before[1]["superpixels"])
+    edited = region(h, geometry={"superpixels": before[0]["superpixels"]})
+    assert edited.status_code == 200 and edited.json()["queue"] == before[1:]
+    assert h.client.get(h.base+"/annotations/working").json()["queue"] == before[1:]
+    assert h.client.get(h.base+"/annotations/working").json()["statistics"] == edited.json()["statistics"]
+
+
+def test_r21_switch_cube_recovers_isolated_queue_without_regenerating_candidates(ready_http):
+    h = ready_http
+    produced = h.client.post(h.base+"/diffuse", json={"seed": {"point": [0, 0]},
+                                                   "threshold": 1, "queue_min_similarity": -1}).json()
+    other = str(h.engine.registry.import_path(str(h.case.header), raw=False).datasets[0].id)
+    other_base = f"/api/v1/datasets/{other}"
+    empty = h.client.get(other_base+"/annotations/working")
+    assert empty.status_code == 200
+    assert empty.json() == {"superpixel_count": 0, "params": None, "statistics": {}, "overlay": None,
+                            "project_id": h.case.project, "queue": []}
+    assert h.client.post(other_base+"/superpixels", json={"n_segments": 24}).status_code == 200
+    assert h.client.get(other_base+"/annotations/working").json()["queue"] == []
+    assert h.client.get(h.base+"/annotations/working").json()["queue"] == produced["queue"]

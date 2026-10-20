@@ -1,6 +1,7 @@
 """TASK-04 §5.6 HTTP adapters; engines and working state remain single-source."""
 import base64
 from contextlib import contextmanager
+from copy import deepcopy
 from dataclasses import asdict
 from io import BytesIO
 import json
@@ -144,13 +145,17 @@ def make_router(store: LabelStore, engine: SuperpixelEngine, sessions: SessionSt
 
     def working_view(identifier):
         with sessions._lock:
+            engine.registry.get(identifier)  # Existing not-found boundary, no independent source opening.
+            with connect_database(store.database) as db:
+                project_id = db.execute("SELECT project_id FROM dataset_registry WHERE id=?", (str(identifier),)).fetchone()[0]
             state = sessions._state(identifier)
+            context = {"project_id": project_id, "queue": deepcopy(state.candidates)}
             if state.segments is None:
-                return {"superpixel_count": 0, "params": None, "statistics": {}, "overlay": None}
+                return {"superpixel_count": 0, "params": None, "statistics": {}, "overlay": None, **context}
             working = sessions.working(identifier)
             return {"superpixel_count": len(np.unique(state.segments)), "params": working["params"],
                     "statistics": working["statistics"],
-                    "overlay": label_overlay(working["label_map"], working["label_index"], colors())}
+                    "overlay": label_overlay(working["label_map"], working["label_index"], colors()), **context}
 
     async def no_body(request: Request):
         if await request.body():

@@ -8,6 +8,8 @@ use std::{io::Read, time::Duration};
 
 // Same transport limit as datasets_dev; TASK-04 §5.7 preserves the #02 boundary.
 pub const MAX_RESPONSE_BYTES: u64 = 8 * 1024 * 1024;
+// TASK-04 R21: request limit for the dynamic label body, not the response limit.
+const MAX_LABEL_BODY_BYTES: usize = 64 * 1024;
 
 #[derive(Deserialize, Serialize)]
 #[serde(untagged, deny_unknown_fields)]
@@ -129,6 +131,14 @@ pub enum AnnotationRequest {
         id: String,
         version: String,
     },
+    Projects {},
+    Labels {
+        project_id: String,
+    },
+    AddLabel {
+        body: Value,
+    },
+    Catalog {},
 }
 
 fn uuid(value: &str, code: &str) -> Result<(), ForwardError> {
@@ -161,7 +171,7 @@ pub fn parse_request(value: Value) -> Result<AnnotationRequest, ForwardError> {
 }
 
 impl AnnotationRequest {
-    fn id(&self) -> &str {
+    fn id(&self) -> Option<&str> {
         match self {
             Self::Superpixels { id, .. }
             | Self::Diffuse { id, .. }
@@ -171,12 +181,17 @@ impl AnnotationRequest {
             | Self::Validate { id }
             | Self::Save { id, .. }
             | Self::Versions { id }
-            | Self::VersionOverlay { id, .. } => id,
+            | Self::VersionOverlay { id, .. } => Some(id),
+            Self::Projects {} | Self::Labels { .. } | Self::AddLabel { .. } | Self::Catalog {} => {
+                None
+            }
         }
     }
 
     fn validate(&self) -> Result<(), ForwardError> {
-        uuid(self.id(), "INVALID_DATASET_ID")?;
+        if let Some(id) = self.id() {
+            uuid(id, "INVALID_DATASET_ID")?;
+        }
         let valid = match self {
             Self::Superpixels {
                 n_segments,
@@ -211,6 +226,23 @@ impl AnnotationRequest {
                 uuid(version, "INVALID_VERSION_ID")?;
                 true
             }
+            Self::Labels { project_id } => {
+                uuid(project_id, "INVALID_PROJECT_ID")?;
+                true
+            }
+            Self::AddLabel { body } => {
+                if serde_json::to_vec(body)
+                    .map_err(|_| invalid_request())?
+                    .len()
+                    > MAX_LABEL_BODY_BYTES
+                {
+                    return Err(ForwardError::new(
+                        "REQUEST_TOO_LARGE",
+                        "标签请求超过64KiB上限",
+                    ));
+                }
+                true
+            }
             _ => true,
         };
         if !valid {
@@ -221,6 +253,38 @@ impl AnnotationRequest {
 
     fn destination(&self, port: u16) -> Result<(Url, Method, Option<Value>), ForwardError> {
         self.validate()?;
+        let mut url = Url::parse("http://127.0.0.1/")
+            .map_err(|_| ForwardError::new("TRANSPORT", "本机地址构造失败"))?;
+        if port == 0 || url.set_port(Some(port)).is_err() {
+            return Err(ForwardError::new("TRANSPORT", "握手端口非法"));
+        }
+        // R21: management operations have no dataset id and use literal paths.
+        match self {
+            Self::Projects {} => {
+                url.set_path("/api/v1/projects");
+                return Ok((url, Method::GET, None));
+            }
+            Self::Labels { project_id } => {
+                url.set_path("/api/v1/labels");
+                // Strict uuid() validation above makes this a canonical hex/hyphen
+                // value. Approved R21 correction: no new dependency or parser.
+                url.set_query(Some(&format!(
+                    "project_id={}",
+                    project_id.to_ascii_lowercase()
+                )));
+                return Ok((url, Method::GET, None));
+            }
+            Self::AddLabel { body } => {
+                url.set_path("/api/v1/labels");
+                return Ok((url, Method::POST, Some(body.clone())));
+            }
+            Self::Catalog {} => {
+                url.set_path("/api/v1/catalog/plastic");
+                return Ok((url, Method::GET, None));
+            }
+            _ => {}
+        }
+        // Keep the nine audited dataset routes and original id spelling intact.
         let (suffix, method, has_body) = match self {
             Self::Superpixels { .. } => ("superpixels".to_owned(), Method::POST, true),
             Self::Diffuse { .. } => ("diffuse".to_owned(), Method::POST, true),
@@ -233,13 +297,12 @@ impl AnnotationRequest {
             Self::VersionOverlay { version, .. } => {
                 (format!("annotations/{version}/overlay"), Method::GET, false)
             }
+            _ => return Err(invalid_request()),
         };
-        let mut url = Url::parse("http://127.0.0.1/")
-            .map_err(|_| ForwardError::new("TRANSPORT", "本机地址构造失败"))?;
-        if port == 0 || url.set_port(Some(port)).is_err() {
-            return Err(ForwardError::new("TRANSPORT", "握手端口非法"));
-        }
-        url.set_path(&format!("/api/v1/datasets/{}/{suffix}", self.id()));
+        url.set_path(&format!(
+            "/api/v1/datasets/{}/{suffix}",
+            self.id().ok_or_else(invalid_request)?
+        ));
         let body = if has_body {
             let mut value = serde_json::to_value(self).map_err(|_| invalid_request())?;
             let object = value.as_object_mut().ok_or_else(invalid_request)?;
@@ -668,6 +731,146 @@ mod tests {
                 bad[field] = json!("http://example.com/../../health");
                 assert!(parse_request(bad).is_err());
             }
+        }
+        for input in [
+            json!({"op":"projects"}),
+            json!({"op":"labels","project_id":ID}),
+            json!({"op":"add_label","body":{}}),
+            json!({"op":"catalog"}),
+        ] {
+            parse_request(input.clone())?;
+            for field in [
+                "id", "url", "host", "port", "path", "method", "query", "fragment",
+            ] {
+                let mut bad = input.clone();
+                bad[field] = json!("http://example.com/../../health");
+                assert!(parse_request(bad).is_err());
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn four_management_operations_have_literal_paths_methods_and_bodies() -> Result<(), ForwardError>
+    {
+        for (input, path, method, body, query) in [
+            (
+                json!({"op":"projects"}),
+                "/api/v1/projects",
+                Method::GET,
+                None,
+                None,
+            ),
+            (
+                json!({"op":"labels","project_id":ID}),
+                "/api/v1/labels",
+                Method::GET,
+                None,
+                Some(format!("project_id={ID}")),
+            ),
+            (
+                json!({"op":"add_label","body":{"project_id":ID,"code":"X"}}),
+                "/api/v1/labels",
+                Method::POST,
+                Some(json!({"project_id":ID,"code":"X"})),
+                None,
+            ),
+            (
+                json!({"op":"catalog"}),
+                "/api/v1/catalog/plastic",
+                Method::GET,
+                None,
+                None,
+            ),
+        ] {
+            let request = parse_request(input)?;
+            assert_eq!(request.id(), None);
+            let (url, actual_method, actual_body) = request.destination(4321)?;
+            assert_eq!(url.host_str(), Some("127.0.0.1"));
+            assert_eq!(url.port(), Some(4321));
+            assert_eq!(url.path(), path);
+            // No caller-controlled query: only Labels has this constructed pair.
+            assert_eq!(url.query(), query.as_deref());
+            assert_eq!(url.fragment(), None);
+            assert_eq!(actual_method, method);
+            assert_eq!(actual_body, body);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn project_query_is_strict_then_lowercase_but_dataset_path_is_unchanged()
+    -> Result<(), ForwardError> {
+        let upper = "ABCDEFAB-CDEF-ABCD-EFAB-CDEFABCDEFAB";
+        let url = parse_request(json!({"op":"labels","project_id":upper}))?
+            .destination(4321)?
+            .0;
+        assert_eq!(
+            url.query(),
+            Some("project_id=abcdefab-cdef-abcd-efab-cdefabcdefab")
+        );
+        assert_eq!(url.query_pairs().count(), 1);
+        let url = parse_request(json!({"op":"working","id":upper}))?
+            .destination(4321)?
+            .0;
+        assert_eq!(
+            url.path(),
+            format!("/api/v1/datasets/{upper}/annotations/working")
+        );
+        for suffix in ["&x=1", "?x=1", "#x", "/x", "%26x=1"] {
+            assert_eq!(
+                parse_request(json!({"op":"labels","project_id":format!("{ID}{suffix}")}))
+                    .err()
+                    .map(|e| e.error),
+                Some("INVALID_PROJECT_ID".into())
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn label_body_limit_counts_serialized_utf8_and_business_validation_stays_in_python()
+    -> Result<(), ForwardError> {
+        // JSON quotes count too: this serializes to exactly the approved 64 KiB.
+        let exact = json!("x".repeat(MAX_LABEL_BODY_BYTES - 2));
+        assert_eq!(
+            serde_json::to_vec(&exact)
+                .map_err(|_| invalid_request())?
+                .len(),
+            MAX_LABEL_BODY_BYTES
+        );
+        assert_eq!(
+            parse_request(json!({"op":"add_label","body":exact.clone()}))?
+                .destination(4321)?
+                .2,
+            Some(exact)
+        );
+        assert_eq!(
+            parse_request(json!({"op":"add_label","body":"x".repeat(MAX_LABEL_BODY_BYTES-1)}))
+                .err()
+                .map(|e| e.error),
+            Some("REQUEST_TOO_LARGE".into())
+        );
+        assert_eq!(
+            parse_request(json!({"op":"add_label","body":"字".repeat(MAX_LABEL_BODY_BYTES/3)}))
+                .err()
+                .map(|e| e.error),
+            Some("REQUEST_TOO_LARGE".into())
+        );
+        // Not a second LabelRequest implementation: mixed/missing/unknown body
+        // fields pass through here for Python's existing field-level 422 errors.
+        for body in [
+            json!({}),
+            json!({"code":"X","schema":{},"from_catalog":"plastic"}),
+            json!({"url":"ignored-as-business-field"}),
+            json!(null),
+        ] {
+            assert_eq!(
+                parse_request(json!({"op":"add_label","body":body.clone()}))?
+                    .destination(4321)?
+                    .2,
+                Some(body)
+            );
         }
         Ok(())
     }
