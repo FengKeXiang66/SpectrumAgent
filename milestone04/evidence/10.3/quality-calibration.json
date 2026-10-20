@@ -1,0 +1,49 @@
+{
+  "purpose": "R17 合成标注阈值行为与植入离群验证；不是人工标注，不是标注质量断言",
+  "source_level": "实现层实测；默认可调",
+  "header": "E:\\高光谱数据集\\plastic\\pe\\20260804205214_64.hdr",
+  "shape": [
+    231,
+    640,
+    200
+  ],
+  "params": {
+    "n_segments": 800,
+    "compactness": 0.5,
+    "pca_components": 5,
+    "k": 3,
+    "block_size": 32,
+    "feature_version": "pca-global-zscore-clip3-unit-v1"
+  },
+  "clustering": {
+    "n_clusters": 4,
+    "random_state": 0,
+    "n_init": 10
+  },
+  "superpixel_count": 830,
+  "reference": "原谱反射率；块均值 vs 当前合成 label 的像素加权均值",
+  "quantiles": {
+    "0": 0.5034724552823012,
+    "0.01": 0.8030876563997569,
+    "0.05": 0.8579512304124653,
+    "0.25": 0.9168479519177143,
+    "0.5": 0.9480581298267907,
+    "0.75": 0.9722828148591671,
+    "0.95": 0.9850188576232852,
+    "0.99": 0.9906809361265448,
+    "1": 0.9945834710577047
+  },
+  "selection": "实测 cos 的 p05（实现层选择，非硬约束）",
+  "default_threshold": 0.8579512304124653,
+  "comparisons": 830,
+  "triggered": 42,
+  "trigger_fraction": 0.05060240963855422,
+  "implant": {
+    "superpixel_id": 786,
+    "label_index": 3,
+    "detected": true
+  },
+  "validation_seconds": 2.642698499985272,
+  "feature_bytes": 2956800,
+  "peak_rss_bytes": 315916288
+}

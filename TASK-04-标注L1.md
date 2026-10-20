@@ -128,7 +128,9 @@ CREATE TABLE IF NOT EXISTS annotation_version (
 );
 
 -- 标注区域（**每 label 一条/版本**，不是操作日志；几何 = 该 label 全覆盖的超像素 id 集合，仅供追溯）
--- 只在保存版本时写入，故 version_id 必填；阶段一 granularity 恒为 'pixel'，'sample'/'scene' 为阶段二预留
+-- granularity 描述【记录粒度】，非操作粒度：'sample'=阶段一落库形态（每 label 每版本一条，
+-- 由像素级标注聚合而来，即 FR-E01"整条平均谱一个标签"）；'pixel'=像素级明细记录（阶段一
+-- 不落库，由工作态 label_map/撤销栈/快照承载，阶段二扩展）；'scene'=场景级（阶段二预留，无写入路径）
 -- 'scene' 无写入路径（见 5.4）
 CREATE TABLE IF NOT EXISTS annotation (
   id          TEXT PRIMARY KEY,
@@ -186,8 +188,9 @@ ALTER TABLE dataset_registry ADD COLUMN project_id TEXT;   -- 回填默认项目
 └── spectra.npz          # 每键一个 label：mean_<n>=(B,) float64、std_<n>=(B,) float64
 ```
 
+- **落点与 `snapshot_ref`（R15 钉死）**：`paths.py` 增 `snapshots` property（与 db/logs/testdata 平级、随 `from_environment` 派生、**禁硬编码绝对路径、禁写源目录**）；实际路径 `<snapshots>/<cube_id>/v<version_no>/`；`annotation_version.snapshot_ref` 存**相对 `snapshots` 根的 POSIX 路径**（如 `<cube_id>/v1`），**不存绝对路径**（数据根可迁移，绝对路径会失效）。DB 短事务提交是唯一提交点；快照先写 `.tmp` 再 `os.replace`。
 - 工作态（未落库）的超像素图、工作 label map 存 sidecar 内存（按 cube_id + 参数），可随时按参数重算，不依赖会被清理的 scratch（教训记录：验收只读落库快照，不读运行期临时文件）。
-- **覆写语义（唯一解释，不得再分叉）**：`save` 默认**新建版本**（version_no 递增），**任何历史版本不可改**；"覆写"**仅指用当前工作态重写当前最新版本**（version_no 最大者，version_no 不变），必须携带 FR-D07 确认标记——未携带 → 409 结构化错误，携带 → 覆写事件随版本入库。不存在"覆写中间历史版本"的路径（FR-E05 的"覆写二次确认"即指此，见 5.6）。
+- **覆写语义（唯一解释，不得再分叉）**：`save` 默认**新建版本**（version_no 递增），**任何历史版本不可改**；"覆写"**仅指用当前工作态重写当前最新版本**（version_no 最大者，version_no 不变），必须携带 FR-D07 确认标记——未携带 → 409 结构化错误，携带 → 覆写事件随版本入库（**R17 钉死落点**：`annotation_version.note` 写 `{"event":"overwrite","at":"<ISO8601 UTC>"}` JSON；新建版本 `note=NULL`；`created_at` 保留版本首次创建时间、不随覆写改变；与旧行重写同一短事务 UPDATE）。不存在"覆写中间历史版本"的路径（FR-E05 的"覆写二次确认"即指此，见 5.6）。
   - **覆写时的旧行处置（不写就是同版本重复行）**：在同一短事务内**先删**该 `version_id` 下的全部 `annotation` 与 `sample_spectrum` 行，**再重写**，并 `UPDATE annotation_version` 的 `n_pixels`/`labeled_pixels`/`snapshot_ref`/`created_at`。快照三件先写 `.tmp` 再 `os.replace` 覆盖同名文件，避免半写状态。
   - 当前**无任何版本**时 `overwrite=true` → 409（无"最新版本"可覆写），不得静默降级为新建。
 
@@ -281,6 +284,9 @@ ALTER TABLE dataset_registry ADD COLUMN project_id TEXT;   -- 回填默认项目
 ### 5.4 标注会话与版本（FR-E01 / E05 / H01）
 
 - 每个 cube 维护**工作 label map**（int32 (L,S)）：`-1` = 未标注（留白，斜纹）、`-2` = **不确定**（人看过但给不出类）、`≥0` = label_index 下标。确认候选（超像素集合→label）、画笔/多边形/橡皮直接光栅化修改、**"标记为不确定"写入 `-2`**；撤销栈（≥5 步，Z）。
+  - **`label_index` 空间（R15 钉死）**：`≥0` 的下标 = **项目 label 列表按 `sort_order` 升序的下标**；`label_index.json` 的键与之一致。**已保存版本的映射不可变**——之后项目新增 label 只影响新版本的下标分配，不得改写已存 `label_index.json` 与 `label_map.npz`（否则历史版本回放错位）。
+  - **撤销恢复范围（R15 钉死）**：撤销恢复 label map 的**深拷贝**（不是引用）；恢复后统计（已标/不确定/留白/各类像素数）从恢复态**现算**；撤销后的新编辑从恢复态继续，不得错位（§6.1"撤销后再编辑不错位"）。撤销栈只在内存、不落库。
+  - **"样品主标签"无处落库**：5.4 末"样品主标签 = 像素数最多的 label"是**只读推导**（查询时按 label_map 统计），**不得为此自造列**（表结构以 4.1 为准）。
 - **工作态归属（唯一真源，防止前端另起一份）**：工作 label map 与撤销栈都只在 sidecar 内存里，**前端不得自己维护第二份 label map 或撤销栈**；前端每次操作后通过 `GET /annotations/working` 取回降采样图与统计来重绘。撤销走 `POST /annotations/undo`，由 sidecar 出栈并重算统计。理由：两处真源必然漂移，且 6.2 的"label_map 回放逐像素相等"会失去意义。
 - **超像素参数变更时的工作态**：label map 是**像素级**、与超像素 id 解耦，换 n_segments/compactness 重算 segments 后**已确认的标注保留**（按像素），只是候选选择被清空；不得因参数变更而清空或重算 label map。
 - 保存版本（`save`）：
@@ -290,16 +296,22 @@ ALTER TABLE dataset_registry ADD COLUMN project_id TEXT;   -- 回填默认项目
      - **粒度口径（勿再分叉）**：annotation 是"**区域**"语义，**每 label 每版本一条**，不是操作日志——每笔确认/每次画笔的历史**不落库**，只由撤销栈与版本快照承载。`-2`（不确定）不是 label，**不产生 annotation 行**，只存在于 label_map 与统计中；
      - **几何权威性**：超像素 id 只在 `params` 描述的那套 segments 下有意义，而 segments 不落库（4.2：工作态内存、可按参数重算）。因此 **`label_map.npz` 是唯一权威几何**，`annotation.geometry` 仅供追溯与回显，**不得作为区域重建依据**；
      - **`pixel_count` 必须由 label_map 直接统计**（该 label 的像素数），不得由 geometry 的超像素 id 反推（换参数后必然对不上）；
+     - **`geometry` 的"全覆盖"定义（R15 钉死）**：只有该超像素的**全部像素**都属于此 label 时才计入其 geometry；**混合超像素（部分像素属此 label）不进任何 label 的 geometry**。理由：geometry 仅供追溯/回显，混合块记进去会让人误以为整块已标；区域重建一律走 label_map。
+     - **`version_no` 规则**：新建 = 该 cube 现有 `max(version_no)+1`；覆写（overwrite=true）**version_no 不变**。
   4. 跑质量校验（5.5），结果随版本返回。
-- 样本级：一个 cube 内按 label 各一条；样品主标签 = 像素数最多的 label。
+  5. **三表 NOT NULL 列的写路径覆盖（R13 纪律，随回执逐列报）**：`annotation_version` / `annotation` / `sample_spectrum` 的每个 NOT NULL 列，供值方式限三种（调用方入参 / 服务端规则 / 由 label_map 统计推导），实现时逐列核对并随回执列表；特别是 `annotation_version.params`（服务端从当次分割参数序列化）、`annotation.granularity`（阶段一恒 `'sample'`，见下）、`annotation.source`（恒 `manual`）、`sample_spectrum.mean_ref`/`std_ref`（= `spectra.npz` 内键名，键 = label_index）、`sample_spectrum.sample_code`（= cube 名）。
+     - **`annotation.granularity` 取值（R16 裁定：`'sample'`）**：描述**记录粒度**而非操作粒度——落库行是像素级标注聚合后的样本级产物。三处需求实证：FR-E01（需求 671 行）"样本级（整条平均谱一个标签）"、§6.4.1（1782 行）"可由像素级标签自动聚合成样本级，**反之不成立**"、S1（417 行）"自动聚合出样本级光谱集（带标签，共 N 条）；标注版本落库"。`'pixel'` 留给阶段二真正的像素级明细记录（FR-E01"三级可共存"），阶段一不落 pixel 行；`'scene'` 阶段一无写入路径。
+- 样本级：一个 cube 内按 label 各一条（**故 `annotation.granularity` 落库取 `'sample'`，R16 裁定**）；样品主标签 = 像素数最多的 label（只读推导，不自造列）。
 - **场景级（口径写死，不再留解释空间）**：**阶段一不写 `granularity='scene'` 的 annotation 行**，也不写任何自动 annotation。场景信息（仪器/波段/批次）直接读 `dataset_registry.payload` 透出给 UI；`annotation.granularity` 的 `'scene'` 枚举值为阶段二预留。理由：`annotation.source` 的六个取值里没有 `auto`，而 3.2 又定死"阶段一恒为 manual"，自动落行只能 source 造假或破坏 3.2，两条路都脏；元数据本就在 payload 里，重复落行等于制造第二个真源。
 
 ### 5.5 质量校验（FR-E06 lite）
 
-- 已确认区域内逐超像素检查：与所属 label 均值谱的距离（光谱角/余弦）超参数阈值 → 可疑清单；块内高方差清单（**复用 5.2 的 `d_s`/`τ` 定义，不另立口径**）；完整度三分（**已标 % / 不确定 %（`-2`）/ 留白 %（`-1`）**、各类像素数）。
+- 已确认区域内逐超像素检查：与所属 label 均值谱的距离（**R15 钉死：余弦、原谱 200 波段反射率均值谱，与 §5.3 同家族口径；"光谱角"不并立，防第二套口径漂移**）超参数阈值 → 可疑清单；**阈值参数化，默认值必须用真实 cube 实测触发率后落（可疑清单既非空也非全量），标注"实现层默认、可调"**——不得凭空写一个常数；块内高方差清单（**复用 5.2 的 `d_s`/`τ` 定义，不另立口径**）；完整度三分（**已标 % / 不确定 %（`-2`）/ 留白 %（`-1`）**、各类像素数）。
 - **均值谱来源写死**：按**当前工作态 label map 现算**（与 save 聚合同一实现、同一分块读数），**不读历史 `sample_spectrum`**——否则改了标注却拿旧谱校验，结论无意义。
 - `-2`（不确定）区域**不参与**离群检查（没有所属 label），只计入完整度与 working 统计。
 - 报告显式标注："标签与聚类中心冲突、类间重叠"两项在无模型阶段**不适用**（不伪造结果）。
+- **混合超像素的校验行为（R17 钉死）**：不跳过——对每个超像素 s 与每个在其中 ≥1 像素的 label L，取 `(s ∩ L)` 已标像素现算均值谱与 L 均值谱比余弦，低于阈值以 `(superpixel_id, label_index, pixel_count, cos)` 记入可疑清单；`-1`/`-2` 像素不进任何部分均值。理由：跳过混合块 = 恰好在"标注与分割打架"处闭眼，而那里最可能是真离群；纯多 label 块还能让工人看见边界分歧。无新参数、确定性。
+- **质量校验阈值标定授权（R17）**：允许在真实 cube 上用 10.2 的 m=0.5 segments + `KMeans(n_clusters=4, random_state=0, n_init=10)` 对块均值谱聚类构造**合成标注**标定默认阈值（观测 cos 分布、按"非空且非全量"落值）；合成标注仅用于阈值行为与植入离群验证，**不得冒充人工标注、不得用于任何标注质量断言**；默认值与分布分位数随回执报。
 - 可在保存时自动跑，也可独立调用。
 
 ### 5.6 FastAPI 路由（新 router，组合进 `spectrumagent.app.create_app`）
@@ -359,7 +371,7 @@ ALTER TABLE dataset_registry ADD COLUMN project_id TEXT;   -- 回填默认项目
     - **自检锚点**：分母必须是"段内相邻对的距离**均值**"，不是求和。本 cube 上按均值比得 **≈1.8**（分块不同在 1.77–1.82 间浮动）；若误写成求和比只得 **0.20**（差约 9 倍，因段内对数远多于跨界对）。数不对先查聚合方式，别先怀疑分割，更不得反向调参
   - 高方差细分：报告中的 `d_s > τ` 记录与超像素集合一致，**触发数 ≥ 1**（实测 k=3 触发 64/765 = 8.4%）；细分前/后 n 分别记录（实测 765 → 830）；k 为参数化默认 3，标定阶段可调，但调整须落进标定表并写明理由，**不得为了让断言通过而临时改 k**
   - 返回实际生效参数（pca_components / compactness / k / 特征口径版本）与降采样叠加图
-- [ ] 场景级：导入、超像素、保存、校验任意路径执行后 `SELECT count(*) FROM annotation WHERE granularity='scene'` 恒为 0；场景信息经 `dataset_registry.payload` 透出
+- [ ] 场景级：导入、超像素、保存、校验任意路径执行后 `SELECT count(*) FROM annotation WHERE granularity='scene'` 恒为 0；**且落库 `annotation` 行 `granularity` 全为 `'sample'`（R16）**；场景信息经 `dataset_registry.payload` 透出
 - [ ] 快捷键校验（6 用例，直接对应 4.1 表级 CHECK）：
   - 背景 `is_background=1, shortcut_key=0` → 允许
   - 普通标签 `is_background=0, shortcut_key=1..9` → 允许
@@ -377,7 +389,7 @@ ALTER TABLE dataset_registry ADD COLUMN project_id TEXT;   -- 回填默认项目
 - [ ] 参数变更：换 compactness 重算 segments 后，已确认标注与 `-2` **按像素保留**、候选清空、`working` 的已标/不确定统计不变（不得因换参数丢标注或重算 label map）
 - [ ] 保存生成版本：快照三件齐全、annotation/version/sample_spectrum 行落库；再存版本号递增、旧版不可改
 - [ ] 覆写语义唯一：默认 `save` 版本号递增、历史版本不可改；`overwrite=true` 未带确认标记 → 409；带标记 → 重写最新版本（version_no 不变）且覆写事件入库；指向历史版本 → 409；**无任何版本时 `overwrite=true` → 409**
-- [ ] 覆写不留脏行：覆写后该 `version_id` 下 `sample_spectrum` **每 label 至多一条**、`annotation` 行数 = 本次有像素的 label 数（**每 label 一条**，无上一轮残留）、`annotation_version` 的 `n_pixels`/`labeled_pixels`/`snapshot_ref` 已更新；快照三件与工作态一致
+- [ ] 覆写不留脏行：覆写后该 `version_id` 下 `sample_spectrum` **每 label 至多一条**、`annotation` 行数 = 本次有像素的 label 数（**每 label 一条**，无上一轮残留）、`annotation_version` 的 `n_pixels`/`labeled_pixels`/`snapshot_ref` 已更新；快照三件与工作态一致；**覆写后 `note` 可解析且 `event=="overwrite"`（R17）**
 - [ ] 样本光谱：每类均值/标准差数组与按像素现算一致（容差 1e-10）
 - [ ] 质量校验返回可疑清单；不适用项显式标注
 
@@ -453,13 +465,14 @@ ALTER TABLE dataset_registry ADD COLUMN project_id TEXT;   -- 回填默认项目
 | 阶段 | 内容 | 估算 |
 |---|---|---|
 | 10.1 | 迁移 + 标签/项目 + 塑料目录 | 1 天 |
-| 10.2 | 超像素 + 扩散/提示引擎；**含 11 cube × 5 值 compactness 标定（表 m×{n, area_cv, R, 细分触发数, 细分后 n} 落档，回填 5.2 / 6.1 / 6.3 的扩散规模）** | 1.5 天 |
+| 10.2 | 超像素引擎（**实交付不含扩散引擎**）；**含 11 cube × 5 值 compactness 标定（表 m×{n, area_cv, R, 细分触发数, 细分后 n} 落档，回填 5.2 / 6.1 / 6.3 的扩散规模）** | 1.5 天 |
 | 10.3 | 会话/版本/聚合 + 质量校验 | 1.5 天 |
+| **10.3.5** | **扩散 / 提示分割引擎（FR-E04 / FR-E18）**——§5.3 全量：`cos_uv` 增长 / `cos_s` 报告 / `queue_min_similarity` 0.80 护栏 / 原谱口径 / 候选队列状态机 8 条；**不含路由**（10.4） | 1 天 |
 | 10.4 | FastAPI 路由 + 单测 | 1 天 |
 | 10.5 | Rust IPC 扩展（dev+release） | 0.5 天 |
 | 10.6 | S05 前端工作台 | 3 天 |
 | 10.7 | 集成 + 验收 + 性能实测 | 1.5 天 |
-| **合计** | | **约 10 工作日** |
+| **合计** | | **约 11 工作日**（10.3.5 插单 +1 天，2026-10-20 科祥拍板） |
 
 ---
 
@@ -493,6 +506,9 @@ ALTER TABLE dataset_registry ADD COLUMN project_id TEXT;   -- 回填默认项目
 | R12 | **codex 首触即停：两个真实缺口（十查漏项）**：①§4.4 目录 18 条色值无来源——补 HLS 生成规则（hue=j×20°、sat=55%、light=45%、**四舍五入**转 hex）+ 18 值表，PE/PET/PP 沿用 §4.3；②§5.6 `POST /labels` 三形态契约未定义——补从目录添加/自定义 enum/添加 schema 的字段区分、互斥校验、422 错误结构。配套 §6.1 加两条验收（色值逐点一致 + 契约三形态各成功一次）。**复核实跑三处订正**：(a) `j` 必须**从 PS 起算**（j=0..17），若按 §4.4 全表序号读则 PS=3、色值全错；(b) 必须 `round()` 而非截断，截断得 `#b13333` 一类、每通道系统性 −1；(c) 发现 `PBT #3488b2` 与 `PP #2f7fb0` 色距仅 10.5，已在 §4.4 记录为已知冲突并划入 10.6 提示项（不改生成规则：偏移 10°/20° 仍 10.5、15° 仅 19.7）。**纪律沉淀：备卡终读八查补第 5.5 条**——"每个落盘数值（含种子数据色值/默认值）必须有来源：文档值、规则产物、或空" | codex 执行期首检：十查漏了"落盘数值来源"与"端点请求体契约" |
 | R13 | **codex 二触即停：NOT NULL 列的写入来源未覆盖**：`label.schema_id` 是 NOT NULL FK，但 R12 契约的自定义 enum body 无 `schema_id`，卡内也无 `tree_path`→schema 定位规则；顺带暴露同一缺口族——预置四 label 与目录条目的 `tree_path`（同表 NOT NULL）也从未定义。补：①§4.1 种子明确 enum schema 的 `tree_path=材料`（**单段、不含 `/`**，含 `/` 则永远无法被 label 定位）+ R13 三条写入路径共用的定位规则（取 `label.tree_path` 第一段**精确匹配** `field_type='enum'` 的 schema tree_path，服务端据此定位 `schema_id`，**body 不收 `schema_id`**，无匹配 → 422）；②§4.3 预置四 label 补 tree_path 列 `材料/塑料/<code>`（BG 归 `材料` 是阶段一只有单 enum schema 的工程必然，"背景非材料"的语义别扭记录在案不另设 schema）；③§4.4 目录条目入项目 tree_path 同规则、由服务端生成（body 不收）；④§5.6 三种 body 各自标注"不收什么"；⑤6.1 加验收一条。**复核方主动扫全表补第三处**：`label.sort_order` 同列 NOT NULL 且三路径亦无供值规则（预置=4.3 sort 列 / 目录添加=目录序号 PE=1…SAN=21 / 自定义=max+1），与 `schema_id` 同源，一并纳入 R13 同块定义。**沉淀：八查补第 5.6 条**——每条 NOT NULL 列（及每个请求体缺省即无值的字段），在每条写入路径上都必须有显式供值来源（body 字段 / 服务端规则 / 种子数据，三者都不占即缺）；codex 三次即停（色值 / 请求契约 / schema 归属）全是这一条漏检；复核方按同一条规律主动扫全表，抓出第四处 `sort_order` | codex 执行期二检：十查只查了"列定义"，没查"写路径覆盖" |
 | R14 | **codex 三触即停：既有实现与卡内异常口径冲突（跨里程碑）**：`Registry.readable`（registry.py:140）直接调 `read_header` 无 try/except，源文件缺失时 reader 的 `FILE_NOT_FOUND` 原样传出；而 §6.4 要求"源移动/改动 → SOURCE_CHANGED"。裁定：**卡是对的、实现没对齐**——在 `readable` 内仅包 `read_header` 一步，任何 `DataError` 统一包装为 `SOURCE_CHANGED`（`context` 带 `source_error` 原码 + `source_detail` + 原 path，`from error` 链式；先剔同名键防碰撞）；字段比对循环原样保留（其 detail"源元数据与登记记录不一致"与新文案区分）。**边界三不动**：`get()` 的 `DATASET_NOT_FOUND`(404)、导入期 `candidates()` 的 `FILE_NOT_FOUND`、reader 单测行为。**跨里程碑影响**：#02 `preview`/`band`/`region` 对"已登记但源移动/缺失"由 `FILE_NOT_FOUND` 改报 `SOURCE_CHANGED`（HTTP 400 不变），v0.1.2 release notes 记账；`info` 走 `get()` 不受影响。必加 6 项测试：删 hdr / 改名 / 换小文件（source_error 实测后断言不猜）/ 未知 id 仍 404 / 引擎缓存命中后删源再 generate 不 force / HTTP 层 preview+superpixels → 400+SOURCE_CHANGED | codex 执行期三检：实现侧漏包装，卡无需改 |
+| R15 | **10.3 开令前复核：排期失实修正 + 7 钉入卡 + 1 待决**。①**排期表失实**：§10 原写 10.2="超像素 + 扩散/提示引擎"，但 10.2 实交付只有超像素+R14+标定（`engines/` 仅 superpixels.py），FR-E04(P0) 悬空；**新增 10.3.5「扩散/提示分割引擎」子阶段**（1 天，不含路由），10.2 行改"实交付不含扩散引擎"，合计 10→11 天（科祥 2026-10-20 拍板）。②**7 钉入卡**（卡未写死、codex 只能自造的点）：`label_index` 空间=项目 label 按 `sort_order` 升序下标且已存版本映射不可变；`geometry` "全覆盖"=超像素全部像素同属该 label（混合块不进任何 geometry）；质量校验距离钉死余弦+原谱 200 波段均值谱（光谱角不并立）、阈值实测后落；`paths.py` 增 `snapshots` property + `snapshot_ref` 存相对 POSIX 路径；`version_no` 新建=max+1、覆写不变；三表 NOT NULL 列逐列报供值来源（R13 纪律）；撤销恢复=label_map 深拷贝+统计现算+"样品主标签"不落库不自造列。③**待决项（阻塞 10.3 实现）**：`annotation.granularity` 卡内冲突——4.1 注释"阶段一恒为 `'pixel'`，`'sample'` 为阶段二预留" vs 5.4 末"样本级：一个 cube 内按 label 各一条"；两选项语义与后果已写进 §5.4，**待科祥拍板**（未定前不实现该列取值） | 10.3 开令前对卡审核（agent 把关） |
+| R16 | **R15 待决项关闭：`annotation.granularity` = `'sample'`**。裁定依据（需求原文三处实证，agent 独立核验逐字吻合）：FR-E01（需求 671 行）"样本级（**整条平均谱一个标签**）"；§6.4.1（1782 行）"可由像素级标签自动聚合成样本级，**反之不成立**"；场景 S1（417 行）"人工确认/修正 → **自动聚合出样本级光谱集（带标签，共 N 条）；标注版本落库**"。**语义：`granularity` 描述记录粒度、非操作粒度**——阶段一操作在像素级（工作态 label_map，不落库），落库 `annotation` 行是聚合产物，取 `'sample'`；`'pixel'` 留给阶段二像素级明细记录（FR-E01"三级可共存"）；`'scene'` 无写入路径。4.1 原注释"阶段一恒为 'pixel'"系早期口径漂移，已改；§5.4 末补句；§6.1 scene 断言补"落库行全为 'sample'" | R15 待决项裁定（科祥取证 + agent 核验原文） |
+| R17 | **codex 四触即停：10.3 五个口径缺口，全部裁定并取证**。① **`label_index` 并列**：`label_sort_order`（labels.py:78-85）三路径可产生并列（custom max+1 vs 目录序号，如 custom=4 与目录 PS=4），排序钉死 **`(sort_order ASC, code ASC)`**——与已发货的 `LabelStore.tree()`（labels.py:130）`ORDER BY sort_order,code` 一致，`code` 项目内 UNIQUE 构成确定全序，不依赖时钟/uuid；`label_index.json` 持久化映射，历史版本免疫。② **混合超像素**：不跳过，按 `(label ∩ 超像素)` 部分均值对查（详见 §5.5 R17 条）。③ **阈值标定授权合成标注**：真实 cube + m=0.5 segments + `KMeans(4, random_state=0, n_init=10)`，仅用于阈值行为与植入离群验证，**不得冒充人工标注/不得用于标注质量断言**。④ **覆写事件落 `annotation_version.note`**（migrations.py:58 已有该列，**不加列**）：`{"event":"overwrite","at":"<ISO8601 UTC>"}`，新建 `note=NULL`，`created_at` 不变。⑤ **授权 `migrations.py` 仅同步 R16 granularity 注释**（diff 只许注释行、零 SQL 语义变化），因 `test_ddl_matches_card_verbatim`（test_storage.py:76）逐字比对卡内 SQL 块，改卡不同步必红；该文件进逐文件 add 清单并在回执点名 | codex 执行期四检：卡未写死口径 + 卡/实现 DDL 同步 |
 | 10.2 标定回填 | 55 格实测后保留 compactness=0.5（仅此档 11/11 满足既有结构断言）；仅回填 §5.2 compactness、§6.1 n/area_cv/R 基线与 §6.3 扩散规模，验收阈值不变；表、独立 R 复算脚本与汇总落档 | `milestone04/evidence/calibration/compactness.csv`、`calibrate.py`、`summary.json`、`pca3-baseline.json`（实现层实测） |
 
 **证据锚点**（供复核抽查）：pe/20260804205214_64，231×640×200，BIL；PCA 3.2 s / evr=[0.309,0.185,0.077,0.048,0.042]；m=0.5 → n=765（细分前）、area_cv=0.182、R≈1.8；m=10 → n=782、area_cv=0.068、R≈1.07；归一化特征图均值 0.492–0.501、std 0.129–0.164、值域 [0,1]；分块 32/64/128/单批 → n=765/765/765/766、area_cv=0.177–0.183；k=3 → τ=0.113、触发 64/765、64 父块拆成 129 子块、细分后 n=830、子块面积中位 86 px（全段面积中位 191 px，勿混）。

@@ -61,7 +61,9 @@ CREATE TABLE IF NOT EXISTS annotation_version (
 );
 
 -- 标注区域（**每 label 一条/版本**，不是操作日志；几何 = 该 label 全覆盖的超像素 id 集合，仅供追溯）
--- 只在保存版本时写入，故 version_id 必填；阶段一 granularity 恒为 'pixel'，'sample'/'scene' 为阶段二预留
+-- granularity 描述【记录粒度】，非操作粒度：'sample'=阶段一落库形态（每 label 每版本一条，
+-- 由像素级标注聚合而来，即 FR-E01"整条平均谱一个标签"）；'pixel'=像素级明细记录（阶段一
+-- 不落库，由工作态 label_map/撤销栈/快照承载，阶段二扩展）；'scene'=场景级（阶段二预留，无写入路径）
 -- 'scene' 无写入路径（见 5.4）
 CREATE TABLE IF NOT EXISTS annotation (
   id          TEXT PRIMARY KEY,

@@ -40,6 +40,10 @@ class AppPaths:
     def database(self) -> Path:
         return self.root / "db" / "spectrum-agent.sqlite3"
 
+    @property
+    def snapshots(self) -> Path:
+        return self.root / "annotations"
+
     def create_directories(self) -> None:
         for directory in (self.run, self.logs, self.testdata, self.database.parent):
             directory.mkdir(parents=True, exist_ok=True)

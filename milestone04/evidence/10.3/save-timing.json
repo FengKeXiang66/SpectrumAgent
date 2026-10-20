@@ -1,0 +1,13 @@
+{
+  "source_level": "implementation measurement; real SQLite and disk I/O on unit fixture, not real-cube performance",
+  "fixture": "src-python/tests/annotation/conftest.py::annotation_case + test_session.py::manual_state",
+  "shape": [
+    40,
+    12,
+    200
+  ],
+  "block_size": 32,
+  "elapsed_seconds_including_aggregation_and_quality": 0.020418400003109127,
+  "write_transaction_seconds": 0.005184599984204397,
+  "peak_rss_bytes": 153563136
+}
