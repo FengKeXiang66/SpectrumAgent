@@ -21,7 +21,7 @@
 ## 二、任务分解（按序执行）
 
 ### P0（先做，小）· #01 REPORT.md 三项补丁收尾
-1. 记忆键归属：改为「Tauri 2 NSIS 安装器标准行为」（MANUPRODUCTKEY，installer.nsi:68-69/:698/:164-166/:889 已口径化，见 VM-BUILD 对照表）；
+1. 记忆键归属：改为「Tauri 2 NSIS 安装器标准行为」（MANUPRODUCTKEY，installer.nsi:68-69/:698/:164-166/:889 已口径化，见 artifacts/step3/checkpoint-4/vm-runbooks/VM-BUILD-Win11Clean.md 对照表）；
 2. 握手残留：追加负责人拍板 A（记已知问题、不进 0.1.1 热修、自愈已实测两次）；
 3. smoke 计时 24.146ms：**在负责人指认轮次前不得粘用**；若不指认，换可采值：engine smoke 178.243 / 211.154 / 208.095 / 316.615 ms，desktop 1292 / 1060 / 1178 ms，并注明档位来源。
 

@@ -18,7 +18,7 @@ def main():
     baseline = "205f0ad"
     source_baseline = "bb7cc6f"
     changed = git("diff", "--name-only", baseline, "--").splitlines()
-    protected = [p for p in changed if p.startswith(("artifacts/", "backend/", "src-tauri/resources/", "src-tauri/nsis/")) or p in {"requirements-lock.txt", "VM-BUILD-Win11Clean.md", "VM-ACCEPTANCE-CHECKPOINT4.md", "collect-vm-evidence.ps1", "src-tauri/tauri.conf.json"}]
+    protected = [p for p in changed if p.startswith(("artifacts/", "backend/", "src-tauri/resources/", "src-tauri/nsis/")) or p in {"requirements-lock.txt", "src-tauri/tauri.conf.json"}]
     assert not protected, protected
     original = git("show", f"{source_baseline}:src-tauri/src/main.rs")
     source = (ROOT / "src-tauri/src/main.rs").read_text("utf-8")
