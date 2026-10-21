@@ -1,0 +1,22 @@
+.preprocess-panel { color: #25364a; background: #f7f9fc; padding: 1rem; border: 1px solid #d4deea; border-radius: 12px; }
+.preprocess-panel header { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; }
+.preprocess-panel h2 { margin: .4rem 0; }
+.pp-layout { display: grid; grid-template-columns: minmax(190px, 240px) minmax(0, 1fr); gap: 1rem; }
+.pp-layout aside > section { margin: .6rem 0; padding: .7rem; background: white; border: 1px solid #d4deea; }
+.pp-main { min-width: 0; }
+.preprocess-panel fieldset { border: 1px solid #c5d2e1; border-radius: 6px; margin: .8rem 0; }
+.preprocess-panel label { display: inline-flex; align-items: center; flex-wrap: wrap; gap: .4rem; margin: .3rem .7rem .3rem 0; }
+.preprocess-panel input[type=number] { width: 7rem; }
+.preprocess-panel button, .preprocess-panel select, .preprocess-panel input { margin: .2rem; padding: .35rem .55rem; }
+.pp-fields, .pp-target { display: flex; align-items: center; flex-wrap: wrap; gap: .3rem; }
+.pp-editor li { margin: .7rem 0; padding: .5rem; background: white; }
+.pp-compare-choice { font-size: .85rem; }
+.preprocess-panel pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+.preprocess-panel canvas { display: block; width: 100%; height: auto; background: white; }
+.pp-legend { display: flex; flex-wrap: wrap; gap: 1rem; list-style: none; padding: 0; }
+.pp-legend span { display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; }
+.pp-metrics { display: flex; flex-wrap: wrap; gap: .8rem; }
+.pp-metrics div { padding: .5rem; background: white; }
+.pp-metrics dd { margin: .3rem 0 0; }
+.preprocess-panel table { width: 100%; overflow-wrap: anywhere; }
+@media (max-width: 900px) { .pp-layout { grid-template-columns: 1fr; } }

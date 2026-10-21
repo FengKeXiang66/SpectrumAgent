@@ -1,5 +1,5 @@
 """R12 synchronous run: preflight, bounded raw reads, global fits, two artifacts."""
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from hashlib import sha256
 import json
@@ -70,6 +70,8 @@ class BoundedInput:
     branch: str
     guard: str
     operators: OperatorRegistry
+    collect_before: bool = False
+    before: dict = field(default_factory=dict)
 
     def lines(self):
         labeled = bool(np.any(self.label_map >= 0))
@@ -84,6 +86,12 @@ class BoundedInput:
                 # B01 is reapplied to raw DN for every pass, never to reflectance.
                 converted = self.operators.run(line[selected], {"steps": [{"op": "reflectance", "version": 1,
                     "params": {"hdr": self.hdr, "branch": self.branch, "guard": self.guard}}]})
+                if self.collect_before:
+                    for index in np.unique(indices[selected]):
+                        pixels = converted.spectra[indices[selected] == index]
+                        state = self.before.setdefault(int(index), {"count": 0, "sum": np.zeros(pixels.shape[1])})
+                        state["count"] += len(pixels)
+                        state["sum"] += pixels.sum(axis=0)
                 yield converted.spectra, indices[selected], converted.steps[0]
             del block, dataset, line
 
@@ -279,9 +287,18 @@ class RunEngine:
                         path.unlink(missing_ok=True)
                     fits[i] = (lambda x, mean=mean, loadings=loadings: transform(x, mean, loadings), meta)
             metrics = PixelMetrics()
+            unlabeled_after = {"count": 0, "sum": None}
             records, b01_meta, final_axis = [], None, wavelengths
+            source.collect_before = True  # Fits above may reread lines; collect only the final execution pass.
             for x, indices, final_axis, line_records, b01 in self._stream(source, pipeline.steps, fits, wavelengths):
                 metrics.update(x, indices)
+                if np.all(indices == -1):
+                    finite = x[np.isfinite(x).all(axis=1)]
+                    if len(finite):
+                        if unlabeled_after["sum"] is None:
+                            unlabeled_after["sum"] = np.zeros(x.shape[1])
+                        unlabeled_after["sum"] += finite.sum(axis=0)
+                        unlabeled_after["count"] += len(finite)
                 if not records:
                     records = line_records
                 else:
@@ -292,6 +309,20 @@ class RunEngine:
                     for key in ("negative_clipped", "nan_bands"):
                         b01_meta["meta"][key] += b01["meta"][key]
             measured, moments = metrics.result(labeled=bool(np.any(source.label_map >= 0)))
+            in_index = np.unique(np.round(np.linspace(0, source.shape[2]-1, min(source.shape[2], 512))).astype(int))
+            out_bands = x.shape[1]
+            out_index = np.unique(np.round(np.linspace(0, out_bands-1, min(out_bands, 512))).astype(int))
+            curve_after = {index: value["mean"] for index, value in moments.items()}
+            if unlabeled_after["count"]:
+                curve_after[-1] = unlabeled_after["sum"]/unlabeled_after["count"]
+            curves = {"labeled": bool(np.any(source.label_map >= 0)),
+                      "wavelengths_in": wavelengths[in_index] if wavelengths is not None and len(wavelengths) else None,
+                      "wavelengths_out": final_axis[out_index] if final_axis is not None and len(final_axis) else None,
+                      "classes": [{"label_index": index, "count": state["count"],
+                                   "before": (state["sum"]/state["count"])[in_index],
+                                   "after": curve_after[index][out_index] if index in curve_after else None}
+                                  for index, state in sorted(source.before.items())],
+                      "sampling": "等距索引 np.unique(round(linspace(0,n-1,min(n,512))))；确定性，非均值池化"}
             scaler = [entry[1]["fitted"] for i, entry in sorted(fits.items()) if pipeline.steps[i].op == "standardize"]
             # Area/vector have no global fit but still supply their explicit [] fitted.
             scaler_records = [record["meta"]["fitted"] for record in records if record["op"] == "standardize"]
@@ -300,7 +331,7 @@ class RunEngine:
             report = {"run_id": identifier, "cube_id": str(cube_id), "annotation_version_id": str(annotation_version_id),
                       "recipe_version_id": str(recipe_version_id), "input_fingerprint": fingerprint,
                       "source_hashes": hashes, "label_index": label_index, "metrics": measured, "steps": records,
-                      "b01": b01_meta, "wavelengths": final_axis, "temporary_bytes": temp_bytes,
+                      "b01": b01_meta, "wavelengths": final_axis, "curves": curves, "temporary_bytes": temp_bytes,
                       "temporary_peak_bytes": temp_peak_bytes,
                       "temporary_data": "ICA 当前输入（选中像素→B01→前序步骤）的有限行；float64 单份 memmap；temporary_bytes 为累计写入字节",
                       "peak_rss_bytes": max(rss, peak_rss()), "input_fingerprint_matches_previous":

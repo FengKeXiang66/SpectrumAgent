@@ -1,0 +1,139 @@
+{
+  "stage": "11.6",
+  "card_lines": 313,
+  "card_revision": "R15",
+  "python": {
+    "baseline": 617,
+    "new": 4,
+    "passed": 621,
+    "failed": 0,
+    "skipped": 0,
+    "exit_code": 0,
+    "mode": "repository-root .venv/Scripts/python.exe -m pytest backend/tests src-python/tests -q; default parameters; PYTEST_DEBUG_TEMPROOT=E:/AI_Agent/.runtime/pytest-tmp in same PowerShell invocation"
+  },
+  "rust": {
+    "baseline": 56,
+    "new": 0,
+    "passed": 56,
+    "failed": 0,
+    "ignored": 0,
+    "exit_code": 0,
+    "mode": "src-tauri cwd; cargo test, default parallel/default features; unit/integration/doc; CARGO_NET_OFFLINE=true; TEMP/TMP on E",
+    "suites": [
+      [
+        41,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        2,
+        0,
+        0
+      ],
+      [
+        6,
+        0,
+        0
+      ],
+      [
+        1,
+        0,
+        0
+      ],
+      [
+        1,
+        0,
+        0
+      ],
+      [
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        3,
+        0,
+        0
+      ],
+      [
+        1,
+        0,
+        0
+      ]
+    ]
+  },
+  "node": {
+    "version": "22.22.2",
+    "executable": "C:/Users/Administrator/.workbuddy-ai/binaries/node/versions/22.22.2-6/node.exe",
+    "baseline": 31,
+    "new": 28,
+    "passed": 59,
+    "failed": 0,
+    "skipped": 0,
+    "exit_code": 0,
+    "mode": "repository-root node --test src/components/preprocess/*.test.ts src/components/datasets/*.test.ts src/components/annotation/*.test.ts; default built-in runner; logic tests, no DOM"
+  },
+  "typescript": {
+    "mode": "managed Node 22.22.2 first on PATH; npx --no-install tsc --noEmit",
+    "exit_code": 0
+  },
+  "boundaries": {
+    "rust_diff_empty": true,
+    "preprocess_routes_diff_empty": true,
+    "existing_test_assertions_changed": false,
+    "new_dependencies": 0,
+    "seed_sha256": "388ED3A86BDF60C5054E8DF9A5EB197A96A112B0BF2FC59EFA1BCF1A29F648D2",
+    "manual_ui_smoke": "科祥；not performed by this logic-test stage"
+  },
+  "operators": [
+    "sg_smooth",
+    "sg_derivative",
+    "snv",
+    "standardize",
+    "crop",
+    "resample",
+    "pca",
+    "mnf",
+    "ica",
+    "continuum"
+  ],
+  "operator_count_note": "Card enumerates ten names; reflectance/msc/emsc excluded explicitly. No additional name invented and card unchanged.",
+  "curves_sample": {
+    "source_level": "implementation measurement; actual RunEngine on real pe cube; default block_size=32/guard=clip",
+    "annotation_purpose": "10.7 scripted synthetic integration regions; no human annotation quality claim",
+    "header": "E:\\高光谱数据集\\plastic\\pe\\20260804205214_64.hdr",
+    "runtime": "E:\\AI_Agent\\.runtime\\m05-11.6\\8ce5224bfbe14f43ba4389daaafacc30",
+    "run_id": "b10ce045-fa35-4ee4-af6f-35571454b964",
+    "status": "succeeded",
+    "annotation_version_id": "06c7481b-4aef-472d-8303-188a8b0a9d5f",
+    "recipe_version_id": "c459c038-95d7-4b72-8912-2ce7a6475a45",
+    "recipe_code": "plastic-snv-sg1",
+    "b01_branch": "scale",
+    "report_sha256": "48c181a94dd6cabc41d0aac71ae3807bb7fcfa63e8022ca66cacae77ad4ae727"
+  },
+  "curves_counts": [
+    {
+      "label_index": 1,
+      "count": 17996
+    },
+    {
+      "label_index": 2,
+      "count": 18004
+    }
+  ],
+  "acceptance": {
+    "card_section": "5.1",
+    "items": 13,
+    "mapping": "acceptance-map.md"
+  }
+}
