@@ -14,7 +14,8 @@ export type ImportResponse = {
   datasets: DatasetRecord[];
   summary: { total: number; imported: number; existing: number };
 };
-export type Preview = { id: string; band: number; width: number; height: number; mime: 'image/png'; png_base64: string };
+export type Preview = { id: string; band: number; width: number; height: number; mime: 'image/png'; png_base64: string;
+  bands?: [number, number, number]; wavelengths?: number[]; fallback?: boolean };
 export type PreviewOptions = { band?: number; bands?: string; stretch?: 'auto' | 'none'; size?: 'preview' | 'full' };
 export type DatasetTransport = {
   chooseDirectories: () => Promise<string[] | null>;

@@ -207,6 +207,22 @@
               "default": "auto",
               "title": "Stretch"
             }
+          },
+          {
+            "name": "bands",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Bands"
+            }
           }
         ],
         "responses": {
@@ -215,7 +231,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PreviewResponse"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/PreviewResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ColorPreview"
+                    }
+                  ],
+                  "title": "Response Preview Api V1 Datasets  Identifier  Preview Get"
                 }
               }
             }
@@ -1567,6 +1591,77 @@
           "codes"
         ],
         "title": "CatalogRequest"
+      },
+      "ColorPreview": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "band": {
+            "type": "integer",
+            "title": "Band"
+          },
+          "width": {
+            "type": "integer",
+            "title": "Width"
+          },
+          "height": {
+            "type": "integer",
+            "title": "Height"
+          },
+          "mime": {
+            "type": "string",
+            "title": "Mime",
+            "default": "image/png"
+          },
+          "png_base64": {
+            "type": "string",
+            "title": "Png Base64"
+          },
+          "bands": {
+            "prefixItems": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "type": "array",
+            "maxItems": 3,
+            "minItems": 3,
+            "title": "Bands"
+          },
+          "wavelengths": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Wavelengths"
+          },
+          "fallback": {
+            "type": "boolean",
+            "title": "Fallback"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "band",
+          "width",
+          "height",
+          "png_base64",
+          "bands",
+          "wavelengths",
+          "fallback"
+        ],
+        "title": "ColorPreview"
       },
       "CustomRequest": {
         "properties": {

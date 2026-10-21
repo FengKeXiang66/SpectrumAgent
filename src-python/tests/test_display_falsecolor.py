@@ -1,6 +1,7 @@
 """TASK-06: independent pixel/PNG/API checks, using the project BIL reader."""
 import base64
 import math
+from itertools import permutations
 from pathlib import Path
 import struct
 import zlib
@@ -13,6 +14,7 @@ from backend.identity import EngineIdentity
 from backend.paths import AppPaths
 from spectrumagent.api.datasets import png_gray
 from spectrumagent.app import create_app
+from spectrumagent.display.falsecolor import compose_rgb
 
 
 @pytest.fixture
@@ -125,3 +127,103 @@ def test_invalid_stretch_is_structured(display_api):
     identifier, _ = register(np.ones((2, 3, 4)))
     response = client.get(f'/api/v1/datasets/{identifier}/preview?band=0&stretch=bad')
     assert response.status_code == 400 and response.json()['error'] == 'INVALID_REQUEST'
+
+
+@pytest.mark.parametrize('stretch', ['auto', 'none'])
+def test_rgb_joint_mapping_no_second_stretch_or_independent_noise_amplification(stretch):
+    r = np.linspace(0, 100, 100).reshape(10, 10)
+    g = r*.5
+    b = np.linspace(49, 50, 100).reshape(10, 10)
+    original = np.stack((r, g, b), axis=2)
+    lo, hi = np.percentile(original, [2, 98]) if stretch == 'auto' else (original.min(), original.max())
+    expected = np.clip((original-lo)/(hi-lo)*255, 0, 255)
+    expected = np.rint(expected) if stretch == 'auto' else expected
+    actual = pixels(compose_rgb(r, g, b, stretch))
+    np.testing.assert_array_equal(actual, expected.astype(np.uint8))
+    assert np.ptp(actual[:, :, 2]) < 10
+
+
+@pytest.mark.parametrize('value', [4., np.nan])
+@pytest.mark.parametrize('stretch', ['auto', 'none'])
+def test_rgb_constant_or_all_nan_is_black(value, stretch):
+    plane = np.full((2, 3), value)
+    assert not pixels(compose_rgb(plane, plane, plane, stretch)).any()
+
+
+@pytest.mark.parametrize('stretch', ['auto', 'none'])
+def test_rgb_nonfinite_is_excluded_and_maps_black(stretch):
+    source = np.arange(18., dtype=float).reshape(2, 3, 3)
+    source[0, 0] = [np.nan, np.inf, -np.inf]
+    valid = source[np.isfinite(source)]
+    lo, hi = np.percentile(valid, [2, 98]) if stretch == 'auto' else (valid.min(), valid.max())
+    expected = np.zeros(source.shape, dtype=np.uint8)
+    scaled = np.clip((source[np.isfinite(source)]-lo)/(hi-lo)*255, 0, 255)
+    expected[np.isfinite(source)] = (np.rint(scaled) if stretch == 'auto' else scaled).astype(np.uint8)
+    np.testing.assert_array_equal(pixels(compose_rgb(*np.moveaxis(source, 2, 0), stretch)), expected)
+
+
+@pytest.mark.parametrize('size', ['preview', 'full'])
+def test_manual_rgb_channel_order_metadata_and_dimensions_match_gray(display_api, size):
+    client, register = display_api
+    values = np.arange(4*514*5, dtype=float).reshape(4, 514, 5)
+    axis = [900, 1000, 1100, 1200, 1300]
+    identifier, _ = register(values, wavelengths=axis)
+    rgb = [4, 2, 0]
+    result = client.get(f'/api/v1/datasets/{identifier}/preview?bands=4,2,0&size={size}').json()
+    gray = client.get(f'/api/v1/datasets/{identifier}/preview?band=0&size={size}').json()
+    assert (result['width'], result['height']) == (gray['width'], gray['height'])
+    assert result['bands'] == rgb and result['band'] == rgb[0]
+    assert result['wavelengths'] == [axis[i] for i in rgb]
+    assert result['fallback'] is False
+    assert pixels(result['png_base64']).shape[2] == 3
+
+
+@pytest.mark.parametrize('query,code', [
+    ('bands=0,1', 'INVALID_BANDS'), ('bands=0,1,2,3', 'INVALID_BANDS'),
+    ('bands=1,1,2', 'INVALID_BANDS'), ('bands=-1,1,2', 'INVALID_BANDS'),
+    ('bands=0,x,2', 'INVALID_BANDS'), ('bands=0,1,5', 'INVALID_BANDS'),
+    ('band=0&bands=0,1,2', 'INVALID_REQUEST'),
+])
+def test_manual_rgb_invalid_bands_are_structured(display_api, query, code):
+    client, register = display_api
+    identifier, _ = register(np.ones((2, 3, 4)))
+    response = client.get(f'/api/v1/datasets/{identifier}/preview?'+query)
+    assert response.status_code == 400 and response.json()['error'] == code
+
+
+def test_rgb_cache_revalidates_source_and_invalidates_on_source_changed(display_api, monkeypatch):
+    from spectrumagent.api import datasets
+    client, register = display_api
+    identifier, header = register(np.ones((2, 3, 4)))
+    original = datasets.compose_rgb
+    calls = []
+    def spy(*args):
+        calls.append(1)
+        return original(*args)
+    monkeypatch.setattr(datasets, 'compose_rgb', spy)
+    endpoint = f'/api/v1/datasets/{identifier}/preview?bands=0,1,2'
+    assert client.get(endpoint).status_code == 200
+    assert client.get(endpoint).status_code == 200 and len(calls) == 1
+    saved = header.read_bytes()
+    header.unlink()
+    failed = client.get(endpoint)
+    assert failed.status_code == 400 and failed.json()['error'] == 'SOURCE_CHANGED'
+    header.write_bytes(saved)
+    assert client.get(endpoint).status_code == 200 and len(calls) == 2
+
+
+def test_rgb_cache_is_lru_eight(display_api, monkeypatch):
+    from spectrumagent.api import datasets
+    client, register = display_api
+    identifier, _ = register(np.ones((2, 3, 4)))
+    original = datasets.compose_rgb
+    calls = []
+    def spy(*args):
+        calls.append(1)
+        return original(*args)
+    monkeypatch.setattr(datasets, 'compose_rgb', spy)
+    requests = [f'/api/v1/datasets/{identifier}/preview?bands='+','.join(map(str, p)) for p in list(permutations(range(4), 3))[:9]]
+    for endpoint in [requests[0], *requests]:
+        assert client.get(endpoint).status_code == 200
+    assert len(calls) == 9
+    assert client.get(requests[0]).status_code == 200 and len(calls) == 10

@@ -1,7 +1,11 @@
 import base64
+from collections import OrderedDict
+import logging
 import math
 import struct
 from typing import Literal
+from threading import RLock
+from time import perf_counter
 from uuid import UUID
 import zlib
 
@@ -9,12 +13,18 @@ from fastapi import APIRouter, Query
 import numpy as np
 
 from spectrumagent.data import DataError
-from spectrumagent.display.falsecolor import map_values
+from spectrumagent.display.falsecolor import compose_rgb, map_values
 from .registry import DatasetRegistry
 from .schemas import BandResponse, DatasetRecord, ImportRequest, ImportResponse, PreviewResponse, RegionRequest, RegionResponse
 
 MAX_PREVIEW_SIDE = 512
 MAX_JSON_VALUES = 65536
+
+
+class ColorPreview(PreviewResponse):
+    bands: tuple[int, int, int]
+    wavelengths: list[float]
+    fallback: bool
 
 
 def png_gray(array: np.ndarray) -> str:
@@ -41,6 +51,8 @@ def json_values(array):
 
 def make_router(registry: DatasetRegistry):
     router = APIRouter(prefix="/api/v1/datasets", tags=["datasets"])
+    png_cache = OrderedDict()
+    display_lock = RLock()
 
     @router.post("/import", response_model=ImportResponse)
     def import_dataset(request: ImportRequest):
@@ -51,13 +63,43 @@ def make_router(registry: DatasetRegistry):
         ds, _ = registry.get(identifier)
         return DatasetRecord(id=identifier, dataset=ds, existing=True)
 
-    @router.get("/{identifier}/preview", response_model=PreviewResponse)
+    @router.get("/{identifier}/preview", response_model=PreviewResponse | ColorPreview)
     def preview(identifier: UUID, band: int | None = Query(None, ge=0), size: Literal["preview", "full"] = "preview",
-                stretch: Literal["auto", "none"] = "auto"):
-        if band is None:
-            raise DataError("INVALID_REQUEST", "必须指定单波段 band 或伪彩 bands")
-        ds, _ = registry.readable(identifier, raw=False)
+                stretch: Literal["auto", "none"] = "auto", bands: str | None = None):
+        if (band is None) == (bands is None):
+            raise DataError("INVALID_REQUEST", "band 与 bands 必须且只能指定一个")
+        try:
+            ds, _ = registry.readable(identifier, raw=False)
+        except DataError as error:
+            if error.code == "SOURCE_CHANGED":
+                with display_lock:
+                    for key in list(png_cache):
+                        if key[0] == str(identifier):
+                            del png_cache[key]
+            raise
         stride = 1 if size == "full" else max(1, math.ceil(max(ds.shape[:2]) / MAX_PREVIEW_SIDE))
+        if bands is not None:
+            try:
+                rgb = tuple(int(value) for value in bands.split(','))
+            except ValueError as error:
+                raise DataError("INVALID_BANDS", "bands 必须是三个不同波段索引") from error
+            if len(rgb) != 3 or len(set(rgb)) != 3 or any(b < 0 or b >= ds.shape[2] for b in rgb):
+                raise DataError("INVALID_BANDS", "bands 必须是范围内三个不同波段，顺序对应R/G/B")
+            key = (str(identifier), rgb, stretch, size)
+            with display_lock:
+                if key in png_cache:
+                    png_cache.move_to_end(key)
+                    return png_cache[key]
+                started = perf_counter()
+                image = ds.read_subimage(list(range(0, ds.shape[0], stride)), list(range(0, ds.shape[1], stride)), list(rgb))
+                result = ColorPreview(id=identifier, band=rgb[0], bands=rgb,
+                    wavelengths=[ds.wavelengths[b] for b in rgb] if ds.wavelengths else [], fallback=False,
+                    width=image.shape[1], height=image.shape[0], png_base64=compose_rgb(*np.moveaxis(image, 2, 0), stretch))
+                png_cache[key] = result
+                if len(png_cache) > 8:
+                    png_cache.popitem(last=False)
+                logging.getLogger(__name__).debug("display_rgb_cache_miss duration_ms=%.3f", (perf_counter()-started)*1000)
+                return result
         image = ds.read_subimage(list(range(0, ds.shape[0], stride)), list(range(0, ds.shape[1], stride)), [band])[:, :, 0]
         gray = map_values(image, stretch)
         return PreviewResponse(id=identifier, band=band, width=gray.shape[1], height=gray.shape[0], png_base64=png_gray(gray))
