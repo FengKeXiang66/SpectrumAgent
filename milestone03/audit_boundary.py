@@ -48,7 +48,7 @@ def main():
     acl = json.loads(read("src-tauri/gen/schemas/acl-manifests.json"))["__app-acl__"]["permissions"]
     assert {c for p in acl.values() for c in p["commands"]["allow"]} == set(commands)
     config = json.loads(read("src-tauri/tauri.conf.json"))
-    assert config["version"] == "0.1.2" and config["identifier"] == "com.spectrumagent.desktop"
+    assert config["version"] == "0.1.3" and config["identifier"] == "com.spectrumagent.desktop"
     previous = json.loads(original("src-tauri/tauri.conf.json"))
     assert {k:v for k,v in config.items() if k != "version"} == {k:v for k,v in previous.items() if k != "version"}
     assert read("backend/__init__.py") == original("backend/__init__.py")
@@ -61,7 +61,7 @@ def main():
               "release_handler_literal":literal,"release_handler_count":7,"dev_handler_matches_release":True,
               "commands":commands,"only_added_command":"annotations_forward,preprocess_forward",
               "unchanged_debug_adoption_and_identity_files":isolated,"only_added_permission":"allow-annotations-forward,allow-preprocess-forward",
-              "product_version":"0.1.2","protocol_version":"0.1.0","locks_unchanged":baseline,
+              "product_version":"0.1.3","protocol_version":"0.1.0","locks_unchanged":baseline,
               "old_revision_tracked_diff_empty":True,"frontend_dataset_panel_release_enabled":True}
     # Keep historical #03 evidence immutable; this approved extension has its own evidence.
     output = ROOT / "milestone05/evidence/11.5/boundary.json"
