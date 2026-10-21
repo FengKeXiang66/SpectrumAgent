@@ -1,0 +1,32 @@
+{
+  "head": "a052b3353b2e353acbe4e522d02b7e188c2a05fd",
+  "mode": "repository root .venv/Scripts/python.exe milestone06/evidence/preflight.py; sandbox default; project Registry.readable(raw=False), no manual memmap; isolated E runtime",
+  "source_header": "E:\\高光谱数据集\\plastic\\pe\\20260804205214_64.hdr",
+  "cube_shape": [
+    231,
+    640,
+    200
+  ],
+  "preview_shape": [
+    116,
+    320
+  ],
+  "stride": 2,
+  "round_vs_head_different_pixels": 8502,
+  "head_png_sha256": "6165fcd12361926afe59e780f2008f5a44c065f666909d6785a92b579e857203",
+  "round_png_sha256": "aec2b87fad9964859b237bef7140d8f9327c6879bc78d1f1cfe26b14abdf5a78",
+  "png_bytes_equal": false,
+  "card_explicit_bands_example": [
+    186,
+    124,
+    62
+  ],
+  "example_satisfies_strict_increasing": false,
+  "whitelist_gaps": [
+    "src-python/spectrumagent/api/openapi.json (existing full snapshot equality assertion)",
+    "src-python/tests/data/test_api.py:132 (existing default-preview test asserts min/max truncation)",
+    "src/components/annotation/display/display.ts (named by card 6.9, absent from 4)",
+    "docs/release-notes-v0.1.2.md (required by card 2.1, absent from 4)"
+  ],
+  "pytest_cargo_node_baselines": "not run in this preflight; blocked by contract conflicts"
+}

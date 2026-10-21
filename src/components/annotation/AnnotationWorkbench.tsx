@@ -7,6 +7,7 @@ import { bindingProblem, changeLabelKey, chord, defaultPreferences, labelKey, re
 import AnnotationCanvas, { type PromptMode } from './canvas/AnnotationCanvas.tsx';
 import LabelPanel from './LabelPanel.tsx';
 import CandidateQueue from './CandidateQueue.tsx';
+import DisplayToolbar from './display/DisplayToolbar.tsx';
 import './annotation.css';
 
 type Props = { record: DatasetRecord; records: DatasetRecord[]; datasets: DatasetTransport;
@@ -32,6 +33,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
   const [schemas, setSchemas] = useState<LabelSchema[]>([]), [catalog, setCatalog] = useState<CatalogItem[]>([]);
   const [versions, setVersions] = useState<Version[]>([]), [projectName, setProjectName] = useState('');
   const [base, setBase] = useState<Png | null>(null), [segmentation, setSegmentation] = useState<Png | null>(null);
+  const [displayBand, setDisplayBand] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null), [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [tool, setTool] = useState<Tool>('diffuse'), [tab, setTab] = useState<'superpixels' | 'diffuse' | 'prompt'>('superpixels');
   const [prompt, setPrompt] = useState<PromptMode>('point'), [draft, setDraft] = useState<Geometry | null>(null);
@@ -97,10 +99,15 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
       } catch (failure) { if (isLive()) setError(describeAnnotationError(failure)); }
       finally { if (isLive()) { setBusy(false); busyRef.current = false; } }
     })();
-    void datasets.preview(id, 0).then(png => { if (isLive()) setBase(png); })
-      .catch(failure => { if (isLive()) setError(describeAnnotationError(failure)); });
     return () => { disposed = true; alive.current = false; };
   }, [api, datasets, id]);
+  useEffect(() => {
+    let cancelled = false;
+    setBase(null);
+    void datasets.preview(id, { band: displayBand, size: 'full' }).then(png => { if (!cancelled) setBase(png); })
+      .catch(failure => { if (!cancelled) setError(describeAnnotationError(failure)); });
+    return () => { cancelled = true; };
+  }, [datasets, id, displayBand]);
   useEffect(() => { try { localStorage.setItem(preferenceKey, JSON.stringify(preferences)); } catch { /* Optional preferences only. */ } }, [preferences]);
 
   const execute = async (operation: () => Promise<unknown>, success: string, metadata = false, afterRead?: (next: Working) => void): Promise<boolean> => {
@@ -261,6 +268,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
           <details className="annotation-hint"><summary>默认值与相似度口径</summary>SLIC 默认值来自 TASK-04 §5.2（11 cube 标定 compactness=0.5）；扩散默认 0.92 来自需求场景 S1；入队默认 0.80 来自 UI 原型 S05。增长比较邻接对原谱均值；报告比较种子原谱。均为可调默认值。</details>
           {dirty && <p className="annotation-warning">参数已改，先重新生成超像素；已有标注按像素保留。</p>}
           {!busy && !synchronized && <p className="annotation-warning">工作态尚未成功读回，请先刷新；编辑暂不可用。</p>}
+          <DisplayToolbar bands={record.dataset.shape[2]} wavelengths={record.dataset.wavelengths} band={displayBand} onBand={setDisplayBand} />
           <AnnotationCanvas shape={record.dataset.shape} base={base} segmentation={segmentation} working={working} selectedKey={selectedKey}
             tool={tool} prompt={prompt} disabled={busy || !ready} panHeld={panHeld} draft={draft} brushPrompt={tab === 'prompt'}
             onSeed={seed => { void diffuse(seed); }} onGeometry={value => { setDraft(value); setSelectedKey(null); setMessage('多边形已选；选择标签后确认，或标记为不确定。'); }}

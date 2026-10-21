@@ -1,0 +1,378 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling windows-link v0.2.1
+   Compiling serde_core v1.0.229
+   Compiling cfg-if v1.0.5
+   Compiling memchr v2.8.3
+   Compiling litemap v0.8.3
+   Compiling itoa v1.0.18
+   Compiling writeable v0.6.4
+   Compiling siphasher v1.0.4
+   Compiling utf8_iter v1.0.4
+   Compiling icu_normalizer_data v2.3.0
+   Compiling icu_properties_data v2.3.0
+   Compiling fastrand v2.5.0
+   Compiling stable_deref_trait v1.2.1
+   Compiling zmij v1.0.23
+   Compiling smallvec v1.16.3
+   Compiling thiserror v2.0.21
+   Compiling phf_shared v0.13.1
+   Compiling bytes v1.12.1
+   Compiling parking_lot_core v0.9.12
+   Compiling serde v1.0.229
+   Compiling scopeguard v1.2.0
+   Compiling num-conv v0.2.2
+   Compiling log v0.4.34
+   Compiling time-core v0.1.9
+   Compiling winnow v1.0.4
+   Compiling typeid v1.0.3
+   Compiling powerfmt v0.2.1
+   Compiling lock_api v0.4.14
+   Compiling phf_generator v0.13.1
+   Compiling ident_case v1.0.1
+   Compiling deranged v0.5.9
+   Compiling strsim v0.11.1
+   Compiling phf_codegen v0.13.1
+   Compiling windows-sys v0.61.2
+   Compiling autocfg v1.5.1
+   Compiling toml_writer v1.1.3+spec-1.1.0
+   Compiling erased-serde v0.4.10
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling aho-corasick v1.1.5
+   Compiling new_debug_unreachable v1.0.6
+   Compiling fnv v1.0.7
+   Compiling regex-syntax v0.8.11
+   Compiling http v1.5.0
+   Compiling web-time v1.1.0
+   Compiling base64 v0.23.1
+   Compiling equivalent v1.0.3
+   Compiling getrandom v0.4.3
+   Compiling alloc-no-stdlib v3.0.0
+   Compiling serde_json v1.0.154
+   Compiling precomputed-hash v0.1.1
+   Compiling dunce v1.0.5
+   Compiling hashbrown v0.17.1
+   Compiling quick-xml v0.42.0
+   Compiling anyhow v1.0.104
+   Compiling alloc-stdlib v0.3.0
+   Compiling parking_lot v0.12.5
+   Compiling brotli-decompressor v6.0.1
+   Compiling percent-encoding v2.3.2
+   Compiling string_cache v0.9.0
+   Compiling dtoa v1.0.11
+   Compiling form_urlencoded v1.2.2
+   Compiling syn v3.0.9
+   Compiling syn v2.0.119
+   Compiling string_cache_codegen v0.6.1
+   Compiling dtoa-short v0.3.5
+   Compiling indexmap v2.14.2
+   Compiling indexmap v1.9.3
+   Compiling tendril v0.5.1
+   Compiling selectors v0.38.0
+   Compiling bitflags v2.13.2
+   Compiling camino v1.2.6
+   Compiling ctor v1.0.13
+   Compiling web_atoms v0.2.6
+   Compiling brotli v9.0.0
+   Compiling libc v0.2.191
+   Compiling glob v0.3.4
+   Compiling servo_arc v0.4.3
+   Compiling schemars v0.8.22
+   Compiling hashbrown v0.12.3
+   Compiling rustc-hash v2.1.3
+   Compiling bit-vec v0.8.0
+   Compiling time v0.3.55
+   Compiling foldhash v0.2.0
+   Compiling tauri-utils v2.10.2
+   Compiling dyn-clone v1.0.20
+   Compiling regex-automata v0.4.18
+   Compiling semver v1.0.28
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling serde_spanned v1.1.2
+   Compiling uuid v1.28.0
+   Compiling bit-set v0.8.0
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling version_check v0.9.5
+   Compiling shlex v2.0.1
+   Compiling find-msvc-tools v0.1.14
+   Compiling option-ext v0.2.0
+   Compiling cfb v0.14.0
+   Compiling windows-strings v0.5.1
+   Compiling windows-result v0.4.1
+   Compiling pin-project-lite v0.2.17
+   Compiling rustc_version v0.4.1
+   Compiling serde-untagged v0.1.9
+   Compiling simd-adler32 v0.3.10
+   Compiling cc v1.8.0
+   Compiling heck v0.5.0
+   Compiling generic-array v0.14.7
+   Compiling windows-threading v0.2.1
+   Compiling once_cell v1.21.4
+   Compiling static_vcruntime v3.0.0
+   Compiling crc32fast v1.5.2
+   Compiling infer v0.22.0
+   Compiling adler2 v2.0.1
+   Compiling time-macros v0.2.32
+   Compiling raw-window-handle v0.6.2
+   Compiling typenum v1.20.1
+   Compiling miniz_oxide v0.9.1
+   Compiling crossbeam-utils v0.8.23
+   Compiling miniz_oxide v0.8.9
+   Compiling tracing-core v0.1.36
+   Compiling fdeflate v0.3.7
+   Compiling cookie v0.18.2
+   Compiling winapi-util v0.1.11
+   Compiling winreg v0.56.0
+   Compiling dirs-sys v0.5.0
+   Compiling serde_derive_internals v0.29.1
+   Compiling same-file v1.0.6
+   Compiling dirs v7.0.0
+   Compiling flate2 v1.1.10
+   Compiling walkdir v2.5.0
+   Compiling synstructure v0.14.0
+   Compiling darling_core v0.24.1
+   Compiling regex v1.13.1
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling socket2 v0.6.5
+   Compiling mio v1.2.4
+   Compiling vswhom-sys v0.1.3
+   Compiling windows-version v0.1.7
+   Compiling bitflags v1.3.2
+   Compiling futures-core v0.3.34
+   Compiling digest v0.10.7
+   Compiling crossbeam-channel v0.5.17
+   Compiling png v0.17.16
+   Compiling byteorder v1.5.0
+   Compiling tauri-runtime v2.12.2
+   Compiling wry v0.57.0
+   Compiling cpufeatures v0.2.17
+   Compiling tokio v1.53.3
+   Compiling sha2 v0.10.9
+   Compiling png v0.18.1
+   Compiling unicode-segmentation v1.13.3
+   Compiling tauri-runtime-wry v2.12.2
+   Compiling getrandom v0.3.4
+   Compiling muda v0.20.0
+   Compiling futures-sink v0.3.34
+   Compiling windows_x86_64_msvc v0.53.1
+   Compiling vswhom v0.1.0
+   Compiling window-vibrancy v0.8.1
+   Compiling http-body v1.1.0
+   Compiling ico v0.5.0
+   Compiling mime v0.3.17
+   Compiling embed-resource v3.0.12
+   Compiling futures-io v0.3.34
+   Compiling slab v0.4.12
+   Compiling futures-task v0.3.34
+   Compiling phf_macros v0.13.1
+   Compiling derive_more-impl v2.1.1
+   Compiling schemars_derive v0.8.22
+   Compiling windows-interface v0.59.3
+   Compiling windows-implement v0.60.2
+   Compiling tauri-winres v0.3.6
+   Compiling tracing-attributes v0.1.31
+   Compiling webview2-com-macros v0.8.1
+   Compiling serialize-to-javascript-impl v0.1.2
+   Compiling zerofrom-derive v0.1.8
+   Compiling yoke-derive v0.8.4
+   Compiling zerovec-derive v0.11.6
+   Compiling displaydoc v0.2.7
+   Compiling serde_derive v1.0.229
+   Compiling thiserror-impl v2.0.21
+   Compiling cssparser-macros v0.7.1
+   Compiling phf v0.13.1
+   Compiling serde_repr v0.1.21
+   Compiling windows-core v0.62.2
+   Compiling cssparser v0.37.0
+   Compiling httparse v1.10.1
+   Compiling derive_more v2.1.1
+   Compiling futures-util v0.3.34
+   Compiling tower-service v0.3.3
+   Compiling try-lock v0.2.5
+   Compiling windows-targets v0.53.5
+   Compiling sync_wrapper v1.0.2
+   Compiling want v0.3.2
+   Compiling num-traits v0.2.19
+   Compiling rfd v0.16.0
+   Compiling tower-layer v0.3.3
+   Compiling atomic-waker v1.1.2
+   Compiling windows-sys v0.60.2
+   Compiling futures-channel v0.3.34
+   Compiling ipnet v2.12.2
+   Compiling http-body-util v0.1.5
+   Compiling open v5.4.4
+   Compiling tracing v0.1.44
+   Compiling windows-future v0.3.2
+   Compiling zerofrom v0.1.8
+   Compiling markup5ever v0.39.0
+   Compiling windows-numerics v0.3.1
+   Compiling windows-collections v0.3.2
+   Compiling yoke v0.8.3
+   Compiling html5ever v0.39.0
+   Compiling softbuffer v0.4.8
+   Compiling zerovec v0.11.8
+   Compiling zerotrie v0.2.5
+   Compiling webview2-com-sys v0.39.1
+   Compiling darling_macro v0.24.1
+   Compiling windows v0.62.2
+   Compiling darling v0.24.1
+   Compiling chrono v0.4.45
+   Compiling serde_with_macros v3.24.0
+   Compiling tinystr v0.8.4
+   Compiling potential_utf v0.1.6
+   Compiling dom_query v0.28.0
+   Compiling icu_collections v2.3.0
+   Compiling icu_locale_core v2.3.0
+   Compiling dpi v0.1.2
+   Compiling jsonptr v0.7.1
+   Compiling plist v1.10.1
+   Compiling keyboard-types v0.8.3
+   Compiling serialize-to-javascript v0.1.2
+   Compiling cargo-platform v0.1.9
+   Compiling serde_with v3.24.0
+   Compiling cargo_toml v1.0.1
+   Compiling cargo_metadata v0.19.2
+   Compiling json-patch v4.2.0
+   Compiling icu_provider v2.3.1
+   Compiling icu_properties v2.3.0
+   Compiling icu_normalizer v2.3.0
+   Compiling tower v0.5.3
+   Compiling hyper v1.12.0
+   Compiling idna_adapter v1.2.2
+   Compiling idna v1.1.0
+   Compiling hyper-util v0.1.21
+   Compiling url v2.5.8
+   Compiling urlpattern v0.6.0
+   Compiling tower-http v0.6.11
+   Compiling reqwest v0.13.5
+   Compiling tauri-build v2.7.3
+   Compiling tauri-plugin v2.7.2
+   Compiling tauri-codegen v2.7.3
+   Compiling tauri v2.12.4
+   Compiling tauri-macros v2.7.3
+   Compiling tauri-plugin-fs v2.7.1
+   Compiling tauri-plugin-dialog v2.8.3
+   Compiling tauri-plugin-opener v2.7.2
+   Compiling spectrum-agent v0.1.0 (E:\AI_Agent\src-tauri)
+   Compiling tao v0.37.1
+   Compiling webview2-com v0.39.1
+   Compiling tauri-plugin-single-instance v2.5.4
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 43s
+     Running unittests src\lib.rs (target\debug\deps\spectrum_agent-fc5a2225eca9e0bc.exe)
+
+running 41 tests
+test annotation::tests::parameter_edges_and_unicode_note_match_http_contract ... ok
+test annotation::tests::identifiers_cannot_escape_and_version_numbers_are_not_uuids ... ok
+test annotation::tests::four_management_operations_have_literal_paths_methods_and_bodies ... ok
+test annotation::tests::no_free_url_host_port_path_or_method_can_enter_any_operation ... ok
+test annotation::tests::all_nine_operations_have_exact_paths_methods_and_bodies ... ok
+test annotation::tests::omitted_parameters_stay_omitted_and_all_prompt_geometries_are_typed ... ok
+test annotation::tests::bad_types_lengths_and_out_of_range_parameters_are_rejected ... ok
+test annotation::tests::unknown_operations_and_fields_are_structured_and_never_reflect_input ... ok
+test datasets_dev::tests::all_operations_use_the_handshake_port_and_fixed_namespace ... ok
+test datasets_dev::tests::no_generic_host_port_path_or_method_can_be_deserialized ... ok
+test annotation::tests::project_query_is_strict_then_lowercase_but_dataset_path_is_unchanged ... ok
+test annotation::tests::only_the_supplied_nonzero_handshake_port_is_used ... ok
+test preprocess::tests::actual_generation_guard_used_by_command_rejects_stale_or_nonready ... ok
+test health::route_tests::closed_routes_always_use_numeric_loopback_and_literal_paths ... ok
+test preprocess::tests::four_uuid_error_codes_cover_every_identifier_field ... ok
+test preprocess::tests::builder_sets_three_hundred_seconds_without_waiting ... ok
+test preprocess::tests::all_twelve_destinations_methods_and_exact_bodies ... ok
+test preprocess::tests::manual_base64_matches_rfc4648_vectors ... ok
+test datasets_dev::tests::structured_sidecar_errors_are_preserved_after_identity_validation ... ok
+test preprocess::tests::malformed_http_envelope_uses_generic_error ... ok
+test annotation::tests::structured_sidecar_errors_are_preserved_after_identity_validation ... ok
+test preprocess::tests::unknown_fields_ops_types_artifact_values_and_free_destinations_are_rejected ... ok
+test preprocess::tests::json_success_is_unchanged_and_post_body_is_forwarded ... ok
+test preprocess::tests::uuid_copy_and_port_boundary_preserve_closed_destination ... ok
+test preprocess::tests::structured_http_error_preserves_three_fields ... ok
+test preprocess::tests::redirects_are_not_followed ... ok
+test annotation::tests::label_body_limit_counts_serialized_utf8_and_business_validation_stays_in_python ... ok
+test preprocess::tests::binary_payload_and_wrapper_filename_are_also_sensitive_checked ... ok
+test preprocess::tests::only_204_maps_empty_body_to_null_not_200 ... ok
+test preprocess::tests::report_stays_json_and_nonartifact_binary_is_rejected ... ok
+test preprocess::tests::raw_and_canonical_tokens_never_cross_bridge ... ok
+test annotation::tests::redirects_are_not_followed_and_sensitive_bodies_never_leave_rust ... ok
+test datasets_dev::tests::response_identity_precedes_status_and_body ... ok
+test annotation::tests::response_identity_precedes_status_and_body ... ok
+test datasets_dev::tests::redirects_are_not_followed_and_sensitive_bodies_never_leave_rust ... ok
+test preprocess::tests::identity_checks_precede_http_status_and_body ... ok
+test preprocess::tests::binary_artifact_roundtrips_and_keeps_filename ... ok
+test annotation::tests::declared_and_streaming_response_limits_are_enforced ... ok
+test preprocess::tests::declared_and_streaming_limits_reject_above_eight_mib ... ok
+test datasets_dev::tests::declared_and_streaming_response_limits_are_enforced ... ok
+test annotation::tests::an_exactly_eight_mib_json_response_is_allowed ... ok
+
+test result: ok. 41 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.22s
+
+     Running unittests src\main.rs (target\debug\deps\spectrum_agent-9760c85afe553455.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\causality.rs (target\debug\deps\causality-36e4b6d833a263b9.exe)
+
+running 2 tests
+test midnight_files_and_preexisting_partial_line_are_handled_without_fallback ... ok
+test only_new_complete_lines_with_own_integer_pid_in_utc_window_can_be_cause ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests\contracts.rs (target\debug\deps\contracts-6e34dbf97624c6bb.exe)
+
+running 6 tests
+test late_generation_and_expected_exit_cannot_fail_current_attempt ... ok
+test all_transition_pairs_and_stopping_terminal_rule ... ok
+test exact_fields_and_top_level_are_enforced ... ok
+test valid_handshake_values_and_integer_utc_comparison ... ok
+test times_reject_nonexistent_dates_leap_seconds_and_non_millisecond_formats ... ok
+test metadata_types_bounds_and_exact_strings_are_enforced ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\dev_identity.rs (target\debug\deps\dev_identity-6600fcd409e08ea7.exe)
+
+running 1 test
+test same_job_creation_time_and_live_process_are_all_required ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\dev_lifecycle.rs (target\debug\deps\dev_lifecycle-e7b10eb393a2d273.exe)
+
+running 1 test
+test real_venv_dual_pid_job_cleanup_and_stale_handshake_recovery ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.26s
+
+     Running tests\engine_path.rs (target\debug\deps\engine_path-4dbb2bb02eb71cdc.exe)
+
+running 1 test
+test constructor_precedes_resource_and_rejects_non_engine_or_relative_paths ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\supervisor_stubs.rs (target\debug\deps\supervisor_stubs-83764e59d4e58d2f.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\win32_failures.rs (target\debug\deps\win32_failures-62b5ecc33cd4760b.exe)
+
+running 3 tests
+test success_closes_thread_immediately_and_cleanup_is_idempotent ... ok
+test five_injected_failures_use_correct_termination_wait_and_exact_handle_counts ... ok
+test unconfirmed_cleanup_is_preserved_and_blocks_retry ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+   Doc-tests spectrum_agent
+
+running 1 test
+test src\health.rs - health::HealthClient::smoke (line 101) - compile fail ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+

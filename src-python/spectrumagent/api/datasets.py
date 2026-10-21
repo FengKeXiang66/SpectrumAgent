@@ -1,6 +1,7 @@
 import base64
 import math
 import struct
+from typing import Literal
 from uuid import UUID
 import zlib
 
@@ -50,9 +51,11 @@ def make_router(registry: DatasetRegistry):
         return DatasetRecord(id=identifier, dataset=ds, existing=True)
 
     @router.get("/{identifier}/preview", response_model=PreviewResponse)
-    def preview(identifier: UUID, band: int = Query(0, ge=0)):
+    def preview(identifier: UUID, band: int | None = Query(None, ge=0), size: Literal["preview", "full"] = "preview"):
+        if band is None:
+            raise DataError("INVALID_REQUEST", "必须指定单波段 band 或伪彩 bands")
         ds, _ = registry.readable(identifier, raw=False)
-        stride = max(1, math.ceil(max(ds.shape[:2]) / MAX_PREVIEW_SIDE))
+        stride = 1 if size == "full" else max(1, math.ceil(max(ds.shape[:2]) / MAX_PREVIEW_SIDE))
         image = ds.read_subimage(list(range(0, ds.shape[0], stride)), list(range(0, ds.shape[1], stride)), [band])[:, :, 0]
         if not np.isfinite(image).all():
             raise DataError("NON_JSON_VALUES", "预览包含非有限值，请检查源数据")

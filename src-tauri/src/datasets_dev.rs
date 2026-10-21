@@ -61,7 +61,14 @@ pub enum DatasetRequest {
     },
     Preview {
         id: String,
-        band: u32,
+        #[serde(default)]
+        band: Option<u32>,
+        #[serde(default)]
+        bands: Option<String>,
+        #[serde(default)]
+        stretch: Option<String>,
+        #[serde(default)]
+        size: Option<String>,
     },
     Band {
         id: String,
@@ -111,11 +118,11 @@ impl DatasetRequest {
                 None,
                 None,
             ),
-            Self::Preview { id, band } => (
+            Self::Preview { id, band, .. } => (
                 format!("/api/v1/datasets/{}/preview", dataset_id(id)?),
                 Method::GET,
                 None,
-                Some(*band),
+                *band,
             ),
             Self::Band { id, band, region } => (
                 format!("/api/v1/datasets/{}/band/{band}", dataset_id(id)?),
@@ -138,6 +145,19 @@ impl DatasetRequest {
         url.set_path(&path);
         if let Some(band) = band {
             url.query_pairs_mut().append_pair("band", &band.to_string());
+        }
+        if let Self::Preview {
+            bands,
+            stretch,
+            size,
+            ..
+        } = self
+        {
+            for (key, value) in [("bands", bands), ("stretch", stretch), ("size", size)] {
+                if let Some(value) = value {
+                    url.query_pairs_mut().append_pair(key, value);
+                }
+            }
         }
         Ok((url, method, body))
     }
@@ -295,7 +315,10 @@ mod tests {
             &identity,
             &DatasetRequest::Preview {
                 id: "00000000-0000-0000-0000-000000000001".into(),
-                band: 0,
+                band: Some(0),
+                bands: None,
+                stretch: None,
+                size: None,
             },
         );
         server
@@ -305,6 +328,33 @@ mod tests {
     }
 
     const IDENTITY: &str = "X-SpectrumAgent-Boot-Id: 1234abcd\r\nX-SpectrumAgent-Pid: 123\r\n";
+
+    #[test]
+    fn preview_legacy_url_is_unchanged_and_optional_fields_allow_rgb_without_band()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let id = "00000000-0000-0000-0000-000000000001";
+        let legacy: DatasetRequest =
+            serde_json::from_value(json!({"op":"preview","id":id,"band":0}))?;
+        let (url, method, body) = legacy.destination(4321)?;
+        assert_eq!(
+            url.as_str(),
+            format!("http://127.0.0.1:4321/api/v1/datasets/{id}/preview?band=0")
+        );
+        assert_eq!(method, Method::GET);
+        assert!(body.is_none());
+        let rgb: DatasetRequest = serde_json::from_value(
+            json!({"op":"preview","id":id,"bands":"auto","stretch":"none","size":"full"}),
+        )?;
+        let (url, _, _) = rgb.destination(4321)?;
+        assert_eq!(url.query(), Some("bands=auto&stretch=none&size=full"));
+        for bad in [
+            json!({"op":"preview","id":id,"band":-1}),
+            json!({"op":"preview","id":id,"path":"/health"}),
+        ] {
+            assert!(serde_json::from_value::<DatasetRequest>(bad).is_err());
+        }
+        Ok(())
+    }
 
     #[test]
     fn response_identity_precedes_status_and_body() -> Result<(), Box<dyn std::error::Error>> {
