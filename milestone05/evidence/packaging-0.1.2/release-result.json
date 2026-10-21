@@ -1,0 +1,12 @@
+{
+  "version": "0.1.2",
+  "installer": "E:\\AI_Agent\\artifacts\\releases\\0.1.2-20261021-151912-073\\SpectrumAgent_0.1.2_x64-setup.exe",
+  "bytes": 297185421,
+  "sha256": "8004FE7C97F0F344C04649A8A535346B8E8E1BACAE11B1089E2CA12BBE111498",
+  "frozen_smoke": "passed",
+  "bundled_smoke": "passed",
+  "nsis_includes_catalog": true,
+  "manual_installed_ui": "not performed",
+  "signed": false,
+  "build_root": "E:\\AI_Agent\\artifacts\\releases\\0.1.2-20261021-151912-073"
+}

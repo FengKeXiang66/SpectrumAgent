@@ -1,0 +1,4 @@
+File /a "/oname=resources\backend\_internal\spectrumagent\annotation\catalog\plastic.json" "E:\AI_Agent\src-tauri\resources\backend\_internal\spectrumagent\annotation\catalog\plastic.json"
+File /a "/oname=resources\backend\_internal\spectrumagent\api\openapi.json" "E:\AI_Agent\src-tauri\resources\backend\_internal\spectrumagent\api\openapi.json"
+File /a "/oname=resources\backend\_internal\spectrumagent\data\error-schema.json" "E:\AI_Agent\src-tauri\resources\backend\_internal\spectrumagent\data\error-schema.json"
+File /a "/oname=resources\backend\_internal\spectrumagent\data\schema.json" "E:\AI_Agent\src-tauri\resources\backend\_internal\spectrumagent\data\schema.json"

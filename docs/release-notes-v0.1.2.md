@@ -42,3 +42,7 @@
 11.7 真实 pe HTTP 全链路、真实 Rust parse_request/forward 探针、逐像素对比性能和全量回归证据位于 `milestone05/evidence/11.7/`。标注区域为脚本集成夹具，不代表人工标注质量；Rust探针不冒充完整WebView invoke。单次本机性能不是跨机承诺，30s采样议题与R13异步议题分别判定，默认参数未调整。
 
 实机UI冒烟、签名/SmartScreen、干净机、长路径与重启仍待科祥执行，见 `milestone05/evidence/11.7/smoke-checklist.md`。安装包最终commit/hash和发布归档待科祥构建后回填 `docs/release_manifest.md`；本阶段不改manifest、不打tag、不push、不创建Release。
+
+## 0.1.2 冻结资源打包修复
+
+修复旧冻结配置仅收集rasterio数据、遗漏spectrumagent包内JSON的问题；缺失plastic.json会在数据库迁移阶段导致sidecar退出，尚未发布就绪握手。当前统一入口为 `scripts/build_release.ps1`（见 `docs/BUILD.md`），使用新的 `scripts/backend.spec` 收集当前包内数据并核对所有JSON的源码哈希。安装包封装前后均实际启动冻结后端，验证身份、标签/目录与真实pe的标注和预处理链路；自检失败即停止，保留旧资源与旧安装包。源码测试不再作为冻结包启动通过的替代证据。产品版本0.1.2与握手兼容版本0.1.0保持不变；此修复未改业务数值或源数据。

@@ -1,0 +1,103 @@
+{
+  "exe": "E:\\AI_Agent\\src-tauri\\target\\release\\resources\\backend\\app.exe",
+  "exe_sha256": "1576a62e2c8a2441ce728ced31e1a70c52df3026ea2cfa2c63caa9730480ac7b",
+  "passed": true,
+  "events": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/labels?project_id=b86c2d3b-ea3d-4b6d-a8ea-938f28263523",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/catalog/plastic",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/preprocess/recipes",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/datasets/import",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/datasets/3f390642-fe23-416b-9ed7-e52275ab624f/superpixels",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/datasets/3f390642-fe23-416b-9ed7-e52275ab624f/diffuse",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/datasets/3f390642-fe23-416b-9ed7-e52275ab624f/annotations/regions",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/datasets/3f390642-fe23-416b-9ed7-e52275ab624f/annotations/save",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/datasets/3f390642-fe23-416b-9ed7-e52275ab624f/preprocess/runs",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/preprocess/runs/e14ecaff-40a1-4ca0-a7ee-5ec16ba550ac/artifacts/report",
+      "status": 200
+    }
+  ],
+  "package_data": [
+    {
+      "path": "_internal/spectrumagent/annotation/catalog/plastic.json",
+      "bytes": 1951,
+      "sha256": "a12cda4e2766163b1020f5481db0fa89fcba075ff92da18fc0032cb8d1d747bf"
+    },
+    {
+      "path": "_internal/spectrumagent/api/openapi.json",
+      "bytes": 62834,
+      "sha256": "e54bf29281a3b10bace8a41611064f85a34bf69cabc94ee6f45dc638a691a2df"
+    },
+    {
+      "path": "_internal/spectrumagent/data/error-schema.json",
+      "bytes": 529,
+      "sha256": "7455f1620dc3736df1e4c5b01d1069321d6ef382200ef458899deab15462bae3"
+    },
+    {
+      "path": "_internal/spectrumagent/data/schema.json",
+      "bytes": 1729,
+      "sha256": "4bfbc973c699e97c5a9f86a6f549c09981776d4001130fefd00f6c181915128c"
+    }
+  ],
+  "runtime": "E:\\AI_Agent\\artifacts\\releases\\0.1.2-20261021-151912-073\\bundled-smoke\\data",
+  "annotation_purpose": "synthetic integration regions on real pe; not human annotation quality",
+  "identity": {
+    "pid": 21332,
+    "boot_id": "9dc4dccb",
+    "version": "0.1.0",
+    "port": 63339
+  },
+  "catalog_count": 21,
+  "superpixels": 830,
+  "run_status": "succeeded",
+  "curves_classes": 1,
+  "sources_unchanged": true,
+  "stopped": true
+}

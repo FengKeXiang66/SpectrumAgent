@@ -1,0 +1,103 @@
+{
+  "exe": "E:\\AI_Agent\\artifacts\\releases\\0.1.2-20261021-151912-073\\engine-dist\\app\\app.exe",
+  "exe_sha256": "1576a62e2c8a2441ce728ced31e1a70c52df3026ea2cfa2c63caa9730480ac7b",
+  "passed": true,
+  "events": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/labels?project_id=a7465c71-7b4f-4dd2-bd11-34defe20b769",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/catalog/plastic",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/preprocess/recipes",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/datasets/import",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/datasets/b054896c-6179-4961-92bb-ab61ce657546/superpixels",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/datasets/b054896c-6179-4961-92bb-ab61ce657546/diffuse",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/datasets/b054896c-6179-4961-92bb-ab61ce657546/annotations/regions",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/datasets/b054896c-6179-4961-92bb-ab61ce657546/annotations/save",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/datasets/b054896c-6179-4961-92bb-ab61ce657546/preprocess/runs",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/preprocess/runs/90d9d7a8-5f05-4e9e-9ed4-2115260aed00/artifacts/report",
+      "status": 200
+    }
+  ],
+  "package_data": [
+    {
+      "path": "_internal/spectrumagent/annotation/catalog/plastic.json",
+      "bytes": 1951,
+      "sha256": "a12cda4e2766163b1020f5481db0fa89fcba075ff92da18fc0032cb8d1d747bf"
+    },
+    {
+      "path": "_internal/spectrumagent/api/openapi.json",
+      "bytes": 62834,
+      "sha256": "e54bf29281a3b10bace8a41611064f85a34bf69cabc94ee6f45dc638a691a2df"
+    },
+    {
+      "path": "_internal/spectrumagent/data/error-schema.json",
+      "bytes": 529,
+      "sha256": "7455f1620dc3736df1e4c5b01d1069321d6ef382200ef458899deab15462bae3"
+    },
+    {
+      "path": "_internal/spectrumagent/data/schema.json",
+      "bytes": 1729,
+      "sha256": "4bfbc973c699e97c5a9f86a6f549c09981776d4001130fefd00f6c181915128c"
+    }
+  ],
+  "runtime": "E:\\AI_Agent\\artifacts\\releases\\0.1.2-20261021-151912-073\\frozen-smoke\\data",
+  "annotation_purpose": "synthetic integration regions on real pe; not human annotation quality",
+  "identity": {
+    "pid": 19496,
+    "boot_id": "3e6c73ee",
+    "version": "0.1.0",
+    "port": 50311
+  },
+  "catalog_count": 21,
+  "superpixels": 830,
+  "run_status": "succeeded",
+  "curves_classes": 1,
+  "sources_unchanged": true,
+  "stopped": true
+}

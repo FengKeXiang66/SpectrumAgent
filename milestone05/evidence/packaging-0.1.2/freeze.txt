@@ -1,0 +1,201 @@
+180 INFO: PyInstaller: 6.22.3, contrib hooks: 2026.8
+180 INFO: Python: 3.12.13
+216 INFO: Platform: Windows-11-10.0.26100-SP0
+216 INFO: Python environment: E:\AI_Agent\.venv
+3917 INFO: Module search paths (PYTHONPATH):
+['E:\\AI_Agent\\src-python',
+ 'E:\\AI_Agent',
+ 'C:\\Users\\Administrator\\AppData\\Roaming\\uv\\python\\cpython-3.12-windows-x86_64-none\\python312.zip',
+ 'C:\\Users\\Administrator\\AppData\\Roaming\\uv\\python\\cpython-3.12-windows-x86_64-none\\DLLs',
+ 'C:\\Users\\Administrator\\AppData\\Roaming\\uv\\python\\cpython-3.12-windows-x86_64-none\\Lib',
+ 'C:\\Users\\Administrator\\AppData\\Roaming\\uv\\python\\cpython-3.12-windows-x86_64-none',
+ 'E:\\AI_Agent\\.venv',
+ 'E:\\AI_Agent\\.venv\\Lib\\site-packages',
+ 'E:\\AI_Agent',
+ 'E:\\AI_Agent\\src-python']
+4406 INFO: Appending 'datas' from .spec
+4410 INFO: checking Analysis
+4410 INFO: Building Analysis because Analysis-00.toc is non existent
+4410 INFO: Looking for Python shared library...
+4410 INFO: Using Python shared library: C:\Users\Administrator\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\python312.dll
+4410 INFO: Running Analysis Analysis-00.toc
+4410 INFO: Target bytecode optimization level: 0
+4410 INFO: Initializing module dependency graph...
+4414 INFO: Initializing module graph hook caches...
+4422 INFO: Analyzing modules for base_library.zip ...
+5884 INFO: Processing standard module hook 'hook-encodings.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+6398 INFO: Processing standard module hook 'hook-math.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+6527 INFO: Processing standard module hook 'hook-heapq.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+7105 INFO: Processing standard module hook 'hook-pickle.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+7998 INFO: Caching module dependency graph...
+8026 INFO: Analyzing E:\AI_Agent\backend\__main__.py
+8055 INFO: Processing standard module hook 'hook-multiprocessing.util.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+8161 INFO: Processing standard module hook 'hook-xml.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+8324 INFO: Processing standard module hook 'hook-_ctypes.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+8369 INFO: Processing pre-safe-import-module hook 'hook-typing_extensions.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+8372 INFO: SetuptoolsInfo: initializing cached setuptools info...
+9825 INFO: Processing standard module hook 'hook-platform.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+9934 INFO: Processing standard module hook 'hook-numpy.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+10398 INFO: Processing standard module hook 'hook-sysconfig.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+10511 INFO: Processing standard module hook 'hook-webbrowser.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+11151 INFO: Processing standard module hook 'hook-difflib.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+12355 INFO: Processing standard module hook 'hook-certifi.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+12426 INFO: Processing standard module hook 'hook-anyio.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+13320 INFO: Processing standard module hook 'hook-pygments.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+14943 INFO: Processing standard module hook 'hook-uvicorn.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+15691 INFO: Processing standard module hook 'hook-websockets.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+16486 INFO: Processing standard module hook 'hook-pydantic.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+17262 INFO: Processing standard module hook 'hook-zoneinfo.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+18029 INFO: Processing standard module hook 'hook-opentelemetry.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+18249 INFO: Processing standard module hook 'hook-sqlite3.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+18824 INFO: Processing standard module hook 'hook-scipy.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+19572 INFO: Processing standard module hook 'hook-pytest.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+19880 INFO: Processing standard module hook 'hook-py.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+20137 INFO: Processing pre-safe-import-module hook 'hook-packaging.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+20246 INFO: Processing pre-safe-import-module hook 'hook-tomli.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+20247 INFO: Setuptools: 'tomli' appears to be a setuptools-vendored copy - creating alias to 'setuptools._vendor.tomli'!
+20251 INFO: Processing standard module hook 'hook-setuptools.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+20262 INFO: Processing pre-safe-import-module hook 'hook-distutils.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+20280 INFO: Processing pre-safe-import-module hook 'hook-jaraco.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+20281 INFO: Setuptools: 'jaraco' appears to be a full setuptools-vendored copy - creating alias to 'setuptools._vendor.jaraco'!
+20290 INFO: Processing pre-safe-import-module hook 'hook-more_itertools.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+20291 INFO: Setuptools: 'more_itertools' appears to be a setuptools-vendored copy - creating alias to 'setuptools._vendor.more_itertools'!
+20376 INFO: Processing standard module hook 'hook-_osx_support.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+20533 INFO: Processing standard module hook 'hook-setuptools._vendor.jaraco.text.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+20535 INFO: Processing pre-safe-import-module hook 'hook-importlib_resources.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+20543 INFO: Processing pre-safe-import-module hook 'hook-backports.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+20543 INFO: Setuptools: 'backports' appears to be a full setuptools-vendored copy - creating alias to 'setuptools._vendor.backports'!
+21192 INFO: Processing pre-safe-import-module hook 'hook-wheel.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+21193 INFO: Setuptools: 'wheel' appears to be a setuptools-vendored copy - creating alias to 'setuptools._vendor.wheel'!
+21728 INFO: Processing standard module hook 'hook-scipy.special._ufuncs.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+22048 INFO: Processing standard module hook 'hook-scipy.linalg.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+23529 INFO: Processing standard module hook 'hook-scipy.spatial._ckdtree.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+23902 INFO: Processing standard module hook 'hook-scipy.spatial.transform.rotation.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+24667 INFO: Processing standard module hook 'hook-scipy.stats._stats.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+25115 INFO: Processing standard module hook 'hook-scipy.sparse.csgraph.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+25686 INFO: Processing standard module hook 'hook-scipy.special._ellip_harm_2.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+25759 INFO: Processing standard module hook 'hook-PIL.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+25827 INFO: Processing standard module hook 'hook-PIL.Image.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+26315 INFO: Processing standard module hook 'hook-xml.etree.cElementTree.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+26424 INFO: Processing standard module hook 'hook-PIL.ImageFilter.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+26727 INFO: Processing standard module hook 'hook-sklearn.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+26970 INFO: Processing standard module hook 'hook-sklearn.utils.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+27075 INFO: Processing standard module hook 'hook-cloudpickle.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+27293 INFO: Processing standard module hook 'hook-narwhals.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+28429 INFO: Processing standard module hook 'hook-sklearn.externals.array_api_compat.numpy.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+28458 INFO: Processing standard module hook 'hook-sklearn.externals.array_api_compat.cupy.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+28468 INFO: Processing standard module hook 'hook-sklearn.externals.array_api_compat.torch.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+28492 INFO: Processing standard module hook 'hook-sklearn.externals.array_api_compat.dask.array.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+28697 INFO: Processing standard module hook 'hook-sklearn.metrics.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+31760 INFO: Processing standard module hook 'hook-sklearn.metrics.cluster.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+31815 INFO: Processing standard module hook 'hook-sklearn.metrics.pairwise.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+31923 INFO: Processing standard module hook 'hook-sklearn.cluster.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+32041 INFO: Processing standard module hook 'hook-sklearn.neighbors.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+32114 INFO: Processing standard module hook 'hook-sklearn.linear_model.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+33077 INFO: Processing standard module hook 'hook-skimage.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+33110 INFO: Processing standard module hook 'hook-skimage.segmentation.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+34237 INFO: Analyzing hidden import 'rasterio._example'
+34237 INFO: Analyzing hidden import 'rasterio._features'
+34237 INFO: Analyzing hidden import 'rasterio._fill'
+34237 INFO: Analyzing hidden import 'rasterio._vendor'
+34237 INFO: Analyzing hidden import 'rasterio._vendor.click_plugins'
+34239 INFO: Analyzing hidden import 'rasterio._vendor.snuggs'
+34458 INFO: Analyzing hidden import 'rasterio._warp'
+34458 INFO: Analyzing hidden import 'rasterio.abc'
+34459 INFO: Analyzing hidden import 'rasterio.cache'
+34459 INFO: Analyzing hidden import 'rasterio.features'
+34473 INFO: Analyzing hidden import 'rasterio.fill'
+34476 INFO: Analyzing hidden import 'rasterio.mask'
+34477 INFO: Analyzing hidden import 'rasterio.merge'
+34485 INFO: Analyzing hidden import 'rasterio.path'
+34486 INFO: Analyzing hidden import 'rasterio.plot'
+34492 INFO: Analyzing hidden import 'rasterio.rio.blocks'
+34500 INFO: Analyzing hidden import 'rasterio.rio.bounds'
+34503 INFO: Analyzing hidden import 'rasterio.rio.calc'
+34508 INFO: Analyzing hidden import 'rasterio.rio.clip'
+34511 INFO: Analyzing hidden import 'rasterio.rio.convert'
+34513 INFO: Analyzing hidden import 'rasterio.rio.create'
+34515 INFO: Analyzing hidden import 'rasterio.rio.edit_info'
+34520 INFO: Analyzing hidden import 'rasterio.rio.env'
+34522 INFO: Analyzing hidden import 'rasterio.rio.gcps'
+34523 INFO: Analyzing hidden import 'rasterio.rio.info'
+34565 INFO: Analyzing hidden import 'rasterio.rio.insp'
+34566 INFO: Analyzing hidden import 'rasterio.rio.main'
+34568 INFO: Analyzing hidden import 'rasterio.rio.mask'
+34570 INFO: Analyzing hidden import 'rasterio.rio.merge'
+34573 INFO: Analyzing hidden import 'rasterio.rio.overview'
+34575 INFO: Analyzing hidden import 'rasterio.rio.rasterize'
+34580 INFO: Analyzing hidden import 'rasterio.rio.rm'
+34581 INFO: Analyzing hidden import 'rasterio.rio.sample'
+34582 INFO: Analyzing hidden import 'rasterio.rio.shapes'
+34584 INFO: Analyzing hidden import 'rasterio.rio.stack'
+34594 INFO: Analyzing hidden import 'rasterio.rio.transform'
+34596 INFO: Analyzing hidden import 'rasterio.rio.warp'
+34603 INFO: Analyzing hidden import 'rasterio.sample'
+34605 INFO: Analyzing hidden import 'rasterio.tools'
+34606 INFO: Analyzing hidden import 'rasterio.vrt'
+34610 INFO: Analyzing hidden import 'uvicorn.__main__'
+34610 INFO: Analyzing hidden import 'uvicorn.lifespan'
+34612 INFO: Analyzing hidden import 'uvicorn.lifespan.off'
+34612 INFO: Analyzing hidden import 'uvicorn.lifespan.on'
+34616 INFO: Analyzing hidden import 'uvicorn.loops'
+34616 INFO: Analyzing hidden import 'uvicorn.loops.asyncio'
+34617 INFO: Analyzing hidden import 'uvicorn.loops.auto'
+34619 INFO: Analyzing hidden import 'uvicorn.loops.zuvloop'
+34622 INFO: Analyzing hidden import 'uvicorn.protocols.http.auto'
+34622 INFO: Analyzing hidden import 'uvicorn.protocols.websockets.auto'
+34623 INFO: Analyzing hidden import 'uvicorn.workers'
+34626 INFO: Analyzing hidden import 'spectral.tests'
+34712 INFO: Processing module hooks (post-graph stage)...
+35000 INFO: Processing standard module hook 'hook-skimage.exposure.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+35740 INFO: Processing standard module hook 'hook-skimage.measure.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+36465 INFO: Processing standard module hook 'hook-skimage.color.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+37189 INFO: Processing standard module hook 'hook-skimage.morphology.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+37411 INFO: Processing standard module hook 'hook-skimage.draw.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+38133 INFO: Processing standard module hook 'hook-skimage.filters.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+39370 INFO: Processing standard module hook 'hook-sklearn.tree.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+39527 WARNING: Hidden import "tzdata" not found!
+39708 INFO: Processing standard module hook 'hook-PIL.SpiderImagePlugin.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks'
+41095 WARNING: Hidden import "scipy.special._cdflib" not found!
+41272 INFO: Processing standard module hook 'hook-skimage.transform.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+41996 INFO: Processing standard module hook 'hook-skimage.restoration.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+42713 INFO: Processing standard module hook 'hook-skimage.feature.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+43581 INFO: Processing standard module hook 'hook-pywt.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+43685 INFO: Processing standard module hook 'hook-skimage.metrics.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+44595 INFO: Performing binary vs. data reclassification (612 entries)
+44628 INFO: Looking for ctypes DLLs
+44737 INFO: Analyzing run-time hooks ...
+44747 INFO: Including run-time hook 'pyi_rth_inspect.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+44749 INFO: Including run-time hook 'pyi_rth_pkgutil.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+44751 INFO: Including run-time hook 'pyi_rth_setuptools.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+44751 INFO: Including run-time hook 'pyi_rth_multiprocessing.py' from 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+44837 INFO: Creating base_library.zip...
+44853 INFO: Looking for dynamic libraries
+47660 INFO: Extra DLL search directories (AddDllDirectory): ['E:\\AI_Agent\\.venv\\Lib\\site-packages\\numpy.libs', 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\scipy.libs', 'E:\\AI_Agent\\.venv\\Lib\\site-packages\\rasterio.libs']
+47660 INFO: Extra DLL search directories (PATH): []
+50245 INFO: Warnings written to E:\AI_Agent\build\backend\warn-backend.txt
+50417 INFO: Graph cross-reference written to E:\AI_Agent\build\backend\xref-backend.html
+50477 INFO: checking PYZ
+50477 INFO: Building PYZ because PYZ-00.toc is non existent
+50477 INFO: Building PYZ (ZlibArchive) E:\AI_Agent\artifacts\releases\0.1.2-20261021-151912-073\engine-build\PYZ-00.pyz
+52173 INFO: Building PYZ (ZlibArchive) E:\AI_Agent\artifacts\releases\0.1.2-20261021-151912-073\engine-build\PYZ-00.pyz completed successfully.
+52204 INFO: checking PKG
+52205 INFO: Building PKG because PKG-00.toc is non existent
+52205 INFO: Building PKG (CArchive) app.pkg
+52244 INFO: Building PKG (CArchive) app.pkg completed successfully.
+52248 INFO: Bootloader E:\AI_Agent\.venv\Lib\site-packages\PyInstaller\bootloader\Windows-64bit-intel\run.exe
+52249 INFO: checking EXE
+52249 INFO: Building EXE because EXE-00.toc is non existent
+52249 INFO: Building EXE from EXE-00.toc
+52249 INFO: Copying bootloader EXE to E:\AI_Agent\artifacts\releases\0.1.2-20261021-151912-073\engine-build\app.exe
+52251 INFO: Copying icon to EXE
+52255 INFO: Copying 0 resources to EXE
+52255 INFO: Embedding manifest in EXE
+52260 INFO: Appending PKG archive to EXE
+52368 INFO: Fixing EXE headers
+52459 INFO: Building EXE from EXE-00.toc completed successfully.
+52467 INFO: checking COLLECT
+52467 INFO: Building COLLECT because COLLECT-00.toc is non existent
+52467 INFO: Building COLLECT COLLECT-00.toc
+53168 INFO: Building COLLECT COLLECT-00.toc completed successfully.
+53181 INFO: Build complete! The results are available in: E:\AI_Agent\artifacts\releases\0.1.2-20261021-151912-073\engine-dist

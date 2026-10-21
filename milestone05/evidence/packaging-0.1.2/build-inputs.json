@@ -1,0 +1,11 @@
+{
+  "version": "0.1.2",
+  "source_commit": "bfa19958e9543b06e37f4061d1e2d261d8911c93",
+  "build_root": "E:\\AI_Agent\\artifacts\\releases\\0.1.2-20261021-151912-073",
+  "node": "v24.19.0",
+  "python": "Python 3.12.13",
+  "cargo": "cargo 1.99.1 (5f94df478 2026-08-27)",
+  "features": "custom-protocol",
+  "freeze_spec": "scripts/backend.spec",
+  "signed": false
+}

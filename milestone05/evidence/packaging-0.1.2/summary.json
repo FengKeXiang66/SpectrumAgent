@@ -1,0 +1,84 @@
+{
+  "version": "0.1.2",
+  "source_commit_before_packaging_fix": "bfa19958e9543b06e37f4061d1e2d261d8911c93",
+  "build_mode": "scripts/build_release.ps1; existing Node 24.19.0/Python 3.12.13/Rust; locked offline cargo; custom-protocol release NSIS; official bundler network permitted",
+  "build_exit_code": 0,
+  "pytest": {
+    "passed": 624,
+    "failed": 0,
+    "skipped": 0,
+    "exit_code": 0,
+    "mode": "repository root python -m pytest backend/tests src-python/tests -q; default params; PYTEST_DEBUG_TEMPROOT set in same command"
+  },
+  "tsc_vite": {
+    "exit_code": 0,
+    "mode": "Tauri beforeBuildCommand: npm run build = tsc --noEmit && vite build"
+  },
+  "rust_release": {
+    "exit_code": 0,
+    "mode": "Tauri release build with custom-protocol --locked --offline; Rust tests not repeated, no Rust source changes"
+  },
+  "audit": {
+    "exit_code": 0,
+    "mode": "python milestone03/audit_boundary.py"
+  },
+  "package_data": [
+    {
+      "path": "_internal/spectrumagent/annotation/catalog/plastic.json",
+      "bytes": 1951,
+      "sha256": "a12cda4e2766163b1020f5481db0fa89fcba075ff92da18fc0032cb8d1d747bf"
+    },
+    {
+      "path": "_internal/spectrumagent/api/openapi.json",
+      "bytes": 62834,
+      "sha256": "e54bf29281a3b10bace8a41611064f85a34bf69cabc94ee6f45dc638a691a2df"
+    },
+    {
+      "path": "_internal/spectrumagent/data/error-schema.json",
+      "bytes": 529,
+      "sha256": "7455f1620dc3736df1e4c5b01d1069321d6ef382200ef458899deab15462bae3"
+    },
+    {
+      "path": "_internal/spectrumagent/data/schema.json",
+      "bytes": 1729,
+      "sha256": "4bfbc973c699e97c5a9f86a6f549c09981776d4001130fefd00f6c181915128c"
+    }
+  ],
+  "stage_and_release_inventory_equal": true,
+  "payload_files": 1023,
+  "payload_bytes": 288668799,
+  "frozen_smoke": {
+    "passed": true,
+    "mode": "actual onedir app.exe; isolated E data root; child PATH limited to Windows; real pe HTTP workflow; no mocks/TestClient"
+  },
+  "bundled_smoke": {
+    "passed": true,
+    "mode": "actual target/release/resources/backend/app.exe; same isolated HTTP checks after bundling"
+  },
+  "release": {
+    "version": "0.1.2",
+    "installer": "E:\\AI_Agent\\artifacts\\releases\\0.1.2-20261021-151912-073\\SpectrumAgent_0.1.2_x64-setup.exe",
+    "bytes": 297185421,
+    "sha256": "8004FE7C97F0F344C04649A8A535346B8E8E1BACAE11B1089E2CA12BBE111498",
+    "frozen_smoke": "passed",
+    "bundled_smoke": "passed",
+    "nsis_includes_catalog": true,
+    "manual_installed_ui": "not performed",
+    "signed": false,
+    "build_root": "E:\\AI_Agent\\artifacts\\releases\\0.1.2-20261021-151912-073"
+  },
+  "script_sha256": {
+    "scripts/backend.spec": "e2095c5b9484d55e6562f2cf47a0a39dd21da7e1baf8f62d762cae799ec6fd37",
+    "scripts/build_release.ps1": "1636b1bd28cc8c3ec673bb7b85ed617d3801f2cb745de406366b080a848068a8",
+    "scripts/verify_frozen_backend.py": "14d51ad92422df423e56e78f0fa86a93edfd2a31753db610bf0e6366a7868ae5"
+  },
+  "seeds_20_sha256": "388ed3a86bdf60c5054e8df9a5eb197a96a112b0bf2fc59efa1bcf1a29f648d2",
+  "first_attempt": {
+    "build_root": "artifacts/releases/0.1.2-20261021-151259-173",
+    "exit_code": 1,
+    "failure": "Tauri bundle official network blocked by sandbox socket 10013; freeze, frozen smoke, frontend build and Rust release succeeded; logs retained; rerun with approved build network"
+  },
+  "installed_ui": "not performed",
+  "signing": "not performed",
+  "clean_machine": "not performed"
+}
