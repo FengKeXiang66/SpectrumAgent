@@ -50,7 +50,17 @@ def main():
     config = json.loads(read("src-tauri/tauri.conf.json"))
     assert config["version"] == "0.1.3" and config["identifier"] == "com.spectrumagent.desktop"
     previous = json.loads(original("src-tauri/tauri.conf.json"))
-    assert {k:v for k,v in config.items() if k != "version"} == {k:v for k,v in previous.items() if k != "version"}
+    # 授权变更字段：version（升版）与 app.security.csp（2026-10-22 hotfix，见下）。
+    # 其余字段仍必须与 BASE 逐字一致，防止顺手改配置。
+    def strip_csp(payload):
+        payload = json.loads(json.dumps(payload))
+        payload.pop("version", None)
+        payload.get("app", {}).get("security", {}).pop("csp", None)
+        return payload
+    assert strip_csp(config) == strip_csp(previous)
+    # csp 只允许"原样插入 img-src 'self' data:; "这一处，移除后必须与 BASE 完全一致。
+    assert "img-src 'self' data:" in config["app"]["security"]["csp"]
+    assert config["app"]["security"]["csp"].replace("img-src 'self' data:; ", "") == previous["app"]["security"]["csp"]
     assert read("backend/__init__.py") == original("backend/__init__.py")
     assert "import.meta.env.DEV && <DatasetPanel" not in read("src/App.tsx")
     baseline = json.loads(read("milestone03/evidence/P0/baseline.json"))["locks"]
