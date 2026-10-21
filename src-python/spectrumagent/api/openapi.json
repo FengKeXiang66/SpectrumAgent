@@ -257,6 +257,59 @@
         }
       }
     },
+    "/api/v1/datasets/{identifier}/spectra/mean": {
+      "post": {
+        "tags": [
+          "datasets"
+        ],
+        "summary": "Spectra Mean",
+        "operationId": "spectra_mean_api_v1_datasets__identifier__spectra_mean_post",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Identifier"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeanSpectrum"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/datasets/{identifier}/band/{i}": {
       "post": {
         "tags": [
@@ -1899,6 +1952,64 @@
         "title": "ImportSummary"
       },
       "JsonValue": {},
+      "MeanSpectrum": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "shape": {
+            "prefixItems": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "title": "Shape"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "mean": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Mean"
+          },
+          "nan_bands": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Nan Bands"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "shape",
+          "count",
+          "mean",
+          "nan_bands"
+        ],
+        "title": "MeanSpectrum"
+      },
       "Pipeline": {
         "properties": {
           "steps": {

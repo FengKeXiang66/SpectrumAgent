@@ -17,10 +17,13 @@ export type ImportResponse = {
 export type Preview = { id: string; band: number; width: number; height: number; mime: 'image/png'; png_base64: string;
   bands?: [number, number, number]; wavelengths?: number[]; fallback?: boolean };
 export type PreviewOptions = { band?: number; bands?: string; stretch?: 'auto' | 'none'; size?: 'preview' | 'full' };
+export type SpectrumRegion = { l0: number; l1: number; s0: number; s1: number; raw?: boolean };
+export type MeanSpectrum = { id: string; shape: [number, number]; count: number; mean: (number | null)[]; nan_bands: number[] };
 export type DatasetTransport = {
   chooseDirectories: () => Promise<string[] | null>;
   importDirectory: (path: string, raw: boolean) => Promise<ImportResponse>;
   preview: (id: string, selection: number | PreviewOptions) => Promise<Preview>;
+  spectraMean: (id: string, region: SpectrumRegion) => Promise<MeanSpectrum>;
 };
 
 export function mergeRecords(previous: DatasetRecord[], incoming: DatasetRecord[]): DatasetRecord[] {

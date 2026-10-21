@@ -79,6 +79,10 @@ pub enum DatasetRequest {
         id: String,
         region: Region,
     },
+    SpectraMean {
+        id: String,
+        region: Region,
+    },
 }
 
 fn dataset_id(id: &str) -> Result<&str, ForwardError> {
@@ -132,6 +136,12 @@ impl DatasetRequest {
             ),
             Self::Region { id, region } => (
                 format!("/api/v1/datasets/{}/region", dataset_id(id)?),
+                Method::POST,
+                Some(region.body()),
+                None,
+            ),
+            Self::SpectraMean { id, region } => (
+                format!("/api/v1/datasets/{}/spectra/mean", dataset_id(id)?),
                 Method::POST,
                 Some(region.body()),
                 None,
@@ -472,6 +482,7 @@ mod tests {
             json!({"op":"preview","id":id,"band":0}),
             json!({"op":"band","id":id,"band":1,"region":{"l0":0,"l1":1,"s0":0,"s1":1}}),
             json!({"op":"region","id":id,"region":{"l0":0,"l1":1,"s0":0,"s1":1}}),
+            json!({"op":"spectra_mean","id":id,"region":{"l0":0,"l1":1,"s0":0,"s1":1}}),
         ] {
             let request: DatasetRequest = serde_json::from_value(request)
                 .map_err(|_| ForwardError::new("TEST", "请求解析失败"))?;
@@ -481,6 +492,32 @@ mod tests {
             assert!(url.path().starts_with("/api/v1/datasets/"));
             assert!(method == Method::GET || method == Method::POST);
         }
+        Ok(())
+    }
+
+    #[test]
+    fn spectra_mean_has_fixed_post_path_typed_region_and_uuid_guard()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let id = "00000000-0000-0000-0000-000000000001";
+        let request: DatasetRequest = serde_json::from_value(json!({"op":"spectra_mean","id":id,
+            "region":{"l0":2,"l1":3,"s0":4,"s1":5}}))?;
+        let (url, method, body) = request.destination(4321)?;
+        assert_eq!(url.path(), format!("/api/v1/datasets/{id}/spectra/mean"));
+        assert_eq!(method, Method::POST);
+        assert_eq!(body, Some(json!({"l0":2,"l1":3,"s0":4,"s1":5,"raw":null})));
+        assert!(url.query().is_none());
+        let invalid: DatasetRequest =
+            serde_json::from_value(json!({"op":"spectra_mean","id":"../health",
+            "region":{"l0":0,"l1":1,"s0":0,"s1":1}}))?;
+        assert_eq!(
+            invalid.destination(4321).err().map(|error| error.error),
+            Some("INVALID_DATASET_ID".into())
+        );
+        assert!(
+            serde_json::from_value::<DatasetRequest>(json!({"op":"spectra_mean","id":id,
+            "region":{"l0":0,"l1":1,"s0":0,"s1":1,"url":"/health"}}))
+            .is_err()
+        );
         Ok(())
     }
 }

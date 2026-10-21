@@ -1,9 +1,14 @@
 import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-dialog';
-import type { DatasetTransport, ImportResponse, Preview, PreviewOptions } from './types.ts';
+import type { DatasetTransport, ImportResponse, MeanSpectrum, Preview, PreviewOptions, SpectrumRegion } from './types.ts';
 
 // One auditable exit for dataset IPC. No URL, port, method or token is accepted.
-export type Request = { op: 'import'; path: string; raw: boolean } | ({ op: 'preview'; id: string } & PreviewOptions);
+export type Request = { op: 'import'; path: string; raw: boolean } | ({ op: 'preview'; id: string } & PreviewOptions)
+  | { op: 'spectra_mean'; id: string; region: SpectrumRegion };
+export function spectraMeanRequest(id: string, region: SpectrumRegion): Request {
+  return { op: 'spectra_mean', id, region: { l0: region.l0, l1: region.l1, s0: region.s0, s1: region.s1,
+    ...(region.raw === undefined ? {} : { raw: region.raw }) } };
+}
 export function previewRequest(id: string, selection: number | PreviewOptions): Request {
   const options = typeof selection === 'number' ? { band: selection } : selection;
   return { op: 'preview', id,
@@ -21,6 +26,7 @@ export function datasetClient(chooseDirectories: DatasetTransport['chooseDirecto
     chooseDirectories,
     importDirectory: (path, raw) => forward<ImportResponse>({ op: 'import', path, raw }),
     preview: (id, selection) => forward<Preview>(previewRequest(id, selection)),
+    spectraMean: (id, region) => forward<MeanSpectrum>(spectraMeanRequest(id, region)),
   };
 }
 

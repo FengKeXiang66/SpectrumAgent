@@ -1,0 +1,64 @@
+   Compiling spectrum-agent v0.1.0 (E:\AI_Agent\src-tauri)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.60s
+     Running unittests src\lib.rs (target\debug\deps\spectrum_agent-fc5a2225eca9e0bc.exe)
+
+running 8 tests
+test datasets_dev::tests::no_generic_host_port_path_or_method_can_be_deserialized ... ok
+test datasets_dev::tests::spectra_mean_has_fixed_post_path_typed_region_and_uuid_guard ... ok
+test datasets_dev::tests::preview_legacy_url_is_unchanged_and_optional_fields_allow_rgb_without_band ... ok
+test datasets_dev::tests::all_operations_use_the_handshake_port_and_fixed_namespace ... ok
+test datasets_dev::tests::structured_sidecar_errors_are_preserved_after_identity_validation ... ok
+test datasets_dev::tests::redirects_are_not_followed_and_sensitive_bodies_never_leave_rust ... ok
+test datasets_dev::tests::response_identity_precedes_status_and_body ... ok
+test datasets_dev::tests::declared_and_streaming_response_limits_are_enforced ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.07s
+
+     Running unittests src\main.rs (target\debug\deps\spectrum_agent-9760c85afe553455.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\causality.rs (target\debug\deps\causality-36e4b6d833a263b9.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+     Running tests\contracts.rs (target\debug\deps\contracts-6e34dbf97624c6bb.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s
+
+     Running tests\dev_identity.rs (target\debug\deps\dev_identity-6600fcd409e08ea7.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests\dev_lifecycle.rs (target\debug\deps\dev_lifecycle-e7b10eb393a2d273.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests\engine_path.rs (target\debug\deps\engine_path-4dbb2bb02eb71cdc.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests\supervisor_stubs.rs (target\debug\deps\supervisor_stubs-83764e59d4e58d2f.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\win32_failures.rs (target\debug\deps\win32_failures-62b5ecc33cd4760b.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+

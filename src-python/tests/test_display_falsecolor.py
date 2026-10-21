@@ -24,7 +24,7 @@ def display_api(tmp_path):
     with TestClient(create_app(paths, identity)) as client:
         client.headers['Authorization'] = 'Bearer ' + identity.token
 
-        def register(values, *, wavelengths=None, raw=False):
+        def register(values, *, wavelengths=None, raw=False, scale=1):
             values = np.asarray(values, dtype='<f8')
             folder = tmp_path / f'cube-{len(list(tmp_path.glob("cube-*")))}'
             folder.mkdir()
@@ -33,7 +33,7 @@ def display_api(tmp_path):
             wl = list(range(b)) if wavelengths is None else wavelengths
             axis = 'wavelength={' + ','.join(map(str, wl)) + '}\n' if wl else ''
             header = folder / 'cube.hdr'
-            header.write_text(f'ENVI\nsamples={w}\nlines={h}\nbands={b}\ndata type=5\ninterleave=bil\nbyte order=0\nreflectance scale factor=1\n'+axis, 'utf-8')
+            header.write_text(f'ENVI\nsamples={w}\nlines={h}\nbands={b}\ndata type=5\ninterleave=bil\nbyte order=0\nreflectance scale factor={scale}\n'+axis, 'utf-8')
             response = client.post('/api/v1/datasets/import', json={'path': str(header), 'raw': raw})
             assert response.status_code == 200
             return response.json()['datasets'][0]['id'], header
@@ -357,3 +357,38 @@ def test_real_pe_feature_determinism_dispersion_corr_and_candidate_shape(tmp_pat
     assert all(shape == (len(candidates), sample.shape[0]*sample.shape[1]) for shape in shapes)
     corr = np.abs(original(sample[:, :, [r, g, b]].reshape(-1, 3).T))
     assert corr[np.triu_indices(3, 1)].max() < .75
+
+
+@pytest.mark.parametrize('body_raw', [None, False, True])
+def test_point_spectrum_uses_scaled_source_even_when_registered_raw(display_api, body_raw):
+    client, register = display_api
+    values = np.arange(3*4*6, dtype=float).reshape(3, 4, 6)
+    identifier, _ = register(values, raw=True, scale=100)
+    body = {'l0': 1, 'l1': 2, 's0': 2, 's1': 3}
+    if body_raw is not None:
+        body['raw'] = body_raw
+    response = client.post(f'/api/v1/datasets/{identifier}/spectra/mean', json=body)
+    assert response.status_code == 200
+    result = response.json()
+    assert result['shape'] == [1, 1] and result['count'] == 1
+    np.testing.assert_array_equal(result['mean'], values[1, 2]/100)
+    assert result['nan_bands'] == []
+
+
+def test_point_spectrum_exposes_nonfinite_null_without_changing_region_endpoint(display_api):
+    client, register = display_api
+    values = np.array([np.nan, np.inf, -np.inf, 3.5]).reshape(1, 1, 4)
+    identifier, _ = register(values)
+    body = {'l0': 0, 'l1': 1, 's0': 0, 's1': 1}
+    point = client.post(f'/api/v1/datasets/{identifier}/spectra/mean', json=body)
+    assert point.status_code == 200
+    assert point.json()['mean'] == [None, None, None, 3.5]
+    assert point.json()['nan_bands'] == [0]
+    old = client.post(f'/api/v1/datasets/{identifier}/region', json=body)
+    assert old.status_code == 400 and old.json()['error'] == 'NON_JSON_VALUES'
+
+
+def test_unknown_dataset_keeps_legacy_404_even_for_preview_missing_band(display_api):
+    client, _ = display_api
+    response = client.get('/api/v1/datasets/00000000-0000-0000-0000-000000000001/preview')
+    assert response.status_code == 404 and response.json()['error'] == 'DATASET_NOT_FOUND'

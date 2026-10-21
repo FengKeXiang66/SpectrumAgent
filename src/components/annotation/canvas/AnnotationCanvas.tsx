@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { Preview } from '../../datasets/types.ts';
-import { applyLut, makeLut, type LutParameters } from '../display/display.ts';
+import type { Preview, SpectrumRegion } from '../../datasets/types.ts';
+import { applyLut, makeLut, pointRegion, type InspectionMode, type LutParameters } from '../display/display.ts';
 import type { Geometry, Pixel, Png, Seed, Working } from '../types.ts';
 import type { Tool } from '../shortcuts.ts';
 import { candidateKey } from '../working.ts';
@@ -12,6 +12,7 @@ type Frame = { layer: Layer; image: HTMLImageElement };
 type Props = {
   shape: [number, number, number]; base: Preview | null; segmentation: Png | null; working: Working | null;
   manualStretch: boolean; lut: LutParameters;
+  inspection: InspectionMode; onSpectrum(region: SpectrumRegion): void;
   selectedKey: string | null; tool: Tool; prompt: PromptMode; disabled: boolean; panHeld: boolean;
   brushPrompt: boolean;
   draft: Geometry | null;
@@ -41,7 +42,7 @@ export default function AnnotationCanvas(props: Props) {
     return () => observer.disconnect();
   }, []);
   useEffect(() => { setViewport(fitViewport(size.width, size.height, lines, samples)); }, [size, lines, samples]);
-  useEffect(() => { setPolygon([]); setPoints([]); drag.current = null; }, [tool]);
+  useEffect(() => { setPolygon([]); setPoints([]); drag.current = null; }, [tool, props.inspection]);
 
   useEffect(() => {
     let cancelled = false;
@@ -147,7 +148,7 @@ export default function AnnotationCanvas(props: Props) {
         onPointerDown={event => {
           const { x, y } = location(event); const p = imagePoint(x, y, viewport, lines, samples);
           const pan = panHeld || event.button === 1;
-          if (!pan && (disabled || !p || event.button !== 0)) return;
+          if (!pan && ((props.inspection === 'edit' && disabled) || !p || event.button !== 0)) return;
           event.currentTarget.setPointerCapture(event.pointerId);
           drag.current = { startX: x, startY: y, view: viewport, points: p ? [p] : [], pan };
           if (!pan && p) setPoints([p]);
@@ -164,8 +165,9 @@ export default function AnnotationCanvas(props: Props) {
         onPointerUp={event => {
           const current = drag.current; drag.current = null; setPoints([]);
           if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
-          if (!current || current.pan || disabled || !current.points.length) return;
+          if (!current || current.pan || (props.inspection === 'edit' && disabled) || !current.points.length) return;
           const first = current.points[0], last = current.points[current.points.length - 1];
+          if (props.inspection === 'point') { props.onSpectrum(pointRegion(last)); return; }
           if (tool === 'erase') { props.onErase({ polygon: rectangle(first, last) }); return; }
           if (tool === 'polygon') { setPolygon(previous => [...previous, last]); return; }
           if (tool === 'brush' && !props.brushPrompt) {

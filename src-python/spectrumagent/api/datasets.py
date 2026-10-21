@@ -15,7 +15,7 @@ import numpy as np
 from spectrumagent.data import DataError
 from spectrumagent.display.falsecolor import FEATURECOLOR_ALGO_VERSION, compose_rgb, map_values, select_feature_bands
 from .registry import DatasetRegistry
-from .schemas import BandResponse, DatasetRecord, ImportRequest, ImportResponse, PreviewResponse, RegionRequest, RegionResponse
+from .schemas import BandResponse, DatasetRecord, Envelope, ImportRequest, ImportResponse, PreviewResponse, RegionRequest, RegionResponse
 
 MAX_PREVIEW_SIDE = 512
 MAX_JSON_VALUES = 65536
@@ -25,6 +25,14 @@ class ColorPreview(PreviewResponse):
     bands: tuple[int, int, int]
     wavelengths: list[float]
     fallback: bool
+
+
+class MeanSpectrum(Envelope):
+    id: UUID
+    shape: tuple[int, int]
+    count: int
+    mean: list[float | None]
+    nan_bands: list[int]
 
 
 def png_gray(array: np.ndarray) -> str:
@@ -67,8 +75,6 @@ def make_router(registry: DatasetRegistry):
     @router.get("/{identifier}/preview", response_model=PreviewResponse | ColorPreview)
     def preview(identifier: UUID, band: int | None = Query(None, ge=0), size: Literal["preview", "full"] = "preview",
                 stretch: Literal["auto", "none"] = "auto", bands: str | None = None):
-        if (band is None) == (bands is None):
-            raise DataError("INVALID_REQUEST", "band 与 bands 必须且只能指定一个")
         try:
             ds, _ = registry.readable(identifier, raw=False)
         except DataError as error:
@@ -79,6 +85,8 @@ def make_router(registry: DatasetRegistry):
                             del png_cache[key]
                     feature_cache.pop((str(identifier), FEATURECOLOR_ALGO_VERSION), None)
             raise
+        if (band is None) == (bands is None):
+            raise DataError("INVALID_REQUEST", "band 与 bands 必须且只能指定一个")
         stride = 1 if size == "full" else max(1, math.ceil(max(ds.shape[:2]) / MAX_PREVIEW_SIDE))
         if bands is not None:
             fallback = False
@@ -116,6 +124,22 @@ def make_router(registry: DatasetRegistry):
         image = ds.read_subimage(list(range(0, ds.shape[0], stride)), list(range(0, ds.shape[1], stride)), [band])[:, :, 0]
         gray = map_values(image, stretch)
         return PreviewResponse(id=identifier, band=band, width=gray.shape[1], height=gray.shape[0], png_base64=png_gray(gray))
+
+    @router.post("/{identifier}/spectra/mean", response_model=MeanSpectrum)
+    def spectra_mean(identifier: UUID, region: RegionRequest):
+        # Ignore region.raw, including a dataset registered with default raw=True.
+        ds, _ = registry.readable(identifier, raw=False)
+        rows, cols = region_bounds(ds, region)
+        count = len(rows)*len(cols)
+        if count > 1_000_000:
+            raise DataError("REGION_TOO_LARGE", "均值谱区域不得超过1000000个像素", count=count)
+        values = ds.read_region(region.l0, region.l1, region.s0, region.s1)
+        # Every pixel participates; partial NaNs propagate rather than nanmean.
+        with np.errstate(invalid='ignore'):
+            mean = np.mean(values, axis=(0, 1), dtype=np.float64)
+        return MeanSpectrum(id=identifier, shape=(len(rows), len(cols)), count=count,
+            mean=[float(value) if np.isfinite(value) else None for value in mean],
+            nan_bands=np.flatnonzero(np.isnan(values).all(axis=(0, 1))).tolist())
 
     @router.post("/{identifier}/band/{i}", response_model=BandResponse)
     def band(identifier: UUID, i: int, region: RegionRequest):

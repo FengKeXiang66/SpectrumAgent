@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
-import { previewRequest } from '../../datasets/api.ts';
-import { applyLut, changeLut, DEFAULT_LUT, displayRequest, makeLut, validLut } from './display.ts';
+import { previewRequest, spectraMeanRequest } from '../../datasets/api.ts';
+import { applyLut, changeLut, DEFAULT_LUT, displayRequest, makeLut, pointRegion, validLut } from './display.ts';
 
 test('old numeric preview call keeps the exact single-band request', () => {
   assert.deepEqual(previewRequest('cube', 0), { op: 'preview', id: 'cube', band: 0 });
@@ -75,4 +75,19 @@ test('manual LUT values stay local and are independent of image request keys', (
   assert.doesNotMatch(requestEffect, /displayLut/);
   assert.doesNotMatch(toolbar, /\binvoke\s*\(|\bfetch\s*\(|\.preview\s*\(/);
   assert.match(source, /displayStretch === 'manual' \? 'none' : 'auto'/);
+});
+
+test('point coordinates retain [line,sample] and send one-pixel spectra_mean, never region', () => {
+  assert.deepEqual(pointRegion([3, 8]), { l0: 3, l1: 4, s0: 8, s1: 9 });
+  assert.deepEqual(spectraMeanRequest('cube', { ...pointRegion([3, 8]), path: '/region' } as never),
+    { op: 'spectra_mean', id: 'cube', region: { l0: 3, l1: 4, s0: 8, s1: 9 } });
+});
+
+test('point inspection returns before any edit tool and leaves null gaps visible', () => {
+  const canvas = readFileSync(new URL('../canvas/AnnotationCanvas.tsx', import.meta.url), 'utf8');
+  const point = canvas.indexOf("if (props.inspection === 'point')");
+  assert.ok(point > 0 && point < canvas.indexOf("if (tool === 'erase')"));
+  const toolbar = readFileSync(new URL('./DisplayToolbar.tsx', import.meta.url), 'utf8');
+  assert.match(toolbar, /value === null\) \{ drawing = false; return;/);
+  assert.match(toolbar, /value === null \? 'null' : value/);
 });

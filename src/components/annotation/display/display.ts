@@ -1,6 +1,11 @@
-import type { PreviewOptions } from '../../datasets/types.ts';
+import type { PreviewOptions, SpectrumRegion } from '../../datasets/types.ts';
+import type { Pixel } from '../types.ts';
 
 export type DisplayMode = 'single' | 'rgb' | 'auto';
+export type InspectionMode = 'edit' | 'point';
+export function pointRegion([l, s]: Pixel): SpectrumRegion {
+  return { l0: l, l1: l+1, s0: s, s1: s+1 };
+}
 export type LutParameters = { black: number; white: number; gamma: number };
 export const DEFAULT_LUT: Readonly<LutParameters> = { black: 0, white: 255, gamma: 1 };
 
