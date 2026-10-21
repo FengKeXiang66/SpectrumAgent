@@ -13,7 +13,7 @@ from fastapi import APIRouter, Query
 import numpy as np
 
 from spectrumagent.data import DataError
-from spectrumagent.display.falsecolor import compose_rgb, map_values
+from spectrumagent.display.falsecolor import FEATURECOLOR_ALGO_VERSION, compose_rgb, map_values, select_feature_bands
 from .registry import DatasetRegistry
 from .schemas import BandResponse, DatasetRecord, ImportRequest, ImportResponse, PreviewResponse, RegionRequest, RegionResponse
 
@@ -52,6 +52,7 @@ def json_values(array):
 def make_router(registry: DatasetRegistry):
     router = APIRouter(prefix="/api/v1/datasets", tags=["datasets"])
     png_cache = OrderedDict()
+    feature_cache = {}
     display_lock = RLock()
 
     @router.post("/import", response_model=ImportResponse)
@@ -76,24 +77,36 @@ def make_router(registry: DatasetRegistry):
                     for key in list(png_cache):
                         if key[0] == str(identifier):
                             del png_cache[key]
+                    feature_cache.pop((str(identifier), FEATURECOLOR_ALGO_VERSION), None)
             raise
         stride = 1 if size == "full" else max(1, math.ceil(max(ds.shape[:2]) / MAX_PREVIEW_SIDE))
         if bands is not None:
-            try:
-                rgb = tuple(int(value) for value in bands.split(','))
-            except ValueError as error:
-                raise DataError("INVALID_BANDS", "bands 必须是三个不同波段索引") from error
+            fallback = False
+            if bands == 'auto':
+                feature_key = (str(identifier), FEATURECOLOR_ALGO_VERSION)
+                with display_lock:
+                    if feature_key not in feature_cache:
+                        started = perf_counter()
+                        feature_cache[feature_key] = select_feature_bands(ds, ds.shape, ds.wavelengths)
+                        logging.getLogger(__name__).debug('display_feature_cache_miss duration_ms=%.3f', (perf_counter()-started)*1000)
+                    *rgb_values, fallback = feature_cache[feature_key]
+                    rgb = tuple(rgb_values)
+            else:
+                try:
+                    rgb = tuple(int(value) for value in bands.split(','))
+                except ValueError as error:
+                    raise DataError("INVALID_BANDS", "bands 必须是三个不同波段索引") from error
             if len(rgb) != 3 or len(set(rgb)) != 3 or any(b < 0 or b >= ds.shape[2] for b in rgb):
                 raise DataError("INVALID_BANDS", "bands 必须是范围内三个不同波段，顺序对应R/G/B")
             key = (str(identifier), rgb, stretch, size)
             with display_lock:
                 if key in png_cache:
                     png_cache.move_to_end(key)
-                    return png_cache[key]
+                    return png_cache[key].model_copy(update={'fallback': fallback})
                 started = perf_counter()
                 image = ds.read_subimage(list(range(0, ds.shape[0], stride)), list(range(0, ds.shape[1], stride)), list(rgb))
                 result = ColorPreview(id=identifier, band=rgb[0], bands=rgb,
-                    wavelengths=[ds.wavelengths[b] for b in rgb] if ds.wavelengths else [], fallback=False,
+                    wavelengths=[ds.wavelengths[b] for b in rgb] if ds.wavelengths else [], fallback=fallback,
                     width=image.shape[1], height=image.shape[0], png_base64=compose_rgb(*np.moveaxis(image, 2, 0), stretch))
                 png_cache[key] = result
                 if len(png_cache) > 8:

@@ -14,7 +14,7 @@ from backend.identity import EngineIdentity
 from backend.paths import AppPaths
 from spectrumagent.api.datasets import png_gray
 from spectrumagent.app import create_app
-from spectrumagent.display.falsecolor import compose_rgb
+from spectrumagent.display.falsecolor import compose_rgb, select_feature_bands
 
 
 @pytest.fixture
@@ -227,3 +227,133 @@ def test_rgb_cache_is_lru_eight(display_api, monkeypatch):
         assert client.get(endpoint).status_code == 200
     assert len(calls) == 9
     assert client.get(requests[0]).status_code == 200 and len(calls) == 10
+
+
+class ArrayCube:
+    def __init__(self, array):
+        self.array = np.asarray(array, dtype=np.float64)
+        self.requests = []
+
+    def read_subimage(self, rows, cols, bands):
+        self.requests.append((rows, cols, bands))
+        return self.array[np.ix_(rows, cols, bands)]
+
+
+def varied_three():
+    grid = np.arange(30.).reshape(5, 6)
+    return np.stack((grid, np.sin(grid*3), np.zeros_like(grid)), axis=2)
+
+
+def test_feature_no_wavelengths_uses_index_dispersion():
+    reader = ArrayCube(np.random.default_rng(0).normal(size=(260, 20, 8)))
+    r, g, b, fallback = select_feature_bands(reader, reader.array.shape, [])
+    assert fallback and 0 <= b < g < r < reader.array.shape[2]
+    assert r-b >= .15*(reader.array.shape[2]-1)
+    assert reader.requests[0][0] == list(range(0, 260, math.ceil(260/128)))
+    assert reader.requests[0][1] == list(range(0, 20, math.ceil(260/128)))
+
+
+def test_feature_insufficient_candidates_falls_back_to_wavelength_quantiles():
+    reader = ArrayCube(varied_three())
+    wl = [900, 1100, 1300]
+    *rgb, fallback = select_feature_bands(reader, reader.array.shape, wl)
+    assert fallback and len(set(rgb)) == 3
+    expected = [int(np.argmin(np.abs(np.asarray(wl)-(wl[0]+p*(wl[-1]-wl[0]))))) for p in (0., .5, 1.)]
+    assert rgb == expected[::-1]
+
+
+@pytest.mark.parametrize('bands', [1, 2])
+def test_feature_less_than_three_bands_is_structured_400(display_api, bands):
+    client, register = display_api
+    identifier, _ = register(np.ones((2, 3, bands)))
+    response = client.get(f'/api/v1/datasets/{identifier}/preview?bands=auto')
+    assert response.status_code == 400 and response.json()['error'] == 'INVALID_BANDS'
+
+
+def test_feature_constant_corr_nan_is_zero_not_fallback():
+    reader = ArrayCube(np.ones((4, 6, 8)))
+    r, g, b, fallback = select_feature_bands(reader, reader.array.shape, list(range(8)))
+    assert not fallback and 0 <= b < g < r < 8
+    assert r-b >= .15*7
+
+
+def test_feature_no_dispersed_combination_falls_back():
+    grid = np.arange(8)[:, None]+np.arange(9)[None, :]
+    values = np.concatenate((np.repeat(grid[:, :, None], 10, axis=2),
+                             np.random.default_rng(0).normal(size=(8, 9, 10))), axis=2)
+    reader = ArrayCube(values)
+    wl = [i*.001 for i in range(10)]+list(np.linspace(100, 200, 10))
+    r, g, b, fallback = select_feature_bands(reader, values.shape, wl)
+    assert fallback and len({r, g, b}) == 3
+    assert wl[r]-wl[b] >= .15*(wl[-1]-wl[0])
+
+
+def test_feature_quantile_duplicates_use_distinct_index_safety_net():
+    reader = ArrayCube(varied_three())
+    *rgb, fallback = select_feature_bands(reader, reader.array.shape, [900]*3)
+    assert fallback and set(rgb) == {0, (reader.array.shape[2]-1)//2, reader.array.shape[2]-1}
+
+
+def test_feature_corr_shape_assertion_catches_wrong_index_space(monkeypatch):
+    from spectrumagent.display import falsecolor
+    reader = ArrayCube(np.random.default_rng(0).normal(size=(5, 8, 10)))
+    original = falsecolor.np.corrcoef
+    def wrong_shape(x):
+        corr = original(x)
+        return np.pad(corr, ((0, 1), (0, 1)))
+    monkeypatch.setattr(falsecolor.np, 'corrcoef', wrong_shape)
+    with pytest.raises(AssertionError):
+        select_feature_bands(reader, reader.array.shape, list(range(10)))
+
+
+def test_feature_cache_uses_algorithm_version_and_revalidates_source(display_api, monkeypatch, caplog):
+    from spectrumagent.api import datasets
+    client, register = display_api
+    identifier, header = register(np.random.default_rng(0).normal(size=(4, 8, 10)))
+    original = datasets.select_feature_bands
+    calls = []
+    def spy(*args):
+        calls.append(1)
+        return original(*args)
+    monkeypatch.setattr(datasets, 'select_feature_bands', spy)
+    caplog.set_level('DEBUG', logger=datasets.__name__)
+    endpoint = f'/api/v1/datasets/{identifier}/preview?bands=auto'
+    assert client.get(endpoint).status_code == 200
+    assert client.get(endpoint).status_code == 200 and len(calls) == 1
+    assert 'display_feature_cache_miss' in caplog.text and 'duration_ms=' in caplog.text
+    monkeypatch.setattr(datasets, 'FEATURECOLOR_ALGO_VERSION', datasets.FEATURECOLOR_ALGO_VERSION+1)
+    assert client.get(endpoint).status_code == 200 and len(calls) == 2
+    saved = header.read_bytes()
+    header.unlink()
+    assert client.get(endpoint).json()['error'] == 'SOURCE_CHANGED'
+    header.write_bytes(saved)
+    assert client.get(endpoint).status_code == 200 and len(calls) == 3
+
+
+def test_real_pe_feature_determinism_dispersion_corr_and_candidate_shape(tmp_path, monkeypatch):
+    from spectrumagent.api.registry import DatasetRegistry
+    from spectrumagent.display import falsecolor
+    header = Path((Path(__file__).resolve().parents[2]/'milestone04/evidence/calibration/cubes_11.txt').read_text('utf-8').splitlines()[0])
+    if not header.is_file():
+        pytest.skip('real pe cube from cubes_11.txt is unavailable')
+    registry = DatasetRegistry(tmp_path/'real.sqlite')
+    record = registry.import_path(str(header)).datasets[0]
+    ds, _ = registry.readable(record.id, raw=False)
+    shapes = []
+    original = falsecolor.np.corrcoef
+    def tracked(x):
+        shapes.append(x.shape)
+        return original(x)
+    monkeypatch.setattr(falsecolor.np, 'corrcoef', tracked)
+    results = [select_feature_bands(ds, ds.shape, ds.wavelengths) for _ in range(3)]
+    assert results[0] == results[1] == results[2]
+    r, g, b, fallback = results[0]
+    assert not fallback and b < g < r
+    assert ds.wavelengths[r]-ds.wavelengths[b] >= .15*(ds.wavelengths[-1]-ds.wavelengths[0])
+    stride = max(1, math.ceil(ds.shape[0]/128))
+    sample = ds.read_subimage(list(range(0, ds.shape[0], stride)), list(range(0, ds.shape[1], stride)), list(range(ds.shape[2])))
+    rho = sample.std(axis=(0, 1))/(np.diff(sample, axis=1).std(axis=(0, 1))/np.sqrt(2)+1e-12)
+    candidates = np.flatnonzero(rho >= np.median(rho))
+    assert all(shape == (len(candidates), sample.shape[0]*sample.shape[1]) for shape in shapes)
+    corr = np.abs(original(sample[:, :, [r, g, b]].reshape(-1, 3).T))
+    assert corr[np.triu_indices(3, 1)].max() < .75

@@ -29,3 +29,10 @@ test('display modes are exclusive, preserve RGB order and reject duplicates', ()
   assert.throws(() => displayRequest('rgb', 0, [1, 1, 2], 'auto', 5));
   assert.throws(() => displayRequest('single', 5, [0, 1, 2], 'auto', 5));
 });
+
+test('entry defaults to backend automatic selection and displays returned RGB wavelengths', () => {
+  const source = readFileSync(new URL('../AnnotationWorkbench.tsx', import.meta.url), 'utf8');
+  assert.match(source, /useState<DisplayMode>\('auto'\)/);
+  assert.match(source, /base\.wavelengths/);
+  assert.match(source, /base\.fallback/);
+});

@@ -34,7 +34,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
   const [schemas, setSchemas] = useState<LabelSchema[]>([]), [catalog, setCatalog] = useState<CatalogItem[]>([]);
   const [versions, setVersions] = useState<Version[]>([]), [projectName, setProjectName] = useState('');
   const [base, setBase] = useState<Preview | null>(null), [segmentation, setSegmentation] = useState<Png | null>(null);
-  const [displayMode, setDisplayMode] = useState<DisplayMode>('single');
+  const [displayMode, setDisplayMode] = useState<DisplayMode>('auto');
   const [displayRgb, setDisplayRgb] = useState<[number, number, number]>([0, 1, 2]);
   const [displayBand, setDisplayBand] = useState(0);
   const [displayStretch, setDisplayStretch] = useState<'auto' | 'none'>('auto');

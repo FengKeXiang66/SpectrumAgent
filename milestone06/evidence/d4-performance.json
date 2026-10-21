@@ -1,0 +1,70 @@
+{
+  "mode": "actual independent python -m backend; real loopback HTTP with Bearer + boot_id/pid each response; default algorithm/stretches; isolated E runtime",
+  "environment": {
+    "platform": "Windows-11-10.0.26100-SP0",
+    "python": "3.12.13 (main, May 10 2026, 19:35:37) [MSC v.1944 64 bit (AMD64)]",
+    "numpy": "2.5.4",
+    "logical_cpus": 20
+  },
+  "source": "E:\\高光谱数据集\\plastic\\pe\\20260804205214_64.hdr",
+  "runtime": "E:\\AI_Agent\\.runtime\\task06-http-5dbb0614a8df46f9b0caeaf34826cf03",
+  "passed": true,
+  "http_ms": {
+    "manual_rgb_cold": 44.66849996242672,
+    "auto_cold": 207.35600002808496,
+    "auto_warm": 6.366300047375262
+  },
+  "legacy_none_png_sha256": "6165fcd12361926afe59e780f2008f5a44c065f666909d6785a92b579e857203",
+  "cube_shape": [
+    231,
+    640,
+    200
+  ],
+  "sampling_step": 2,
+  "sample_shape": [
+    116,
+    320,
+    200
+  ],
+  "candidate_count": 100,
+  "corr_shape": [
+    100,
+    100
+  ],
+  "bands": [
+    177,
+    148,
+    103
+  ],
+  "wavelengths": [
+    1622.12,
+    1500.83,
+    1312.63
+  ],
+  "fallback": false,
+  "max_abs_corr": 0.6876864141308303,
+  "selected_corr": [
+    [
+      1.0,
+      0.6048444024769559,
+      0.6876864141308303
+    ],
+    [
+      0.6048444024769559,
+      0.9999999999999998,
+      0.5573731331017978
+    ],
+    [
+      0.6876864141308303,
+      0.5573731331017978,
+      1.0
+    ]
+  ],
+  "score": 4.976723322422352,
+  "independent_three_runs_equal": true,
+  "full_band_matrix_crosscheck": true,
+  "sources_unchanged": true,
+  "manual_png_bytes": 353542,
+  "auto_png_bytes": 346812,
+  "stopped": true
+}

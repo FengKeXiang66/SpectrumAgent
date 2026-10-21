@@ -50,3 +50,5 @@
 ## S05 画布显示（TASK-06）
 
 preview 的默认映射有意由全量程 min/max 改为 `stretch=auto` 的有限值联合2/98分位映射。`stretch=none` 保留旧min/max与uint8截断，单波段继续用原png_gray编码，支持旧调用方按需保持旧显示。接口默认 `size=preview` 保留，S05 显式请求 `size=full`。显示参数不进入标注工作态或数据库，不改变 regions/undo/save/validate 语义。
+
+S05默认自动伪彩，亦可选单波段或手动RGB；三通道只做一次联合映射并显示当前波长。自动选波段采用TASK-06 §2.3/R11规定的降采样、SNR代理、候选位置相关矩阵与分散约束，是本项目自己的算法；上一代DatasetStatistic.dll没有源码，不能声称算法相同。算法版本1参与内存缓存键，每次命中前验证源元数据。
