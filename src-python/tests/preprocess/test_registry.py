@@ -12,7 +12,7 @@ from .conftest import run
 
 
 def test_all_builtins_emit_pydantic_schema_and_reject_unknown_keys(registry):
-    assert set(registry.entries) == {"reflectance","sg_smooth","sg_derivative","snv","msc","emsc","standardize","crop","resample"}
+    assert set(registry.entries) == {"reflectance","sg_smooth","sg_derivative","snv","msc","emsc","standardize","crop","resample","pca","mnf","ica","continuum"}
     for name, versions in registry.entries.items():
         assert list(versions) == [1]
         entry = versions[1]

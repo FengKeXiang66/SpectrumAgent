@@ -81,7 +81,7 @@
 
 - **每次套用按当前输入现算**标定参数；参数值+标定来源（数据集 id + 输入指纹 + 样本数）**随 run 落库**，不写进配方（配方只存算子声明）。
 - 复现口径：**以本次 run 的输入数据指纹为准**——数据集重导入/源替换（含同路径换文件）→ 参数必须重算，并记录指纹对比结果；"同输入同结果"只对同指纹成立。
-- **`input_fingerprint` 算法（R3 钉死）**：`sha256( dataset_id | 源文件相对路径排序后逐项 sha256 | annotation_version_id | 样本像素数 )`——**必须含标注版本 id**（重新标注后样本集变了，指纹必须变，否则"同指纹"会掩盖样本变化）；源文件哈希复用 #04 登记 payload 口径，不重新读盘。
+- **`input_fingerprint` 算法（R3 钉死）**：`sha256( dataset_id | 源文件相对路径排序后逐项 sha256 | annotation_version_id | 样本像素数 )`——**必须含标注版本 id**（重新标注后样本集变了，指纹必须变，否则"同指纹"会掩盖样本变化）；**源文件哈希由 run 预检时一次性流式计算（R12 修订）**——登记 payload 无源文件内容哈希（实证 `model.as_dict()` 只含元数据），原"复用 payload、不重新读盘"前提不成立，详见 §2.6 R12。
 - FR-B05"随模型保存"留到建模里程碑：同算子届时改用"从模型取参数"，衔接点记入 §12。
 - **B05 四法公式（R8 钉死）**：①**StandardScaler** = 逐波段 `(x-mean)/std`（**ddof=0**）；②**MinMax** = 逐波段 `(x-min)/(max-min)`；③**面积归一** = 逐谱除梯形积分，**积分变量为波段序号（`np.trapezoid(x, dx=1.0)`，非波长值）**——波长非等距时按波长积分会随数据集变化，口径不稳；④**向量归一** = 逐谱除 L2 范数。前两法 `fitted`=逐波段参数列表；后两法 `fitted` 为空、逐谱量不落库（`n_spectra` 进 meta）。
 - **B05 零分母护栏（R8）**：四法统一 `zero_std ∈ {"zeros"(默认),"nan","error"}`（与 SNV 同族同默认）；`error` → **`NORMALIZATION_DEGENERATE`(400)** 带 `zero_scale_count`。**不回改 SNV 已发货的 `SCATTER_MODEL_DEGENERATE`**（不为一致性破坏 11.1 已过闸测试）。
@@ -125,6 +125,18 @@
   - **同步执行**：11.3 无后台任务——pending→running→succeeded/failed 行内完成，11.4 只做查询/触发。
 - **变轴参数的长度下限（R10 钉死）**：`ResampleParams.source` / `.target` 与 `CropParams.source` 一律 **`min_length=2`**——`CubicSpline` 至少需 2 点，1 波段轴会**裸抛 `ValueError`**（11.2 实测坐实），属未结构化错误；裁剪 1 波段无意义，一并收紧。违规在 **schema 层**就报 `INVALID_OPERATOR_PARAMS`，不得落到 scipy。
   - **实现方式**：新增 `AxisVector = Annotated[list[FiniteFloat], BeforeValidator(vector), Field(min_length=2)]` 供上述三个字段使用；**`FiniteVector` 保持 `min_length=1` 不动**（11.1 已过闸的 `reflectance.white_reference/dark_reference`、`msc/emsc.reference` 用它，不为一致性动旧模型）。
+- **run 预检前置与源哈希来源（R12 钉死）**：
+  - **源文件哈希由 run 预检时一次性流式计算**（分块读文件、流式 sha256、不整块载入）——登记 payload **不含源文件内容哈希**（实证 `model.py:138` `as_dict()` 只 dump 元数据、全仓无 hash 字段），§2.4 原"复用 payload"前提不成立；且登记期快照在源文件替换后反而漏变，run 时现算更硬（换文件必变）。**禁用 stat/路径/元数据冒充内容哈希**；已有数据集零回填。
+  - **预检全部前置于落库**：验源（`readable`，SOURCE_CHANGED 短路）→ 源哈希 → `annotation_version` 存在 → `recipe_version` 存在且每步 `name@version` 可解析（`OPERATOR_VERSION_STALE` 409）→ B01 分支判定（hdr+dtype 定 scale/reference；float 值域首块确认、后续块分歧 → failed 不静默）。**全部 NOT NULL 供值齐才建 pending 行**；任何预检失败 = 结构化错误直抛调用方、**不建 run**（DDL 永不面对半份行）。
+- **全局拟合与暂存例外（R12 钉死）**：逐块独立拟合会改变结果，禁止。分两类：
+  - **可流式精确、不暂存**：StandardScaler = 跨块 `sum`/`sumsq` 充分统计量；PCA/MNF = **两遍块读**（pass1 累加均值 → pass2 累加中心化外积得协方差 → eigh/pinv），O(B²) 内存，**结果与分块边界无关**（验收锚点：换 block_size 结果逐元素相等）。
+  - **必须全量数据**：ICA（FastICA 迭代）——**允许暂存**选中+B01 后像素矩阵至 `<preprocessed>/<cube_id>/<run_id>/.tmp/` 临时 memmap：随 run `finally` 必删、禁注册为 artifact、fit 后逐块流式读出（禁双副本）、**暂存字节数与峰值 RSS 进 report**。红线 4 禁的是**原始立方体**全量物化；派生选中集暂存为记账例外、仅 ICA 路径触发。
+- **MNF 数学口径（R12 钉死，维度对齐公式；实现层口径，卡 R2 只写了"相邻波段差分协方差"）**：设输入 X 为 (n, B)：
+  - 差分矩阵 Δ = `X[:, 1:] − X[:, :-1]`（n × B−1），Σ_Δ = `ΔᵀΔ/(n−1)`（**ddof=1**）；
+  - 重构 B×B 噪声协方差 Σ_N：对角 σ_i²（内部波段 i=1..B−2 取 `(Σ_Δ[i-1,i-1] + Σ_Δ[i,i])/2`，边界波段取唯一侧差分方差/2）；次对角 `(Σ_N)[i, i+1] = (σ_i² + σ_{i+1}² − Σ_Δ[i, i])/2`（i=0..B−2）；其余元素为 0；
+  - 白化 `W = Σ_N^(−1/2)`（eigh 分解、特征值 **pinv 防奇异**）；信号协方差 Σ_S = `(X−μ)ᵀ(X−μ)/(n−1)`（两遍流式计算）；
+  - `C = W·Σ_S·W`；对 C 做 eigh 降序：**MNF 特征值即解释方差**（解释占比 = 特征值/特征值总和）；载荷 = `W·V`（符号按"绝对值最大处取正"定向）；得分 = `(X−μ)·W·V`（n × k）。
+- **数值边界（R12 钉死）**：①`n_components` **必填、无默认**（无出处即禁默认），schema ≥1，运行时 ≤ bands（PCA/MNF/ICA 同）；②**含 NaN 谱不参与拟合**（显式检出、计 `nan_spectra`），变换时这些行输出**全 NaN**（与 resample spline/MSC 同族）；③连续统分母为 0（hull/linear 在某波段值为 0）→ 该波段输出 **NaN** + `zero_continuum_bands` 计数（禁 inf/clamp）；④SNR 差分 RMS=0（恒等谱）→ 该像素 SNR 记 **NaN** + `snr_nan_count`（inf 无合法 JSON 表示且恒谱不携带类信息），聚合统计跳过 NaN。
 
 ## 3. 数据模型（DDL 草稿，待 codex 实现时复核）
 
@@ -225,6 +237,7 @@ CREATE TABLE IF NOT EXISTS preprocess_artifact (
 - [ ] **变轴契约（R9）**：crop→resample 全链后 `PipelineResult.wavelengths` = 最后轴、step meta 含 `axis`；改谱条数的算子被拒；改 bands 未声明 axis 被拒；axis 非递增/长度不符/含非有限被拒；**records 内不含完整 axis（只有 axis_len/axis_sha256）**；11.1 既有 94 测试不回改、全绿
 - [ ] **变轴参数下限（R10）**：`resample` 的 source/target 与 `crop` 的 source 长度 1 → `INVALID_OPERATOR_PARAMS`（schema 层拒绝，不落到 scipy 裸 ValueError）；`FiniteVector` 原语义（min_length=1）不受影响
 - [ ] **run 与 B08/B09/B10 补充（R11）**：**B01 前置真读 raw**——`b01_branch='scale'` 且产物是反射率（不是 DN/scale² 双重归一）；`scaler_params` 落值；artifacts 只两类且 failed 无半份；B08 三法 `meta["axis"]=null`（省略仍拒）；MNF `pinv` 防奇异；B09 凸包端点固定+顶点自动；compare 收显式列表且复用 run；SNR 逐像素收集；`run.error` 为 DataError JSON
+- [ ] **run 预检与拟合口径（R12）**：预检失败不建 run（坏源/缺标注版本/STALE/坏 B01 分支各一次）；源哈希为内容 sha256（换文件必变）；**换 block_size 拟合结果逐元素相等**（StandardScaler/PCA/MNF 流式路径；ICA 暂存路径同一口径）；MNF 按 R12 公式对拍（独立手算 Σ_Δ→Σ_N→C→特征值）；`n_components` 缺省即拒、越界拒；NaN 谱排除+变换全 NaN；零分母/零 RMS → NaN+计数
 
 ## 6. 红线
 
@@ -278,3 +291,4 @@ CREATE TABLE IF NOT EXISTS preprocess_artifact (
 | R9 | **codex 11.2 即停：变轴契约未定义（B06 连框架都过不去）**：11.1 的 `registry.py:130` 硬校验 `output.shape != result.shape`（完全同形），crop/resample 改 bands 必被拒；轴只在循环外定义（138 行 return 用旧 axis）。裁定：①**授权最小修改**——`registry.py` 只改形状校验 + 轴传递（130 行 + 循环内 + 138 行 return），`resolve`/`parse_pipeline`/`json_safe`/多版本/确定性一律不碰；`schema/__init__.py` **纯新增**三模型（既有六个一字不动）；`preprocess/__init__.py` **纯新增**三行注册。**已实证 11.1 测试零 `INVALID_OPERATOR_RESULT` 断言（grep 零命中），放宽无连带**。②**轴回传 = meta 保留键 `axis`**（不新增返回形态）：形状校验改为"**第一维（谱条数）不变、第二维（bands）可变**"；meta 含 axis → 校验全有限+严格递增+长度=输出 bands → 替换工作轴；改 bands 未声明 axis → `INVALID_OPERATOR_RESULT`（给过 wavelengths 是陈旧轴污染、没给是审计缺失，一律拒）。③命名 `standardize`（method ∈ standard/minmax/area/vector）+ `crop` + `resample`。**agent 补两点**：①`axis` 校验后**从 meta 移除**、records 只留 `axis_len`+`axis_sha256`（否则每个 crop/resample step 存一份 200 元素数组，多步配方 records 膨胀）；②`CropParams.range` 钉死**两元素元组且 lo<hi**（原稿只写"tuple/列表两元"） | codex 11.2 即停 + agent 取证（grep 零命中 / registry:130 / json_safe 行为） |
 | R10 | **变轴参数长度下限（11.2 复核挂账 2）**：`FiniteVector` 现为 `min_length=1`，而 `CubicSpline` 至少需 2 点——`resample` spline + 1 波段 source **裸抛 `ValueError`**（11.2 边角探针实测坐实），是未结构化错误。裁定：`ResampleParams.source`/`.target` 与 `CropParams.source` 改 **`min_length=2`**（裁剪 1 波段无意义，一并收紧），违规在 schema 层报 `INVALID_OPERATOR_PARAMS`。**实现用新增 `AxisVector`（min_length=2），不动 `FiniteVector`**——后者被 11.1 已过闸的 `reflectance.white_reference/dark_reference`、`msc/emsc.reference` 使用，不为一致性动旧模型 | 11.2 复核边角探针（1 波段 + CubicSpline） |
 | R11 | **11.3 开工前十一条实现口径（科祥取证 + agent 复核）**：①ICA=sklearn FastICA（lock:41 已声明 1.9.1，非新增依赖；实测同输入 **max diff=0.0**），`random_state` 走 params 默认 0、impl 签名不变；②降维无轴 → `meta["axis"]=null` 显式声明（省略仍拒，R9 不破）；③**B01 前置读原始 DN**——`registry.readable(raw=True)` + run 层自建有界读（`ReadableRows:88` 硬编码 `raw=False`，**禁改 #04**），`b01_branch` 记真实分支（plastic='scale'），11.3 仅 scale/passthrough；④MNF 噪声协方差=相邻波段差分 + `pinv` 防奇异；⑤B09 上凸包在 (band_index, reflectance) 空间、端点固定顶点自动、linear=首尾连线；⑥`scaler_params`=standardize 的 meta.fitted（该列唯一供值路径）；⑦artifacts 仅 sample_spectra+report，failed 无半份；⑧compare 收显式列表、复用 run；⑨SNR 逐像素收集（派生标量 ~1.2MB，红线 4 禁的是原始立方体）；⑩`run.error`=DataError.as_dict JSON；⑪同步执行无后台 | 科祥四探针（sklearn/lock、FastICA diff、open_envi raw、ReadableRows）+ agent 独立复核（lock:41 / superpixels:88 / max diff 0.0） |
+| R12 | **codex 11.3 六触即停：run/B08/B10 接缝口径（agent 落盘）**：①**源哈希——payload 无源文件内容哈希**（实证 `model.py:138` as_dict 只含元数据、全仓无 hash 字段），卡 §2.4"复用 payload"前提不成立 → 改 run 预检一次性流式 sha256（禁 stat/元数据冒充；run 时现算比登记期快照硬，换文件必变）；②**预检全前置**（验源→源哈希→annotation_version→recipe_version+STALE→B01 分支判定），NOT NULL 供值齐才建 pending，失败不建 run（半份行不该存在）；③**全局拟合两类分流**——可流式精确不暂存（StandardScaler sum/sumsq、PCA/MNF 两遍块读：均值→中心化外积→eigh/pinv），ICA 暂存选中+B01 像素至 run/.tmp/（finally 必删、禁登记 artifact、禁双副本、字节+RSS 进 report；红线 4 禁原始立方体，派生集为记账例外）；④**MNF 公式钉死**（Σ_Δ=相邻差分协方差 B−1 ddof=1 → 重构 Σ_N B×B：对角 σ_i² 内部=两侧差分方差均值/2 边界=单侧/2，次对角=(σ_i²+σ_{i+1}²−Σ_Δ[i,i])/2 → W=pinv(Σ_N)^(−1/2) → C=W·Σ_S·W → eigh 降序**特征值=解释方差**，载荷=WV 定向，得分=(X−μ)WV）；⑤数值边界：n_components 必填无默认+运行时 ≤bands、NaN 谱拟合排除+变换行全 NaN、连续统零分母→NaN+zero_continuum_bands、SNR 零 RMS→NaN+snr_nan_count | codex 11.3 即停 + agent 取证（payload 无 hash 实证）+ 科祥授权落盘 |

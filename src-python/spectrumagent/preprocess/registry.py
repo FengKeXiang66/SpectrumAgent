@@ -130,7 +130,12 @@ class OperatorRegistry:
             if (output.ndim != 2 or output.shape[0] != result.shape[0] or 0 in output.shape
                     or output.dtype.kind not in "iuf" or not isinstance(meta, dict)):
                 raise PreprocessError("INVALID_OPERATOR_RESULT", "谱条数不可变、bands 可变", op=step.op)
-            if "axis" in meta:
+            if "axis" in meta and meta["axis"] is None:
+                axis = None
+                meta = dict(meta)
+                del meta["axis"]
+                meta.update(axis_len=None, axis_sha256=None)
+            elif "axis" in meta:
                 from hashlib import sha256
                 try:
                     declared_axis = np.asarray(meta["axis"], dtype=np.float64)

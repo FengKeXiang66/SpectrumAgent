@@ -1,0 +1,179 @@
+{
+  "run_id": "7bf84696-f620-414d-8b1b-0264277e7abe",
+  "cube_id": "231118f6-2f36-4ca2-9056-7fe34a024bea",
+  "annotation_version_id": "7878a304-efbe-4ba9-a7dc-48d9bffd41ae",
+  "recipe_version_id": "2e85f58c-604f-4a95-8101-8dccb49451b7",
+  "input_fingerprint": "2909b5f3e04d7fca69fe52c79c2c2bc5dcdbf37ea3c786786278a6ebb5fe03ed",
+  "source_hashes": {
+    "pixels.bil": "4fca1729fb239da2a304319c6c739bf35b7bb529271c6a3b4c61c04c9b013602",
+    "pixels.hdr": "2db75a44993eb69a1dc31f59dc566501e18999141c6e62a784cae17c77db9979"
+  },
+  "label_index": {
+    "0": "703d61f0-97b5-4642-8d70-d0eb5939081a",
+    "1": "ee6f7109-0f8a-4f96-bb7a-40761e3171c8",
+    "2": "f0a3195e-3e4c-4336-873c-8e2c824d4938"
+  },
+  "metrics": {
+    "snr": {
+      "mean": 0.03866756423354504,
+      "median": -0.01014458912298132,
+      "p10": -0.8307705103579127,
+      "p90": 0.944700010262138,
+      "n_pixels": 110
+    },
+    "snr_nan_count": 0,
+    "nan_spectra_skipped": 0,
+    "boundaries": [
+      "TASK-05 §2.5 边界1：SNR 跨算子类型不可比，仅同类算子内相对比较。",
+      "TASK-05 §2.5 边界2：零方差/单样本类排除 Fisher；该类样本不足，未参与选优；不加 epsilon。",
+      "TASK-05 §2.5 边界3：类间距离原值不可跨配方比；按卡以 Fisher 为主排序。"
+    ],
+    "excluded_classes": [],
+    "limitations": [],
+    "source": "TASK-05 §2.5/§2.6 R12；确定性逐像素计算，无 LLM 数值",
+    "variance_definition": "实现层口径：每类逐像素平方欧氏偏差均值（population covariance trace），按类像素数加权",
+    "interclass_distance": 0.3407515984509814,
+    "intraclass_variance": 2.9610828153199438,
+    "fisher": 0.11507668636892324,
+    "fisher_components": {
+      "interclass_distance": 0.3407515984509814,
+      "intraclass_variance": 2.9610828153199438
+    }
+  },
+  "steps": [
+    {
+      "op": "ica",
+      "version": 1,
+      "params": {
+        "n_components": 3,
+        "random_state": 0
+      },
+      "meta": {
+        "method": "ica",
+        "loadings": [
+          [
+            4.018924441429391,
+            -1.0532137029649182,
+            0.223791633444663
+          ],
+          [
+            0.24997462858826044,
+            0.8365633952917275,
+            -2.4991325087162797
+          ],
+          [
+            0.42742615301953274,
+            3.859648007596181,
+            -1.0555509105754237
+          ],
+          [
+            0.48306914012158986,
+            -0.9261473342430405,
+            -2.716699903232712
+          ],
+          [
+            -2.036074332557583,
+            0.07769169369592065,
+            1.1932767518613159
+          ],
+          [
+            1.8782311106135772,
+            0.47478316605475185,
+            -0.019883266190293094
+          ],
+          [
+            1.0351381997197768,
+            1.9486285697093717,
+            3.060211877457812
+          ],
+          [
+            0.9345209575585424,
+            2.3485738499364883,
+            0.8506399468724914
+          ]
+        ],
+        "mean": [
+          0.31156730962636187,
+          0.32771412916068415,
+          0.31402789626639466,
+          0.3275000866989879,
+          0.31473563744563965,
+          0.30809851779409986,
+          0.3285077370176933,
+          0.3196267088370542
+        ],
+        "random_state": 0,
+        "n_spectra": 110,
+        "nan_spectra": 0,
+        "variance_definition": "实现层口径：var(score,ddof=1)*||mixing_column||²；非正交分量重构能量占比，非 PCA 方差分解",
+        "estimator": "sklearn.decomposition.FastICA library defaults; random_state from params",
+        "explained_variance": [
+          0.03869818957033045,
+          0.038403002533925854,
+          0.03932728809383767
+        ],
+        "explained_variance_ratio": [
+          0.33237734877659225,
+          0.3298419980110205,
+          0.33778065321238715
+        ],
+        "cumulative_explained_variance": [
+          0.33237734877659225,
+          0.6622193467876127,
+          0.9999999999999999
+        ],
+        "axis_len": null,
+        "axis_sha256": null
+      }
+    }
+  ],
+  "b01": {
+    "op": "reflectance",
+    "version": 1,
+    "params": {
+      "hdr": {
+        "lines": "24",
+        "samples": "5",
+        "bands": "8",
+        "data type": "12",
+        "interleave": "bil",
+        "reflectance scale factor": "65535"
+      },
+      "branch": "scale",
+      "white_reference": null,
+      "dark_reference": null,
+      "guard": "clip"
+    },
+    "meta": {
+      "branch": "scale",
+      "matched_criteria": [
+        "scale"
+      ],
+      "guard": "clip",
+      "negative_clipped": 0,
+      "nan_bands": 0
+    }
+  },
+  "wavelengths": null,
+  "temporary_bytes": 7040,
+  "temporary_peak_bytes": 7040,
+  "temporary_data": "ICA 当前输入（选中像素→B01→前序步骤）的有限行；float64 单份 memmap；temporary_bytes 为累计写入字节",
+  "peak_rss_bytes": 145223680,
+  "input_fingerprint_matches_previous": null,
+  "fitting_source": {
+    "dataset_id": "231118f6-2f36-4ca2-9056-7fe34a024bea",
+    "input_fingerprint": "2909b5f3e04d7fca69fe52c79c2c2bc5dcdbf37ea3c786786278a6ebb5fe03ed",
+    "n_spectra": 110
+  },
+  "not_applicable": [
+    "processed_cube/overlay：阶段一不产出；未登记临时 ICA 文件。"
+  ],
+  "ranking": [
+    {
+      "rank": 1,
+      "run_id": "7bf84696-f620-414d-8b1b-0264277e7abe",
+      "recipe_version_id": "2e85f58c-604f-4a95-8101-8dccb49451b7",
+      "fisher": 0.11507668636892324
+    }
+  ]
+}

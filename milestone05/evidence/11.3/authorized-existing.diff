@@ -1,0 +1,76 @@
+diff --git a/backend/paths.py b/backend/paths.py
+index 5df5b38..d6c5a06 100644
+--- a/backend/paths.py
++++ b/backend/paths.py
+@@ -46,0 +47,4 @@ class AppPaths:
++    @property
++    def preprocessed(self) -> Path:
++        return self.root / "preprocessed"
++
+diff --git a/src-python/spectrumagent/preprocess/__init__.py b/src-python/spectrumagent/preprocess/__init__.py
+index 4906c51..5c3fcf9 100644
+--- a/src-python/spectrumagent/preprocess/__init__.py
++++ b/src-python/spectrumagent/preprocess/__init__.py
+@@ -6,0 +7,4 @@ from .operators.resample import resample
++from .operators.pca import pca
++from .operators.mnf import mnf
++from .operators.ica import ica
++from .operators.continuum import continuum
+@@ -20,0 +25,4 @@ def builtin_registry():
++        ("pca", schema.PcaParams, pca),
++        ("mnf", schema.MnfParams, mnf),
++        ("ica", schema.IcaParams, ica),
++        ("continuum", schema.ContinuumParams, continuum),
+diff --git a/src-python/spectrumagent/preprocess/registry.py b/src-python/spectrumagent/preprocess/registry.py
+index a55b64b..e3499ec 100644
+--- a/src-python/spectrumagent/preprocess/registry.py
++++ b/src-python/spectrumagent/preprocess/registry.py
+@@ -133 +133,6 @@ class OperatorRegistry:
+-            if "axis" in meta:
++            if "axis" in meta and meta["axis"] is None:
++                axis = None
++                meta = dict(meta)
++                del meta["axis"]
++                meta.update(axis_len=None, axis_sha256=None)
++            elif "axis" in meta:
+diff --git a/src-python/spectrumagent/preprocess/schema/__init__.py b/src-python/spectrumagent/preprocess/schema/__init__.py
+index 7860b3f..b59e4bd 100644
+--- a/src-python/spectrumagent/preprocess/schema/__init__.py
++++ b/src-python/spectrumagent/preprocess/schema/__init__.py
+@@ -21,0 +22 @@ FiniteVector = Annotated[list[FiniteFloat], BeforeValidator(vector), Field(min_l
++AxisVector = Annotated[list[FiniteFloat], BeforeValidator(vector), Field(min_length=2)]
+@@ -85 +86 @@ class CropParams(Params):
+-    source: FiniteVector
++    source: AxisVector
+@@ -110,2 +111,2 @@ class ResampleParams(Params):
+-    source: FiniteVector
+-    target: FiniteVector
++    source: AxisVector
++    target: AxisVector
+@@ -119,0 +121,19 @@ class ResampleParams(Params):
++
++
++class PcaParams(Params):
++    n_components: Annotated[int, Field(ge=1)]
++    random_state: int = 0
++
++
++class MnfParams(Params):
++    n_components: Annotated[int, Field(ge=1)]
++    random_state: int = 0
++
++
++class IcaParams(Params):
++    n_components: Annotated[int, Field(ge=1)]
++    random_state: int = 0
++
++
++class ContinuumParams(Params):
++    method: Literal["convex_hull", "linear"]
+diff --git a/src-python/tests/preprocess/test_registry.py b/src-python/tests/preprocess/test_registry.py
+index 879615f..04d3b76 100644
+--- a/src-python/tests/preprocess/test_registry.py
++++ b/src-python/tests/preprocess/test_registry.py
+@@ -15 +15 @@ def test_all_builtins_emit_pydantic_schema_and_reject_unknown_keys(registry):
+-    assert set(registry.entries) == {"reflectance","sg_smooth","sg_derivative","snv","msc","emsc","standardize","crop","resample"}
++    assert set(registry.entries) == {"reflectance","sg_smooth","sg_derivative","snv","msc","emsc","standardize","crop","resample","pca","mnf","ica","continuum"}

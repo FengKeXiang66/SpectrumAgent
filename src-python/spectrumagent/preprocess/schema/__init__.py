@@ -19,6 +19,7 @@ def vector(value):
 
 Vector = Annotated[list[float], BeforeValidator(vector), Field(min_length=1)]
 FiniteVector = Annotated[list[FiniteFloat], BeforeValidator(vector), Field(min_length=1)]
+AxisVector = Annotated[list[FiniteFloat], BeforeValidator(vector), Field(min_length=2)]
 
 
 class ReflectanceParams(Params):
@@ -82,7 +83,7 @@ class StandardParams(Params):
 
 
 class CropParams(Params):
-    source: FiniteVector
+    source: AxisVector
     range: tuple[float, float]
 
     @field_validator("source")
@@ -107,8 +108,8 @@ class CropParams(Params):
 
 
 class ResampleParams(Params):
-    source: FiniteVector
-    target: FiniteVector
+    source: AxisVector
+    target: AxisVector
     method: Literal["linear", "spline"]
 
     @field_validator("source", "target")
@@ -117,3 +118,22 @@ class ResampleParams(Params):
         if len(value) < 2 or not np.all(np.diff(value) > 0):
             raise ValueError("source/target 须严格递增且至少两波段，以定义相邻间隔代理值")
         return value
+
+
+class PcaParams(Params):
+    n_components: Annotated[int, Field(ge=1)]
+    random_state: int = 0
+
+
+class MnfParams(Params):
+    n_components: Annotated[int, Field(ge=1)]
+    random_state: int = 0
+
+
+class IcaParams(Params):
+    n_components: Annotated[int, Field(ge=1)]
+    random_state: int = 0
+
+
+class ContinuumParams(Params):
+    method: Literal["convex_hull", "linear"]

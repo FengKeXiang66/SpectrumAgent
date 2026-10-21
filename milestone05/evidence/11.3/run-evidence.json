@@ -1,0 +1,295 @@
+{
+  "source": "TASK-05 §5/§2.6 R12；固定合成像素夹具，非人工标注质量、非真实 cube 性能",
+  "mode": "repository-root .venv python capture.py; synchronous, default operator params; ICA block_size=1/7",
+  "fixture": {
+    "shape": [
+      24,
+      5,
+      8
+    ],
+    "raw_dtype": "uint16",
+    "scale_factor": 65535,
+    "annotation_pixels": 110,
+    "provenance": "tests/preprocess/run_fixtures.py"
+  },
+  "run_rows": [
+    {
+      "id": "3eb2ee06-b046-4576-8913-132559a9407e",
+      "cube_id": "231118f6-2f36-4ca2-9056-7fe34a024bea",
+      "annotation_version_id": "7878a304-efbe-4ba9-a7dc-48d9bffd41ae",
+      "recipe_version_id": "29acf8be-e2e5-4417-bb7a-05f9292c0a88",
+      "b01_branch": "scale",
+      "input_fingerprint": "2909b5f3e04d7fca69fe52c79c2c2bc5dcdbf37ea3c786786278a6ebb5fe03ed",
+      "scaler_params": [
+        {
+          "mean": 0.31156730962636203,
+          "std": 0.18607502614580135
+        },
+        {
+          "mean": 0.32771412916068443,
+          "std": 0.17092179607261623
+        },
+        {
+          "mean": 0.3140278962663948,
+          "std": 0.18914249963588928
+        },
+        {
+          "mean": 0.32750008669898795,
+          "std": 0.1684380781088629
+        },
+        {
+          "mean": 0.31473563744563976,
+          "std": 0.16722294743294086
+        },
+        {
+          "mean": 0.3080985177941003,
+          "std": 0.15859698334868372
+        },
+        {
+          "mean": 0.32850773701769354,
+          "std": 0.17098808678568259
+        },
+        {
+          "mean": 0.3196267088370544,
+          "std": 0.16206052075812882
+        }
+      ],
+      "metrics": {
+        "snr": {
+          "mean": 0.016896254990965368,
+          "median": -0.020706229555969933,
+          "p10": -0.35720731495921654,
+          "p90": 0.36233567593375676,
+          "n_pixels": 110
+        },
+        "snr_nan_count": 0,
+        "nan_spectra_skipped": 0,
+        "boundaries": [
+          "TASK-05 §2.5 边界1：SNR 跨算子类型不可比，仅同类算子内相对比较。",
+          "TASK-05 §2.5 边界2：零方差/单样本类排除 Fisher；该类样本不足，未参与选优；不加 epsilon。",
+          "TASK-05 §2.5 边界3：类间距离原值不可跨配方比；按卡以 Fisher 为主排序。"
+        ],
+        "excluded_classes": [],
+        "limitations": [],
+        "source": "TASK-05 §2.5/§2.6 R12；确定性逐像素计算，无 LLM 数值",
+        "variance_definition": "实现层口径：每类逐像素平方欧氏偏差均值（population covariance trace），按类像素数加权",
+        "interclass_distance": 0.5799598726930169,
+        "intraclass_variance": 7.886735354533547,
+        "fisher": 0.07353611432639709,
+        "fisher_components": {
+          "interclass_distance": 0.5799598726930169,
+          "intraclass_variance": 7.886735354533547
+        }
+      },
+      "status": "succeeded",
+      "error": null,
+      "finished_at": "2026-10-21T01:14:51.663625+00:00",
+      "note": null,
+      "created_at": "2026-10-21T01:14:51.579400+00:00",
+      "artifacts": [
+        {
+          "id": "7f201d37-b850-4de6-8396-3941ce94bd05",
+          "run_id": "3eb2ee06-b046-4576-8913-132559a9407e",
+          "kind": "report",
+          "relative_path": "231118f6-2f36-4ca2-9056-7fe34a024bea/3eb2ee06-b046-4576-8913-132559a9407e/report.json",
+          "sha256": "4fa424c3b6cc95d94f8c4cad4437c4ef0a600d44241f04cacda60fc0844d156c",
+          "created_at": "2026-10-21T01:14:51.661515+00:00"
+        },
+        {
+          "id": "20968e88-ab7f-4739-8bfa-e707e49dffb6",
+          "run_id": "3eb2ee06-b046-4576-8913-132559a9407e",
+          "kind": "sample_spectra",
+          "relative_path": "231118f6-2f36-4ca2-9056-7fe34a024bea/3eb2ee06-b046-4576-8913-132559a9407e/sample_spectra.npz",
+          "sha256": "b856b4db9a4fb62bf0539d9ca7b99e3cea263f30f9f180bf4a9a65f9af5d3787",
+          "created_at": "2026-10-21T01:14:51.650008+00:00"
+        }
+      ]
+    },
+    {
+      "id": "7bf84696-f620-414d-8b1b-0264277e7abe",
+      "cube_id": "231118f6-2f36-4ca2-9056-7fe34a024bea",
+      "annotation_version_id": "7878a304-efbe-4ba9-a7dc-48d9bffd41ae",
+      "recipe_version_id": "2e85f58c-604f-4a95-8101-8dccb49451b7",
+      "b01_branch": "scale",
+      "input_fingerprint": "2909b5f3e04d7fca69fe52c79c2c2bc5dcdbf37ea3c786786278a6ebb5fe03ed",
+      "scaler_params": null,
+      "metrics": {
+        "snr": {
+          "mean": 0.03866756423354504,
+          "median": -0.01014458912298132,
+          "p10": -0.8307705103579127,
+          "p90": 0.944700010262138,
+          "n_pixels": 110
+        },
+        "snr_nan_count": 0,
+        "nan_spectra_skipped": 0,
+        "boundaries": [
+          "TASK-05 §2.5 边界1：SNR 跨算子类型不可比，仅同类算子内相对比较。",
+          "TASK-05 §2.5 边界2：零方差/单样本类排除 Fisher；该类样本不足，未参与选优；不加 epsilon。",
+          "TASK-05 §2.5 边界3：类间距离原值不可跨配方比；按卡以 Fisher 为主排序。"
+        ],
+        "excluded_classes": [],
+        "limitations": [],
+        "source": "TASK-05 §2.5/§2.6 R12；确定性逐像素计算，无 LLM 数值",
+        "variance_definition": "实现层口径：每类逐像素平方欧氏偏差均值（population covariance trace），按类像素数加权",
+        "interclass_distance": 0.3407515984509814,
+        "intraclass_variance": 2.9610828153199438,
+        "fisher": 0.11507668636892324,
+        "fisher_components": {
+          "interclass_distance": 0.3407515984509814,
+          "intraclass_variance": 2.9610828153199438
+        }
+      },
+      "status": "succeeded",
+      "error": null,
+      "finished_at": "2026-10-21T01:14:51.910092+00:00",
+      "note": null,
+      "created_at": "2026-10-21T01:14:51.684305+00:00",
+      "artifacts": [
+        {
+          "id": "1df40e89-2620-4976-9595-42448d36252c",
+          "run_id": "7bf84696-f620-414d-8b1b-0264277e7abe",
+          "kind": "report",
+          "relative_path": "231118f6-2f36-4ca2-9056-7fe34a024bea/7bf84696-f620-414d-8b1b-0264277e7abe/report.json",
+          "sha256": "3f5ea85a04070a3cec1f400adf87004e7ed843dfa0b0c2506f077f7cf22e6b95",
+          "created_at": "2026-10-21T01:14:51.908111+00:00"
+        },
+        {
+          "id": "a50e1840-307a-4566-b845-c60f00cb2c1a",
+          "run_id": "7bf84696-f620-414d-8b1b-0264277e7abe",
+          "kind": "sample_spectra",
+          "relative_path": "231118f6-2f36-4ca2-9056-7fe34a024bea/7bf84696-f620-414d-8b1b-0264277e7abe/sample_spectra.npz",
+          "sha256": "56f116c70d3ce11366fcde61f22df30e4253960bf597ff7db2d662b2c018f8f5",
+          "created_at": "2026-10-21T01:14:51.896053+00:00"
+        }
+      ]
+    },
+    {
+      "id": "5068e7d7-0b77-494c-b637-0935d0f21d85",
+      "cube_id": "231118f6-2f36-4ca2-9056-7fe34a024bea",
+      "annotation_version_id": "7878a304-efbe-4ba9-a7dc-48d9bffd41ae",
+      "recipe_version_id": "2e85f58c-604f-4a95-8101-8dccb49451b7",
+      "b01_branch": "scale",
+      "input_fingerprint": "2909b5f3e04d7fca69fe52c79c2c2bc5dcdbf37ea3c786786278a6ebb5fe03ed",
+      "scaler_params": null,
+      "metrics": {
+        "snr": {
+          "mean": 0.03866756423354504,
+          "median": -0.01014458912298132,
+          "p10": -0.8307705103579127,
+          "p90": 0.944700010262138,
+          "n_pixels": 110
+        },
+        "snr_nan_count": 0,
+        "nan_spectra_skipped": 0,
+        "boundaries": [
+          "TASK-05 §2.5 边界1：SNR 跨算子类型不可比，仅同类算子内相对比较。",
+          "TASK-05 §2.5 边界2：零方差/单样本类排除 Fisher；该类样本不足，未参与选优；不加 epsilon。",
+          "TASK-05 §2.5 边界3：类间距离原值不可跨配方比；按卡以 Fisher 为主排序。"
+        ],
+        "excluded_classes": [],
+        "limitations": [],
+        "source": "TASK-05 §2.5/§2.6 R12；确定性逐像素计算，无 LLM 数值",
+        "variance_definition": "实现层口径：每类逐像素平方欧氏偏差均值（population covariance trace），按类像素数加权",
+        "interclass_distance": 0.3407515984509814,
+        "intraclass_variance": 2.9610828153199438,
+        "fisher": 0.11507668636892324,
+        "fisher_components": {
+          "interclass_distance": 0.3407515984509814,
+          "intraclass_variance": 2.9610828153199438
+        }
+      },
+      "status": "succeeded",
+      "error": null,
+      "finished_at": "2026-10-21T01:14:51.989939+00:00",
+      "note": null,
+      "created_at": "2026-10-21T01:14:51.923099+00:00",
+      "artifacts": [
+        {
+          "id": "5c650789-b16c-4218-9d27-a804d9f9912e",
+          "run_id": "5068e7d7-0b77-494c-b637-0935d0f21d85",
+          "kind": "report",
+          "relative_path": "231118f6-2f36-4ca2-9056-7fe34a024bea/5068e7d7-0b77-494c-b637-0935d0f21d85/report.json",
+          "sha256": "e50c1ddbcc01c0a096fcc3ff4ab173c60619a59d82566556d2abc3263fbd95fa",
+          "created_at": "2026-10-21T01:14:51.989939+00:00"
+        },
+        {
+          "id": "5406cbe2-44cd-41e2-af7a-8138899b1cf1",
+          "run_id": "5068e7d7-0b77-494c-b637-0935d0f21d85",
+          "kind": "sample_spectra",
+          "relative_path": "231118f6-2f36-4ca2-9056-7fe34a024bea/5068e7d7-0b77-494c-b637-0935d0f21d85/sample_spectra.npz",
+          "sha256": "56f116c70d3ce11366fcde61f22df30e4253960bf597ff7db2d662b2c018f8f5",
+          "created_at": "2026-10-21T01:14:51.983091+00:00"
+        }
+      ]
+    },
+    {
+      "id": "f6d39828-1eac-42b5-9201-a55891646f73",
+      "cube_id": "231118f6-2f36-4ca2-9056-7fe34a024bea",
+      "annotation_version_id": "7878a304-efbe-4ba9-a7dc-48d9bffd41ae",
+      "recipe_version_id": "656b1c22-cf6c-4964-b2ff-d50212061329",
+      "b01_branch": "scale",
+      "input_fingerprint": "2909b5f3e04d7fca69fe52c79c2c2bc5dcdbf37ea3c786786278a6ebb5fe03ed",
+      "scaler_params": null,
+      "metrics": null,
+      "status": "failed",
+      "error": {
+        "error": "INVALID_OPERATOR_PARAMS",
+        "detail": "算子参数校验失败",
+        "context": {
+          "fields": [
+            {
+              "field": "n_components",
+              "message": "n_components 不得超过输入 bands"
+            }
+          ]
+        }
+      },
+      "finished_at": "2026-10-21T01:14:52.152537+00:00",
+      "note": null,
+      "created_at": "2026-10-21T01:14:52.129505+00:00",
+      "artifacts": []
+    }
+  ],
+  "ica_max_abs_score_diff": 0.0,
+  "ica_temporary_bytes": 7040,
+  "ica_peak_rss_bytes": 145223680,
+  "no_temporary_files_remaining": true,
+  "comparison_ranking": [
+    {
+      "rank": 1,
+      "run_id": "7e7b4499-2069-46d6-bd33-81b988ca202d",
+      "recipe_version_id": "2e85f58c-604f-4a95-8101-8dccb49451b7",
+      "fisher": 0.11507668636892324
+    },
+    {
+      "rank": 2,
+      "run_id": "ccb6bcdd-b1a4-4e19-901f-383bb3c9c87a",
+      "recipe_version_id": "29acf8be-e2e5-4417-bb7a-05f9292c0a88",
+      "fisher": 0.07353611432639709
+    }
+  ],
+  "artifact_bytes": [
+    {
+      "run_id": "3eb2ee06-b046-4576-8913-132559a9407e",
+      "kind": "report",
+      "bytes": 3462
+    },
+    {
+      "run_id": "3eb2ee06-b046-4576-8913-132559a9407e",
+      "kind": "sample_spectra",
+      "bytes": 1529
+    },
+    {
+      "run_id": "7bf84696-f620-414d-8b1b-0264277e7abe",
+      "kind": "report",
+      "bytes": 4219
+    },
+    {
+      "run_id": "7bf84696-f620-414d-8b1b-0264277e7abe",
+      "kind": "sample_spectra",
+      "bytes": 1274
+    }
+  ],
+  "task_card_sha256": "629de7c5c0d9eb276e29bd6485fb0216fd725715da94d29f86d346f24836cd58"
+}

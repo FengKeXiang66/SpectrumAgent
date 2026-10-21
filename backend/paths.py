@@ -44,6 +44,10 @@ class AppPaths:
     def snapshots(self) -> Path:
         return self.root / "annotations"
 
+    @property
+    def preprocessed(self) -> Path:
+        return self.root / "preprocessed"
+
     def create_directories(self) -> None:
         for directory in (self.run, self.logs, self.testdata, self.database.parent):
             directory.mkdir(parents=True, exist_ok=True)

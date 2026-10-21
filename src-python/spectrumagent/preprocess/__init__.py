@@ -4,6 +4,10 @@ from .registry import OperatorRegistry, OperatorVersionStale, PipelineResult, Pr
 from .operators.standardize import standardize
 from .operators.crop import crop
 from .operators.resample import resample
+from .operators.pca import pca
+from .operators.mnf import mnf
+from .operators.ica import ica
+from .operators.continuum import continuum
 
 
 def builtin_registry():
@@ -18,6 +22,10 @@ def builtin_registry():
         ("standardize", schema.StandardParams, standardize),
         ("crop", schema.CropParams, crop),
         ("resample", schema.ResampleParams, resample),
+        ("pca", schema.PcaParams, pca),
+        ("mnf", schema.MnfParams, mnf),
+        ("ica", schema.IcaParams, ica),
+        ("continuum", schema.ContinuumParams, continuum),
     ):
         registry.register(name, 1, model, impl)
     return registry
