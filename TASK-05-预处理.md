@@ -56,7 +56,10 @@
   ]}
   ```
   字段名固定为 `steps` / `op` / `version` / `params`；`params` 由该算子的 `params_schema` 校验，未知键拒绝（对齐 `deny_unknown_fields` 纪律）。
-- 内置默认配方一条：`reflectance_scale → snv → sg_derivative(order=1, window=15, polyorder=2)`，出处=场景 S1（需求 418 行），标注"**场景示例默认值、可改**"（与 0.92/0.80 同纪律：有出处、标层级）。
+- 内置默认配方一条：**`snv → sg_derivative(order=1, window=15, polyorder=2)`**，`code=plastic-snv-sg1`（S1 418 行逐字），标注"**场景示例默认值、可改**"。
+  - **不含 `reflectance`（R8 裁定，两重理由）**：①算子名勘误——原卡写 `reflectance_scale`，**11.1 注册名是 `reflectance`**（`preprocess/__init__.py:9`），照字面建配方会 `OPERATOR_VERSION_STALE`；②**更硬的理由**——`ReflectanceParams.hdr` 是**必填字段**（schema:25，无默认值），而 hdr 是**数据集特定参数**；把 hdr 写进全局配方，同一配方就无法跨数据集复用（每换一个数据集就得改配方），直接违背 FR-B07"一键复用于新数据集"。plastic 数据 `reflectance scale factor=65535` 已是反射率，B01 在默认配方里本就是 no-op；需要反射率转换时**单独跑 B01**（run 层记 `b01_branch`）。
+  - **若将来要"含反射率转换"的配方**：须先把 `hdr` 从算子 params 移出（改由 run 层 context 注入），属架构变更，走卡修订，**不得在 11.2 私自改 11.1 已过闸的 schema**。
+  - **B01 与 run 的接缝（R8 记账，11.3 实现）**：反射率转换不进配方；**11.3 run 层负责从数据集读 hdr → 构造 B01 前置步（hdr 由 run 层注入、不经配方）→ 执行并记录 `b01_branch`**（该列的唯一供值路径，否则 `preprocess_run.b01_branch` 是孤儿列）。把 `hdr` 改为算子 params 之外（schema 可选化 + run 注入）属架构变更，须走卡修订。
 
 ### 2.2.1 B02/B03/B04 数值口径与算子返回结构（R6 钉死）
 
@@ -80,6 +83,8 @@
 - 复现口径：**以本次 run 的输入数据指纹为准**——数据集重导入/源替换（含同路径换文件）→ 参数必须重算，并记录指纹对比结果；"同输入同结果"只对同指纹成立。
 - **`input_fingerprint` 算法（R3 钉死）**：`sha256( dataset_id | 源文件相对路径排序后逐项 sha256 | annotation_version_id | 样本像素数 )`——**必须含标注版本 id**（重新标注后样本集变了，指纹必须变，否则"同指纹"会掩盖样本变化）；源文件哈希复用 #04 登记 payload 口径，不重新读盘。
 - FR-B05"随模型保存"留到建模里程碑：同算子届时改用"从模型取参数"，衔接点记入 §12。
+- **B05 四法公式（R8 钉死）**：①**StandardScaler** = 逐波段 `(x-mean)/std`（**ddof=0**）；②**MinMax** = 逐波段 `(x-min)/(max-min)`；③**面积归一** = 逐谱除梯形积分，**积分变量为波段序号（`np.trapezoid(x, dx=1.0)`，非波长值）**——波长非等距时按波长积分会随数据集变化，口径不稳；④**向量归一** = 逐谱除 L2 范数。前两法 `fitted`=逐波段参数列表；后两法 `fitted` 为空、逐谱量不落库（`n_spectra` 进 meta）。
+- **B05 零分母护栏（R8）**：四法统一 `zero_std ∈ {"zeros"(默认),"nan","error"}`（与 SNV 同族同默认）；`error` → **`NORMALIZATION_DEGENERATE`(400)** 带 `zero_scale_count`。**不回改 SNV 已发货的 `SCATTER_MODEL_DEGENERATE`**（不为一致性破坏 11.1 已过闸测试）。
 
 ### 2.5 B10 效果对比（输入粒度与指标口径）
 
@@ -99,7 +104,12 @@
 - **所有降维算子固定 `random_state=0`**（ICA 随机初始化必须锁死）。
 - **载荷符号约定：每个成分按"绝对值最大处取正"定向**——消除特征向量正负号翻转，保证两次跑逐元素相等（复现验收的前提）。
 - **MNF 噪声协方差估计 = 相邻波段差分协方差**（最小假设），估计方法随产物记录；无噪声参考时不得静默退化。
-- **B06 FWHM 变化提示**：以 `wavelengths` **相邻间隔作为 FWHM 的代理值**（R3 标注：实现层近似，非仪器真值），重采样后重算并对比，**变化 >5% 触发提示**；报告中须写明"FWHM 为间隔代理值，非实测分辨率"。
+- **B06 FWHM 变化提示**：以 `wavelengths` **相邻间隔作为 FWHM 的代理值**（R3 标注：实现层近似，非仪器真值），重采样后重算并对比，**变化 >5% 触发提示**；报告中须写明"FWHM 为间隔代理值，非实测分辨率"。**代理值取相邻间隔的中位数**（R8 钉死单一口径，防中位/均值混算重演）。
+- **B06 轴来源契约（R8 钉死）**：算子签名不变（`(spectra, params)`），**波长轴一律经 `params` 显式传入**（`source` / `target` 有限向量）；`run()` 的 wavelengths **不注入算子**——配方必须自包含，否则同一配方配不同 wavelengths 出不同结果，复现性破产。
+- **B06 裁剪/重采样（R8）**：裁剪 `params={source, range:[lo,hi]}` **闭区间**，0 波段命中 → `INVALID_OPERATOR_PARAMS`；重采样 `params={source, target, method: linear|spline}`（`linear=np.interp`，`spline=scipy.interpolate.CubicSpline`），source/target 均须**严格递增**；**target 越出源范围 → NaN（禁 clamp/外插）** + `out_of_range_bands` 计数；FWHM before=source、after=target，>5% → `fwhm_warning:true` + before/after。
+- **变轴算子契约（R9 钉死）**：算子可改变 bands（**第二维**），**不可改变谱条数（第一维，label_map 对齐的地基）**。输出波长轴经 meta 保留键 **`axis`** 回传（全有限、严格递增、长度=输出 bands），框架校验通过即**替换工作轴**，最终 `PipelineResult.wavelengths` 随之更新（输入无轴而算子声明了轴时同样返回）；算子改变 bands 但**未声明 `axis`** → `INVALID_OPERATOR_RESULT`（无论输入有没有给 wavelengths——给过是留陈旧轴污染，没给是审计缺失，一律拒）。
+  - **`axis` 不进审计记录（R9 补）**：校验通过后从 meta 中**移除** `axis`，records 只留摘要 `axis_len` + `axis_sha256`（否则每个 crop/resample step 都存一份 200 元素数组，多步配方 records 膨胀且不可读）；完整轴只在 `PipelineResult.wavelengths` 里。
+- **B05/B06 算子命名（R9 钉死）**：`standardize`（method ∈ `standard`/`minmax`/`area`/`vector`，零分母统一 `zero_std`）；`crop`；`resample`。`CropParams.range` 为**两元素元组且 lo < hi**（类型与校验都钉死）。
 
 ## 3. 数据模型（DDL 草稿，待 codex 实现时复核）
 
@@ -133,9 +143,10 @@ CREATE TABLE IF NOT EXISTS project_recipe (
 CREATE TABLE IF NOT EXISTS preprocess_run (
   id           TEXT PRIMARY KEY,
   cube_id      TEXT NOT NULL,                -- 输入数据集（dataset_registry.id）
+  annotation_version_id TEXT NOT NULL REFERENCES annotation_version(id),  -- R7：B10 输入逐像素谱依赖的标注版本（跨里程碑 FK，#04 迁移先跑）
   recipe_version_id TEXT NOT NULL REFERENCES preprocess_recipe_version(id),
   b01_branch   TEXT NOT NULL CHECK (b01_branch IN ('reference','scale','passthrough')),
-  input_fingerprint TEXT NOT NULL,           -- JSON：数据集id+源清单hash+样本数
+  input_fingerprint TEXT NOT NULL,           -- sha256(dataset_id|源文件哈希|annotation_version_id|样本像素数)，见 §2.4 R3（R7 修正：原注释写成 JSON 且漏标注版本）
   scaler_params TEXT,                        -- JSON：fit-on-apply 标定结果（B05）
   metrics      TEXT,                         -- JSON：B10 指标快照
   status       TEXT NOT NULL CHECK (status IN ('pending','running','succeeded','failed')),
@@ -176,7 +187,7 @@ CREATE TABLE IF NOT EXISTS preprocess_artifact (
 - [ ] B04 SNV/MSC/EMSC 各一次；MSC 参考谱来源（训练集均值/指定样品）显式记录
 - [ ] B05 四法各一次；标定参数随 run 落库、指纹变化触发重算并记录
 - [ ] B06 裁剪/重采样后 FWHM 变化 >5% 提示（间隔估算法）
-- [ ] B07 配方新建版本（version_no+1）、历史不可改、无覆写路径；项目选用为只读关联；内置默认配方与 S1 逐字一致
+- [ ] B07 配方新建版本（version_no+1）、历史不可改、无覆写路径；项目选用为只读关联；内置默认配方与 S1 逐字一致（**R8 限定：S1 的"白板校正/反射率转换"步由 run 层 B01 前置施加并记 `b01_branch`，不入配方——hdr 为数据集特定参数，进配方破坏 FR-B07 跨数据集复用；内置链的 SNV+SG1 部分与 S1 逐字一致**）
 - [ ] B08 PCA/MNF/ICA 输出载荷/得分/累积方差；**random_state=0 与载荷符号约定下，同输入两次跑逐元素相等**
 - [ ] B09 两方法各一次；凸包端点识别；linear 支即 UI"去背景"落点
 - [ ] B10：**输入为逐像素谱（测试断言禁用 sample_spectrum 读取路径）**；三指标+Fisher 主排序；三类边界标注全出现；未标注降级仅 SNR+局限标注；**报告无任何 LLM 生成数值**
@@ -193,6 +204,10 @@ CREATE TABLE IF NOT EXISTS preprocess_artifact (
 - [ ] **B03 补充（R6）**：`unit="band_index"` 记录；奇数窗口校验；`delta` 固定 1.0 且不暴露
 - [ ] **B04 补充（R6）**：SNV ddof=0 + 零方差三策略；EMSC 默认阶数 2 + 显式参考谱 + lstsq 确定性；MSC meta 只记 reference 指纹、来源留 11.2
 - [ ] **算子返回结构（R6）**：纯矩阵与 `(spectra, meta)` 两形态均被 registry 接受；B01/B03/B04 meta 键齐全且 JSON-safe
+- [ ] **B05 补充（R8）**：四法公式逐一对拍（含面积归一 `np.trapezoid(dx=1.0)`）+ 零分母三策略 + `NORMALIZATION_DEGENERATE`(400)
+- [ ] **B06 补充（R8）**：轴经 `params` 显式传入（不注入 wavelengths）；闭区间裁剪 0 命中报错；样条/越界 NaN+计数；FWHM 中位代理 + >5% 提示
+- [ ] **B07 补充（R8）**：内置配方 = `snv → sg_derivative(1,15,2)`、`code=plastic-snv-sg1`、**不含 reflectance**（hdr 数据集特定，进配方破坏复用）；算子名必须是注册表名；迁移双跑幂等（schema 不变、内置不重复）
+- [ ] **变轴契约（R9）**：crop→resample 全链后 `PipelineResult.wavelengths` = 最后轴、step meta 含 `axis`；改谱条数的算子被拒；改 bands 未声明 axis 被拒；axis 非递增/长度不符/含非有限被拒；**records 内不含完整 axis（只有 axis_len/axis_sha256）**；11.1 既有 94 测试不回改、全绿
 
 ## 6. 红线
 
@@ -241,3 +256,6 @@ CREATE TABLE IF NOT EXISTS preprocess_artifact (
 | R4 | **注册表多版本共存（11.1 架构，科祥 11.1 草稿的"旧 version 复现旧结果"验收暴露的缺口）**：R3 的注册项 `{name, version, params_schema, impl}` 是**单版本结构**——version 递增即覆盖旧 impl，旧配方必然不可复现，与"版本递增后旧 version 仍可复现旧结果"直接矛盾。改为 **`{name: {version: entry}}` 多版本共存**，run 按配方声明的 version 取 impl；`OPERATOR_VERSION_STALE` 精确触发条件改为"**声明版本在注册表中不存在**"（旧实现被删），version 存在时必须正常执行、不得误报。§5 加一条验收（v1/v2 共存 + 删 v1 后 STALE + v2 仍正常）。**勘误：科祥称"卡 §5 有这条验收"不实**——grep 仅命中第 58 行配方版本，算子版本验收为本轮新增 | Agent 核查 11.1 草稿（grep 实证 + 架构推演） |
 | R5 | **补 11.1 两条验收（卡 §5 原本缺失）**：①**算子框架全链**（注册→pipeline 解析→逐算子执行→参数校验失败结构化报错）；②**算子级确定性**（同算子同输入两次执行逐元素相等 1e-12，随机算子 11.3 另验）。成因：11.1 开工令第 8 条自称"全部出自卡 §5"，但这两条 grep 实证不在卡内（§5 只有"新增算子演示"，第 155 行"复现"是 run 级指纹复现、11.1 尚无 run）——**同一类错误第二次**（验收凭印象加），按纪律补进卡而非从开工令删 | Agent 核 11.1 终版开工令（grep 实证） |
 | R6 | **codex 11.1 六触即停：B01/B03/B04 数值口径与结果结构未定义**：多判据命中→`AMBIGUOUS_REFLECTANCE_INPUT`（对称 fail-closed）；参考=hdr 自定义标签+run 层解析+按行/列校正缓建；guard 三枚举默认 clip；B03 按波段序号；SG `mode=interp`+奇数窗口；SNV `ddof=0`+零方差三策略；EMSC=`[ref,1,t^1..t^p]`（t∈[0,1]）+lstsq+显式参考谱；impl 允许 `(spectra,meta)` 承载分支/阶数/参考谱记录。出处 FR-B01/B03/B04 原文+实现层口径标注。**agent 复核补 4 处**：①无判据命中补错误码 **`UNKNOWN_REFLECTANCE_INPUT`**（原稿只说"结构化错误"未给码）；②**"差分窗口"澄清为 `window_length` 非 scipy `delta`**，delta 固定 1.0 不暴露（防"每 nm vs 每波段"第二套口径）；③**clip 产生 NaN 的下游处置**（原样传播、B10 整条跳过并计数、禁 0 填充）；④**MSC meta 的 `reference_source` 层次错误**——11.1 算子只收 reference 数组、无从得知来源，改为记 `reference_sha256`+`reference_len`，来源由 11.2 run 层回填 | 11.1 数值缺口 + agent 复核（scipy 签名探针/测试签名核实） |
+| R7 | **11.2 开工前 DDL 补两处（agent 核卡发现）**：①`preprocess_run` **缺 `annotation_version_id`**——B10 输入是逐像素谱（依赖 label_map + annotation_version），而 `input_fingerprint` 是 sha256 **无法反查**"这个 run 用的哪版标注"；加 `annotation_version_id TEXT NOT NULL REFERENCES annotation_version(id)`（**跨里程碑 FK**，依赖 #04 迁移先跑；#04 的 annotation_version 只增不改，FK 安全）。②`input_fingerprint` 注释"JSON：数据集id+源清单hash+样本数"与 R3 钉死的算法**双重不一致**（类型写成 JSON 实为 sha256 串、且漏 annotation_version_id），按 R3 修正 | agent 核 11.2 范围（DDL 对读 §2.4） |
+| R8 | **11.2 开工前五处口径（科祥取证 + agent 复核改一处）**：①**卡 59 行算子名勘误**——原写 `reflectance_scale`，11.1 注册名是 **`reflectance`**（`preprocess/__init__.py:9`），照字面建配方会 `OPERATOR_VERSION_STALE`；②**内置配方最终不含 reflectance**（agent 改科祥原稿的"`params={}`"）——实测 `ReflectanceParams.hdr` **必填无默认**（schema:25）、算子内部 `params["hdr"]` 硬取，`params={}` 必炸；更根本的是 hdr 为**数据集特定参数**，进全局配方即破坏 FR-B07 跨数据集复用；plastic 已是反射率（scale=65535）B01 本为 no-op，需转换时单独跑并记 `b01_branch`；③**B05 四法公式**（逐波段 StandardScaler/MinMax、逐谱面积 `np.trapezoid(dx=1.0)`/L2；**numpy 2.5.4 实测已无 `np.trapz`**）+ 零分母三策略 + `NORMALIZATION_DEGENERATE`(400)，不回改 SNV 已发货错误码；④**B06 轴来源契约**——轴经 `params` 显式传入、run 的 wavelengths 不注入（配方自包含）；裁剪闭区间、重采样 `np.interp`/`CubicSpline`（scipy 1.18.1 实测在位）、越界 NaN 禁 clamp/外插、FWHM 取相邻间隔**中位数**；⑤**11.1 证据补档**——`milestone05/` 不存在需 mkdir，README **移动**（git rm）非复制、pytest-full 从 `.runtime/m05-11.1/` 入档 | 科祥取证（S1 418 行/DDL b01_branch/numpy-scipy 实测）+ agent 复核（schema:25 必填性实证） |
+| R9 | **codex 11.2 即停：变轴契约未定义（B06 连框架都过不去）**：11.1 的 `registry.py:130` 硬校验 `output.shape != result.shape`（完全同形），crop/resample 改 bands 必被拒；轴只在循环外定义（138 行 return 用旧 axis）。裁定：①**授权最小修改**——`registry.py` 只改形状校验 + 轴传递（130 行 + 循环内 + 138 行 return），`resolve`/`parse_pipeline`/`json_safe`/多版本/确定性一律不碰；`schema/__init__.py` **纯新增**三模型（既有六个一字不动）；`preprocess/__init__.py` **纯新增**三行注册。**已实证 11.1 测试零 `INVALID_OPERATOR_RESULT` 断言（grep 零命中），放宽无连带**。②**轴回传 = meta 保留键 `axis`**（不新增返回形态）：形状校验改为"**第一维（谱条数）不变、第二维（bands）可变**"；meta 含 axis → 校验全有限+严格递增+长度=输出 bands → 替换工作轴；改 bands 未声明 axis → `INVALID_OPERATOR_RESULT`（给过 wavelengths 是陈旧轴污染、没给是审计缺失，一律拒）。③命名 `standardize`（method ∈ standard/minmax/area/vector）+ `crop` + `resample`。**agent 补两点**：①`axis` 校验后**从 meta 移除**、records 只留 `axis_len`+`axis_sha256`（否则每个 crop/resample step 存一份 200 元素数组，多步配方 records 膨胀）；②`CropParams.range` 钉死**两元素元组且 lo<hi**（原稿只写"tuple/列表两元"） | codex 11.2 即停 + agent 取证（grep 零命中 / registry:130 / json_safe 行为） |
