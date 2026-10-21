@@ -118,3 +118,10 @@ class RecipeStore:
                 "SELECT r.id FROM preprocess_recipe r JOIN project_recipe p ON p.recipe_id=r.id WHERE p.project_id=? ORDER BY r.code",
                 (str(project_id),))]
         return [self.get(identifier) for identifier in identifiers]
+
+    # 取消选用只删除项目关联行，不删除配方本体。“只读关联”指配方历史
+    # 不被复制/修改（TASK-05 §2.3）；取消关联不违背配方只增不改。
+    def deselect_project(self, project_id, recipe_id):
+        with connect_database(self.database, timeout=10) as db:
+            db.execute("DELETE FROM project_recipe WHERE project_id=? AND recipe_id=?",
+                       (str(project_id), str(recipe_id)))

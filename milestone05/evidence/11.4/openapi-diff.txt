@@ -1,0 +1,4 @@
+Generated: create_app(AppPaths(E:/AI_Agent/.runtime/m05-11.4/openapi), EngineIdentity()) -> json.dumps(app.openapi(), ensure_ascii=False, indent=2)
+git diff --numstat: 721	0	src-python/spectrumagent/api/openapi.json
+Mechanical removed-line count (^- excluding ^---): 0
+Full equality assertion: src-python/tests/data/test_api.py unchanged; full regression passed

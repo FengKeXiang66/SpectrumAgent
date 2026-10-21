@@ -1,0 +1,31 @@
+diff --git a/src-python/spectrumagent/app.py b/src-python/spectrumagent/app.py
+index cba7371..efa1ec4 100644
+--- a/src-python/spectrumagent/app.py
++++ b/src-python/spectrumagent/app.py
+@@ -7,0 +8 @@ from spectrumagent.api.annotations import LABEL_PATHS, make_router as make_label
++from spectrumagent.api.preprocess import make_router as make_preprocess_router
+@@ -13,0 +15,2 @@ from spectrumagent.data import DataError
++from spectrumagent.preprocess.run import RunEngine
++from spectrumagent.preprocess.compare import CompareEngine
+@@ -24,0 +28,3 @@ def create_app(paths, identity):
++    app.state.preprocess_runner = RunEngine(registry, paths)
++    app.state.preprocess_compare = CompareEngine(app.state.preprocess_runner)
++    app.include_router(make_preprocess_router(app.state.preprocess_runner, app.state.preprocess_compare))
+@@ -41 +47 @@ def create_app(paths, identity):
+-        if request.url.path.startswith("/api/v1/datasets"):
++        if request.url.path.startswith("/api/v1/datasets") or request.url.path.startswith("/api/v1/preprocess"):
+@@ -51 +57 @@ def create_app(paths, identity):
+-        if (request.url.path in LABEL_PATHS or request.url.path == "/api/v1/datasets" or request.url.path.startswith("/api/v1/datasets/")) and response.status_code != 401:
++        if (request.url.path in LABEL_PATHS or request.url.path == "/api/v1/datasets" or request.url.path.startswith("/api/v1/datasets/") or request.url.path.startswith("/api/v1/preprocess")) and response.status_code != 401:
+diff --git a/src-python/spectrumagent/preprocess/recipes.py b/src-python/spectrumagent/preprocess/recipes.py
+index cd8c9cd..040a35a 100644
+--- a/src-python/spectrumagent/preprocess/recipes.py
++++ b/src-python/spectrumagent/preprocess/recipes.py
+@@ -120,0 +121,7 @@ class RecipeStore:
++
++    # 取消选用只删除项目关联行，不删除配方本体。“只读关联”指配方历史
++    # 不被复制/修改（TASK-05 §2.3）；取消关联不违背配方只增不改。
++    def deselect_project(self, project_id, recipe_id):
++        with connect_database(self.database, timeout=10) as db:
++            db.execute("DELETE FROM project_recipe WHERE project_id=? AND recipe_id=?",
++                       (str(project_id), str(recipe_id)))
