@@ -129,7 +129,7 @@ def test_preview_png_pixel_orientation_and_bounds(api, tmp_path):
     client, _, _ = api
     header, _, dn = cube(tmp_path / "source")
     identifier = imported(client, header)["datasets"][0]["id"]
-    preview = client.get(f"/api/v1/datasets/{identifier}/preview?band=1")
+    preview = client.get(f"/api/v1/datasets/{identifier}/preview?band=1&stretch=none")
     assert preview.status_code == 200
     info = preview.json()
     assert (info["width"], info["height"]) == (3, 2)

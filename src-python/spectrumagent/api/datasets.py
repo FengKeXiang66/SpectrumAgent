@@ -9,6 +9,7 @@ from fastapi import APIRouter, Query
 import numpy as np
 
 from spectrumagent.data import DataError
+from spectrumagent.display.falsecolor import map_values
 from .registry import DatasetRegistry
 from .schemas import BandResponse, DatasetRecord, ImportRequest, ImportResponse, PreviewResponse, RegionRequest, RegionResponse
 
@@ -51,16 +52,14 @@ def make_router(registry: DatasetRegistry):
         return DatasetRecord(id=identifier, dataset=ds, existing=True)
 
     @router.get("/{identifier}/preview", response_model=PreviewResponse)
-    def preview(identifier: UUID, band: int | None = Query(None, ge=0), size: Literal["preview", "full"] = "preview"):
+    def preview(identifier: UUID, band: int | None = Query(None, ge=0), size: Literal["preview", "full"] = "preview",
+                stretch: Literal["auto", "none"] = "auto"):
         if band is None:
             raise DataError("INVALID_REQUEST", "必须指定单波段 band 或伪彩 bands")
         ds, _ = registry.readable(identifier, raw=False)
         stride = 1 if size == "full" else max(1, math.ceil(max(ds.shape[:2]) / MAX_PREVIEW_SIDE))
         image = ds.read_subimage(list(range(0, ds.shape[0], stride)), list(range(0, ds.shape[1], stride)), [band])[:, :, 0]
-        if not np.isfinite(image).all():
-            raise DataError("NON_JSON_VALUES", "预览包含非有限值，请检查源数据")
-        low, high = image.min(), image.max()
-        gray = np.zeros_like(image, dtype=np.uint8) if high == low else np.clip((image-low) / (high-low) * 255, 0, 255).astype(np.uint8)
+        gray = map_values(image, stretch)
         return PreviewResponse(id=identifier, band=band, width=gray.shape[1], height=gray.shape[0], png_base64=png_gray(gray))
 
     @router.post("/{identifier}/band/{i}", response_model=BandResponse)

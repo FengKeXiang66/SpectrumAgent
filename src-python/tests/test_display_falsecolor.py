@@ -85,3 +85,43 @@ def test_single_band_bad_parameters_are_structured(display_api, query):
     response = client.get(f'/api/v1/datasets/{identifier}/preview'+query)
     assert response.status_code == 400
     assert {'error', 'detail', 'context'} <= response.json().keys()
+
+
+def test_default_auto_matches_finite_percentiles_and_round(display_api):
+    client, register = display_api
+    values = np.arange(101., dtype=float).reshape(1, 101, 1)
+    values[0, -1, 0] = 1e6
+    identifier, _ = register(values)
+    response = client.get(f'/api/v1/datasets/{identifier}/preview?band=0')
+    lo, hi = np.percentile(values, [2, 98])
+    expected = np.rint(np.clip((values-lo)/(hi-lo)*255, 0, 255)).astype(np.uint8)
+    np.testing.assert_array_equal(pixels(response.json()['png_base64']), expected)
+
+
+@pytest.mark.parametrize('stretch', ['none', 'auto'])
+def test_gray_nonfinite_is_black_and_excluded_from_range(display_api, stretch):
+    client, register = display_api
+    values = np.array([np.nan, np.inf, -np.inf, 5., 8., 12.]).reshape(2, 3, 1)
+    identifier, _ = register(values)
+    response = client.get(f'/api/v1/datasets/{identifier}/preview?band=0&stretch={stretch}')
+    data = pixels(response.json()['png_base64']).reshape(-1)
+    assert np.all(data[:3] == 0)
+    lo, hi = np.percentile([5, 8, 12], [2, 98]) if stretch == 'auto' else (5, 12)
+    expected = np.clip((np.array([5, 8, 12])-lo)/(hi-lo)*255, 0, 255)
+    expected = np.rint(expected) if stretch == 'auto' else expected
+    np.testing.assert_array_equal(data[3:], expected.astype(np.uint8))
+
+
+@pytest.mark.parametrize('stretch', ['none', 'auto'])
+def test_gray_constant_is_black(display_api, stretch):
+    client, register = display_api
+    identifier, _ = register(np.full((3, 4, 1), 8.))
+    response = client.get(f'/api/v1/datasets/{identifier}/preview?band=0&stretch={stretch}')
+    assert not pixels(response.json()['png_base64']).any()
+
+
+def test_invalid_stretch_is_structured(display_api):
+    client, register = display_api
+    identifier, _ = register(np.ones((2, 3, 4)))
+    response = client.get(f'/api/v1/datasets/{identifier}/preview?band=0&stretch=bad')
+    assert response.status_code == 400 and response.json()['error'] == 'INVALID_REQUEST'

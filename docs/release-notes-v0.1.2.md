@@ -46,3 +46,7 @@
 ## 0.1.2 冻结资源打包修复
 
 修复旧冻结配置仅收集rasterio数据、遗漏spectrumagent包内JSON的问题；缺失plastic.json会在数据库迁移阶段导致sidecar退出，尚未发布就绪握手。当前统一入口为 `scripts/build_release.ps1`（见 `docs/BUILD.md`），使用新的 `scripts/backend.spec` 收集当前包内数据并核对所有JSON的源码哈希。安装包封装前后均实际启动冻结后端，验证身份、标签/目录与真实pe的标注和预处理链路；自检失败即停止，保留旧资源与旧安装包。源码测试不再作为冻结包启动通过的替代证据。产品版本0.1.2与握手兼容版本0.1.0保持不变；此修复未改业务数值或源数据。
+
+## S05 画布显示（TASK-06）
+
+preview 的默认映射有意由全量程 min/max 改为 `stretch=auto` 的有限值联合2/98分位映射。`stretch=none` 保留旧min/max与uint8截断，单波段继续用原png_gray编码，支持旧调用方按需保持旧显示。接口默认 `size=preview` 保留，S05 显式请求 `size=full`。显示参数不进入标注工作态或数据库，不改变 regions/undo/save/validate 语义。

@@ -193,6 +193,20 @@
               "default": "preview",
               "title": "Size"
             }
+          },
+          {
+            "name": "stretch",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "auto",
+                "none"
+              ],
+              "type": "string",
+              "default": "auto",
+              "title": "Stretch"
+            }
           }
         ],
         "responses": {
