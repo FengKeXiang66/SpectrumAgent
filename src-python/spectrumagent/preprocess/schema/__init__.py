@@ -74,3 +74,46 @@ class Step(Params):
 
 class Pipeline(Params):
     steps: list[Step]
+
+
+class StandardParams(Params):
+    method: Literal["standard", "minmax", "area", "vector"]
+    zero_std: Literal["zeros", "nan", "error"] = "zeros"
+
+
+class CropParams(Params):
+    source: FiniteVector
+    range: tuple[float, float]
+
+    @field_validator("source")
+    @classmethod
+    def increasing_source(cls, value):
+        if not np.all(np.diff(value) > 0):
+            raise ValueError("source 必须严格递增")
+        return value
+
+    @field_validator("range", mode="before")
+    @classmethod
+    def json_pair(cls, value):
+        # JSON represents a two-element tuple as an array.
+        return tuple(value) if isinstance(value, list) else value
+
+    @field_validator("range")
+    @classmethod
+    def ordered_range(cls, value):
+        if not value[0] < value[1]:
+            raise ValueError("range 须满足 lo < hi")
+        return value
+
+
+class ResampleParams(Params):
+    source: FiniteVector
+    target: FiniteVector
+    method: Literal["linear", "spline"]
+
+    @field_validator("source", "target")
+    @classmethod
+    def increasing_axis(cls, value):
+        if len(value) < 2 or not np.all(np.diff(value) > 0):
+            raise ValueError("source/target 须严格递增且至少两波段，以定义相邻间隔代理值")
+        return value

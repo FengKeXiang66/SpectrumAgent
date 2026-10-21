@@ -1,0 +1,7 @@
+diff --git a/src-python/tests/preprocess/test_registry.py b/src-python/tests/preprocess/test_registry.py
+index 63224f9..879615f 100644
+--- a/src-python/tests/preprocess/test_registry.py
++++ b/src-python/tests/preprocess/test_registry.py
+@@ -15 +15 @@ def test_all_builtins_emit_pydantic_schema_and_reject_unknown_keys(registry):
+-    assert set(registry.entries) == {"reflectance","sg_smooth","sg_derivative","snv","msc","emsc"}
++    assert set(registry.entries) == {"reflectance","sg_smooth","sg_derivative","snv","msc","emsc","standardize","crop","resample"}

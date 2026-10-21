@@ -127,8 +127,25 @@ class OperatorRegistry:
             output = entry.impl(result, deepcopy(params))
             output, meta = output if isinstance(output, tuple) and len(output) == 2 else (output, {})
             output = np.asarray(output)
-            if output.shape != result.shape or output.dtype.kind not in "iuf" or not isinstance(meta, dict):
-                raise PreprocessError("INVALID_OPERATOR_RESULT", "算子须返回同形实数谱矩阵和可选 meta 字典", op=step.op)
+            if (output.ndim != 2 or output.shape[0] != result.shape[0] or 0 in output.shape
+                    or output.dtype.kind not in "iuf" or not isinstance(meta, dict)):
+                raise PreprocessError("INVALID_OPERATOR_RESULT", "谱条数不可变、bands 可变", op=step.op)
+            if "axis" in meta:
+                from hashlib import sha256
+                try:
+                    declared_axis = np.asarray(meta["axis"], dtype=np.float64)
+                except (ValueError, TypeError, OverflowError) as error:
+                    raise PreprocessError("INVALID_OPERATOR_RESULT", "输出轴无效", op=step.op, reason="axis 无法转换为 float64") from error
+                if (declared_axis.ndim != 1 or len(declared_axis) != output.shape[1]
+                        or not np.isfinite(declared_axis).all() or not np.all(np.diff(declared_axis) > 0)):
+                    raise PreprocessError("INVALID_OPERATOR_RESULT", "输出轴无效", op=step.op,
+                                          reason="axis 须为全有限、严格递增、长度等于输出 bands 的一维向量")
+                axis = np.ascontiguousarray(declared_axis).copy()
+                meta = dict(meta)
+                del meta["axis"]
+                meta.update(axis_len=len(axis), axis_sha256=sha256(axis.tobytes(order="C")).hexdigest())
+            elif output.shape[1] != result.shape[1]:
+                raise PreprocessError("INVALID_OPERATOR_RESULT", "变更 bands 须声明输出轴", op=step.op, reason="缺少 meta.axis")
             try:
                 record = json_safe({"op": step.op, "version": step.version, "params": params, "meta": meta})
             except TypeError as error:

@@ -1,0 +1,14 @@
+{
+  "source_level": "pure function fixture measurement; synthetic IDs and source digests, no source file IO",
+  "dataset_id": "11111111-1111-4111-8111-111111111111",
+  "source_hashes": {
+    "sample.raw": "84f0830dd690c0bd024941bb7f77cd4efb2d2ffb727ba026270f5d7d13db5585",
+    "sample.hdr": "725c04b99900df65b488695a54f7fc37b20084576c575284c86f9cf270ccd4aa"
+  },
+  "n_pixels": 6,
+  "annotation_version_a": "22222222-2222-4222-8222-222222222222",
+  "annotation_version_b": "33333333-3333-4333-8333-333333333333",
+  "fingerprint_a": "225690d9dc8343d744446b4a7a8fe62e5790075065fdbe3a01235989f7b2ac25",
+  "fingerprint_b": "2942884fa49be93822336358df93318eaeb3e0da722249cdc05fde6996e0c765",
+  "restored": "225690d9dc8343d744446b4a7a8fe62e5790075065fdbe3a01235989f7b2ac25"
+}
