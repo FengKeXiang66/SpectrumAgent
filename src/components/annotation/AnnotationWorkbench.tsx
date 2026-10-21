@@ -8,7 +8,7 @@ import AnnotationCanvas, { type PromptMode } from './canvas/AnnotationCanvas.tsx
 import LabelPanel from './LabelPanel.tsx';
 import CandidateQueue from './CandidateQueue.tsx';
 import DisplayToolbar from './display/DisplayToolbar.tsx';
-import { displayRequest, type DisplayMode } from './display/display.ts';
+import { DEFAULT_LUT, changeLut, displayRequest, type DisplayMode, type LutParameters } from './display/display.ts';
 import './annotation.css';
 
 type Props = { record: DatasetRecord; records: DatasetRecord[]; datasets: DatasetTransport;
@@ -37,7 +37,8 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
   const [displayMode, setDisplayMode] = useState<DisplayMode>('auto');
   const [displayRgb, setDisplayRgb] = useState<[number, number, number]>([0, 1, 2]);
   const [displayBand, setDisplayBand] = useState(0);
-  const [displayStretch, setDisplayStretch] = useState<'auto' | 'none'>('auto');
+  const [displayStretch, setDisplayStretch] = useState<'auto' | 'manual'>('auto');
+  const [displayLut, setDisplayLut] = useState<LutParameters>({ ...DEFAULT_LUT });
   const [selectedId, setSelectedId] = useState<string | null>(null), [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [tool, setTool] = useState<Tool>('diffuse'), [tab, setTab] = useState<'superpixels' | 'diffuse' | 'prompt'>('superpixels');
   const [prompt, setPrompt] = useState<PromptMode>('point'), [draft, setDraft] = useState<Geometry | null>(null);
@@ -109,7 +110,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
     let cancelled = false;
     setBase(null);
     let selection;
-    try { selection = displayRequest(displayMode, displayBand, displayRgb, displayStretch, record.dataset.shape[2]); }
+    try { selection = displayRequest(displayMode, displayBand, displayRgb, displayStretch === 'manual' ? 'none' : 'auto', record.dataset.shape[2]); }
     catch (failure) { setError(describeAnnotationError(failure)); return; }
     void datasets.preview(id, selection).then(png => { if (!cancelled) setBase(png); })
       .catch(failure => { if (!cancelled) setError(describeAnnotationError(failure)); });
@@ -277,9 +278,10 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
           {!busy && !synchronized && <p className="annotation-warning">工作态尚未成功读回，请先刷新；编辑暂不可用。</p>}
           <DisplayToolbar bands={record.dataset.shape[2]} wavelengths={record.dataset.wavelengths} band={displayBand} onBand={setDisplayBand}
             mode={displayMode} onMode={setDisplayMode} rgb={displayRgb} onRgb={setDisplayRgb}
-            stretch={displayStretch} onStretch={setDisplayStretch} />
+            stretch={displayStretch} onStretch={setDisplayStretch} lut={displayLut} onLut={next => setDisplayLut(previous => changeLut(previous, next))} />
           {base?.bands && <p>伪彩 {(['R', 'G', 'B'] as const).map((channel, i) => `${channel}${base.wavelengths?.[i] === undefined ? `#${base.bands![i]}` : `${base.wavelengths[i]} nm`}`).join(' / ')}{base.fallback ? '（自动退化）' : ''}</p>}
           <AnnotationCanvas shape={record.dataset.shape} base={base} segmentation={segmentation} working={working} selectedKey={selectedKey}
+            manualStretch={displayStretch === 'manual'} lut={displayLut}
             tool={tool} prompt={prompt} disabled={busy || !ready} panHeld={panHeld} draft={draft} brushPrompt={tab === 'prompt'}
             onSeed={seed => { void diffuse(seed); }} onGeometry={value => { setDraft(value); setSelectedKey(null); setMessage('多边形已选；选择标签后确认，或标记为不确定。'); }}
             onErase={value => { void edit('erase', value); }} />

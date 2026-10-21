@@ -1,4 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { Preview } from '../../datasets/types.ts';
+import { applyLut, makeLut, type LutParameters } from '../display/display.ts';
 import type { Geometry, Pixel, Png, Seed, Working } from '../types.ts';
 import type { Tool } from '../shortcuts.ts';
 import { candidateKey } from '../working.ts';
@@ -8,7 +10,8 @@ export type PromptMode = 'point' | 'box' | 'doodle';
 type Layer = 'base' | 'superpixels' | 'candidates' | 'confirmed';
 type Frame = { layer: Layer; image: HTMLImageElement };
 type Props = {
-  shape: [number, number, number]; base: Png | null; segmentation: Png | null; working: Working | null;
+  shape: [number, number, number]; base: Preview | null; segmentation: Png | null; working: Working | null;
+  manualStretch: boolean; lut: LutParameters;
   selectedKey: string | null; tool: Tool; prompt: PromptMode; disabled: boolean; panHeld: boolean;
   brushPrompt: boolean;
   draft: Geometry | null;
@@ -69,6 +72,20 @@ export default function AnnotationCanvas(props: Props) {
     return () => { cancelled = true; };
   }, [base, segmentation, working, selectedKey]);
 
+  const mappedBase = useMemo(() => {
+    const frame = frames.find(item => item.layer === 'base');
+    if (!props.manualStretch || !frame) return { image: null, error: '' };
+    const scratch = document.createElement('canvas');
+    scratch.width = frame.image.naturalWidth; scratch.height = frame.image.naturalHeight;
+    const context = scratch.getContext('2d');
+    if (!context) return { image: null, error: '手动拉伸需要 Canvas 2D。' };
+    context.drawImage(frame.image, 0, 0);
+    const original = context.getImageData(0, 0, scratch.width, scratch.height);
+    original.data.set(applyLut(original.data, makeLut(props.lut)));
+    context.putImageData(original, 0, 0);
+    return { image: scratch, error: '' };
+  }, [frames, props.manualStretch, props.lut]);
+
   useEffect(() => {
     const node = canvas.current;
     if (!node) return;
@@ -85,7 +102,9 @@ export default function AnnotationCanvas(props: Props) {
       // Render the authoritative PNGs, including their backend hatch styles.
       // Do not infer a pixel mask or a label from image colors.
       ctx.globalAlpha = frame.layer === 'confirmed' ? 0.55 : 1;
-      ctx.drawImage(frame.image, 0, 0, samples, lines);
+      if (frame.layer === 'base' && props.manualStretch) {
+        if (mappedBase.image) ctx.drawImage(mappedBase.image, 0, 0, samples, lines);
+      } else ctx.drawImage(frame.image, 0, 0, samples, lines);
     }
     ctx.globalAlpha = 1;
     const stroke = [...(props.draft && 'polygon' in props.draft ? props.draft.polygon : []), ...polygon, ...points];
@@ -100,7 +119,7 @@ export default function AnnotationCanvas(props: Props) {
       ctx.strokeStyle = 'white'; ctx.lineWidth = 1 / viewport.scale; ctx.stroke();
     }
     ctx.restore();
-  }, [frames, visible, viewport, size, lines, samples, polygon, points, tool, prompt, props.draft]);
+  }, [frames, visible, viewport, size, lines, samples, polygon, points, tool, prompt, props.draft, mappedBase, props.manualStretch]);
 
   const location = (event: { clientX: number; clientY: number }) => {
     const box = canvas.current!.getBoundingClientRect();
@@ -169,5 +188,6 @@ export default function AnnotationCanvas(props: Props) {
       {tool === 'brush' && <span>{props.brushPrompt ? '画笔：涂鸦提示，仅生成候选；选标签后确认' : '画笔：手绘闭合轮廓选择区域，单击选一个像素；再确认标签'}</span>}
     </div>
     {error && <p role="alert">{error}</p>}
+    {mappedBase.error && <p role="alert">{mappedBase.error}</p>}
   </div>;
 }
