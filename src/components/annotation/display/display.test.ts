@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { previewRequest, spectraMeanRequest } from '../../datasets/api.ts';
-import { applyLut, changeLut, DEFAULT_LUT, displayRequest, makeLut, pointRegion, validLut } from './display.ts';
+import { applyLut, boxRegion, changeLut, DEFAULT_LUT, displayRequest, makeLut, pointRegion, validLut } from './display.ts';
 
 test('old numeric preview call keeps the exact single-band request', () => {
   assert.deepEqual(previewRequest('cube', 0), { op: 'preview', id: 'cube', band: 0 });
@@ -90,4 +90,17 @@ test('point inspection returns before any edit tool and leaves null gaps visible
   const toolbar = readFileSync(new URL('./DisplayToolbar.tsx', import.meta.url), 'utf8');
   assert.match(toolbar, /value === null\) \{ drawing = false; return;/);
   assert.match(toolbar, /value === null \? 'null' : value/);
+});
+
+test('box mean uses existing half-open endpoints, direction independent, no spectral arithmetic', () => {
+  assert.deepEqual(boxRegion([3, 8], [1, 4]), { l0: 1, l1: 4, s0: 4, s1: 9 });
+  assert.deepEqual(boxRegion([1, 4], [3, 8]), boxRegion([3, 8], [1, 4]));
+  assert.deepEqual(boxRegion([0, 0], [0, 0]), pointRegion([0, 0]));
+});
+
+test('box inspection routes to spectra before edits and has no readiness dependency', () => {
+  const canvas = readFileSync(new URL('../canvas/AnnotationCanvas.tsx', import.meta.url), 'utf8');
+  assert.ok(canvas.indexOf("if (props.inspection === 'box')") < canvas.indexOf("if (tool === 'erase')"));
+  assert.match(canvas, /props\.onSpectrum\(boxRegion\(first, last\)\)/);
+  assert.match(canvas, /props\.inspection === 'edit' && disabled/);
 });

@@ -17,6 +17,7 @@ export default function DisplayToolbar({ bands, wavelengths, band, onBand, stret
     </select></label>
     <label>画布操作<select value={inspection} onChange={event => onInspection(event.target.value as InspectionMode)}>
       <option value="edit">标注编辑</option><option value="point">单点取谱 · 只读</option>
+      <option value="box">框选均值谱 · 只读</option>
     </select></label>
     {mode === 'single' && <label>单波段<select value={band} onChange={event => onBand(Number(event.target.value))}>{options}</select></label>}
     {mode === 'rgb' && (['R', 'G', 'B'] as const).map((channel, i) => <label key={channel}>{channel}<select value={rgb[i]} onChange={event => {

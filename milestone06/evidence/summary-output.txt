@@ -1,0 +1,49 @@
+{
+  "python": {
+    "command": "$env:PYTEST_DEBUG_TEMPROOT='E:/AI_Agent/.runtime/tmp-task06-final-20261021-a'; New-Item -ItemType Directory -Path $env:PYTEST_DEBUG_TEMPROOT; & .venv/Scripts/python.exe -m pytest backend/tests src-python/tests -q",
+    "cwd": "E:\\AI_Agent",
+    "mode": "default params; fresh empty E temproot; unsandboxed execution",
+    "passed": 681,
+    "failed": 0,
+    "skipped": 0,
+    "exit_code": 0,
+    "output": "pytest-full.txt"
+  },
+  "rust": {
+    "command": "cargo test",
+    "cwd": "E:\\AI_Agent\\src-tauri",
+    "mode": "default parallel; existing offline cache; includes doctest",
+    "passed": 58,
+    "failed": 0,
+    "exit_code": 0,
+    "output": "cargo-full.txt"
+  },
+  "node": {
+    "command": ".toolchains/node24.19.0-npm10.8.2/node.exe --test",
+    "cwd": "E:\\AI_Agent",
+    "mode": "Node24.19.0; default test discovery; default sandbox",
+    "passed": 74,
+    "failed": 0,
+    "skipped": 0,
+    "exit_code": 0,
+    "output": "node-full.txt"
+  },
+  "tsc": {
+    "command": ".toolchains/node24.19.0-npm10.8.2/node.exe node_modules/typescript/bin/tsc --noEmit",
+    "exit_code": 0,
+    "output": "tsc.txt"
+  },
+  "clippy": {
+    "command": "cargo clippy --all-targets -- -D warnings",
+    "cwd": "E:\\AI_Agent\\src-tauri",
+    "mode": "default sandbox; existing offline cache",
+    "exit_code": 0,
+    "warnings": 0,
+    "output": "clippy.txt"
+  },
+  "audit": {
+    "command": ".venv/Scripts/python.exe milestone03/audit_boundary.py",
+    "exit_code": 0,
+    "output": "audit-boundary.txt"
+  }
+}

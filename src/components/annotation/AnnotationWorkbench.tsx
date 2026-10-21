@@ -39,6 +39,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
   const [displayBand, setDisplayBand] = useState(0);
   const [displayStretch, setDisplayStretch] = useState<'auto' | 'manual'>('auto');
   const [displayLut, setDisplayLut] = useState<LutParameters>({ ...DEFAULT_LUT });
+  const [displayError, setDisplayError] = useState('');
   const [inspection, setInspection] = useState<InspectionMode>('edit');
   const [spectrum, setSpectrum] = useState<MeanSpectrum | null>(null);
   const [spectrumBusy, setSpectrumBusy] = useState(false), [spectrumError, setSpectrumError] = useState('');
@@ -112,12 +113,12 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
   }, [api, datasets, id]);
   useEffect(() => {
     let cancelled = false;
-    setBase(null);
+    setBase(null); setDisplayError('');
     let selection;
     try { selection = displayRequest(displayMode, displayBand, displayRgb, displayStretch === 'manual' ? 'none' : 'auto', record.dataset.shape[2]); }
-    catch (failure) { setError(describeAnnotationError(failure)); return; }
+    catch (failure) { setDisplayError(describeAnnotationError(failure)); return; }
     void datasets.preview(id, selection).then(png => { if (!cancelled) setBase(png); })
-      .catch(failure => { if (!cancelled) setError(describeAnnotationError(failure)); });
+      .catch(failure => { if (!cancelled) setDisplayError(describeAnnotationError(failure)); });
     return () => { cancelled = true; };
   }, [datasets, id, displayMode, displayRgb, displayBand, displayStretch, record.dataset.shape]);
   useEffect(() => {
@@ -297,6 +298,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
             mode={displayMode} onMode={setDisplayMode} rgb={displayRgb} onRgb={setDisplayRgb}
             stretch={displayStretch} onStretch={setDisplayStretch} lut={displayLut} onLut={next => setDisplayLut(previous => changeLut(previous, next))}
             inspection={inspection} onInspection={setInspection} />
+          {displayError && <p role="alert">{displayError}</p>}
           {base?.bands && <p>伪彩 {(['R', 'G', 'B'] as const).map((channel, i) => `${channel}${base.wavelengths?.[i] === undefined ? `#${base.bands![i]}` : `${base.wavelengths[i]} nm`}`).join(' / ')}{base.fallback ? '（自动退化）' : ''}</p>}
           <AnnotationCanvas shape={record.dataset.shape} base={base} segmentation={segmentation} working={working} selectedKey={selectedKey}
             manualStretch={displayStretch === 'manual'} lut={displayLut}

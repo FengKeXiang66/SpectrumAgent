@@ -1,0 +1,44 @@
+warning: unable to access 'C:\Users\Administrator/.config/git/ignore': Permission denied
+warning: in the working copy of 'src/components/annotation/AnnotationWorkbench.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/annotation/canvas/AnnotationCanvas.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: unable to access 'C:\Users\Administrator/.config/git/ignore': Permission denied
+warning: unable to access 'C:\Users\Administrator/.config/git/ignore': Permission denied
+warning: unable to access 'C:\Users\Administrator/.config/git/ignore': Permission denied
+warning: unable to access 'C:\Users\Administrator/.config/git/ignore': Permission denied
+warning: unable to access 'C:\Users\Administrator/.config/git/ignore': Permission denied
+warning: unable to access 'C:\Users\Administrator/.config/git/ignore': Permission denied
+warning: unable to access 'C:\Users\Administrator/.config/git/ignore': Permission denied
+warning: unable to access 'C:\Users\Administrator/.config/git/ignore': Permission denied
+warning: unable to access 'C:\Users\Administrator/.config/git/ignore': Permission denied
+warning: unable to access 'C:\Users\Administrator/.config/git/ignore': Permission denied
+warning: unable to access 'C:\Users\Administrator/.config/git/ignore': Permission denied
+warning: unable to access 'C:\Users\Administrator/.config/git/ignore': Permission denied
+{
+  "base": "a052b3353b2e353acbe4e522d02b7e188c2a05fd",
+  "product_files": [
+    "docs/release-notes-v0.1.2.md",
+    "src-python/spectrumagent/api/datasets.py",
+    "src-python/spectrumagent/api/openapi.json",
+    "src-python/spectrumagent/display/falsecolor.py",
+    "src-python/tests/data/test_api.py",
+    "src-python/tests/test_display_falsecolor.py",
+    "src-tauri/src/datasets_dev.rs",
+    "src/components/annotation/AnnotationWorkbench.tsx",
+    "src/components/annotation/canvas/AnnotationCanvas.tsx",
+    "src/components/annotation/display/DisplayToolbar.tsx",
+    "src/components/annotation/display/display.test.ts",
+    "src/components/annotation/display/display.ts",
+    "src/components/datasets/api.ts",
+    "src/components/datasets/types.ts"
+  ],
+  "whitelist": true,
+  "png_gray_ast_unchanged": true,
+  "band_region_ast_unchanged": true,
+  "old_python_test_only_authorized_url_change": true,
+  "png_onload_hotfix_unchanged": true,
+  "rust_forward_security_body_unchanged": true,
+  "annotation_app_s04_dependencies_audit_unchanged": true,
+  "seeds_20_sha256": "388ed3a86bdf60c5054e8df9a5eb197a96a112b0bf2fc59efa1bcf1a29f648d2",
+  "task_card_sha256_read_only_reference": "3a502e2e288174e3f4e282bb2772ca7225a1797c1d97de24dbf5669d23aa4781",
+  "task_card_staged": false
+}

@@ -1,8 +1,13 @@
 import type { PreviewOptions, SpectrumRegion } from '../../datasets/types.ts';
 import type { Pixel } from '../types.ts';
+import { boxFromPoints } from '../canvas/viewport.ts';
 
 export type DisplayMode = 'single' | 'rgb' | 'auto';
-export type InspectionMode = 'edit' | 'point';
+export type InspectionMode = 'edit' | 'point' | 'box';
+export function boxRegion(first: Pixel, last: Pixel): SpectrumRegion {
+  const [l0, l1, s0, s1] = boxFromPoints(first, last);
+  return { l0, l1, s0, s1 };
+}
 export function pointRegion([l, s]: Pixel): SpectrumRegion {
   return { l0: l, l1: l+1, s0: s, s1: s+1 };
 }

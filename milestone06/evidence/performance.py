@@ -87,6 +87,18 @@ def main():
                 assert result['legacy_none_png_sha256'] == reference['head_png_sha256']
                 registry = DatasetRegistry(AppPaths(runtime/'data').database)
                 ds, _ = registry.readable(imported['id'], raw=False)
+                before_working = call('GET', base+'/annotations/working')
+                before_versions = call('GET', base+'/annotations')
+                point = call('POST', base+'/spectra/mean', {'l0': 29, 'l1': 30, 's0': 64, 's1': 65, 'raw': True}, timing='point_spectrum')
+                region = call('POST', base+'/spectra/mean', {'l0': 12, 'l1': 20, 's0': 20, 's1': 30}, timing='region_mean')
+                point_error = float(np.max(np.abs(np.asarray(point['mean'])-ds.read_pixel(29, 64))))
+                region_error = float(np.max(np.abs(np.asarray(region['mean'])-ds.read_region(12, 20, 20, 30).mean(axis=(0, 1)))))
+                assert point['count'] == 1 and region['count'] == 80
+                assert point_error <= 1e-9 and region_error <= 1e-9
+                assert call('GET', base+'/annotations/working') == before_working
+                assert call('GET', base+'/annotations') == before_versions
+                result.update(point_max_abs_error=point_error, region_max_abs_error=region_error,
+                              point_count=point['count'], region_count=region['count'], working_and_versions_unchanged=True)
                 independent = [select_feature_bands(ds, ds.shape, ds.wavelengths) for _ in range(3)]
                 assert independent[0] == independent[1] == independent[2]
                 assert list(independent[0][:3]) == auto['bands']

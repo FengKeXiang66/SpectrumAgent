@@ -392,3 +392,72 @@ def test_unknown_dataset_keeps_legacy_404_even_for_preview_missing_band(display_
     client, _ = display_api
     response = client.get('/api/v1/datasets/00000000-0000-0000-0000-000000000001/preview')
     assert response.status_code == 404 and response.json()['error'] == 'DATASET_NOT_FOUND'
+
+
+def test_region_mean_matches_numpy_all_pixels_and_half_open_bounds(display_api):
+    client, register = display_api
+    values = np.random.default_rng(0).normal(size=(7, 9, 5))
+    identifier, _ = register(values)
+    body = {'l0': 2, 'l1': 6, 's0': 1, 's1': 8}
+    response = client.post(f'/api/v1/datasets/{identifier}/spectra/mean', json=body)
+    assert response.status_code == 200
+    data = response.json()
+    assert data['shape'] == [4, 7] and data['count'] == 28
+    np.testing.assert_allclose(data['mean'], values[2:6, 1:8].mean(axis=(0, 1)), atol=1e-9, rtol=0)
+
+
+def test_region_mean_keeps_partial_nan_pixels_and_marks_only_all_nan_bands(display_api):
+    client, register = display_api
+    values = np.arange(24.).reshape(2, 3, 4)
+    values[:, :, 1] = np.nan
+    values[0, 0, 2] = np.nan
+    values[0, 0, 3] = np.inf
+    identifier, _ = register(values)
+    response = client.post(f'/api/v1/datasets/{identifier}/spectra/mean', json={'l0': 0, 'l1': 2, 's0': 0, 's1': 3})
+    data = response.json()
+    assert data['count'] == 6
+    assert data['mean'] == [float(values[:, :, 0].mean()), None, None, None]
+    assert data['nan_bands'] == [1]
+
+
+@pytest.mark.parametrize('body', [
+    {'l0': -1, 'l1': 1, 's0': 0, 's1': 1}, {'l0': 1, 'l1': 1, 's0': 0, 's1': 1},
+    {'l0': 0, 'l1': 4, 's0': 0, 's1': 1}, {'l0': 0, 'l1': 1, 's0': 0, 's1': 9},
+])
+def test_mean_invalid_bounds_reject_without_clipping(display_api, body):
+    client, register = display_api
+    identifier, _ = register(np.ones((3, 4, 2)))
+    response = client.post(f'/api/v1/datasets/{identifier}/spectra/mean', json=body)
+    assert response.status_code == 400 and 'error' in response.json()
+
+
+def test_mean_does_not_reuse_65536_json_value_limit(display_api):
+    client, register = display_api
+    identifier, _ = register(np.ones((257, 257, 2)))
+    response = client.post(f'/api/v1/datasets/{identifier}/spectra/mean', json={'l0': 0, 'l1': 257, 's0': 0, 's1': 257})
+    assert response.status_code == 200 and response.json()['count'] == 257*257
+    assert response.json()['mean'] == [1., 1.]
+
+
+@pytest.mark.parametrize('height,status', [(1000, 200), (1001, 400)])
+def test_mean_one_million_pixel_boundary(display_api, height, status):
+    client, register = display_api
+    identifier, _ = register(np.ones((height, 1000, 1)))
+    response = client.post(f'/api/v1/datasets/{identifier}/spectra/mean', json={'l0': 0, 'l1': height, 's0': 0, 's1': 1000})
+    assert response.status_code == status
+    if status == 400:
+        assert response.json()['error'] == 'REGION_TOO_LARGE'
+        assert response.json()['context']['count'] == height*1000
+
+
+def test_display_requests_do_not_change_annotation_working_or_versions(display_api):
+    client, register = display_api
+    identifier, _ = register(np.arange(24.).reshape(2, 3, 4))
+    base = f'/api/v1/datasets/{identifier}'
+    working = client.get(base+'/annotations/working').json()
+    versions = client.get(base+'/annotations').json()
+    assert client.get(base+'/preview?bands=auto').status_code == 200
+    assert client.get(base+'/preview?band=0&stretch=none&size=full').status_code == 200
+    assert client.post(base+'/spectra/mean', json={'l0': 0, 'l1': 2, 's0': 0, 's1': 3}).status_code == 200
+    assert client.get(base+'/annotations/working').json() == working
+    assert client.get(base+'/annotations').json() == versions

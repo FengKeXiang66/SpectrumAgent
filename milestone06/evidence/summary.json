@@ -1,0 +1,240 @@
+{
+  "baseline": {
+    "python": 624,
+    "rust_including_doctest": 56,
+    "node": 61
+  },
+  "suites": {
+    "python": {
+      "command": "$env:PYTEST_DEBUG_TEMPROOT='E:/AI_Agent/.runtime/tmp-task06-final-20261021-a'; New-Item -ItemType Directory -Path $env:PYTEST_DEBUG_TEMPROOT; & .venv/Scripts/python.exe -m pytest backend/tests src-python/tests -q",
+      "cwd": "E:\\AI_Agent",
+      "mode": "default params; fresh empty E temproot; unsandboxed execution",
+      "passed": 681,
+      "failed": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "output": "pytest-full.txt"
+    },
+    "rust": {
+      "command": "cargo test",
+      "cwd": "E:\\AI_Agent\\src-tauri",
+      "mode": "default parallel; existing offline cache; includes doctest",
+      "passed": 58,
+      "failed": 0,
+      "exit_code": 0,
+      "output": "cargo-full.txt"
+    },
+    "node": {
+      "command": ".toolchains/node24.19.0-npm10.8.2/node.exe --test",
+      "cwd": "E:\\AI_Agent",
+      "mode": "Node24.19.0; default test discovery; default sandbox",
+      "passed": 74,
+      "failed": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "output": "node-full.txt"
+    },
+    "tsc": {
+      "command": ".toolchains/node24.19.0-npm10.8.2/node.exe node_modules/typescript/bin/tsc --noEmit",
+      "exit_code": 0,
+      "output": "tsc.txt"
+    },
+    "clippy": {
+      "command": "cargo clippy --all-targets -- -D warnings",
+      "cwd": "E:\\AI_Agent\\src-tauri",
+      "mode": "default sandbox; existing offline cache",
+      "exit_code": 0,
+      "warnings": 0,
+      "output": "clippy.txt"
+    },
+    "audit": {
+      "command": ".venv/Scripts/python.exe milestone03/audit_boundary.py",
+      "exit_code": 0,
+      "output": "audit-boundary.txt"
+    }
+  },
+  "new_tests": {
+    "python_cases": 57,
+    "rust_cases": 2,
+    "node_cases": 13,
+    "python_file": "src-python/tests/test_display_falsecolor.py",
+    "python_names": [
+      "test_single_band_selection_and_size",
+      "test_none_png_matches_head_minmax_truncation_byte_for_byte",
+      "test_single_band_bad_parameters_are_structured",
+      "test_default_auto_matches_finite_percentiles_and_round",
+      "test_gray_nonfinite_is_black_and_excluded_from_range",
+      "test_gray_constant_is_black",
+      "test_invalid_stretch_is_structured",
+      "test_rgb_joint_mapping_no_second_stretch_or_independent_noise_amplification",
+      "test_rgb_constant_or_all_nan_is_black",
+      "test_rgb_nonfinite_is_excluded_and_maps_black",
+      "test_manual_rgb_channel_order_metadata_and_dimensions_match_gray",
+      "test_manual_rgb_invalid_bands_are_structured",
+      "test_rgb_cache_revalidates_source_and_invalidates_on_source_changed",
+      "test_rgb_cache_is_lru_eight",
+      "test_feature_no_wavelengths_uses_index_dispersion",
+      "test_feature_insufficient_candidates_falls_back_to_wavelength_quantiles",
+      "test_feature_less_than_three_bands_is_structured_400",
+      "test_feature_constant_corr_nan_is_zero_not_fallback",
+      "test_feature_no_dispersed_combination_falls_back",
+      "test_feature_quantile_duplicates_use_distinct_index_safety_net",
+      "test_feature_corr_shape_assertion_catches_wrong_index_space",
+      "test_feature_cache_uses_algorithm_version_and_revalidates_source",
+      "test_real_pe_feature_determinism_dispersion_corr_and_candidate_shape",
+      "test_point_spectrum_uses_scaled_source_even_when_registered_raw",
+      "test_point_spectrum_exposes_nonfinite_null_without_changing_region_endpoint",
+      "test_unknown_dataset_keeps_legacy_404_even_for_preview_missing_band",
+      "test_region_mean_matches_numpy_all_pixels_and_half_open_bounds",
+      "test_region_mean_keeps_partial_nan_pixels_and_marks_only_all_nan_bands",
+      "test_mean_invalid_bounds_reject_without_clipping",
+      "test_mean_does_not_reuse_65536_json_value_limit",
+      "test_mean_one_million_pixel_boundary",
+      "test_display_requests_do_not_change_annotation_working_or_versions"
+    ],
+    "node_file": "src/components/annotation/display/display.test.ts",
+    "rust_file": "src-tauri/src/datasets_dev.rs"
+  },
+  "performance": {
+    "mode": "actual independent python -m backend; real loopback HTTP with Bearer + boot_id/pid each response; default algorithm/stretches; isolated E runtime",
+    "environment": {
+      "platform": "Windows-11-10.0.26100-SP0",
+      "python": "3.12.13 (main, May 10 2026, 19:35:37) [MSC v.1944 64 bit (AMD64)]",
+      "numpy": "2.5.4",
+      "logical_cpus": 20
+    },
+    "source": "E:\\高光谱数据集\\plastic\\pe\\20260804205214_64.hdr",
+    "runtime": "E:\\AI_Agent\\.runtime\\task06-http-ae6734b9fd894b32a7118820845547f8",
+    "passed": true,
+    "http_ms": {
+      "manual_rgb_cold": 46.09620000701398,
+      "auto_cold": 210.2376000257209,
+      "auto_warm": 6.606699957046658,
+      "point_spectrum": 6.592099962290376,
+      "region_mean": 8.069899980910122
+    },
+    "legacy_none_png_sha256": "6165fcd12361926afe59e780f2008f5a44c065f666909d6785a92b579e857203",
+    "point_max_abs_error": 0.0,
+    "region_max_abs_error": 0.0,
+    "point_count": 1,
+    "region_count": 80,
+    "working_and_versions_unchanged": true,
+    "cube_shape": [
+      231,
+      640,
+      200
+    ],
+    "sampling_step": 2,
+    "sample_shape": [
+      116,
+      320,
+      200
+    ],
+    "candidate_count": 100,
+    "corr_shape": [
+      100,
+      100
+    ],
+    "bands": [
+      177,
+      148,
+      103
+    ],
+    "wavelengths": [
+      1622.12,
+      1500.83,
+      1312.63
+    ],
+    "fallback": false,
+    "max_abs_corr": 0.6876864141308303,
+    "selected_corr": [
+      [
+        1.0,
+        0.6048444024769559,
+        0.6876864141308303
+      ],
+      [
+        0.6048444024769559,
+        0.9999999999999998,
+        0.5573731331017978
+      ],
+      [
+        0.6876864141308303,
+        0.5573731331017978,
+        1.0
+      ]
+    ],
+    "score": 4.976723322422352,
+    "independent_three_runs_equal": true,
+    "full_band_matrix_crosscheck": true,
+    "sources_unchanged": true,
+    "manual_png_bytes": 353542,
+    "auto_png_bytes": 346812,
+    "stopped": true
+  },
+  "timing_definition": "request->response loopback HTTP, feature/PNG caches cold on first auto request; OS file cache not flushed; source hash read before timing",
+  "safe_delete_interceptions": [],
+  "task_cards_modified_by_this_task": false,
+  "scope_check": {
+    "base": "a052b3353b2e353acbe4e522d02b7e188c2a05fd",
+    "product_files": [
+      "docs/release-notes-v0.1.2.md",
+      "src-python/spectrumagent/api/datasets.py",
+      "src-python/spectrumagent/api/openapi.json",
+      "src-python/spectrumagent/display/falsecolor.py",
+      "src-python/tests/data/test_api.py",
+      "src-python/tests/test_display_falsecolor.py",
+      "src-tauri/src/datasets_dev.rs",
+      "src/components/annotation/AnnotationWorkbench.tsx",
+      "src/components/annotation/canvas/AnnotationCanvas.tsx",
+      "src/components/annotation/display/DisplayToolbar.tsx",
+      "src/components/annotation/display/display.test.ts",
+      "src/components/annotation/display/display.ts",
+      "src/components/datasets/api.ts",
+      "src/components/datasets/types.ts"
+    ],
+    "whitelist": true,
+    "png_gray_ast_unchanged": true,
+    "band_region_ast_unchanged": true,
+    "old_python_test_only_authorized_url_change": true,
+    "png_onload_hotfix_unchanged": true,
+    "rust_forward_security_body_unchanged": true,
+    "annotation_app_s04_dependencies_audit_unchanged": true,
+    "seeds_20_sha256": "388ed3a86bdf60c5054e8df9a5eb197a96a112b0bf2fc59efa1bcf1a29f648d2",
+    "task_card_sha256_read_only_reference": "3a502e2e288174e3f4e282bb2772ca7225a1797c1d97de24dbf5669d23aa4781",
+    "task_card_staged": false
+  },
+  "pending": null,
+  "rulings": "R10/R11; user confirmed implementation correct and restored 6.6a to index-dispersion search; no code/test change after final regression",
+  "manual_webview_smoke": "not performed",
+  "artifacts": [
+    {
+      "path": "d4-auto-rgb.png",
+      "bytes": 346812,
+      "sha256": "4b28e117211ad3715ca8a2ce7de1e9ec10a5018ea85db5d2a029985c7d5ffbc9"
+    },
+    {
+      "path": "d4-manual-rgb.png",
+      "bytes": 353542,
+      "sha256": "3052ae57f1d5fbb681f214577674e5903dba1bb57763b72d40f5ccb6e07c6a45"
+    },
+    {
+      "path": "final-auto-rgb.png",
+      "bytes": 346812,
+      "sha256": "4b28e117211ad3715ca8a2ce7de1e9ec10a5018ea85db5d2a029985c7d5ffbc9"
+    },
+    {
+      "path": "final-manual-rgb.png",
+      "bytes": 353542,
+      "sha256": "3052ae57f1d5fbb681f214577674e5903dba1bb57763b72d40f5ccb6e07c6a45"
+    }
+  ],
+  "commits_before_D7": [
+    "592ce39 #06 D6 强制反射率单点取谱与null：pytest67/node72/Rust模块8通过",
+    "3748f0a #06 D5 本地共享LUT与三滑块保留：node70/tsc通过",
+    "bbb38b1 #06 D4 自动伪彩R11：rho候选corr形状100x100，实测max相关0.687686/冷启207.356ms",
+    "10db522 #06 D3 联合RGB与LRU8：pytest46/node65通过",
+    "3729f3c #06 D2 有限值自动分位与兼容截断：pytest27/node64通过",
+    "c3d7bf6 #06 D1 单波段可选与 full 画布：pytest21/node64/Rust模块7通过"
+  ]
+}

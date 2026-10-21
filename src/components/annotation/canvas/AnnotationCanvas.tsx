@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Preview, SpectrumRegion } from '../../datasets/types.ts';
-import { applyLut, makeLut, pointRegion, type InspectionMode, type LutParameters } from '../display/display.ts';
+import { applyLut, boxRegion, makeLut, pointRegion, type InspectionMode, type LutParameters } from '../display/display.ts';
 import type { Geometry, Pixel, Png, Seed, Working } from '../types.ts';
 import type { Tool } from '../shortcuts.ts';
 import { candidateKey } from '../working.ts';
@@ -113,14 +113,14 @@ export default function AnnotationCanvas(props: Props) {
       ctx.beginPath(); ctx.moveTo(stroke[0][1] + .5, stroke[0][0] + .5);
       for (const p of stroke.slice(1)) ctx.lineTo(p[1] + .5, p[0] + .5);
       if (props.draft && 'polygon' in props.draft && !points.length && !polygon.length) ctx.closePath();
-      if (points.length && (tool === 'erase' || prompt === 'box')) {
+      if (points.length && (props.inspection === 'box' || tool === 'erase' || prompt === 'box')) {
         const [l0, l1, s0, s1] = boxFromPoints(points[0], points[points.length - 1]);
         ctx.beginPath(); ctx.rect(s0, l0, s1 - s0, l1 - l0);
       }
       ctx.strokeStyle = 'white'; ctx.lineWidth = 1 / viewport.scale; ctx.stroke();
     }
     ctx.restore();
-  }, [frames, visible, viewport, size, lines, samples, polygon, points, tool, prompt, props.draft, mappedBase, props.manualStretch]);
+  }, [frames, visible, viewport, size, lines, samples, polygon, points, tool, prompt, props.draft, mappedBase, props.manualStretch, props.inspection]);
 
   const location = (event: { clientX: number; clientY: number }) => {
     const box = canvas.current!.getBoundingClientRect();
@@ -168,6 +168,7 @@ export default function AnnotationCanvas(props: Props) {
           if (!current || current.pan || (props.inspection === 'edit' && disabled) || !current.points.length) return;
           const first = current.points[0], last = current.points[current.points.length - 1];
           if (props.inspection === 'point') { props.onSpectrum(pointRegion(last)); return; }
+          if (props.inspection === 'box') { props.onSpectrum(boxRegion(first, last)); return; }
           if (tool === 'erase') { props.onErase({ polygon: rectangle(first, last) }); return; }
           if (tool === 'polygon') { setPolygon(previous => [...previous, last]); return; }
           if (tool === 'brush' && !props.brushPrompt) {
@@ -185,9 +186,10 @@ export default function AnnotationCanvas(props: Props) {
     <div className="annotation-canvas-foot">
       <span>{pointer ? `像素 [行 ${pointer[0]}, 列 ${pointer[1]}]` : '光标移入图像以定位像素'}</span>
       <span>滚轮缩放 · 空格/中键平移</span>
-      {tool === 'polygon' && <><span>多边形：逐点单击，再完成</span><button disabled={disabled || polygon.length < 3} onClick={finishPolygon}>完成多边形</button><button onClick={() => setPolygon([])}>取消</button></>}
-      {tool === 'erase' && <span>橡皮：拖框擦除；单击擦除一个像素</span>}
-      {tool === 'brush' && <span>{props.brushPrompt ? '画笔：涂鸦提示，仅生成候选；选标签后确认' : '画笔：手绘闭合轮廓选择区域，单击选一个像素；再确认标签'}</span>}
+      {props.inspection !== 'edit' && <span>{props.inspection === 'point' ? '单击只读光谱；不编辑标注' : '拖框读取左闭右开区域均值谱；不编辑标注'}</span>}
+      {props.inspection === 'edit' && tool === 'polygon' && <><span>多边形：逐点单击，再完成</span><button disabled={disabled || polygon.length < 3} onClick={finishPolygon}>完成多边形</button><button onClick={() => setPolygon([])}>取消</button></>}
+      {props.inspection === 'edit' && tool === 'erase' && <span>橡皮：拖框擦除；单击擦除一个像素</span>}
+      {props.inspection === 'edit' && tool === 'brush' && <span>{props.brushPrompt ? '画笔：涂鸦提示，仅生成候选；选标签后确认' : '画笔：手绘闭合轮廓选择区域，单击选一个像素；再确认标签'}</span>}
     </div>
     {error && <p role="alert">{error}</p>}
     {mappedBase.error && <p role="alert">{mappedBase.error}</p>}
