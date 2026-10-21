@@ -1,0 +1,41 @@
+{
+  "started_at": "2026-10-21T05:05:53.409047+00:00",
+  "environment": {
+    "python": "3.12.13 (main, May 10 2026, 19:35:37) [MSC v.1944 64 bit (AMD64)]",
+    "python_executable": "E:\\AI_Agent\\.venv\\Scripts\\python.exe",
+    "platform": "Windows-11-10.0.26100-SP0",
+    "machine": "",
+    "processor": "",
+    "logical_cpus": 20,
+    "libraries": {
+      "numpy": "2.5.4",
+      "scipy": "1.18.1",
+      "scikit-learn": "1.9.1",
+      "scikit-image": "0.26.0",
+      "httpx": "0.28.1",
+      "fastapi": "0.143.3"
+    },
+    "thread_environment": {
+      "OMP_NUM_THREADS": null,
+      "MKL_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null
+    },
+    "storage": {
+      "workspace": "E:\\AI_Agent",
+      "runtime_drive": "E:",
+      "free_bytes_before": 777529921536
+    }
+  },
+  "runtime": "E:\\AI_Agent\\.runtime\\m05-11.7\\9f0a892741bc47648403cd06fccba1e4",
+  "header": "E:\\高光谱数据集\\plastic\\pe\\20260804205214_64.hdr",
+  "events": [],
+  "passed": false,
+  "annotation_purpose": "scripted synthetic integration regions on real cube; NOT human annotation quality",
+  "single_runs": [],
+  "source_files": {},
+  "failure": {
+    "type": "AssertionError",
+    "detail": "Rust evidence probe compilation failed; see runtime/probe-rustc.txt",
+    "traceback": "Traceback (most recent call last):\n  File \"E:\\AI_Agent\\milestone05\\evidence\\11.7\\e2e.py\", line 142, in main\n    probe, result['probe_build'] = compile_probe(runtime)\n                                   ^^^^^^^^^^^^^^^^^^^^^^\n  File \"E:\\AI_Agent\\milestone05\\evidence\\11.7\\e2e.py\", line 82, in compile_probe\n    assert result.returncode == 0, 'Rust evidence probe compilation failed; see runtime/probe-rustc.txt'\n           ^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Rust evidence probe compilation failed; see runtime/probe-rustc.txt\n"
+  }
+}

@@ -1,0 +1,204 @@
+{
+  "stage": "11.7",
+  "baseline_commit": "5f5f2be869a6e5cfc5936f2cefaf0fcb6c324aa2",
+  "python": {
+    "passed": 621,
+    "failed": 0,
+    "skipped": 0,
+    "exit_code": 0,
+    "mode": "repository-root .venv/Scripts/python.exe -m pytest backend/tests src-python/tests -q; default parameters; PYTEST_DEBUG_TEMPROOT=E:/AI_Agent/.runtime/pytest-tmp in same command"
+  },
+  "rust": {
+    "passed": 56,
+    "failed": 0,
+    "ignored": 0,
+    "exit_code": 0,
+    "mode": "src-tauri cwd; cargo test default parallel/default features; unit/integration/doc; CARGO_NET_OFFLINE=true; TEMP/TMP on E",
+    "suites": [
+      [
+        41,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        2,
+        0,
+        0
+      ],
+      [
+        6,
+        0,
+        0
+      ],
+      [
+        1,
+        0,
+        0
+      ],
+      [
+        1,
+        0,
+        0
+      ],
+      [
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        3,
+        0,
+        0
+      ],
+      [
+        1,
+        0,
+        0
+      ]
+    ]
+  },
+  "node": {
+    "passed": 59,
+    "failed": 0,
+    "skipped": 0,
+    "exit_code": 0,
+    "mode": "managed 22.22.2 --test src/components/preprocess/*.test.ts src/components/datasets/*.test.ts src/components/annotation/*.test.ts; built-in default runner"
+  },
+  "typescript": {
+    "exit_code": 0,
+    "mode": "managed Node22.22.2 first on PATH; npx --no-install tsc --noEmit"
+  },
+  "clippy": {
+    "exit_code": 0,
+    "warnings": 0,
+    "mode": "src-tauri cwd cargo clippy --all-targets -- -D warnings"
+  },
+  "e2e": {
+    "passed": true,
+    "failed": false,
+    "exit_code": 0,
+    "mode": "real source sidecar --data-root isolated E runtime, bearer/identity checked loopback HTTP; real Rust parse_request/forward evidence probe, no WebView claim",
+    "http_calls": 43,
+    "shape": [
+      231,
+      640,
+      200
+    ],
+    "labeled_pixels": 18000,
+    "reproduction_max_absolute_difference": 0.0,
+    "ipc_probe": {
+      "exit_code": 0,
+      "level": "real shipped parse_request/forward + real sidecar; NOT WebView invoke",
+      "structure_and_exact_metadata_match": true,
+      "numeric_roundtrip": {
+        "atol": 1e-12,
+        "rtol": 0,
+        "source": "extra check using TASK-05 §5 reproducibility tolerance",
+        "changed_float_count": 98,
+        "max_absolute_difference": 2.7755575615628914e-17
+      },
+      "body_base64_absent": true,
+      "stdout": "real parse_request/forward: report JSON object, no base64 wrapper; NOT WebView invoke"
+    }
+  },
+  "audit": {
+    "exit_code": 0,
+    "mode": "repository-root python milestone03/audit_boundary.py; original assertions unmodified",
+    "commands": 7
+  },
+  "performance": {
+    "file": "performance.json",
+    "triggers": {
+      "risk_1": {
+        "source": "TASK-05 §8 风险1",
+        "seconds": 30,
+        "triggered": false,
+        "conclusion": "未触发，维持同步"
+      },
+      "r13": {
+        "source": "TASK-05 §12 R13",
+        "seconds": 60,
+        "compare_n_limit": 5,
+        "triggered": false,
+        "conclusion": "未触发，维持同步"
+      }
+    },
+    "single_http_seconds": [
+      0.5878716000006534,
+      0.5790434000082314,
+      0.4574255000043195,
+      0.776162199996179
+    ],
+    "compare_http_seconds": 1.8343359999998938,
+    "compare_cost_per_recipe_mean": 0.611445333333298
+  },
+  "environment_supplement": {
+    "captured_at": "2026-10-21T13:11:36.9649561+08:00",
+    "source": "read-only Windows CIM, captured after timed e2e; hardware metadata, not a performance counter",
+    "cpu": [
+      {
+        "Name": "12th Gen Intel(R) Core(TM) i7-12700H",
+        "NumberOfCores": 14,
+        "NumberOfLogicalProcessors": 20,
+        "Manufacturer": "GenuineIntel"
+      }
+    ],
+    "os": {
+      "Caption": "Microsoft Windows 11 专业版",
+      "Version": "10.0.26100",
+      "OSArchitecture": "64 位",
+      "TotalVisibleMemorySize": 16564728
+    },
+    "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "cargo": "cargo 1.99.1 (5f94df478 2026-08-27)",
+    "node": "v22.22.2"
+  },
+  "acceptance_items": {
+    "main": 30,
+    "s06": 13,
+    "mapped": 43,
+    "file": "acceptance-map.md"
+  },
+  "boundaries": {
+    "product_code_and_existing_tests_unchanged": true,
+    "manifest_unchanged": true,
+    "seed_sha256": "388ED3A86BDF60C5054E8DF9A5EB197A96A112B0BF2FC59EFA1BCF1A29F648D2",
+    "T1_T2_implementation": "unchanged, pending decision",
+    "manual_ui_smoke": "科祥，未执行；smoke-checklist.md"
+  },
+  "attempts": [
+    {
+      "attempt": 1,
+      "exit_code": 1,
+      "reason": "new probe dependency search directory omitted deps; fixed evidence harness only",
+      "result": "attempt-01-build-result.json"
+    },
+    {
+      "attempt": 2,
+      "exit_code": 1,
+      "reason": "new exact JSON float assertion exceeded requested JSON-object contract; measured roundtrip difference, now structurally exact + TASK-05 §5 1e-12 extra check",
+      "result": "attempt-02-json-result.json"
+    },
+    {
+      "attempt": 3,
+      "exit_code": 0,
+      "result": "e2e-result.json"
+    }
+  ],
+  "card": {
+    "lines": 314,
+    "self_edit": "append R16 only; preceding working-tree 313 lines byte-identical",
+    "preceding_313_lines_sha256": "06be6ea5070af271db853f346465d27910661eb34efa82cf8ef614f1c0b77d9e",
+    "preexisting_human_edits": "§5.1 operator count 11→10 plus §12 R15 correction were already present when 11.7 started"
+  }
+}

@@ -1,0 +1,663 @@
+{
+  "started_at": "2026-10-21T05:06:53.984262+00:00",
+  "environment": {
+    "python": "3.12.13 (main, May 10 2026, 19:35:37) [MSC v.1944 64 bit (AMD64)]",
+    "python_executable": "E:\\AI_Agent\\.venv\\Scripts\\python.exe",
+    "platform": "Windows-11-10.0.26100-SP0",
+    "machine": "",
+    "processor": "",
+    "logical_cpus": 20,
+    "libraries": {
+      "numpy": "2.5.4",
+      "scipy": "1.18.1",
+      "scikit-learn": "1.9.1",
+      "scikit-image": "0.26.0",
+      "httpx": "0.28.1",
+      "fastapi": "0.143.3"
+    },
+    "thread_environment": {
+      "OMP_NUM_THREADS": null,
+      "MKL_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null
+    },
+    "storage": {
+      "workspace": "E:\\AI_Agent",
+      "runtime_drive": "E:",
+      "free_bytes_before": 777529520128
+    }
+  },
+  "runtime": "E:\\AI_Agent\\.runtime\\m05-11.7\\0d252af8eafa4f2b9a95af45f87cbc54",
+  "header": "E:\\高光谱数据集\\plastic\\pe\\20260804205214_64.hdr",
+  "events": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "status": 200,
+      "http_seconds": 0.007358600007137284,
+      "response_bytes": 83
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/datasets/import",
+      "status": 200,
+      "http_seconds": 0.04719850001856685,
+      "response_bytes": 3375
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/datasets/22483b79-d755-45d0-888c-659a72f05338/superpixels",
+      "status": 200,
+      "http_seconds": 3.7479014999989886,
+      "response_bytes": 97448
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/datasets/22483b79-d755-45d0-888c-659a72f05338/annotations/working",
+      "status": 200,
+      "http_seconds": 0.011412399995606393,
+      "response_bytes": 1721
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/labels?project_id=c5375e84-90e8-447c-842b-924656352de5",
+      "status": 200,
+      "http_seconds": 0.0033873000065796077,
+      "response_bytes": 1585
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/datasets/22483b79-d755-45d0-888c-659a72f05338/annotations/regions",
+      "status": 200,
+      "http_seconds": 0.020434599980944768,
+      "response_bytes": 1827
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/datasets/22483b79-d755-45d0-888c-659a72f05338/annotations/regions",
+      "status": 200,
+      "http_seconds": 0.01964449998922646,
+      "response_bytes": 1963
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/datasets/22483b79-d755-45d0-888c-659a72f05338/annotations/regions",
+      "status": 200,
+      "http_seconds": 0.019320499995956197,
+      "response_bytes": 2111
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/datasets/22483b79-d755-45d0-888c-659a72f05338/annotations/save",
+      "status": 200,
+      "http_seconds": 0.872738499980187,
+      "response_bytes": 31299
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/preprocess/recipes",
+      "status": 200,
+      "http_seconds": 0.020250100002158433,
+      "response_bytes": 572
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/preprocess/recipes",
+      "status": 201,
+      "http_seconds": 0.013947599974926561,
+      "response_bytes": 499
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/datasets/22483b79-d755-45d0-888c-659a72f05338/preprocess/runs",
+      "status": 200,
+      "http_seconds": 0.6348209999850951,
+      "response_bytes": 2178
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/preprocess/runs/2ee99913-3acd-4d79-8789-d8373e2dda83/artifacts/report",
+      "status": 200,
+      "http_seconds": 0.031641800014767796,
+      "response_bytes": 39025
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/preprocess/runs/2ee99913-3acd-4d79-8789-d8373e2dda83/artifacts/sample_spectra",
+      "status": 200,
+      "http_seconds": 0.004301400011172518,
+      "response_bytes": 10565
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/datasets/22483b79-d755-45d0-888c-659a72f05338/preprocess/runs",
+      "status": 200,
+      "http_seconds": 0.5795426000258885,
+      "response_bytes": 2178
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/preprocess/runs/4acda556-75e7-4bed-85d8-d1aebcf65a30/artifacts/report",
+      "status": 200,
+      "http_seconds": 0.0043215999903623015,
+      "response_bytes": 39025
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/preprocess/runs/4acda556-75e7-4bed-85d8-d1aebcf65a30/artifacts/sample_spectra",
+      "status": 200,
+      "http_seconds": 0.003897400019923225,
+      "response_bytes": 10565
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/preprocess/recipes",
+      "status": 201,
+      "http_seconds": 0.014839300012681633,
+      "response_bytes": 409
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/preprocess/recipes",
+      "status": 201,
+      "http_seconds": 0.014319499983685091,
+      "response_bytes": 446
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/datasets/22483b79-d755-45d0-888c-659a72f05338/preprocess/compare",
+      "status": 200,
+      "http_seconds": 1.8422845000168309,
+      "response_bytes": 18471
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/preprocess/runs/8106f31b-17ca-4d31-aa34-23ec5eb48c00/artifacts/report",
+      "status": 200,
+      "http_seconds": 0.016669200005708262,
+      "response_bytes": 39025
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/preprocess/runs/8106f31b-17ca-4d31-aa34-23ec5eb48c00/artifacts/sample_spectra",
+      "status": 200,
+      "http_seconds": 0.0040283999987877905,
+      "response_bytes": 10565
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/preprocess/runs/0079f91d-689b-41bb-bbbc-48b896b0fd47/artifacts/report",
+      "status": 200,
+      "http_seconds": 0.004740400006994605,
+      "response_bytes": 37986
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/preprocess/runs/0079f91d-689b-41bb-bbbc-48b896b0fd47/artifacts/sample_spectra",
+      "status": 200,
+      "http_seconds": 0.0037305000005289912,
+      "response_bytes": 10530
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/preprocess/runs/876fcb59-aafa-45c9-92f6-f344a0605415/artifacts/report",
+      "status": 200,
+      "http_seconds": 0.003591999993659556,
+      "response_bytes": 49519
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/preprocess/runs/876fcb59-aafa-45c9-92f6-f344a0605415/artifacts/sample_spectra",
+      "status": 200,
+      "http_seconds": 0.003894300025422126,
+      "response_bytes": 10445
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/datasets/22483b79-d755-45d0-888c-659a72f05338/preprocess/runs",
+      "status": 200,
+      "http_seconds": 0.5043282000115141,
+      "response_bytes": 2188
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/preprocess/runs/416144d1-748b-4c70-ade1-26f17b8346c8/artifacts/report",
+      "status": 200,
+      "http_seconds": 0.0038340000028256327,
+      "response_bytes": 37986
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/preprocess/runs/416144d1-748b-4c70-ade1-26f17b8346c8/artifacts/sample_spectra",
+      "status": 200,
+      "http_seconds": 0.004435799986822531,
+      "response_bytes": 10530
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/datasets/22483b79-d755-45d0-888c-659a72f05338/preprocess/runs",
+      "status": 200,
+      "http_seconds": 0.787237600015942,
+      "response_bytes": 13219
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/preprocess/runs/d238a997-3bcd-438e-b15a-500709900e1f/artifacts/report",
+      "status": 200,
+      "http_seconds": 0.0037250999885145575,
+      "response_bytes": 49519
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/preprocess/runs/d238a997-3bcd-438e-b15a-500709900e1f/artifacts/sample_spectra",
+      "status": 200,
+      "http_seconds": 0.0037925999786239117,
+      "response_bytes": 10445
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/preprocess/recipes/87f22f01-17b0-4626-8d1c-e2a2a5c4b1f0",
+      "status": 200,
+      "http_seconds": 0.0022879000171087682,
+      "response_bytes": 499
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/preprocess/projects/c5375e84-90e8-447c-842b-924656352de5/recipes/87f22f01-17b0-4626-8d1c-e2a2a5c4b1f0",
+      "status": 200,
+      "http_seconds": 0.00543589997687377,
+      "response_bytes": 153
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/preprocess/projects/c5375e84-90e8-447c-842b-924656352de5/recipes",
+      "status": 200,
+      "http_seconds": 0.01646949999849312,
+      "response_bytes": 501
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/preprocess/projects/c5375e84-90e8-447c-842b-924656352de5/recipes/87f22f01-17b0-4626-8d1c-e2a2a5c4b1f0",
+      "status": 204,
+      "http_seconds": 0.004798399982973933,
+      "response_bytes": 0
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/preprocess/projects/c5375e84-90e8-447c-842b-924656352de5/recipes/87f22f01-17b0-4626-8d1c-e2a2a5c4b1f0",
+      "status": 204,
+      "http_seconds": 0.016437599988421425,
+      "response_bytes": 0
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/preprocess/projects/c5375e84-90e8-447c-842b-924656352de5/recipes",
+      "status": 200,
+      "http_seconds": 0.0023333000135608017,
+      "response_bytes": 2
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/preprocess/recipes/87f22f01-17b0-4626-8d1c-e2a2a5c4b1f0",
+      "status": 200,
+      "http_seconds": 0.002029199997195974,
+      "response_bytes": 499
+    }
+  ],
+  "passed": false,
+  "annotation_purpose": "scripted synthetic integration regions on real cube; NOT human annotation quality",
+  "single_runs": [
+    {
+      "run_id": "2ee99913-3acd-4d79-8789-d8373e2dda83",
+      "recipe_code": "plastic-snv-sg1",
+      "http_seconds": 0.6348209999850951,
+      "lifecycle_seconds": 0.435448,
+      "peak_rss_bytes": 344801280,
+      "temporary_bytes": 0,
+      "temporary_peak_bytes": 0,
+      "artifact_bytes": {
+        "report": 39025,
+        "sample_spectra": 10565
+      }
+    },
+    {
+      "run_id": "4acda556-75e7-4bed-85d8-d1aebcf65a30",
+      "recipe_code": "plastic-snv-sg1",
+      "http_seconds": 0.5795426000258885,
+      "lifecycle_seconds": 0.43843,
+      "peak_rss_bytes": 345501696,
+      "temporary_bytes": 0,
+      "temporary_peak_bytes": 0,
+      "artifact_bytes": {
+        "report": 39025,
+        "sample_spectra": 10565
+      }
+    },
+    {
+      "run_id": "416144d1-748b-4c70-ade1-26f17b8346c8",
+      "recipe_code": "e2e-snv",
+      "http_seconds": 0.5043282000115141,
+      "lifecycle_seconds": 0.345301,
+      "peak_rss_bytes": 345927680,
+      "temporary_bytes": 0,
+      "temporary_peak_bytes": 0,
+      "artifact_bytes": {
+        "report": 37986,
+        "sample_spectra": 10530
+      }
+    },
+    {
+      "run_id": "d238a997-3bcd-438e-b15a-500709900e1f",
+      "recipe_code": "e2e-standard",
+      "http_seconds": 0.787237600015942,
+      "lifecycle_seconds": 0.646872,
+      "peak_rss_bytes": 345927680,
+      "temporary_bytes": 0,
+      "temporary_peak_bytes": 0,
+      "artifact_bytes": {
+        "report": 49519,
+        "sample_spectra": 10445
+      }
+    }
+  ],
+  "source_files": {
+    "E:\\高光谱数据集\\plastic\\pe\\20260804205214_64.hdr": {
+      "bytes": 2585,
+      "sha256": "c613f4217ff2c6a02f97e5f01363ae072d1e08156c1019776730001e5b028e6e"
+    },
+    "E:\\高光谱数据集\\plastic\\pe\\20260804205214_64.img": {
+      "bytes": 59136000,
+      "sha256": "98600f1bb83d90f7e26c7db1ee6a63a06bd257c0f100966c5fbf7e36c67fdb90"
+    }
+  },
+  "probe_build": {
+    "cargo_exit_code": 0,
+    "rustc_exit_code": 0,
+    "libraries": {
+      "serde_json": "E:\\AI_Agent\\src-tauri\\target\\debug\\deps\\libserde_json-35ac8b7c358196fa.rlib",
+      "spectrum_agent": "E:\\AI_Agent\\src-tauri\\target\\debug\\libspectrum_agent.rlib"
+    },
+    "level": "real shipped parse_request/forward + real sidecar; NOT WebView invoke"
+  },
+  "sidecar": {
+    "pid": 21372,
+    "boot_id": "a2daa4d2",
+    "port": 50998,
+    "version": "0.1.0",
+    "protocol": 1
+  },
+  "cube_id": "22483b79-d755-45d0-888c-659a72f05338",
+  "shape": [
+    231,
+    640,
+    200
+  ],
+  "annotation_version_id": "86212953-dffa-4240-b9a1-bc8bb1d6b475",
+  "labeled_pixels": 18000,
+  "artifact_audits": {
+    "2ee99913-3acd-4d79-8789-d8373e2dda83": [
+      {
+        "id": "56d098b2-8330-4e4c-b86b-b5e5d68829ab",
+        "run_id": "2ee99913-3acd-4d79-8789-d8373e2dda83",
+        "kind": "report",
+        "relative_path": "22483b79-d755-45d0-888c-659a72f05338/2ee99913-3acd-4d79-8789-d8373e2dda83/report.json",
+        "sha256": "9a0529385c90c0ad91b3ed94ea9af80459e2607cbbbe1e3ec70b4d71d58f41e3",
+        "created_at": "2026-10-21T05:07:14.067799+00:00",
+        "bytes": 39025,
+        "download_bytes": 39025,
+        "sha256_matches_db": true,
+        "size_scope": "evidence; DB has no size column"
+      },
+      {
+        "id": "07c6d9e7-925d-4bdf-b385-a5b071d825a6",
+        "run_id": "2ee99913-3acd-4d79-8789-d8373e2dda83",
+        "kind": "sample_spectra",
+        "relative_path": "22483b79-d755-45d0-888c-659a72f05338/2ee99913-3acd-4d79-8789-d8373e2dda83/sample_spectra.npz",
+        "sha256": "77a787549d6830cc07bbb30fed6bde82c396b70e9859d4d9148262d5d95f8bd0",
+        "created_at": "2026-10-21T05:07:14.058781+00:00",
+        "bytes": 10565,
+        "download_bytes": 10565,
+        "sha256_matches_db": true,
+        "size_scope": "evidence; DB has no size column"
+      }
+    ],
+    "4acda556-75e7-4bed-85d8-d1aebcf65a30": [
+      {
+        "id": "64484b94-916d-40ad-a220-f7b7fb0dd86e",
+        "run_id": "4acda556-75e7-4bed-85d8-d1aebcf65a30",
+        "kind": "report",
+        "relative_path": "22483b79-d755-45d0-888c-659a72f05338/4acda556-75e7-4bed-85d8-d1aebcf65a30/report.json",
+        "sha256": "f6b5aa4561f4ac8ebd2683e605d22833b2c7181f943396f67e6034d36149e6bd",
+        "created_at": "2026-10-21T05:07:14.682512+00:00",
+        "bytes": 39025,
+        "download_bytes": 39025,
+        "sha256_matches_db": true,
+        "size_scope": "evidence; DB has no size column"
+      },
+      {
+        "id": "17013584-5d3a-4c2d-b256-0b8cfe1f1ddc",
+        "run_id": "4acda556-75e7-4bed-85d8-d1aebcf65a30",
+        "kind": "sample_spectra",
+        "relative_path": "22483b79-d755-45d0-888c-659a72f05338/4acda556-75e7-4bed-85d8-d1aebcf65a30/sample_spectra.npz",
+        "sha256": "77a787549d6830cc07bbb30fed6bde82c396b70e9859d4d9148262d5d95f8bd0",
+        "created_at": "2026-10-21T05:07:14.658975+00:00",
+        "bytes": 10565,
+        "download_bytes": 10565,
+        "sha256_matches_db": true,
+        "size_scope": "evidence; DB has no size column"
+      }
+    ],
+    "8106f31b-17ca-4d31-aa34-23ec5eb48c00": [
+      {
+        "id": "e1cc7dc6-fa69-4138-a1f2-80147777277b",
+        "run_id": "8106f31b-17ca-4d31-aa34-23ec5eb48c00",
+        "kind": "report",
+        "relative_path": "22483b79-d755-45d0-888c-659a72f05338/8106f31b-17ca-4d31-aa34-23ec5eb48c00/report.json",
+        "sha256": "2ad28d67cea8d04c499b5d36a1191d50f459ec1acbb580fcbe73823b123c7fdd",
+        "created_at": "2026-10-21T05:07:15.337095+00:00",
+        "bytes": 39025,
+        "download_bytes": 39025,
+        "sha256_matches_db": true,
+        "size_scope": "evidence; DB has no size column"
+      },
+      {
+        "id": "17f018ea-05fe-4571-887b-8c627d3efa67",
+        "run_id": "8106f31b-17ca-4d31-aa34-23ec5eb48c00",
+        "kind": "sample_spectra",
+        "relative_path": "22483b79-d755-45d0-888c-659a72f05338/8106f31b-17ca-4d31-aa34-23ec5eb48c00/sample_spectra.npz",
+        "sha256": "77a787549d6830cc07bbb30fed6bde82c396b70e9859d4d9148262d5d95f8bd0",
+        "created_at": "2026-10-21T05:07:15.322548+00:00",
+        "bytes": 10565,
+        "download_bytes": 10565,
+        "sha256_matches_db": true,
+        "size_scope": "evidence; DB has no size column"
+      }
+    ],
+    "0079f91d-689b-41bb-bbbc-48b896b0fd47": [
+      {
+        "id": "2e4a3ebe-a9a6-4a32-96f1-27d43abd09e4",
+        "run_id": "0079f91d-689b-41bb-bbbc-48b896b0fd47",
+        "kind": "report",
+        "relative_path": "22483b79-d755-45d0-888c-659a72f05338/0079f91d-689b-41bb-bbbc-48b896b0fd47/report.json",
+        "sha256": "156a865122e8bc08e24bbc7fe994b0d34a7a170721f44352f4c1044dc0005740",
+        "created_at": "2026-10-21T05:07:15.787243+00:00",
+        "bytes": 37986,
+        "download_bytes": 37986,
+        "sha256_matches_db": true,
+        "size_scope": "evidence; DB has no size column"
+      },
+      {
+        "id": "56bb4745-2543-41cd-9f91-fe6781e9af55",
+        "run_id": "0079f91d-689b-41bb-bbbc-48b896b0fd47",
+        "kind": "sample_spectra",
+        "relative_path": "22483b79-d755-45d0-888c-659a72f05338/0079f91d-689b-41bb-bbbc-48b896b0fd47/sample_spectra.npz",
+        "sha256": "02de49d546a4334038089ce1779a6c9b9bebb19ffbbc3e6ddaf0ff97d38b3736",
+        "created_at": "2026-10-21T05:07:15.773536+00:00",
+        "bytes": 10530,
+        "download_bytes": 10530,
+        "sha256_matches_db": true,
+        "size_scope": "evidence; DB has no size column"
+      }
+    ],
+    "876fcb59-aafa-45c9-92f6-f344a0605415": [
+      {
+        "id": "3b8f8cf0-c921-4a27-88a1-12d6d79f007c",
+        "run_id": "876fcb59-aafa-45c9-92f6-f344a0605415",
+        "kind": "report",
+        "relative_path": "22483b79-d755-45d0-888c-659a72f05338/876fcb59-aafa-45c9-92f6-f344a0605415/report.json",
+        "sha256": "4206e6ffde478f59762078bbfb42d2035dcd2cd4d42ee0ae0fb81dad6573c74b",
+        "created_at": "2026-10-21T05:07:16.607719+00:00",
+        "bytes": 49519,
+        "download_bytes": 49519,
+        "sha256_matches_db": true,
+        "size_scope": "evidence; DB has no size column"
+      },
+      {
+        "id": "aca09693-0369-479d-9199-d00d3340c767",
+        "run_id": "876fcb59-aafa-45c9-92f6-f344a0605415",
+        "kind": "sample_spectra",
+        "relative_path": "22483b79-d755-45d0-888c-659a72f05338/876fcb59-aafa-45c9-92f6-f344a0605415/sample_spectra.npz",
+        "sha256": "c77340b8906c4ed56ae939f86f023d8d483317ac51eedc08de7c9f8fbdcd398a",
+        "created_at": "2026-10-21T05:07:16.593122+00:00",
+        "bytes": 10445,
+        "download_bytes": 10445,
+        "sha256_matches_db": true,
+        "size_scope": "evidence; DB has no size column"
+      }
+    ],
+    "416144d1-748b-4c70-ade1-26f17b8346c8": [
+      {
+        "id": "8189df4e-1166-426d-8b26-c64dff432aa6",
+        "run_id": "416144d1-748b-4c70-ade1-26f17b8346c8",
+        "kind": "report",
+        "relative_path": "22483b79-d755-45d0-888c-659a72f05338/416144d1-748b-4c70-ade1-26f17b8346c8/report.json",
+        "sha256": "c8d93400f5671c1216c0729e917aaf9b398b2deb11673b798e51cf71bbf2a5ed",
+        "created_at": "2026-10-21T05:07:17.158739+00:00",
+        "bytes": 37986,
+        "download_bytes": 37986,
+        "sha256_matches_db": true,
+        "size_scope": "evidence; DB has no size column"
+      },
+      {
+        "id": "947af9af-132e-4325-9964-e61241db4755",
+        "run_id": "416144d1-748b-4c70-ade1-26f17b8346c8",
+        "kind": "sample_spectra",
+        "relative_path": "22483b79-d755-45d0-888c-659a72f05338/416144d1-748b-4c70-ade1-26f17b8346c8/sample_spectra.npz",
+        "sha256": "02de49d546a4334038089ce1779a6c9b9bebb19ffbbc3e6ddaf0ff97d38b3736",
+        "created_at": "2026-10-21T05:07:17.142115+00:00",
+        "bytes": 10530,
+        "download_bytes": 10530,
+        "sha256_matches_db": true,
+        "size_scope": "evidence; DB has no size column"
+      }
+    ],
+    "d238a997-3bcd-438e-b15a-500709900e1f": [
+      {
+        "id": "c5ab69e5-d577-4c74-adab-a0a1166cb43b",
+        "run_id": "d238a997-3bcd-438e-b15a-500709900e1f",
+        "kind": "report",
+        "relative_path": "22483b79-d755-45d0-888c-659a72f05338/d238a997-3bcd-438e-b15a-500709900e1f/report.json",
+        "sha256": "2a2bccf5de33251b792242ad3be1e965a32e6c5c2192c533b59a1f0a4635f13e",
+        "created_at": "2026-10-21T05:07:17.961361+00:00",
+        "bytes": 49519,
+        "download_bytes": 49519,
+        "sha256_matches_db": true,
+        "size_scope": "evidence; DB has no size column"
+      },
+      {
+        "id": "a49342d9-bdbd-474a-9a38-62a86414d4ec",
+        "run_id": "d238a997-3bcd-438e-b15a-500709900e1f",
+        "kind": "sample_spectra",
+        "relative_path": "22483b79-d755-45d0-888c-659a72f05338/d238a997-3bcd-438e-b15a-500709900e1f/sample_spectra.npz",
+        "sha256": "c77340b8906c4ed56ae939f86f023d8d483317ac51eedc08de7c9f8fbdcd398a",
+        "created_at": "2026-10-21T05:07:17.944651+00:00",
+        "bytes": 10445,
+        "download_bytes": 10445,
+        "sha256_matches_db": true,
+        "size_scope": "evidence; DB has no size column"
+      }
+    ]
+  },
+  "reproduction": {
+    "input_fingerprint": "adbd36d1a518396816d98e8445bcf06086891bb41af8871f76d7c69b29da4ac9",
+    "run_ids": [
+      "2ee99913-3acd-4d79-8789-d8373e2dda83",
+      "4acda556-75e7-4bed-85d8-d1aebcf65a30"
+    ],
+    "max_absolute_difference": 0.0,
+    "atol": 1e-12
+  },
+  "compare": {
+    "n": 3,
+    "http_seconds": 1.8422845000168309,
+    "http_seconds_per_recipe_mean": 0.6140948333389437,
+    "runs": [
+      {
+        "run_id": "8106f31b-17ca-4d31-aa34-23ec5eb48c00",
+        "recipe_version_id": "48eb6586-2c0b-4374-810f-ff94474e4971",
+        "lifecycle_seconds": 0.426238,
+        "peak_rss_bytes": 345587712,
+        "temporary_bytes": 0,
+        "artifact_bytes": {
+          "report": 39025,
+          "sample_spectra": 10565
+        }
+      },
+      {
+        "run_id": "0079f91d-689b-41bb-bbbc-48b896b0fd47",
+        "recipe_version_id": "15cfe012-3fbd-48a0-acd5-1c71d17fc09b",
+        "lifecycle_seconds": 0.313335,
+        "peak_rss_bytes": 345706496,
+        "temporary_bytes": 0,
+        "artifact_bytes": {
+          "report": 37986,
+          "sample_spectra": 10530
+        }
+      },
+      {
+        "run_id": "876fcb59-aafa-45c9-92f6-f344a0605415",
+        "recipe_version_id": "f2f2b03e-0d65-4f5b-b7ec-67a3153bec64",
+        "lifecycle_seconds": 0.685414,
+        "peak_rss_bytes": 345845760,
+        "temporary_bytes": 0,
+        "artifact_bytes": {
+          "report": 49519,
+          "sample_spectra": 10445
+        }
+      }
+    ],
+    "ranking": [
+      {
+        "rank": 1,
+        "run_id": "8106f31b-17ca-4d31-aa34-23ec5eb48c00",
+        "recipe_version_id": "48eb6586-2c0b-4374-810f-ff94474e4971",
+        "fisher": 0.054711984920201684
+      },
+      {
+        "rank": 2,
+        "run_id": "876fcb59-aafa-45c9-92f6-f344a0605415",
+        "recipe_version_id": "f2f2b03e-0d65-4f5b-b7ec-67a3153bec64",
+        "fisher": 0.04688556236360773
+      },
+      {
+        "rank": 3,
+        "run_id": "0079f91d-689b-41bb-bbbc-48b896b0fd47",
+        "recipe_version_id": "15cfe012-3fbd-48a0-acd5-1c71d17fc09b",
+        "fisher": 0.014348413349817988
+      }
+    ],
+    "boundaries": [
+      "TASK-05 §2.5 边界1：SNR 跨算子类型不可比，仅同类算子内相对比较。",
+      "TASK-05 §2.5 边界2：零方差/单样本类排除 Fisher；该类样本不足，未参与选优；不加 epsilon。",
+      "TASK-05 §2.5 边界3：类间距离原值不可跨配方比；按卡以 Fisher 为主排序。"
+    ],
+    "selection": "TASK-05 §2.5：Fisher 主排序，确定性计算；LLM 不参与数值判断"
+  },
+  "project_selection_preserves_recipe_and_versions": true,
+  "failure": {
+    "type": "AssertionError",
+    "detail": "",
+    "traceback": "Traceback (most recent call last):\n  File \"E:\\AI_Agent\\milestone05\\evidence\\11.7\\e2e.py\", line 310, in main\n    assert ipc_report == first_report and 'body_base64' not in ipc_report\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+  },
+  "sidecar_stopped": true,
+  "token_absent_from_logs": true
+}

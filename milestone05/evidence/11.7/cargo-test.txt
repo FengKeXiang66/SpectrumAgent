@@ -1,0 +1,116 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.57s
+     Running unittests src\lib.rs (target\debug\deps\spectrum_agent-fc5a2225eca9e0bc.exe)
+
+running 41 tests
+test annotation::tests::identifiers_cannot_escape_and_version_numbers_are_not_uuids ... ok
+test annotation::tests::only_the_supplied_nonzero_handshake_port_is_used ... ok
+test annotation::tests::parameter_edges_and_unicode_note_match_http_contract ... ok
+test annotation::tests::four_management_operations_have_literal_paths_methods_and_bodies ... ok
+test annotation::tests::project_query_is_strict_then_lowercase_but_dataset_path_is_unchanged ... ok
+test annotation::tests::all_nine_operations_have_exact_paths_methods_and_bodies ... ok
+test annotation::tests::omitted_parameters_stay_omitted_and_all_prompt_geometries_are_typed ... ok
+test annotation::tests::bad_types_lengths_and_out_of_range_parameters_are_rejected ... ok
+test annotation::tests::unknown_operations_and_fields_are_structured_and_never_reflect_input ... ok
+test datasets_dev::tests::all_operations_use_the_handshake_port_and_fixed_namespace ... ok
+test annotation::tests::no_free_url_host_port_path_or_method_can_enter_any_operation ... ok
+test datasets_dev::tests::no_generic_host_port_path_or_method_can_be_deserialized ... ok
+test health::route_tests::closed_routes_always_use_numeric_loopback_and_literal_paths ... ok
+test preprocess::tests::actual_generation_guard_used_by_command_rejects_stale_or_nonready ... ok
+test preprocess::tests::all_twelve_destinations_methods_and_exact_bodies ... ok
+test preprocess::tests::four_uuid_error_codes_cover_every_identifier_field ... ok
+test preprocess::tests::manual_base64_matches_rfc4648_vectors ... ok
+test preprocess::tests::builder_sets_three_hundred_seconds_without_waiting ... ok
+test datasets_dev::tests::structured_sidecar_errors_are_preserved_after_identity_validation ... ok
+test preprocess::tests::malformed_http_envelope_uses_generic_error ... ok
+test preprocess::tests::json_success_is_unchanged_and_post_body_is_forwarded ... ok
+test annotation::tests::structured_sidecar_errors_are_preserved_after_identity_validation ... ok
+test preprocess::tests::unknown_fields_ops_types_artifact_values_and_free_destinations_are_rejected ... ok
+test preprocess::tests::redirects_are_not_followed ... ok
+test preprocess::tests::uuid_copy_and_port_boundary_preserve_closed_destination ... ok
+test preprocess::tests::binary_payload_and_wrapper_filename_are_also_sensitive_checked ... ok
+test preprocess::tests::structured_http_error_preserves_three_fields ... ok
+test preprocess::tests::raw_and_canonical_tokens_never_cross_bridge ... ok
+test preprocess::tests::only_204_maps_empty_body_to_null_not_200 ... ok
+test preprocess::tests::report_stays_json_and_nonartifact_binary_is_rejected ... ok
+test datasets_dev::tests::redirects_are_not_followed_and_sensitive_bodies_never_leave_rust ... ok
+test annotation::tests::redirects_are_not_followed_and_sensitive_bodies_never_leave_rust ... ok
+test annotation::tests::label_body_limit_counts_serialized_utf8_and_business_validation_stays_in_python ... ok
+test annotation::tests::response_identity_precedes_status_and_body ... ok
+test datasets_dev::tests::response_identity_precedes_status_and_body ... ok
+test preprocess::tests::identity_checks_precede_http_status_and_body ... ok
+test preprocess::tests::binary_artifact_roundtrips_and_keeps_filename ... ok
+test annotation::tests::declared_and_streaming_response_limits_are_enforced ... ok
+test preprocess::tests::declared_and_streaming_limits_reject_above_eight_mib ... ok
+test datasets_dev::tests::declared_and_streaming_response_limits_are_enforced ... ok
+test annotation::tests::an_exactly_eight_mib_json_response_is_allowed ... ok
+
+test result: ok. 41 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
+
+     Running unittests src\main.rs (target\debug\deps\spectrum_agent-9760c85afe553455.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\causality.rs (target\debug\deps\causality-36e4b6d833a263b9.exe)
+
+running 2 tests
+test midnight_files_and_preexisting_partial_line_are_handled_without_fallback ... ok
+test only_new_complete_lines_with_own_integer_pid_in_utc_window_can_be_cause ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests\contracts.rs (target\debug\deps\contracts-6e34dbf97624c6bb.exe)
+
+running 6 tests
+test late_generation_and_expected_exit_cannot_fail_current_attempt ... ok
+test all_transition_pairs_and_stopping_terminal_rule ... ok
+test exact_fields_and_top_level_are_enforced ... ok
+test valid_handshake_values_and_integer_utc_comparison ... ok
+test metadata_types_bounds_and_exact_strings_are_enforced ... ok
+test times_reject_nonexistent_dates_leap_seconds_and_non_millisecond_formats ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\dev_identity.rs (target\debug\deps\dev_identity-6600fcd409e08ea7.exe)
+
+running 1 test
+test same_job_creation_time_and_live_process_are_all_required ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\dev_lifecycle.rs (target\debug\deps\dev_lifecycle-e7b10eb393a2d273.exe)
+
+running 1 test
+test real_venv_dual_pid_job_cleanup_and_stale_handshake_recovery ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.20s
+
+     Running tests\engine_path.rs (target\debug\deps\engine_path-4dbb2bb02eb71cdc.exe)
+
+running 1 test
+test constructor_precedes_resource_and_rejects_non_engine_or_relative_paths ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\supervisor_stubs.rs (target\debug\deps\supervisor_stubs-83764e59d4e58d2f.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\win32_failures.rs (target\debug\deps\win32_failures-62b5ecc33cd4760b.exe)
+
+running 3 tests
+test success_closes_thread_immediately_and_cleanup_is_idempotent ... ok
+test five_injected_failures_use_correct_termination_wait_and_exact_handle_counts ... ok
+test unconfirmed_cleanup_is_preserved_and_blocks_retry ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+   Doc-tests spectrum_agent
+
+running 1 test
+test src\health.rs - health::HealthClient::smoke (line 101) - compile fail ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s

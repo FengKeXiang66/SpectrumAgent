@@ -26,3 +26,19 @@
 ## 发布前缓测
 
 签名/SmartScreen、干净机、长路径、重启以及实际桌面 UI 冒烟由科祥执行。自动化 HTTP 集成与逻辑层测试不能替代这些项目；详见 10.7 验收映射。
+
+## 光谱预处理（TASK-05）
+
+- B01 反射率三分支算子及 guard/NaN 记录；run 前置读取原始 DN，当前支持 scale/passthrough，白/暗参考文件解析仍缓建，不重复除 scale。B02 SG 平滑、B03 按 band index 的一/二阶导数，窗口/阶数校验；B04 SNV、显式参考谱 MSC/EMSC 算子。S06 不开放 MSC/EMSC，参考来源选择留阶段二。
+- B05 StandardScaler/MinMax/面积/L2 四法，fit-on-apply 参数与输入指纹随 run 记录；B06 闭区间裁剪、线性/样条重采样、越界 NaN 以及相邻间隔中位数 FWHM **代理值**提示。波长轴与谱条数契约随流水线传递。
+- B07 全局配方库、只增版本、项目只读选用关联；内置 `plastic-snv-sg1` 为 SNV→SG一阶（order1/window15/polyorder2），B01 为数据集特定前置步、不入配方。取消选用仅删除关联，不删除配方。
+- B08 PCA/MNF/ICA 确定性降维与最小分量占比展示，random_state 与载荷定向可复现；ICA 的重构能量口径明确标注为非 PCA 方差分解。B09 上凸包/端点线性连续统去除；不等同像素去背景或 ROI 筛选。
+- B10 对比作用于标注快照选中的**逐像素 B01 反射率**，不读取历史 sample_spectrum 聚合谱代替；报告逐像素 SNR 四统计量、类间距离、类内方差和 Fisher 主排序。数值公式/噪声估计为 TASK-05 §2.5/§2.6 的实现层口径；显式披露三边界：SNR 跨算子类型不可比，零方差/单样本类排除 Fisher 且不加 epsilon，类间原值不可跨配方比较。未标注仅 SNR并标注局限，LLM不参与数值计算或选优。
+- 十二个 FastAPI 操作与第七条受限 IPC 命令 `preprocess_forward` 在 dev/release 注册。固定loopback/握手端口、类型化目的地、UUID、身份头、代次、8MiB及token护栏；预处理同步请求超时300s。报告通过IPC仍为解析后的JSON，样本谱NPZ才使用base64二进制包装。
+- S06 提供合法算子链与当前轴维护、配方保存/新版本/项目选用、真实终态run、前后类均值曲线与Fisher对比。曲线在最终执行遍有界采集，拟合遍不污染；每类≤512点确定性等距索引抽样，null断线。传输超时后通过runs摘要及新run详情核对真实状态，并保留手动恢复入口。坏波段剔除、去背景/仅ROI、历史Kappa、每步预览标注阶段二/不适用。
+
+关键错误契约：`OPERATOR_VERSION_STALE`（409，仅声明的 name@version 不存在）、`INVALID_OPERATOR_PARAMS`（400，字段级信息）、`NORMALIZATION_DEGENERATE`（400）、`SOURCE_CHANGED`（400，已登记源变化）。IPC 对非法标识返回 `INVALID_DATASET_ID` / `INVALID_RUN_ID` / `INVALID_RECIPE_ID` / `INVALID_PROJECT_ID` 结构化信封；`ARTIFACT_TOO_LARGE`、`RESPONSE_TOO_LARGE`、`SENSITIVE_RESPONSE` 与 `STALE_RESPONSE` 保持各自边界，不以传输中断推断服务端run失败。
+
+11.7 真实 pe HTTP 全链路、真实 Rust parse_request/forward 探针、逐像素对比性能和全量回归证据位于 `milestone05/evidence/11.7/`。标注区域为脚本集成夹具，不代表人工标注质量；Rust探针不冒充完整WebView invoke。单次本机性能不是跨机承诺，30s采样议题与R13异步议题分别判定，默认参数未调整。
+
+实机UI冒烟、签名/SmartScreen、干净机、长路径与重启仍待科祥执行，见 `milestone05/evidence/11.7/smoke-checklist.md`。安装包最终commit/hash和发布归档待科祥构建后回填 `docs/release_manifest.md`；本阶段不改manifest、不打tag、不push、不创建Release。

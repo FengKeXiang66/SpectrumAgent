@@ -1,0 +1,21 @@
+{
+  "captured_at": "2026-10-21T13:11:36.9649561+08:00",
+  "source": "read-only Windows CIM, captured after timed e2e; hardware metadata, not a performance counter",
+  "cpu": [
+    {
+      "Name": "12th Gen Intel(R) Core(TM) i7-12700H",
+      "NumberOfCores": 14,
+      "NumberOfLogicalProcessors": 20,
+      "Manufacturer": "GenuineIntel"
+    }
+  ],
+  "os": {
+    "Caption": "Microsoft Windows 11 专业版",
+    "Version": "10.0.26100",
+    "OSArchitecture": "64 位",
+    "TotalVisibleMemorySize": 16564728
+  },
+  "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+  "cargo": "cargo 1.99.1 (5f94df478 2026-08-27)",
+  "node": "v22.22.2"
+}

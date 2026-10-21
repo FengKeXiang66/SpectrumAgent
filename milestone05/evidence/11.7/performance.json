@@ -1,0 +1,189 @@
+{
+  "source_level": "implementation measurement, one session/CPU, not a cross-machine promise",
+  "environment": {
+    "python": "3.12.13 (main, May 10 2026, 19:35:37) [MSC v.1944 64 bit (AMD64)]",
+    "python_executable": "E:\\AI_Agent\\.venv\\Scripts\\python.exe",
+    "platform": "Windows-11-10.0.26100-SP0",
+    "machine": "",
+    "processor": "",
+    "logical_cpus": 20,
+    "libraries": {
+      "numpy": "2.5.4",
+      "scipy": "1.18.1",
+      "scikit-learn": "1.9.1",
+      "scikit-image": "0.26.0",
+      "httpx": "0.28.1",
+      "fastapi": "0.143.3"
+    },
+    "thread_environment": {
+      "OMP_NUM_THREADS": null,
+      "MKL_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null
+    },
+    "storage": {
+      "workspace": "E:\\AI_Agent",
+      "runtime_drive": "E:",
+      "free_bytes_before": 777483177984
+    }
+  },
+  "header": "E:\\高光谱数据集\\plastic\\pe\\20260804205214_64.hdr",
+  "shape": [
+    231,
+    640,
+    200
+  ],
+  "environment_supplement": "environment.json: read-only Windows CIM hardware metadata captured after timed e2e",
+  "annotation_purpose": "scripted synthetic integration regions on real cube; NOT human annotation quality",
+  "labeled_pixels": 18000,
+  "defaults": {
+    "block_size": 32,
+    "guard": "clip"
+  },
+  "timing_definitions": {
+    "http_seconds": "perf_counter request→response; includes preflight and response; trigger lines use this",
+    "lifecycle_seconds": "finished_at-created_at: persisted lifecycle after preflight, excludes source hashes and other prechecks",
+    "peak_rss_bytes": "report sidecar process lifetime peak; includes preceding annotation/SLIC work, not a per-run delta",
+    "compare_per_recipe": "HTTP total / N; an arithmetic cost mean, not individual HTTP spans"
+  },
+  "measurement_mode": "e2e before parallel regression/compile gates; no parameter tuning or spectrum sampling",
+  "single_runs": [
+    {
+      "run_id": "3dcf91d6-dc82-4633-a798-8aa77da9fe3e",
+      "recipe_code": "plastic-snv-sg1",
+      "http_seconds": 0.5878716000006534,
+      "lifecycle_seconds": 0.430898,
+      "peak_rss_bytes": 345026560,
+      "temporary_bytes": 0,
+      "temporary_peak_bytes": 0,
+      "artifact_bytes": {
+        "report": 39025,
+        "sample_spectra": 10565
+      }
+    },
+    {
+      "run_id": "36ef0d89-08c0-4600-b5eb-a7db477bd53c",
+      "recipe_code": "plastic-snv-sg1",
+      "http_seconds": 0.5790434000082314,
+      "lifecycle_seconds": 0.436152,
+      "peak_rss_bytes": 345579520,
+      "temporary_bytes": 0,
+      "temporary_peak_bytes": 0,
+      "artifact_bytes": {
+        "report": 39025,
+        "sample_spectra": 10565
+      }
+    },
+    {
+      "run_id": "6bfb4e7f-4ca8-4444-a2ad-03b7c9b9575a",
+      "recipe_code": "e2e-snv",
+      "http_seconds": 0.4574255000043195,
+      "lifecycle_seconds": 0.314376,
+      "peak_rss_bytes": 346058752,
+      "temporary_bytes": 0,
+      "temporary_peak_bytes": 0,
+      "artifact_bytes": {
+        "report": 37986,
+        "sample_spectra": 10530
+      }
+    },
+    {
+      "run_id": "b16fffb0-4c8f-4d63-8d62-884d9c246225",
+      "recipe_code": "e2e-standard",
+      "http_seconds": 0.776162199996179,
+      "lifecycle_seconds": 0.632725,
+      "peak_rss_bytes": 346058752,
+      "temporary_bytes": 0,
+      "temporary_peak_bytes": 0,
+      "artifact_bytes": {
+        "report": 49519,
+        "sample_spectra": 10445
+      }
+    }
+  ],
+  "compare": {
+    "n": 3,
+    "http_seconds": 1.8343359999998938,
+    "http_seconds_per_recipe_mean": 0.611445333333298,
+    "runs": [
+      {
+        "run_id": "6df5c3c1-9eba-4e68-b472-8226b03e2312",
+        "recipe_version_id": "e6a66dd8-b6fb-48bb-aea7-665f574caf99",
+        "lifecycle_seconds": 0.43082,
+        "peak_rss_bytes": 345665536,
+        "temporary_bytes": 0,
+        "artifact_bytes": {
+          "report": 39025,
+          "sample_spectra": 10565
+        }
+      },
+      {
+        "run_id": "8f2f0998-b2b8-477c-8473-02726cedb5cc",
+        "recipe_version_id": "6624d4a5-76b9-4316-b19f-6feb375c8fb4",
+        "lifecycle_seconds": 0.313232,
+        "peak_rss_bytes": 345694208,
+        "temporary_bytes": 0,
+        "artifact_bytes": {
+          "report": 37986,
+          "sample_spectra": 10530
+        }
+      },
+      {
+        "run_id": "924a6511-469d-429e-bbb2-9bd6bfe3983a",
+        "recipe_version_id": "d1548289-ff1f-463d-b65d-e513843d84fa",
+        "lifecycle_seconds": 0.675351,
+        "peak_rss_bytes": 345907200,
+        "temporary_bytes": 0,
+        "artifact_bytes": {
+          "report": 49519,
+          "sample_spectra": 10445
+        }
+      }
+    ],
+    "ranking": [
+      {
+        "rank": 1,
+        "run_id": "6df5c3c1-9eba-4e68-b472-8226b03e2312",
+        "recipe_version_id": "e6a66dd8-b6fb-48bb-aea7-665f574caf99",
+        "fisher": 0.054711984920201684
+      },
+      {
+        "rank": 2,
+        "run_id": "924a6511-469d-429e-bbb2-9bd6bfe3983a",
+        "recipe_version_id": "d1548289-ff1f-463d-b65d-e513843d84fa",
+        "fisher": 0.04688556236360773
+      },
+      {
+        "rank": 3,
+        "run_id": "8f2f0998-b2b8-477c-8473-02726cedb5cc",
+        "recipe_version_id": "6624d4a5-76b9-4316-b19f-6feb375c8fb4",
+        "fisher": 0.014348413349817988
+      }
+    ],
+    "boundaries": [
+      "TASK-05 §2.5 边界1：SNR 跨算子类型不可比，仅同类算子内相对比较。",
+      "TASK-05 §2.5 边界2：零方差/单样本类排除 Fisher；该类样本不足，未参与选优；不加 epsilon。",
+      "TASK-05 §2.5 边界3：类间距离原值不可跨配方比；按卡以 Fisher 为主排序。"
+    ],
+    "selection": "TASK-05 §2.5：Fisher 主排序，确定性计算；LLM 不参与数值判断"
+  },
+  "thresholds": {
+    "risk_1": {
+      "source": "TASK-05 §8 风险1",
+      "seconds": 30,
+      "triggered": false,
+      "conclusion": "未触发，维持同步"
+    },
+    "r13": {
+      "source": "TASK-05 §12 R13",
+      "seconds": 60,
+      "compare_n_limit": 5,
+      "triggered": false,
+      "conclusion": "未触发，维持同步"
+    }
+  },
+  "limitations": [
+    "仅本机、本次已标注像素集；不代表全图全标注或跨机性能。",
+    "compare 未提供逐步骤 HTTP spans；总/3 与各单独控制 run 明确分列。",
+    "无聚合谱替代逐像素；触发阈值只回报，不改产品。"
+  ]
+}

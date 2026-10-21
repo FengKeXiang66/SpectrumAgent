@@ -1,0 +1,364 @@
+TAP version 13
+# Subtest: IPC superpixels: exact Rust variant, one command, no arbitrary route
+ok 1 - IPC superpixels: exact Rust variant, one command, no arbitrary route
+  ---
+  duration_ms: 2.9314
+  type: 'test'
+  ...
+# Subtest: IPC diffuse: exact Rust variant, one command, no arbitrary route
+ok 2 - IPC diffuse: exact Rust variant, one command, no arbitrary route
+  ---
+  duration_ms: 0.6146
+  type: 'test'
+  ...
+# Subtest: IPC regions: exact Rust variant, one command, no arbitrary route
+ok 3 - IPC regions: exact Rust variant, one command, no arbitrary route
+  ---
+  duration_ms: 0.3507
+  type: 'test'
+  ...
+# Subtest: IPC undo: exact Rust variant, one command, no arbitrary route
+ok 4 - IPC undo: exact Rust variant, one command, no arbitrary route
+  ---
+  duration_ms: 0.2464
+  type: 'test'
+  ...
+# Subtest: IPC working: exact Rust variant, one command, no arbitrary route
+ok 5 - IPC working: exact Rust variant, one command, no arbitrary route
+  ---
+  duration_ms: 0.3818
+  type: 'test'
+  ...
+# Subtest: IPC validate: exact Rust variant, one command, no arbitrary route
+ok 6 - IPC validate: exact Rust variant, one command, no arbitrary route
+  ---
+  duration_ms: 0.2083
+  type: 'test'
+  ...
+# Subtest: IPC save: exact Rust variant, one command, no arbitrary route
+ok 7 - IPC save: exact Rust variant, one command, no arbitrary route
+  ---
+  duration_ms: 0.425
+  type: 'test'
+  ...
+# Subtest: IPC versions: exact Rust variant, one command, no arbitrary route
+ok 8 - IPC versions: exact Rust variant, one command, no arbitrary route
+  ---
+  duration_ms: 0.2506
+  type: 'test'
+  ...
+# Subtest: IPC version_overlay: exact Rust variant, one command, no arbitrary route
+ok 9 - IPC version_overlay: exact Rust variant, one command, no arbitrary route
+  ---
+  duration_ms: 0.6456
+  type: 'test'
+  ...
+# Subtest: IPC projects: exact Rust variant, one command, no arbitrary route
+ok 10 - IPC projects: exact Rust variant, one command, no arbitrary route
+  ---
+  duration_ms: 0.4001
+  type: 'test'
+  ...
+# Subtest: IPC labels: exact Rust variant, one command, no arbitrary route
+ok 11 - IPC labels: exact Rust variant, one command, no arbitrary route
+  ---
+  duration_ms: 0.1716
+  type: 'test'
+  ...
+# Subtest: IPC add_label: exact Rust variant, one command, no arbitrary route
+ok 12 - IPC add_label: exact Rust variant, one command, no arbitrary route
+  ---
+  duration_ms: 0.1755
+  type: 'test'
+  ...
+# Subtest: IPC catalog: exact Rust variant, one command, no arbitrary route
+ok 13 - IPC catalog: exact Rust variant, one command, no arbitrary route
+  ---
+  duration_ms: 0.0837
+  type: 'test'
+  ...
+# Subtest: optional defaults are left to Python; all prompt and geometry forms retain [line,sample]
+ok 14 - optional defaults are left to Python; all prompt and geometry forms retain [line,sample]
+  ---
+  duration_ms: 0.1923
+  type: 'test'
+  ...
+# Subtest: all three structured label bodies match Python and carry the working project id
+ok 15 - all three structured label bodies match Python and carry the working project id
+  ---
+  duration_ms: 0.1319
+  type: 'test'
+  ...
+# Subtest: local estimates and display state cannot enter request projections
+ok 16 - local estimates and display state cannot enter request projections
+  ---
+  duration_ms: 0.2698
+  type: 'test'
+  ...
+# Subtest: structured errors keep code, field messages and context; client never swallows rejection
+ok 17 - structured errors keep code, field messages and context; client never swallows rejection
+  ---
+  duration_ms: 0.6454
+  type: 'test'
+  ...
+# Subtest: 0 is background-only; 1–9 are numeric; unbound or out-of-range labels remain mouse-only
+ok 18 - 0 is background-only; 1–9 are numeric; unbound or out-of-range labels remain mouse-only
+  ---
+  duration_ms: 3.1663
+  type: 'test'
+  ...
+# Subtest: Enter / Z / D / E-B-P / arrows / Ctrl+S / space have the specified actions
+ok 19 - Enter / Z / D / E-B-P / arrows / Ctrl+S / space have the specified actions
+  ---
+  duration_ms: 0.7147
+  type: 'test'
+  ...
+# Subtest: typing never changes labels or undo; disabled settings suppress shortcuts; global chat keys pass through
+ok 20 - typing never changes labels or undo; disabled settings suppress shortcuts; global chat keys pass through
+  ---
+  duration_ms: 0.2693
+  type: 'test'
+  ...
+# Subtest: local remapping is deterministic and rejects duplicates/reserved keys without altering server labels
+ok 21 - local remapping is deterministic and rejects duplicates/reserved keys without altering server labels
+  ---
+  duration_ms: 0.7155
+  type: 'test'
+  ...
+# Subtest: each edit reads working again; write-response pixels, queue and statistics are never reconstructed
+ok 22 - each edit reads working again; write-response pixels, queue and statistics are never reconstructed
+  ---
+  duration_ms: 1.5289
+  type: 'test'
+  ...
+# Subtest: switching cubes and recovering after confirm use only GET working, never diffuse
+ok 23 - switching cubes and recovering after confirm use only GET working, never diffuse
+  ---
+  duration_ms: 0.2748
+  type: 'test'
+  ...
+# Subtest: a failed edit propagates its envelope and cannot manufacture a successful redraw
+ok 24 - a failed edit propagates its envelope and cannot manufacture a successful redraw
+  ---
+  duration_ms: 0.421
+  type: 'test'
+  ...
+# Subtest: R17 label indexes use sort_order plus SQLite BINARY code order, independent of tree grouping
+ok 25 - R17 label indexes use sort_order plus SQLite BINARY code order, independent of tree grouping
+  ---
+  duration_ms: 0.2152
+  type: 'test'
+  ...
+# Subtest: local remaining-time estimate derives only from confirmation speed and handles no progress
+ok 26 - local remaining-time estimate derives only from confirmation speed and handles no progress
+  ---
+  duration_ms: 0.2
+  type: 'test'
+  ...
+# Subtest: catalog color proximity uses backend colors and the task-card <30 rule
+ok 27 - catalog color proximity uses backend colors and the task-card <30 rule
+  ---
+  duration_ms: 0.1756
+  type: 'test'
+  ...
+# Subtest: viewport transforms preserve [line,sample], bounds, zoom anchors and half-open boxes
+ok 28 - viewport transforms preserve [line,sample], bounds, zoom anchors and half-open boxes
+  ---
+  duration_ms: 0.7492
+  type: 'test'
+  ...
+# Subtest: component wiring has no local label map or undo history and preserves the outer conversation bar
+ok 29 - component wiring has no local label map or undo history and preserves the outer conversation bar
+  ---
+  duration_ms: 81.8153
+  type: 'test'
+  ...
+# Subtest: retries and existing imports keep exactly one row per persisted ID
+ok 30 - retries and existing imports keep exactly one row per persisted ID
+  ---
+  duration_ms: 1.8077
+  type: 'test'
+  ...
+# Subtest: batch errors retain source path and reason for the user
+ok 31 - batch errors retain source path and reason for the user
+  ---
+  duration_ms: 0.4022
+  type: 'test'
+  ...
+# Subtest: preprocess IPC list_recipes: exact projection and sole command
+ok 32 - preprocess IPC list_recipes: exact projection and sole command
+  ---
+  duration_ms: 2.397
+  type: 'test'
+  ...
+# Subtest: preprocess IPC create_recipe: exact projection and sole command
+ok 33 - preprocess IPC create_recipe: exact projection and sole command
+  ---
+  duration_ms: 0.6359
+  type: 'test'
+  ...
+# Subtest: preprocess IPC get_recipe: exact projection and sole command
+ok 34 - preprocess IPC get_recipe: exact projection and sole command
+  ---
+  duration_ms: 0.2672
+  type: 'test'
+  ...
+# Subtest: preprocess IPC add_version: exact projection and sole command
+ok 35 - preprocess IPC add_version: exact projection and sole command
+  ---
+  duration_ms: 1.0715
+  type: 'test'
+  ...
+# Subtest: preprocess IPC select_recipe: exact projection and sole command
+ok 36 - preprocess IPC select_recipe: exact projection and sole command
+  ---
+  duration_ms: 0.4286
+  type: 'test'
+  ...
+# Subtest: preprocess IPC deselect_recipe: exact projection and sole command
+ok 37 - preprocess IPC deselect_recipe: exact projection and sole command
+  ---
+  duration_ms: 0.358
+  type: 'test'
+  ...
+# Subtest: preprocess IPC list_project_recipes: exact projection and sole command
+ok 38 - preprocess IPC list_project_recipes: exact projection and sole command
+  ---
+  duration_ms: 0.2485
+  type: 'test'
+  ...
+# Subtest: preprocess IPC create_run: exact projection and sole command
+ok 39 - preprocess IPC create_run: exact projection and sole command
+  ---
+  duration_ms: 0.3023
+  type: 'test'
+  ...
+# Subtest: preprocess IPC list_runs: exact projection and sole command
+ok 40 - preprocess IPC list_runs: exact projection and sole command
+  ---
+  duration_ms: 0.6168
+  type: 'test'
+  ...
+# Subtest: preprocess IPC get_run: exact projection and sole command
+ok 41 - preprocess IPC get_run: exact projection and sole command
+  ---
+  duration_ms: 0.5522
+  type: 'test'
+  ...
+# Subtest: preprocess IPC compare: exact projection and sole command
+ok 42 - preprocess IPC compare: exact projection and sole command
+  ---
+  duration_ms: 0.3
+  type: 'test'
+  ...
+# Subtest: preprocess IPC get_artifact: exact projection and sole command
+ok 43 - preprocess IPC get_artifact: exact projection and sole command
+  ---
+  duration_ms: 0.201
+  type: 'test'
+  ...
+# Subtest: request bodies omit runtime extras, run guard/block_size, and editor state
+ok 44 - request bodies omit runtime extras, run guard/block_size, and editor state
+  ---
+  duration_ms: 0.2406
+  type: 'test'
+  ...
+# Subtest: report is parsed JSON; only sample_spectra uses binary wrapper; 204 stays null
+ok 45 - report is parsed JSON; only sample_spectra uses binary wrapper; 204 stays null
+  ---
+  duration_ms: 0.289
+  type: 'test'
+  ...
+# Subtest: recovery inspects only new succeeded summaries and matches recipe in details
+ok 46 - recovery inspects only new succeeded summaries and matches recipe in details
+  ---
+  duration_ms: 1.8417
+  type: 'test'
+  ...
+# Subtest: transport and timeout recover, business errors do not; structured details remain visible
+ok 47 - transport and timeout recover, business errors do not; structured details remain visible
+  ---
+  duration_ms: 0.6176
+  type: 'test'
+  ...
+# Subtest: submit TRANSPORT automatically restores new matching success; unknown outcome stays pending verification
+ok 48 - submit TRANSPORT automatically restores new matching success; unknown outcome stays pending verification
+  ---
+  duration_ms: 1.7537
+  type: 'test'
+  ...
+# Subtest: legend resolves index→id→code with backend colors, missing id prefix, unlabeled title
+ok 49 - legend resolves index→id→code with backend colors, missing id prefix, unlabeled title
+  ---
+  duration_ms: 0.2968
+  type: 'test'
+  ...
+# Subtest: S06 component wiring: no transport outside API, no numeric engine / fake preview; global chat unchanged
+ok 50 - S06 component wiring: no transport outside API, no numeric engine / fake preview; global chat unchanged
+  ---
+  duration_ms: 50.9127
+  type: 'test'
+  ...
+# Subtest: unsupported operations are all marked stage two / not applicable without example metrics
+ok 51 - unsupported operations are all marked stage two / not applicable without example metrics
+  ---
+  duration_ms: 0.2259
+  type: 'test'
+  ...
+# Subtest: operator directory matches explicit R15 names and excludes run B01 / unresolved reference methods
+ok 52 - operator directory matches explicit R15 names and excludes run B01 / unresolved reference methods
+  ---
+  duration_ms: 1.6309
+  type: 'test'
+  ...
+# Subtest: axisAfter is pure, crop closed, resample replaces, decomposition removes axis
+ok 53 - axisAfter is pure, crop closed, resample replaces, decomposition removes axis
+  ---
+  duration_ms: 0.4154
+  type: 'test'
+  ...
+# Subtest: crop→resample→crop supplies EACH current source, never stale saved source
+ok 54 - crop→resample→crop supplies EACH current source, never stale saved source
+  ---
+  duration_ms: 0.4586
+  type: 'test'
+  ...
+# Subtest: schema-direction validation: odd SG, STRICT polynomial bound, derivative order/mode
+ok 55 - schema-direction validation: odd SG, STRICT polynomial bound, derivative order/mode
+  ---
+  duration_ms: 0.6552
+  type: 'test'
+  ...
+# Subtest: all exposed methods accept valid schema choices; unknown keys and absent components reject
+ok 56 - all exposed methods accept valid schema choices; unknown keys and absent components reject
+  ---
+  duration_ms: 1.1987
+  type: 'test'
+  ...
+# Subtest: no wavelengths disables axis operators; lo<hi, nonempty crop, target finite/increasing enforce
+ok 57 - no wavelengths disables axis operators; lo<hi, nonempty crop, target finite/increasing enforce
+  ---
+  duration_ms: 0.4469
+  type: 'test'
+  ...
+# Subtest: move/delete/repeat preserve order and compile legal explicit steps
+ok 58 - move/delete/repeat preserve order and compile legal explicit steps
+  ---
+  duration_ms: 1.0286
+  type: 'test'
+  ...
+# Subtest: target creation is axis-only; chart gaps retain separate strokes and values
+ok 59 - target creation is axis-only; chart gaps retain separate strokes and values
+  ---
+  duration_ms: 0.3585
+  type: 'test'
+  ...
+1..59
+# tests 59
+# suites 0
+# pass 59
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 383.3063

@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "E:\AI_Agent\milestone05\evidence\11.7\e2e.py", line 362, in <module>
+    main()
+  File "E:\AI_Agent\milestone05\evidence\11.7\e2e.py", line 310, in main
+    assert ipc_report == first_report and 'body_base64' not in ipc_report
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

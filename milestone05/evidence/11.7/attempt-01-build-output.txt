@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "E:\AI_Agent\milestone05\evidence\11.7\e2e.py", line 361, in <module>
+    main()
+  File "E:\AI_Agent\milestone05\evidence\11.7\e2e.py", line 142, in main
+    probe, result['probe_build'] = compile_probe(runtime)
+                                   ^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\AI_Agent\milestone05\evidence\11.7\e2e.py", line 82, in compile_probe
+    assert result.returncode == 0, 'Rust evidence probe compilation failed; see runtime/probe-rustc.txt'
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Rust evidence probe compilation failed; see runtime/probe-rustc.txt

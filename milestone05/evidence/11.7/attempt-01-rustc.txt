@@ -1,0 +1,9 @@
+error[E0463]: can't find crate for `spectrum_agent`
+ --> E:\AI_Agent\milestone05\evidence\11.7\ipc_probe.rs:2:5
+  |
+2 | use spectrum_agent::{handshake, preprocess};
+  |     ^^^^^^^^^^^^^^ can't find crate
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0463`.
