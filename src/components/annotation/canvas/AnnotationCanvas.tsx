@@ -51,13 +51,21 @@ export default function AnnotationCanvas(props: Props) {
       ...selected.map(item => ({ layer: 'candidates' as const, png: item.overlay })),
       ...(working?.overlay ? [{ layer: 'confirmed' as const, png: working.overlay }] : []),
     ];
-    void Promise.all(images.map(async ({ layer, png }) => {
+    // onload/onerror instead of img.decode(): decode() can reject on a payload
+    // that decodes fine elsewhere, and it never says which layer failed.
+    const load = ({ layer, png }: { layer: Layer; png: Png }) => new Promise<Frame>((resolve, reject) => {
       const image = new Image();
-      image.src = `data:image/png;base64,${png.png_base64}`;
-      await image.decode();
-      return { layer, image };
-    })).then(next => { if (!cancelled) setFrames(next); })
-      .catch(() => { if (!cancelled) { setFrames([]); setError('后端 PNG 加载失败，请刷新工作态。'); } });
+      image.onload = () => resolve({ layer, image });
+      image.onerror = () => reject(new Error(`${layer} 图层`));
+      image.src = `data:image/png;base64,${png?.png_base64}`;
+    });
+    void Promise.all(images.map(load)).then(next => { if (!cancelled) setFrames(next); })
+      .catch((failure: unknown) => {
+        if (!cancelled) {
+          setFrames([]);
+          setError(`后端 PNG 加载失败（${failure instanceof Error ? failure.message : '未知图层'}），请刷新工作态。`);
+        }
+      });
     return () => { cancelled = true; };
   }, [base, segmentation, working, selectedKey]);
 
