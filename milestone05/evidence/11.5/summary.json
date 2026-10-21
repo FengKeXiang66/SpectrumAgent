@@ -1,0 +1,103 @@
+{
+  "mode": "src-tauri cwd; cargo test default features and default parallel; CARGO_NET_OFFLINE=true; TEMP/TMP=E:/AI_Agent/.runtime/m05-11.5/tmp; includes unit/integration/doc tests",
+  "baseline": 38,
+  "new": 18,
+  "passed": 56,
+  "failed": 0,
+  "ignored": 0,
+  "suites": [
+    [
+      41,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      2,
+      0,
+      0
+    ],
+    [
+      6,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      3,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      0
+    ]
+  ],
+  "new_test_names": [
+    "preprocess::tests::actual_generation_guard_used_by_command_rejects_stale_or_nonready",
+    "preprocess::tests::four_uuid_error_codes_cover_every_identifier_field",
+    "preprocess::tests::all_twelve_destinations_methods_and_exact_bodies",
+    "preprocess::tests::manual_base64_matches_rfc4648_vectors",
+    "preprocess::tests::builder_sets_three_hundred_seconds_without_waiting",
+    "preprocess::tests::malformed_http_envelope_uses_generic_error",
+    "preprocess::tests::json_success_is_unchanged_and_post_body_is_forwarded",
+    "preprocess::tests::unknown_fields_ops_types_artifact_values_and_free_destinations_are_rejected",
+    "preprocess::tests::uuid_copy_and_port_boundary_preserve_closed_destination",
+    "preprocess::tests::redirects_are_not_followed",
+    "preprocess::tests::binary_payload_and_wrapper_filename_are_also_sensitive_checked",
+    "preprocess::tests::structured_http_error_preserves_three_fields",
+    "preprocess::tests::only_204_maps_empty_body_to_null_not_200",
+    "preprocess::tests::raw_and_canonical_tokens_never_cross_bridge",
+    "preprocess::tests::report_stays_json_and_nonartifact_binary_is_rejected",
+    "preprocess::tests::identity_checks_precede_http_status_and_body",
+    "preprocess::tests::binary_artifact_roundtrips_and_keeps_filename",
+    "preprocess::tests::declared_and_streaming_limits_reject_above_eight_mib"
+  ],
+  "clippy": "cargo clippy --all-targets -- -D warnings; exit 0, zero warnings",
+  "build": "cargo build; exit 0; generated four schema JSON and new permission TOML",
+  "acl_allow_preprocess_forward": true,
+  "new_error_codes_triggered": [
+    "INVALID_RUN_ID",
+    "INVALID_RECIPE_ID"
+  ],
+  "boundary_audit_passed": true,
+  "boundary_path": "milestone05/evidence/11.5/boundary.json",
+  "commands": [
+    "engine_status",
+    "retry_engine",
+    "run_smoke",
+    "open_data_directory",
+    "datasets_forward",
+    "annotations_forward",
+    "preprocess_forward"
+  ],
+  "locks_unchanged": {
+    "requirements-lock.txt": "58e24b59da34461a17fd942b4047071e42b5120b3d474ba976a7e28535d40bcc",
+    "package-lock.json": "ea6a555e6389274fb938849fed4cc53ff1ae6b7dd1ac0b9bc4f31e3aef2b030b",
+    "src-tauri/Cargo.lock": "e28b95eccf2af5dff5dba7aaa553f670086a2646b324812678606ba6217407f6"
+  }
+}

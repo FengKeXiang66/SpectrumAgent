@@ -1,0 +1,35 @@
+diff --git a/milestone03/audit_boundary.py b/milestone03/audit_boundary.py
+index 34ca031..1752fbe 100644
+--- a/milestone03/audit_boundary.py
++++ b/milestone03/audit_boundary.py
+@@ -25 +25 @@ def main():
+-    expected = "tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, datasets_forward, annotations_forward]"
++    expected = "tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, datasets_forward, annotations_forward, preprocess_forward]"
+@@ -29 +29 @@ def main():
+-    assert dev_handler(source).replace(", annotations_forward", "") == dev_handler(old_source)
++    assert dev_handler(source).replace(", annotations_forward", "").replace(", preprocess_forward", "") == dev_handler(old_source)
+@@ -31,0 +32 @@ def main():
++    assert "#[cfg(debug_assertions)]\n#[tauri::command]\nasync fn preprocess_forward" not in source
+@@ -42,2 +43,3 @@ def main():
+-    assert [p for p in capability["permissions"] if p != "allow-annotations-forward"] == old_permissions
+-    commands = ["engine_status", "retry_engine", "run_smoke", "open_data_directory", "datasets_forward", "annotations_forward"]
++    assert capability["permissions"].count("allow-preprocess-forward") == 1
++    assert [p for p in capability["permissions"] if p not in ("allow-annotations-forward", "allow-preprocess-forward")] == old_permissions
++    commands = ["engine_status", "retry_engine", "run_smoke", "open_data_directory", "datasets_forward", "annotations_forward", "preprocess_forward"]
+@@ -49 +51 @@ def main():
+-    assert config["version"] == "0.1.1" and config["identifier"] == "com.spectrumagent.desktop"
++    assert config["version"] == "0.1.2" and config["identifier"] == "com.spectrumagent.desktop"
+@@ -58,5 +60,5 @@ def main():
+-    result = {"authorization":"TASK-03 D1=A; D2=0.1.1; TASK-04 §5.7 annotations_forward only (2026-10-20)", "prior_milestone_head":BASE,
+-              "release_handler_literal":literal,"release_handler_count":6,"dev_handler_matches_release":True,
+-              "commands":commands,"only_added_command":"annotations_forward",
+-              "unchanged_debug_adoption_and_identity_files":isolated,"only_added_permission":"allow-annotations-forward",
+-              "product_version":"0.1.1","protocol_version":"0.1.0","locks_unchanged":baseline,
++    result = {"authorization":"TASK-03 D1=A; D2=0.1.1; TASK-04 §5.7 annotations_forward only (2026-10-20); TASK-05 §11.5 preprocess_forward approved 2026-10-21", "prior_milestone_head":BASE,
++              "release_handler_literal":literal,"release_handler_count":7,"dev_handler_matches_release":True,
++              "commands":commands,"only_added_command":"annotations_forward,preprocess_forward",
++              "unchanged_debug_adoption_and_identity_files":isolated,"only_added_permission":"allow-annotations-forward,allow-preprocess-forward",
++              "product_version":"0.1.2","protocol_version":"0.1.0","locks_unchanged":baseline,
+@@ -65 +67 @@ def main():
+-    output = ROOT / "milestone04/evidence/10.5/release-boundary.json"
++    output = ROOT / "milestone05/evidence/11.5/boundary.json"
