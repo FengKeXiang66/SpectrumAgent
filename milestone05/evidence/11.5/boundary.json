@@ -23,7 +23,7 @@
     "src-tauri/src/engine_path.rs"
   ],
   "only_added_permission": "allow-annotations-forward,allow-preprocess-forward",
-  "product_version": "0.1.2",
+  "product_version": "0.1.3",
   "protocol_version": "0.1.0",
   "locks_unchanged": {
     "requirements-lock.txt": "58e24b59da34461a17fd942b4047071e42b5120b3d474ba976a7e28535d40bcc",
