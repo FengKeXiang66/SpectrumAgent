@@ -11,12 +11,15 @@ def schema(db, table):
     return db.execute(f"PRAGMA table_info({table})").fetchall()
 
 
-def test_only_two_tables_match_card_ddl_and_comments_are_split_safe():
+def test_only_three_tables_match_card_ddl_and_comments_are_split_safe():
     card = (Path(__file__).resolve().parents[3] / "TASK-07-对话编排与标注JSON.md").read_text("utf-8")
-    card_ddl = card.split("```sql\n", 1)[1].split("-- G2/G3", 1)[0]
+    sql = card.split("```sql\n", 1)[1].split("\n```", 1)[0]
+    card_ddl = sql.split("-- G2/G3", 1)[0] + "\n" + sql[sql.index("-- G3：SKILL"):].split("-- G5：", 1)[0]
     # Comments differ only to comply with the explicit ban on both semicolons.
     without_comments = lambda value: re.sub(r"--[^\n]*", "", value).strip()
-    assert without_comments(DDL) == without_comments(card_ddl)
+    assert without_comments(DDL.split("-- G3：SKILL", 1)[0]) == without_comments(sql.split("-- G2/G3", 1)[0])
+    skill_ddl = sql[sql.index("-- G3：SKILL"):].split("-- G5：", 1)[0]
+    assert DDL[DDL.index("-- G3：SKILL"):].strip() == skill_ddl.replace("；", "，").strip()
     for line in DDL.splitlines():
         if "--" in line:
             assert ";" not in line.split("--", 1)[1]
@@ -24,8 +27,8 @@ def test_only_two_tables_match_card_ddl_and_comments_are_split_safe():
     with sqlite3.connect(":memory:") as db, sqlite3.connect(":memory:") as expected:
         migrate(db)
         expected.executescript(card_ddl)
-        assert {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")} == {"llm_settings", "llm_call"}
-        for table in ("llm_settings", "llm_call"):
+        assert {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")} == {"llm_settings", "llm_call", "skill_version"}
+        for table in ("llm_settings", "llm_call", "skill_version"):
             assert schema(db, table) == schema(expected, table)
         assert dict(db.execute("SELECT key,value FROM llm_settings")) == dict.fromkeys(SETTING_KEYS, "")
 
@@ -44,10 +47,12 @@ def test_idempotent_migration_preserves_configuration_and_audit(gateway_case):
         assert list(db.iterdump()) == before
 
 
-def test_startup_wires_only_g1_with_empty_values(tmp_path):
+def test_startup_wires_g1_and_g3_with_empty_llm_values(tmp_path):
     database = tmp_path / "db.sqlite3"
     DatasetRegistry(database)
     with connect_database(database) as db:
         assert dict(db.execute("SELECT key,value FROM llm_settings")) == dict.fromkeys(SETTING_KEYS, "")
         tables = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-        assert not tables & {"annotation_draft", "agent_session", "agent_step", "skill_version", "training_mat"}
+        assert "skill_version" in tables
+        assert db.execute("SELECT version_no,status FROM skill_version").fetchall() == [(1, "active")]
+        assert not tables & {"annotation_draft", "agent_session", "agent_step", "training_mat"}

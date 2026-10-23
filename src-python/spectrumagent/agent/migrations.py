@@ -1,4 +1,4 @@
-"""TASK-07 12.1 only: the two G1 tables and empty configuration seeds."""
+"""TASK-07 12.1/12.2: G1 tables, G3 skill versions and startup seeds."""
 
 
 DDL = r"""-- G1：LLM 配置（非敏感，key 不在此表）
@@ -23,6 +23,19 @@ CREATE TABLE IF NOT EXISTS llm_call (
   error             TEXT,
   created_at        TEXT NOT NULL   -- 服务端 timestamp()
 );
+
+-- G3：SKILL 版本（只增不改，内容 UPDATE 禁止，仅状态迁移 draft→active / draft→retired / active→retired，retired 终态）
+CREATE TABLE IF NOT EXISTS skill_version (
+  id            TEXT PRIMARY KEY,
+  version_no    INTEGER NOT NULL,     -- 服务端自增
+  name          TEXT NOT NULL,
+  system_prompt TEXT NOT NULL,        -- 种子数据：来源=本卡 §2.3 规格
+  tools_json    TEXT NOT NULL,        -- 种子数据：工具清单快照（几何禁入字段扫描对象）
+  examples_json TEXT NOT NULL,        -- 种子数据：来源=本卡 §2.3
+  status        TEXT NOT NULL,        -- draft|active|retired，active 全局唯一（断言+测试）
+  note          TEXT,
+  created_at    TEXT NOT NULL
+);
 """
 
 SETTING_KEYS = ("base_url", "model", "temperature", "max_tokens", "timeout_ms")
@@ -37,3 +50,7 @@ def migrate(db):
     for key in SETTING_KEYS:
         if not db.execute("SELECT 1 FROM llm_settings WHERE key=?", (key,)).fetchone():
             db.execute("INSERT INTO llm_settings (key,value) VALUES (?,?)", (key, ""))
+    # Complete trigger statements must not pass through DDL.split(";").
+    from .skill import ensure_seeded, install_guards
+    install_guards(db)
+    ensure_seeded(db)
