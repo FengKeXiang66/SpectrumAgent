@@ -92,8 +92,8 @@
 
 ### 2.3 SKILL 契约（G3）
 
-- **`skill_version` 表只增不改**（对齐 #05 配方版本化纪律）：`UPDATE` 仅允许 `draft→active/retired` 状态迁移；active 全局唯一（部分唯一索引或应用层断言+测试）。
-- **激活**：阶段一全局唯一 active；切换 = 新版本 active、旧 retired；会话创建时快照 `skill_version_id`。**无 active skill 时拒绝创建会话**（禁造默认 skill——skill 全文是种子数据，来源=本卡规格，防实现期手填）。
+- **`skill_version` 表只增不改**（对齐 #05 配方版本化纪律）：**内容列 `UPDATE` 一律禁止**；唯一允许的 `UPDATE` = 状态迁移，完整迁移集 = `draft→active` / `draft→retired` / `active→retired`（R8 勘误：:96"切换"语义要求 `active→retired`，原"仅 `draft→active/retired`"不闭合）；**retired 为终态**（禁 retired→任何状态）；active 全局唯一（部分唯一索引或应用层断言+测试）。
+- **激活**：阶段一全局唯一 active；两个操作语义钉死（R8）：① **`activate(v)`**：仅 `draft→active`；**若已有 active 存在则失败**（active 唯一约束，禁自动替换——防误切换）；② **`switch(v)`**（显式切换，即"切换 = 新版本 active、旧 retired"的落地）：**同一事务内**旧 active→retired + 新 draft→active，原子（任一失败整体回滚，禁出现零 active 或双 active 的中间态）。会话创建时快照 `skill_version_id`。**无 active skill 时拒绝创建会话**（禁造默认 skill——skill 全文是种子数据，来源=本卡规格，防实现期手填）。
 - **工具清单来源**：只封装既有/本卡新增的 **service 层函数**（datasets/annotations/preprocess 的 Python service），不经 Rust IPC 自绕。首批工具（对齐命令面，不发明新能力）：
 
   | 工具 | 底层 | 本卡状态 |
@@ -107,7 +107,23 @@
 - **几何禁入（本卡最核心红线工程化）**：工具入参 schema **不得包含自由坐标/谱值字段**。LLM 可传：类 code/名称、方法枚举、数量上限、region_id、version_id 引用。几何只允许两个产源：①`draft_select_candidates(class, method, params)`——算法（SLIC/SAM 扩散）在工具内确定性生成；②用户画布手势（前端采集，工具收 `gesture_ref`）。LLM 传坐标数组 → schema 无此字段 → `TOOL_ARGS_INVALID` 拒 + step rejected。
 - **工具出参白名单（R7，堵“结果回灌”洞）**：§2.2 INTERPRET 的“结果回灌 LLM”所回灌的内容 = 工具执行的 `result_summary`，**只允许标量 + 枚举 + 计数字符串**（id、code、计数、状态、版本号、纯文字提示）；**`sample_pixels` / `bbox` / region 几何 / `document` 原文 / 任何 `[[int,int],...]` 坐标数组形态一律剔除**。冲突信息给 LLM 的只有 `conflict_count` + 纯文字提示（“存在 N 处跨类重叠，请在画布上处理”）；**位置数据只走 REST 响应给前端**（§4.1），不进 messages。`draft_get` 回灌摘要 = `{cube_id, revision, n_regions, n_classes, updated_at, estimated_mat_bytes}`（全标量；§10-2 定稿：体积数字让 LLM 能在对话里主动提醒导出大小，符合白名单）；**完整 document 只走 REST 响应**（前端画布要用，LLM 不感知几何）。几何禁入从此覆盖入参 + 出参两侧。
 - **工程保障**：一个测试静态扫描 `skill_version.tools_json`，断言无坐标/谱值类字段名（`points|coords|polygon|spectra|values|bands`）——schema 层强制，不靠 prompt 叮嘱；**出参侧同一纪律**：回灌摘要的构造有对应断言（见回归探针 ⑦）。
-- **初始 skill（version_no=1）种子数据**：`system_prompt` / `tools_json` / `examples_json` 由本卡规格生成，内容钉死：角色=光谱平台编排助手；红线条款（只编排不产数 / 坐标谱值禁传 / 不确定就反问 / 结论带溯源(算子·版本·run_id) / 只说 id 不说路径）；工作流知识（标注→预处理→建模顺序不回退；S05 五步：超像素→扩散→逐类确认→聚合→保存；配方对比话术）。**禁实现期另起措辞**。
+- **初始 skill（version_no=1）种子数据**：`system_prompt` / `tools_json` / `examples_json` 由本卡规格生成，内容钉死（R8 落定稿正文，codex **照抄、禁改一字**；验收人工对读）：角色=光谱平台编排助手；红线条款（只编排不产数 / 坐标谱值禁传 / 不确定就反问 / 结论带溯源(算子·版本·run_id) / 只说 id 不说路径）；工作流知识（标注→预处理→建模顺序不回退；S05 五步：超像素→扩散→逐类确认→聚合→保存；配方对比话术）。`system_prompt` 定稿正文（上述要点的逐条落文，每条可回溯）：
+
+  > 你是光谱数据处理平台的编排助手。你只编排既有能力，不产生任何数值结果。
+  >
+  > 红线（每次回复遵守）：
+  > 1. 只编排不产数：所有数值由平台算子和工具产生，你禁止估算、编造或复述未经工具返回的数字。
+  > 2. 坐标与谱值禁传：你不得传递任何坐标数组、像素谱值或几何参数；标注区域由画布算法或用户手势产生。
+  > 3. 不确定就反问：参数缺失或意图不明时向用户提问，禁止取默认值替用户决定。
+  > 4. 结论带溯源：涉及算子、预处理配方或数据版本的结论，必须附算子名、版本号与 run_id。
+  > 5. 只说标识不说路径：对话中只出现数据集、区域、版本的 id，禁止出现文件路径。
+  >
+  > 工作流知识：
+  > - 处理顺序不回退：标注 → 预处理 → 建模，按此顺序推进，不跳步、不反向。
+  > - 标注五步（S05）：超像素分割 → 扩散 → 逐类确认 → 聚合 → 保存。
+  > - 配方对比：基于 preprocess.compare 的返回逐项说明各配方的指标差异与适用场景，结论带算子名与版本号。
+
+  `tools_json` = 本节首批工具表（:99-105）的序列化快照（工具名 + 入参 schema + 描述；LLM 可传字段仅限 :107 白名单）。`examples_json` = **`[]`**（阶段一不预置对话示例——卡无示例正文来源，按八查⑤.5 显式留空、禁实现期自行编写；将来确需示例时随 skill v2 只增不改进入）。**禁实现期另起措辞**。（"配方对比"一条原卡只有标签无正文，由备卡方代拟补缺，溯源见 §12 R8；科祥可单独拍板替换该句，不影响其余定稿。）
 - **回归探针（mock，不烧 token）**：mock `LLMClient` 回放固定 tool_call 序列，至少 6 条：①正常链路（选工具→执行→解读）；②参数缺失→CLARIFY 反问（禁默认值）；③LLM 传坐标→schema 拒 + step rejected；④覆写标注→HUMAN_CHECK 确认前不执行；⑤禁运字段→EGRESS_BLOCKED 且 transport 零调用；⑥多步序列按序执行、第 9 个被拒；⑦**出参白名单（R7）**：`draft_confirm` 冲突场景 + `draft_get` 场景下，回灌 LLM 的 messages 序列化文本**不含 `[[` 坐标数组形态**、不含 `points|polygon|sample_pixels|bbox` 字段名（禁运扫描看不见坐标，这条是直接防线）。真实模型冒烟归科祥本机（§8/§10-3）。
 
 ### 2.4 标注 JSON（G5/G6）
@@ -216,7 +232,7 @@ CREATE TABLE IF NOT EXISTS agent_step (
   created_at      TEXT NOT NULL
 );
 
--- G3：SKILL 版本（只增不改；UPDATE 仅 draft→active/retired 状态迁移）
+-- G3：SKILL 版本（只增不改；内容 UPDATE 禁止，仅状态迁移 draft→active / draft→retired / active→retired，retired 终态）
 CREATE TABLE IF NOT EXISTS skill_version (
   id            TEXT PRIMARY KEY,
   version_no    INTEGER NOT NULL,     -- 服务端自增
@@ -404,7 +420,7 @@ CREATE TABLE IF NOT EXISTS training_mat (
 - [ ] tool_call 落地前过 Pydantic 校验（拒调用不进 handler——断言 handler 调用次数）
 
 **G3 SKILL**
-- [ ] `skill_version` 只增不改：`UPDATE` 仅状态迁移；active 全局唯一（并发激活第二个失败）
+- [ ] `skill_version` 只增不改：内容 `UPDATE` 一律拒绝；状态迁移仅 `draft→active` / `draft→retired` / `active→retired`（retired 终态）；`activate` 遇已有 active 失败（禁自动替换）；`switch` 同事务原子（旧 retired + 新 active，禁零/双 active 中间态）；active 全局唯一（并发激活第二个失败）
 - [ ] 会话快照 `skill_version_id`；skill 退役后老会话回放不受影响
 - [ ] 工具 schema 静态扫描：`tools_json` 无 `points|coords|polygon|spectra|values|bands` 类字段
 - [ ] LLM 传坐标数组 → `TOOL_ARGS_INVALID` + step rejected（mock 回放）
@@ -527,3 +543,4 @@ CREATE TABLE IF NOT EXISTS training_mat (
 | R5 | 2026-10-23 | 第四轮复核修订（两个 P0 + 四条 P1 + 两条 P2，逐条实测核实；触发原因 = R4 引入 `op`/erase 新机制却未重跑不变量检查，两个新 P0 全是漏检）：① **P0-1 冲突统计改最终状态**（原"erase 不参与冲突检测"致 erase 擦不掉重叠 → confirm 死锁，与删 region 之前同型）：栅格化维护 `owner`/`conflict` 两图，`overlap_conflicts = count(conflict & (label_map >= 0))` 是最终统计非累加；erase/uncertain 清除覆盖像素的归属与冲突标记 → 四种 HITL 修法（删/改类/erase/uncertain）都能解锁（§2.4 ③⑤⑥、§6 验收）；② **P0-2 `op` 收敛三值**（add/uncertain/erase，与 #04 action 一一对应）：依据 `annotations.py:72` `label_id` 可空 + `session.py:207-208` uncertain 分支不校验 label_id——R4 版"uncertain=add+confidence:uncertain 带 class_index"会 400 且语义矛盾；`confidence` 枚举删 `uncertain` 值只留 high|medium|low（确定性分档不兼职表达无类别）；③ **P1-1 DB source 不搞有损映射**：复核方建议 `algorithm→cluster` 映射——不采纳（枚举对应关系无出处违八查⑤.5，且每 label 聚合粒度混合多源时行的 source 无法确定性导出）；改为语义重定义"DB 行 source 恒 manual = 该行由人工确认（confirm=HITL）落库"（属性恒成立无需发明）+ 混合溯源是如实记账的有损、审计链 JSON 反查；④ **P1-2 DB 承载边界**：`region_ids` 只含 add region；**uncertain/erase 不落 DB 行只存 JSON**（`annotation` 表 CHECK label_id/label_value 至少其一非空，`migrations.py:83`——复核方写的 :87 是 registry.py migrate 调用行，又一处行号错）；⑤ **P1-3 迁移接线点 :87**（R4 写的 :14 是 import 行，实测 `DatasetRegistry.__init__` 内 :87）；⑥ **P1-4 新 DDL 注释禁 ASCII 分号**（迁移实现 `DDL.split(";")` 按 ASCII 分切，`migrations.py:109`；卡内 DDL 自查无 ASCII 分号于注释）；⑦ **P2**：§4.1 draft/regions body 删 `source`（服务端强制不接受传值，body 出现即隐性矛盾）改带 `op?`；§3:230 document_json 注释统一"单条 UPDATE 事务内原子" |
 | R6 | 2026-10-23 | 第五轮复核修订（1 P0 + 2 P1，全是给 R5 新增机制补语义定义、未新增字段/图/端点；触发原因仍是不变量重查——R5 引入 owner/conflict 两图却未查“图与 label_map 的关系”）：① **P0-新 label_map 赋值路径钉死并行维护**：R5 只写“维护 owner/conflict 两图”，未说 label_map 是否由 owner 派生——若实现成“先算 owner 最终归属再从 owner 生成 label_map”，uncertain 的 -2 与 erase 的 -1 都表现为 owner 空、无法区分 → **-2 全部退化成 -1 → bit-exact 当场失败**。改为：**label_map 与 owner/conflict 并行维护、互不派生**，label_map 每像素由最后一个覆盖 region 的 op 直接决定（add→class_index / uncertain→-2 / erase→-1，不经 owner 图）；owner/conflict 仅用于冲突统计；“维护”改“**每次从零构建**”（document 整篇重写，禁增量缓存诱导）；② **P1-新1 conflict 清除条件补全**：conflict 一旦置位**仅 erase/uncertain 可清除**，重复 add（同类或不同类）均不清除、用户需先擦后画（写明否则前端以为“重画盖住”能解冲突）；③ **P1-新2 OVERLAP_UNRESOLVED 409 必须带位置**：context = `{conflict_count, sample_pixels（(row,col) 字典序前 20，确定性）, bbox}`——只返回计数会让用户“知道有冲突但找不到、修不了”；④ **测试先行兜底（方法论转变）**：12.5 第一件事先写 rasterize 不变量测试四条（幂等 / -2 存在性 / polygon 分支与 polygon_mask 逐像素一致 / regions 重排结果允许变即顺序敏感如实记录不做交换律断言），纸上穷举不变量有天花板，属性测试兜底“还没想到的不变量” |
 | R7 | 2026-10-23 | 第六轮复核修订（三条，全部属**同一数据流边界族**——R6 新增 `sample_pixels`/`bbox` 响应字段经 §2.2 INTERPRET 回灌 LLM 撞红线 4；**判据细化：新增响应字段也算新增机制**，R6“未新增字段”的自我声明因此不准确，终止判据从“新增字段/图/端点”扩为“新增任何机制含响应字段”）：① **工具出参白名单**（§2.3 新增整段）：INTERPRET 回灌 LLM 的 `result_summary` 只允许标量+枚举+计数字符串，`sample_pixels`/`bbox`/region 几何/`document` 原文/`[[int,int],...]` 坐标数组一律剔除；冲突给 LLM 只有 `conflict_count`+纯文字提示；位置数据只走 REST 给前端；`draft_get` 回灌摘要 = `{cube_id, revision, n_regions, n_classes, updated_at}` 全标量。工程保障：出参侧构造断言 + 回归探针 ⑦（messages 序列化文本不含 `[[`、不含 `points|polygon|sample_pixels|bbox`——禁运扫描只查路径形态看不见坐标，扫描是兜底、白名单是主防线）；② **禁运扫描补坐标数组形态**（§2.1：`[[` 嵌套数组形态入扫描规则，作兜底）；③ **12.5 -2 测试改混合序列锚**（§5/§6：同像素先 add 后 uncertain 必须 -2——纯 uncertain 场景“从 owner 派生”实现靠特判也能过、测不出，断言会空转）。联动：§4.1 GET draft 行区分 REST/回灌、OVERLAP_UNRESOLVED 回灌边界、§6 新增出参白名单验收项。**同族末遍扫描结论：无残留**——全卡几何/坐标 56 处逐条过，只四类（JSON schema/DDL 存储面、REST 前端面、显式禁令、栅格化纯函数），`examples_json` 种子措辞不含几何示例、`draft_get` 描述已标回灌边界。**停止条件达成：R7 三条全属数据流边界族、无新族问题，此后停止改卡，新发现归入 12.5 不变量测试兜底**。**收尾追加（同日，复核方终审确认九处全部到位 + 独立扫描无残留后）**：§10 新增第 7 项——"引用可达性"边界（`draft_get` 回灌摘要不含任何 region_id，跨轮对话的改/删在 LLM 侧不可达；解法方向 = 摘要加 `regions:[{id,class_code,op,pixel_count}]` 限量+truncated，全符合白名单；**不现在改卡，留 12.2 由 codex 实测反馈时定**）；§11 补转 codex 两条硬提醒（12.5 先落不变量测试再写实现；§10-7 不替 codex 预决） |
+| R8 | 2026-10-23 | 12.2 开工时 codex"首触即停"报两处**卡自身不闭合**（未改一码即停，纪律按设计生效），裁定并改卡：① **状态迁移集不闭合**——:95 仅允许 `draft→active/retired`，:96"切换 = 新版本 active、旧 retired"却要求 `active→retired`。裁定：迁移集补 `active→retired`、retired 终态；激活拆两个操作——`activate(v)` 仅 draft→active 且**遇已有 active 失败**（禁自动替换防误切换），`switch(v)` = 同一事务内旧 active→retired + 新 draft→active 原子切换（"切换"语义落地，禁零/双 active 中间态）；② **种子正文缺口**——:110 要求"配方对比话术"与 examples_json 但全文无正文来源（examples_json 仅 4 处提及字段本身、指标名 SNR/Fisher 卡内零出现）。裁定：`system_prompt` 落**定稿正文**（逐条对应 :110 原要点枚举+"禁取默认值"§6:400+S05 五步原名，codex 照抄禁改一字，验收人工对读）；"配方对比"原只有标签无正文，**备卡方代拟一句**（成分 = :110 mandated 主题 + 红线4 算子·版本 + 工具表 preprocess.compare :103；科祥可单独拍板替换，不影响其余定稿）；`examples_json` = **`[]`**（八查⑤.5 显式留空，禁实现期自行编写，将来随 skill v2 只增不改进入）。联动：§3:219 DDL 注释、§6:407 验收行同步；均不动任何已定稿口径 |
