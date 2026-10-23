@@ -105,7 +105,7 @@
   | `settings.llm_get` | §2.1（无 key） | 新增 |
 
 - **几何禁入（本卡最核心红线工程化）**：工具入参 schema **不得包含自由坐标/谱值字段**。LLM 可传：类 code/名称、方法枚举、数量上限、region_id、version_id 引用。几何只允许两个产源：①`draft_select_candidates(class, method, params)`——算法（SLIC/SAM 扩散）在工具内确定性生成；②用户画布手势（前端采集，工具收 `gesture_ref`）。LLM 传坐标数组 → schema 无此字段 → `TOOL_ARGS_INVALID` 拒 + step rejected。
-- **工具出参白名单（R7，堵“结果回灌”洞）**：§2.2 INTERPRET 的“结果回灌 LLM”所回灌的内容 = 工具执行的 `result_summary`，**只允许标量 + 枚举 + 计数字符串**（id、code、计数、状态、版本号、纯文字提示）；**`sample_pixels` / `bbox` / region 几何 / `document` 原文 / 任何 `[[int,int],...]` 坐标数组形态一律剔除**。冲突信息给 LLM 的只有 `conflict_count` + 纯文字提示（“存在 N 处跨类重叠，请在画布上处理”）；**位置数据只走 REST 响应给前端**（§4.1），不进 messages。`draft_get` 回灌摘要 = `{cube_id, revision, n_regions, n_classes, updated_at}`（全标量）；**完整 document 只走 REST 响应**（前端画布要用，LLM 不感知几何）。几何禁入从此覆盖入参 + 出参两侧。
+- **工具出参白名单（R7，堵“结果回灌”洞）**：§2.2 INTERPRET 的“结果回灌 LLM”所回灌的内容 = 工具执行的 `result_summary`，**只允许标量 + 枚举 + 计数字符串**（id、code、计数、状态、版本号、纯文字提示）；**`sample_pixels` / `bbox` / region 几何 / `document` 原文 / 任何 `[[int,int],...]` 坐标数组形态一律剔除**。冲突信息给 LLM 的只有 `conflict_count` + 纯文字提示（“存在 N 处跨类重叠，请在画布上处理”）；**位置数据只走 REST 响应给前端**（§4.1），不进 messages。`draft_get` 回灌摘要 = `{cube_id, revision, n_regions, n_classes, updated_at, estimated_mat_bytes}`（全标量；§10-2 定稿：体积数字让 LLM 能在对话里主动提醒导出大小，符合白名单）；**完整 document 只走 REST 响应**（前端画布要用，LLM 不感知几何）。几何禁入从此覆盖入参 + 出参两侧。
 - **工程保障**：一个测试静态扫描 `skill_version.tools_json`，断言无坐标/谱值类字段名（`points|coords|polygon|spectra|values|bands`）——schema 层强制，不靠 prompt 叮嘱；**出参侧同一纪律**：回灌摘要的构造有对应断言（见回归探针 ⑦）。
 - **初始 skill（version_no=1）种子数据**：`system_prompt` / `tools_json` / `examples_json` 由本卡规格生成，内容钉死：角色=光谱平台编排助手；红线条款（只编排不产数 / 坐标谱值禁传 / 不确定就反问 / 结论带溯源(算子·版本·run_id) / 只说 id 不说路径）；工作流知识（标注→预处理→建模顺序不回退；S05 五步：超像素→扩散→逐类确认→聚合→保存；配方对比话术）。**禁实现期另起措辞**。
 - **回归探针（mock，不烧 token）**：mock `LLMClient` 回放固定 tool_call 序列，至少 6 条：①正常链路（选工具→执行→解读）；②参数缺失→CLARIFY 反问（禁默认值）；③LLM 传坐标→schema 拒 + step rejected；④覆写标注→HUMAN_CHECK 确认前不执行；⑤禁运字段→EGRESS_BLOCKED 且 transport 零调用；⑥多步序列按序执行、第 9 个被拒；⑦**出参白名单（R7）**：`draft_confirm` 冲突场景 + `draft_get` 场景下，回灌 LLM 的 messages 序列化文本**不含 `[[` 坐标数组形态**、不含 `points|polygon|sample_pixels|bbox` 字段名（禁运扫描看不见坐标，这条是直接防线）。真实模型冒烟归科祥本机（§8/§10-3）。
@@ -287,7 +287,7 @@ CREATE TABLE IF NOT EXISTS training_mat (
 | `spectrumagent/agent/raster.py` | 新增 | 栅格化纯函数：polygon 分支**调用** `annotations.polygon_mask`（R19），pixel_set RLE 展开，overlap 检测；v1 函数冻结永不删 |
 | `spectrumagent/annotation/session.py` | 改 | ① save 路径四件套（+`annotation.json`，`_write_snapshot` :322 扩展，`read_version` :351 同步）；② confirm 入口挂 MAT 生成；③ `_state()` :153 初始化改 JSON 派生（§2.4）；④ `edit()`/`undo()` 双轨回滚（§2.4）；⑤ 确认时 classes 一致性校验（§2.4） |
 | `spectrumagent/api/agent.py` | 新增 | `POST /api/v1/agent/sessions`、`POST /api/v1/agent/sessions/{id}/messages`（SSE）、`GET /api/v1/agent/sessions/{id}/steps` |
-| `spectrumagent/api/settings.py` | 新增 | `GET/PUT /api/v1/settings/llm`（PUT 禁收 key）；`PUT /api/v1/settings/llm/key`（仅内存） |
+| `spectrumagent/api/settings.py` | 新增 | `GET/PUT /api/v1/settings/llm`（PUT 禁收 key；**GET 响应加 `has_key: bool`**——§10-1 定稿：不新增端点、不回显 key，重启后 false 但配置仍在）；`PUT /api/v1/settings/llm/key`（仅内存） |
 | `spectrumagent/api/annotations.py` | 改 | ① draft **六个** REST 端点（GET draft / POST regions / POST candidates / **POST** regions/{id} / POST confirm / GET training-mat，契约见 §4.1）；② **既有三个写端点（`/datasets/{id}/annotations/regions|undo|save`）改 draft 驱动**——Rust 九 operation 与前端零改动，详见 §4.2 |
 | `spectrumagent/app.py` | 改 | 挂三个新 router |
 
@@ -304,6 +304,7 @@ CREATE TABLE IF NOT EXISTS training_mat (
 | 文件 | 动作 | 内容 |
 |---|---|---|
 | `src/components/assistant/` | 新增 | 常驻对话条最简组件（S01）：输入框 + SSE 消费 + 工具执行摘要气泡 + HUMAN_CHECK 确认卡片 |
+| `src/components/annotation/`（既有 S05 画布页） | 改 | confirm 确认卡片显示 `estimated_mat_bytes`、**超 2GB 弹二次确认**（§10-2 定稿；两条 confirm 路径——REST 与 LLM→HUMAN_CHECK——的确认卡片均在前端渲染，闸放前端一处覆盖两者；2GB 阈值来源=§10-2 决策记录，非实现期手填） |
 | 既有页面布局 | 改 | 对话条常驻底部（最小侵入，禁改既有页面结构——补丁自洽） |
 
 ### 测试（与实现同子阶段提交，禁后补）
@@ -320,7 +321,7 @@ CREATE TABLE IF NOT EXISTS training_mat (
 
 | 端点 | body | 响应 | 错误码 |
 |---|---|---|---|
-| `GET /api/v1/annotations/{cube_id}/draft` | — | `{cube_id, revision, document, schema_version, raster_rule_version, updated_at}`；无草稿返回 `document=null, revision=0`（**REST 响应含完整 document 给前端画布；回灌 LLM 的 `draft_get` 摘要只含标量** `{cube_id, revision, n_regions, n_classes, updated_at}`——出参白名单见 §2.3，document 含全部 region 几何、LLM 不感知几何） | `DATASET_NOT_FOUND`(404) |
+| `GET /api/v1/annotations/{cube_id}/draft` | — | `{cube_id, revision, document, schema_version, raster_rule_version, updated_at, estimated_mat_bytes}`；无草稿返回 `document=null, revision=0, estimated_mat_bytes=0`（**REST 响应含完整 document 给前端画布；回灌 LLM 的 `draft_get` 摘要只含标量** `{cube_id, revision, n_regions, n_classes, updated_at, estimated_mat_bytes}`——出参白名单见 §2.3，document 含全部 region 几何、LLM 不感知几何）。**`estimated_mat_bytes` = `count(label_map>=0) × n_bands × 4`**（§10-2 定稿：GET draft 内对该 document 做一次栅格化后计数，rasterize 纯函数无 IO；前端打开画布即拿到，confirm 确认卡片显示、超 2GB 弹二次确认——体积必须点在确认**前**拿到，写进 confirm 响应已晚） | `DATASET_NOT_FOUND`(404) |
 | `POST /api/v1/annotations/{cube_id}/draft/regions` | `{revision, op?（默认 add）, class_code, geometry:{type:"polygon",points} 或 gesture_ref, confidence?}`（**无 `source` 字段**——服务端强制 manual、不接受传值，body 出现即隐性矛盾，R5 删；`op=uncertain/erase` 时禁传 `class_code`/`confidence`） | `{revision, region_id, statistics}` | `TOOL_ARGS_INVALID`(400) / `DRAFT_REVISION_CONFLICT`(409) / `LABEL_NOT_FOUND`(400) |
 | `POST /api/v1/annotations/{cube_id}/draft/candidates` | `{class_code, method, params}`（method=SLIC/谱扩散，params 对齐 #04 SuperpixelRequest/DiffuseRequest） | `{revision, region_id, geometry_type:"pixel_set", preview_statistics}` | `TOOL_ARGS_INVALID`(400) / `SUPERPIXELS_REQUIRED`(400) / `DRAFT_REVISION_CONFLICT`(409) |
 | `POST /api/v1/annotations/{cube_id}/draft/regions/{region_id}` | `{revision, ...patch 字段}`（**patch 白名单：`class_code` / `geometry` / `confidence` / `deleted`**；`region_id`/`created_at`/`source` 不可改——source 是溯源，改了就是血缘造假） | `{revision, region_id}` | `REGION_NOT_FOUND`(404) / `DRAFT_REVISION_CONFLICT`(409) / `TOOL_ARGS_INVALID`(400) |
@@ -379,7 +380,7 @@ CREATE TABLE IF NOT EXISTS training_mat (
 | **12.6** | confirm 四件套 + overlap 仲裁 HITL + 训练 MAT（exports + DDL + savemat 流式）+ **save = confirm 内部实现（四件套、无 MAT）** | confirm→四件套→MAT 全链过；旧三件套断言已同步；**legacy save 四件套 / 不产 MAT / #07 前旧版回放兼容过测** |
 | **12.7** | 集成 + 验收清单 + 性能实测（MAT 生成耗时/体积、对话端到端延迟）+ 冒烟归科祥 | §6 全绿；本机冒烟（云端 key 由科祥填） |
 
-**A/B 拆分选项**（§10-6）：12.1–12.4 = 里程碑 A（编排地基，约 7.5 工作日）；12.5–12.7 = 里程碑 B（标注 JSON + MAT，约 5.5 工作日）。B 不依赖 A 的工具层可独立验收（REST 直调），但 confirm 的 HITL 语义与 A 的 HUMAN_CHECK 同源——若拆，B 先用 REST 确认、A 完成后把 confirm 接入状态机（补一条集成测试）。
+**A/B 拆分决定（§10-6 定稿，原为选项）**：12.1–12.4 = **里程碑 A = v0.2.0**（编排地基，约 7.5 工作日）；12.5–12.7 = **里程碑 B = v0.3.0**（标注 JSON + MAT，约 5.5 工作日）。各自**独立过闸、独立 tag、独立 manifest 行**——B 卡住时 A 已可交付冒烟，拆分的意义才成立；压成一个 v0.2.0 则 B 卡 A 也发不出。B 不依赖 A 的工具层可独立验收（REST 直调），但 confirm 的 HITL 语义与 A 的 HUMAN_CHECK 同源——若拆，B 先用 REST 确认、A 完成后把 confirm 接入状态机（补一条集成测试）。
 
 ---
 
@@ -391,6 +392,7 @@ CREATE TABLE IF NOT EXISTS training_mat (
 - [ ] API key 禁落盘：设 key 后跑全流程，转储 sqlite + 扫 logs/artifacts/exports，**零命中 key 字符串**
 - [ ] usage 缺失（本地模型形态）→ tokens 记 `NULL`，禁 0 禁估算（断言）
 - [ ] 换模型 = 改 `llm_settings` 三键 + 内存 key，代码零改动：同一 mock 序列换 base_url/model 断言行为逐字节一致
+- [ ] **`has_key` 状态（§10-1 定稿）**：`GET /settings/llm` 响应含 `has_key: bool` 且**任何响应/日志/DB 路径不回显 key 本体**；设 key 后 true；**重启后 `has_key=false` 但 `base_url/model` 等配置仍在**（内存 key 与 db 配置分离，两边都验）
 - [ ] 传输超时 → `LLM_TRANSPORT` → ERROR → IDLE；无静默重试（断言重试计数 ≤1 且经显式分支）
 
 **G2 状态机**
@@ -429,6 +431,7 @@ CREATE TABLE IF NOT EXISTS training_mat (
 - [ ] **重叠冲突 = 最终状态统计（R5 防死锁）**：add A + add B 重叠 100 像素 → `overlap_conflicts=100`、confirm 拒；**追加 erase region 擦掉重叠部分 → conflicts=0、confirm 放行**（先 add 后 erase 同像素 → -1，后写覆盖先写）；uncertain 覆盖重叠部分同样解锁（该像素 -2 不计入）；删 region / 改类 / erase / uncertain 四种 HITL 修法均须实测可解锁
 - [ ] -1/-2 语义：`uncertain` region → -2；无记录 → -1（构造用例断言）
 - [ ] 类 index 与 `label_index.json` 一致（禁第二套下标）；**classes 一致性**：index 错位 → confirm 拒 `LABEL_INDEX_MISMATCH`；code/name/color 刷新不拒
+- [ ] **预计体积前置（§10-2 定稿）**：`GET /draft` 响应 `estimated_mat_bytes` = `count(label_map>=0) × n_bands × 4`（构造用例手算对拍，含空草稿=0、部分标注、全图标注三态）；前端 confirm 确认卡片显示该值、**超 2GB 弹二次确认**（12.4 验收）；`draft_get` 回灌摘要带该标量（探针 ⑦ 顺带断言 messages 含体积数字、且仍不含几何）
 
 **G7 训练 MAT**
 - [ ] confirm 即生成：`training_mat` 一行 + 文件存在 + sha256 与记录一致
@@ -478,7 +481,7 @@ CREATE TABLE IF NOT EXISTS training_mat (
 | 12.5 标注 JSON | 2 天 |
 | 12.6 confirm + MAT | 2 天 |
 | 12.7 集成验收 + 冒烟 | 1.5 天 |
-| **合计** | **约 13 工作日**（A 7.5 + B 5.5，可拆两里程碑） |
+| **合计** | **约 13 工作日**（A 7.5 = v0.2.0 / B 5.5 = v0.3.0，拆两里程碑已定稿） |
 
 ## 9. 风险
 
@@ -492,27 +495,29 @@ CREATE TABLE IF NOT EXISTS training_mat (
 | 3 个新 forward 命令扩大 IPC 攻击面 | 安全回退 | 复用 4.6 基建（身份/白名单/限额/无代理）；审计脚本重跑 |
 | confirm 同时写四件套 + MAT，失败中途状态不一致 | 半份产物 | 失败不登记半份（对齐 #05 failed 纪律）：**快照目录（四件套）与 MAT 文件**同一"先临时后 rename、finally 清理"协议；draft 是 DB TEXT 列、无文件临时态（§2.4） |
 
-## 10. 待科祥确认项（拍板后转 codex）
+## 10. 决策记录（七项定稿，2026-10-23；依据复核方终审建议值，拍板后转 codex）
 
-1. **API key 存储**：(a) 新增 `keyring` 依赖走 OS keyring（需批准安装，冻结体积+）；**(b) 仅进程内存持有、每会话填入（备卡推荐，零依赖）**。复核方同 (b) 并补一条：设置屏要能显示"已配置/未配置"状态（不回显 key），否则重启后用户不知道要不要重填——若采纳，同步改 §4 `settings.py` 端点契约与 §6 验收。
-2. **MAT 大小策略**：(a) 不设阈值只记录；(b) n_spectra×n_bands×4 超 2GB 时确认前警告（备卡推荐 b，阈值可议）。复核方建议改为：**确认前显示预计体积、超 2GB 阈值需二次确认**——只警告不给数字，用户没法判断。若采纳，confirm 确认卡/响应需带预计体积，同步 §4.1 与 §6。
-3. **冒烟用哪家云端 API**：DeepSeek / 通义 / 智谱 / Kimi 任选；**key 由科祥本机填入，双方均不经手落盘**。复核方建议 DeepSeek（工具调用遵循度国内较稳、价格低）。事实修正（本 agent 核实）：LLM 调用在 sidecar 内经 httpx 直连云端，**不经 Rust forward**——是否走代理取决于 sidecar 运行环境的 `http_proxy` 等变量，与 forward 的 `no_proxy()`（`annotation.rs:322`）无关；"国内厂商直连通常无需代理"仍是事实，但不要写成"撞 forward 约束"。
-4. **tool_call 上限 N=8**：备卡裁定够（场景 S1 约 5–6 步）。复核方确认，并明确口径：上限是**单条 LLM 响应的 tool_calls 数**，不是整会话步数（S1 五步 + 一轮修正 = 6，8 有余量）。
-5. **草稿要不要中间历史**：现设计不要（只确认版冻结）；若要，加 `annotation_draft_history` 表。复核方建议不要——除"只冻结确认版"外另有硬理由：history 表与 `revision` CAS 会打架（历史条目也需 CAS，否则回滚时又出现 last-write-wins）。
-6. **是否拆 A/B 两个里程碑**（§5 拆分选项）：影响给 codex 的节奏与验收基线。复核方建议拆——真正理由：**12.5 改 `session.py` 工作态语义是全卡最高风险点**，与 LLM 网关混在一个里程碑里，一旦互锁 bit-exact 挂了，分不清是栅格化问题还是 mock 序列问题；拆开后 B 可纯 REST 验收、零 LLM 依赖。
-7. **`draft_get` 回灌摘要的"引用可达性"（R7 收尾新发现，待 12.2 定，不阻塞 12.1/12.5/12.6）**：现摘要 = `{cube_id, revision, n_regions, n_classes, updated_at}` 全标量、**不含任何 region_id**；唯一能给 id 的是 `draft_add_region` 返回值（只有刚建的那个）。而 §2.2 HUMAN_CHECK 触发类含"删除数据"、§2.3 入参允许 `region_id` 引用——推演：用户跨轮说"把刚才那个 PP 区域删掉"，LLM 手里没有该 region 的 id → 改/删在对话侧**实际不可达**，删除被迫退回纯画布操作，与 HITL 设计意图不符。解法方向：摘要加 `regions: [{id, class_code, op, pixel_count}]`（最多 N 条 + `truncated` 标志）——全是 id/枚举/计数，符合 §2.3 白名单。**为什么不现在改**：这条属"白名单该含什么"的边界，纸面推演已到顶；12.2 写工具清单时 codex 必然撞上"draft_get 到底返回什么"，其实测反馈比现在推演准。**由 codex 在 12.2 提问时定**。
+1. **API key 存储 = (b) 内存持有 + 状态显示（定稿）**：key 仅 sidecar 进程内存持有（模块级容器，不写 db/日志/产物），重启失效重填；零新增依赖（keyring 路线不采纳）。落地：`GET /api/v1/settings/llm` 响应加 `has_key: bool`（**不新增端点**、不回显 key）——§4 `settings.py` 契约同步；§6 加验收“重启后 `has_key=false`、配置（base_url/model 等）仍在”。
+2. **MAT 大小策略 = 确认前显示预计体积 + 超 2GB 二次确认（定稿；落地方式经复核修正）**：体积必须在**用户点确认之前**拿到——“确认卡在 confirm 前、响应在 confirm 后”，写在 confirm 响应里已经晚了（文件都写完了）。落地：**`GET /api/v1/annotations/{cube_id}/draft` 响应加 `estimated_mat_bytes`**（§4.1）= `count(label_map>=0) × n_bands × 4`（GET draft 内对该 cube 的 document 做一次栅格化后计数；rasterize 是 §2.4 纯函数、无 IO，对比 MAT 生成的全图 IO 可忽略）。前端打开画布即拿到，confirm 确认卡片显示该值、超 2GB 弹二次确认；两条 confirm 路径（REST / LLM→HUMAN_CHECK）的确认卡片均在前端渲染，**闸放前端一处覆盖两者**；后端不设硬阈值（这是 UX 二次确认门，不是配额门）。**连带好处**：该字段是标量，`draft_get` 回灌 LLM 时可带（符合 §2.3 白名单），LLM 能在对话里主动提醒“此标注导出约 1.8GB”——这才是 LLM 真正有用的地方，比它去猜几何强。
+3. **冒烟云端 = DeepSeek（定稿）**：key 由科祥本机填入，双方均不经手落盘；§2.1 httpx 直连（不经 Rust forward）；换模型只改 `llm_settings` 三键 + 内存 key。
+4. **tool_call 上限 N=8（定稿）**：口径 = 单条 LLM 响应的 tool_calls 数（非整会话步数），超出拒第 9 个并 `TOOL_SEQUENCE_LIMIT`。
+5. **草稿不要中间历史（定稿）**：只确认版冻结；§1.2:60 已有条款。硬理由：history 表与 `revision` CAS 会打架（历史条目也需 CAS，否则回滚又出现 last-write-wins）。
+6. **拆 A/B 两个里程碑（定稿）+ 版本号**：§5“拆分选项”改“决定”——12.1–12.4 = **里程碑 A = v0.2.0**（编排地基，用户可感知的“能对话编排”）；12.5–12.7 = **里程碑 B = v0.3.0**（标注 JSON + MAT）。各自**独立过闸、独立 tag、独立 manifest 行**——B 卡住时 A 已可交付冒烟，拆分的意义才成立；别把 A+B 压成一个 v0.2.0（那样 B 卡则 A 也发不出）。拆分的真正理由不变：**12.5 改 `session.py` 工作态语义是全卡最高风险点**，与 LLM 网关混编，bit-exact 挂了分不清是栅格化问题还是 mock 序列问题。
+7. **draft_get 引用可达性 = 维持留 12.2（定稿）**：解法方向已记录（摘要加 `regions:[{id,class_code,op,pixel_count}]` 限量 N 条 + `truncated`，全符合白名单）；纸面推演已到顶，由 codex 在 12.2 写工具清单撞上“draft_get 到底返回什么”时的实测反馈定，本卡不预决。
 
 ## 11. 开工状态
 
-- **待 §10 确认后转 codex**；一次只开一个子阶段；每子阶段出口条件过闸才开下一个。
-- 提交纪律：逐文件 `git add`，禁 `-A`/`.`；本卡落盘后**立即提交入库**（教训：TASK-06 卡曾长期未入库、P1-2 记账的教训在 R7 收尾时原样重演——TASK-06/07 两卡直到 2026-10-23 才补入库；此后改版仍遵守"落盘即入库"）。
-- **转 codex 时的两条硬提醒**：① 12.5 第一件事**不是写实现**，是先落盘 rasterize 四条不变量测试（§5:378），其中"同一像素先 add 后 uncertain 必须 -2"是防"从 owner 派生 label_map"坏实现的唯一有效锚；② §10 第 7 项（draft_get 引用可达性）留给 codex 在 12.2 提问时定，不要现在替它决定。
+- **§10 七项已定稿（2026-10-23），可转 codex**；一次只开一个子阶段；每子阶段出口条件过闸才开下一个。
+- **里程碑切分（§10-6 定稿）**：A = 12.1–12.4 → 过闸后 tag **v0.2.0**；B = 12.5–12.7 → 过闸后 tag **v0.3.0**；各自独立 manifest 行。
+- 提交纪律：逐文件 `git add`，禁 `-A`/`.`；本卡落盘后**立即提交入库**（教训：TASK-06 卡曾长期未入库、P1-2 记账的教训在 R7 收尾时原样重演——TASK-06/07 两卡直到 2026-10-23 才补入库；此后改版仍遵守“落盘即入库”）。
+- **转 codex 时的两条硬提醒**：① 12.5 第一件事**不是写实现**，是先落盘 rasterize 四条不变量测试（§5:378），其中“同一像素先 add 后 uncertain 必须 -2”是防“从 owner 派生 label_map”坏实现的唯一有效锚；② §10 第 7 项（draft_get 引用可达性）留给 codex 在 12.2 提问时定，不要现在替它决定。
 - 冒烟（真实 LLM、安装包）归科祥本机执行。
 
 ## 12. 修订记录
 
 | 轮次 | 日期 | 内容 |
 |---|---|---|
+| 定稿 | 2026-10-23 | §10 七项拍板定稿（依据复核方终审建议值）：① key 内存持有 + `GET /settings/llm` 加 `has_key: bool`（不新增端点）；② **预计体积落地方式修正**——原写“confirm 确认卡/响应需带预计体积”混淆了确认前/后（确认卡在 confirm 前、响应在 confirm 后，体积必须点在确认前拿到），改落 **`GET /draft` 响应 `estimated_mat_bytes`**（`count(label_map>=0)×n_bands×4`，纯函数栅格化计数无 IO），前端 confirm 卡片显示 + 超 2GB 二次确认（两路径闸在前端一处）；标量故 `draft_get` 回灌可带、LLM 可对话提醒体积；③ DeepSeek；④ N=8 维持；⑤ 不要历史（§1.2 已有条款）；⑥ **拆 A/B 定稿 + 版本号 A=v0.2.0 / B=v0.3.0** 独立过闸/tag/manifest；⑦ 引用可达性维持留 12.2。联动：§2.3 回灌摘要、§4 settings 契约与前端表、§4.1 GET draft、§5 拆分决定、§8 排期、§6 两项新验收、§11 开工状态 |
 | R1 | 2026-10-23 | 初稿：范围 G1–G7；网关/状态机/SKILL/标注 JSON/MAT 五项口径钉死；DDL + NOT NULL 写路径覆盖；子阶段 12.1–12.7；验收/红线/排期/风险/待确认。依据：2026-10-22/23 两轮讨论 + D 域摘要 + 定稿 v1.1 + #04/#05/#06 实现事实 |
 | R2 | 2026-10-23 | 独立复核修订（复核方逐条实测代码后采纳七条 + 三项补充）：① 新增 §0 背景与动机（实测：手画多边形顶点现存 100% 丢失——`PolygonGeometry` api/annotations.py:67 收顶点、`polygon_mask` :83-96 R19 口径、但 `session.py:197 edit()` 只收布尔掩码、`_aggregate_rows` :334-349 只写 superpixels）；② §2.4 栅格化 polygon 分支**必须调用 `polygon_mask`（R19：像素中心+even-odd+`inside|on_edge`），禁重写**；③ §2.4 `_state()` 初始化改 JSON 派生（现状 session.py:159 `np.full(-1)`）；④ §2.4 undo 改 (document_json, label_map) 成对回滚（现状 :134/211/224 只回滚位图）；⑤ §3 `annotation_draft` 加 `revision` + CAS 409；⑥ §4.1 补 draft 六端点接口契约表；⑦ §2.4 classes 一致性校验（index 错位拒 confirm）；⑧ §2.5 MAT 加 `rows`/`cols`/`source_dtype` + 同步生成性能门（>30s 改异步 pending）；⑨ §0.3 记录"草稿态跑不了预处理"为已知限制；⑩ v1 栅格化函数永不删除 |
 | R3 | 2026-10-23 | 第二轮复核修订（十项，全部实测核实后采纳）：① 红线 6 限定"下游计算"口径（JSON 派生工作态属编辑面内部转换，消除与 §2.4 的自相矛盾）；② §4 "四个端点"→"六个（见 §4.1）"；③ `training_mat` 删 `status`/pending 死分支——量化依据：milestone05/evidence/11.7/performance.md 实测 #05 单配方全图 pass 落库 0.31–0.63s（已含全图 IO，`BoundedInput.lines()` 每行块全图读），MAT 增量预计 2–10s，距 30s 门 6–15 倍余量，对齐 #05 "未触发、维持同步"处置，>30s 回来重议；④ revision CAS 补三条规则（INSERT revision=1 / UPDATE 必须 revision+1 / 禁 OR REPLACE 与 ON CONFLICT DO UPDATE——否则 CAS 反向失效）；⑤ §4.1 补删 region（PATCH `deleted:true`，解除 OVERLAP_UNRESOLVED 死锁）+ patch 白名单（source 不可改，血缘防伪造）+ source 强制规则（manual/algorithm，不接受客户端传值）+ confidence 默认 + class_code→index 服务端解析 + confirm 原子边界=四件套（MAT 失败不回滚版本，training_mat_id=null+mat_error）；⑥ §2.5 钉死 labels 保留项目原始 index（不重映射）+ label_index 全表快照 + n_classes=全表条目数 + rows/cols 与 label_map 同轴序 0-based + source_dtype 取 `dtype.str`（保留字节序，与 registry `.name` 口径差异已注明，model.py:56 预存在缺口不在本卡范围）；⑦ §2.4 "临时文件+rename"改 DB 事务措辞（DB TEXT 列无文件临时态）+ 确认版 annotation.json 定为规范化副本（classes 刷新、regions 原样、草稿原文不动）；⑧ rejected 路径 arguments_json 供值（_raw_sha256+_raw_truncated ≤4KB）；⑨ §1.2 加"版本恢复为草稿：不做"；⑩ §9 风险表补 8MiB forward 限额；⑪ §6 换掉永真断言（并发 10 次=成功+409，revision 单调递增） |
