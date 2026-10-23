@@ -182,12 +182,13 @@ CREATE TABLE IF NOT EXISTS llm_settings (
 -- G1：调用留痕（每次调用一条；消息全文不落库，只存 sha256）
 CREATE TABLE IF NOT EXISTS llm_call (
   id                TEXT PRIMARY KEY,
-  session_id        TEXT,          -- agent_session.id；系统级调用记 NULL + status 前缀 system:
+  session_id        TEXT,          -- agent_session.id；系统级调用记 NULL（status 维持四值枚举不前缀，系统级仅以 session_id=NULL 标识）
   model             TEXT NOT NULL, -- 响应回读（请求用的 model，发送前已知）
   prompt_sha256     TEXT NOT NULL, -- 服务端：发送前对 messages 计算
   tool_names        TEXT,          -- 服务端：本次请求 tools 名列表 JSON（无工具调用记 NULL）
   prompt_tokens     INTEGER,       -- 响应 usage；无 usage 记 NULL（禁 0 禁估算）
   completion_tokens INTEGER,       -- 同上
+  total_tokens      INTEGER,       -- 同上（响应 usage 原值，禁由 prompt+completion 派生填写；§2.1 ChatResult.usage 三字段与 DDL 对齐，2026-10-23 勘误补入）
   latency_ms        INTEGER NOT NULL, -- 服务端计时
   status            TEXT NOT NULL, -- ok|blocked|transport_error|http_error
   error             TEXT,
@@ -518,6 +519,7 @@ CREATE TABLE IF NOT EXISTS training_mat (
 | 轮次 | 日期 | 内容 |
 |---|---|---|
 | 定稿 | 2026-10-23 | §10 七项拍板定稿（依据复核方终审建议值）：① key 内存持有 + `GET /settings/llm` 加 `has_key: bool`（不新增端点）；② **预计体积落地方式修正**——原写“confirm 确认卡/响应需带预计体积”混淆了确认前/后（确认卡在 confirm 前、响应在 confirm 后，体积必须点在确认前拿到），改落 **`GET /draft` 响应 `estimated_mat_bytes`**（`count(label_map>=0)×n_bands×4`，纯函数栅格化计数无 IO），前端 confirm 卡片显示 + 超 2GB 二次确认（两路径闸在前端一处）；标量故 `draft_get` 回灌可带、LLM 可对话提醒体积；③ DeepSeek；④ N=8 维持；⑤ 不要历史（§1.2 已有条款）；⑥ **拆 A/B 定稿 + 版本号 A=v0.2.0 / B=v0.3.0** 独立过闸/tag/manifest；⑦ 引用可达性维持留 12.2。联动：§2.3 回灌摘要、§4 settings 契约与前端表、§4.1 GET draft、§5 拆分决定、§8 排期、§6 两项新验收、§11 开工状态。**§11 追加（同日复核 P1）**：版本号唯一来源提醒——`src-tauri/tauri.conf.json` 的 `version`（现 0.1.3，`build_release.ps1:6` 从它取），发布 A/B 前先改再打 tag，防产物目录与 tag/manifest 错位 |
+| 勘误 | 2026-10-23 | 12.1 开工时 codex“首触即停”报两处规格冲突，均属实（卡自身不一致，非实现问题），裁定并改卡：① **`llm_call` 补 `total_tokens INTEGER`**（可空，无 usage 记 NULL，禁由 prompt+completion 派生）——§2.1 ChatResult.usage 定义三字段而 §3 DDL 只有两列，向 §2.1 对齐；移交 prompt 的“usage 三字段落库”因此成立；② **删 `session_id` 注释里的 `system:` 前缀**——status 维持 `ok|blocked|transport_error|http_error` 四值枚举，系统级调用仅以 `session_id=NULL` 标识（前缀会破坏枚举等值查询）。两处均为 DDL 注释/列级勘误，不动任何已定稿口径 |
 | R1 | 2026-10-23 | 初稿：范围 G1–G7；网关/状态机/SKILL/标注 JSON/MAT 五项口径钉死；DDL + NOT NULL 写路径覆盖；子阶段 12.1–12.7；验收/红线/排期/风险/待确认。依据：2026-10-22/23 两轮讨论 + D 域摘要 + 定稿 v1.1 + #04/#05/#06 实现事实 |
 | R2 | 2026-10-23 | 独立复核修订（复核方逐条实测代码后采纳七条 + 三项补充）：① 新增 §0 背景与动机（实测：手画多边形顶点现存 100% 丢失——`PolygonGeometry` api/annotations.py:67 收顶点、`polygon_mask` :83-96 R19 口径、但 `session.py:197 edit()` 只收布尔掩码、`_aggregate_rows` :334-349 只写 superpixels）；② §2.4 栅格化 polygon 分支**必须调用 `polygon_mask`（R19：像素中心+even-odd+`inside|on_edge`），禁重写**；③ §2.4 `_state()` 初始化改 JSON 派生（现状 session.py:159 `np.full(-1)`）；④ §2.4 undo 改 (document_json, label_map) 成对回滚（现状 :134/211/224 只回滚位图）；⑤ §3 `annotation_draft` 加 `revision` + CAS 409；⑥ §4.1 补 draft 六端点接口契约表；⑦ §2.4 classes 一致性校验（index 错位拒 confirm）；⑧ §2.5 MAT 加 `rows`/`cols`/`source_dtype` + 同步生成性能门（>30s 改异步 pending）；⑨ §0.3 记录"草稿态跑不了预处理"为已知限制；⑩ v1 栅格化函数永不删除 |
 | R3 | 2026-10-23 | 第二轮复核修订（十项，全部实测核实后采纳）：① 红线 6 限定"下游计算"口径（JSON 派生工作态属编辑面内部转换，消除与 §2.4 的自相矛盾）；② §4 "四个端点"→"六个（见 §4.1）"；③ `training_mat` 删 `status`/pending 死分支——量化依据：milestone05/evidence/11.7/performance.md 实测 #05 单配方全图 pass 落库 0.31–0.63s（已含全图 IO，`BoundedInput.lines()` 每行块全图读），MAT 增量预计 2–10s，距 30s 门 6–15 倍余量，对齐 #05 "未触发、维持同步"处置，>30s 回来重议；④ revision CAS 补三条规则（INSERT revision=1 / UPDATE 必须 revision+1 / 禁 OR REPLACE 与 ON CONFLICT DO UPDATE——否则 CAS 反向失效）；⑤ §4.1 补删 region（PATCH `deleted:true`，解除 OVERLAP_UNRESOLVED 死锁）+ patch 白名单（source 不可改，血缘防伪造）+ source 强制规则（manual/algorithm，不接受客户端传值）+ confidence 默认 + class_code→index 服务端解析 + confirm 原子边界=四件套（MAT 失败不回滚版本，training_mat_id=null+mat_error）；⑥ §2.5 钉死 labels 保留项目原始 index（不重映射）+ label_index 全表快照 + n_classes=全表条目数 + rows/cols 与 label_map 同轴序 0-based + source_dtype 取 `dtype.str`（保留字节序，与 registry `.name` 口径差异已注明，model.py:56 预存在缺口不在本卡范围）；⑦ §2.4 "临时文件+rename"改 DB 事务措辞（DB TEXT 列无文件临时态）+ 确认版 annotation.json 定为规范化副本（classes 刷新、regions 原样、草稿原文不动）；⑧ rejected 路径 arguments_json 供值（_raw_sha256+_raw_truncated ≤4KB）；⑨ §1.2 加"版本恢复为草稿：不做"；⑩ §9 风险表补 8MiB forward 限额；⑪ §6 换掉永真断言（并发 10 次=成功+409，revision 单调递增） |
