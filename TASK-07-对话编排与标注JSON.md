@@ -211,17 +211,28 @@ CREATE TABLE IF NOT EXISTS llm_call (
   created_at        TEXT NOT NULL   -- 服务端 timestamp()
 );
 
--- G2/G3：会话与步骤
+-- G2/G3：会话、轮次与步骤（R10：session→round→step 三层，round 为 HUMAN_CHECK 续执行锚）
 CREATE TABLE IF NOT EXISTS agent_session (
   id              TEXT PRIMARY KEY,
-  title           TEXT,           -- 服务端规则：首条用户消息截断 40 字；禁 LLM 生成后回写
-  skill_version_id TEXT NOT NULL REFERENCES skill_version(id), -- 创建时取当前 active；无 active 拒绝创建
-  created_at      TEXT NOT NULL,
-  updated_at      TEXT NOT NULL
+  title           TEXT,           -- 服务端规则：创建时空串；首条用户消息后填截断 40 字（仅空→非空一次，R10 豁免）；禁 LLM 生成后回写
+  skill_version_id TEXT NOT NULL REFERENCES skill_version(id), -- 创建时取当前 active；无 active 拒绝创建；此后不可改
+  created_at      TEXT NOT NULL,  -- 不可改
+  updated_at      TEXT NOT NULL   -- 服务端规则：每轮消息后更新（审计字段非内容，R10 豁免）
+);
+-- G2：编排轮次（R10：HUMAN_CHECK 挂起后续执行的持久化锚；落盘≠回灌，往轮仍不回灌 LLM）
+CREATE TABLE IF NOT EXISTS agent_round (
+  id           TEXT PRIMARY KEY,
+  session_id   TEXT NOT NULL REFERENCES agent_session(id),
+  seq          INTEGER NOT NULL,   -- 服务端自增（会话内轮次号）
+  user_message TEXT NOT NULL,      -- 本轮用户消息原文：INTERPRET 上下文与续执行的权威源（业务轮次数据；llm_call 仍只存 messages sha256，两口径分工不变）
+  calls_json   TEXT NOT NULL,      -- 本轮 LLM tool_call 序列（仅过 Pydantic 校验的调用，含 id/name/arguments；几何禁入 schema 保证无坐标谱值）
+  status       TEXT NOT NULL,      -- running|human_check|done|error
+  created_at   TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS agent_step (
   id              TEXT PRIMARY KEY,
   session_id      TEXT NOT NULL REFERENCES agent_session(id),
+  round_id        TEXT NOT NULL REFERENCES agent_round(id), -- 服务端规则：所属轮次（R10；剩余调用定位与续执行依赖它）
   seq             INTEGER NOT NULL,   -- 服务端自增（会话内）
   tool            TEXT NOT NULL,      -- LLM 返回的 tool_call.name
   arguments_json  TEXT NOT NULL,      -- 过 Pydantic 校验后的参数；rejected 路径供值：{"_raw_sha256":…,"_raw_truncated":…}（原文截断上限 4KB，大对象禁入）
@@ -396,11 +407,11 @@ CREATE TABLE IF NOT EXISTS training_mat (
 **SSE 事件**（`data:` 均为 JSON；一轮消息 = 若干事件后流关闭，HTTP 恒 200——错误走 `error` 事件不走 HTTP 状态码）：
 - `step`：`{seq, tool, status, result_summary?}`——每落一条 agent_step 即推（`ok`/`rejected`/`error`；`human_check_pending` 由 `human_check` 事件承担、不重复推；approve 后该 step 出终态时再推一条）
 - `clarify`：`{question}`——PARSE 未产出 tool_call（LLM 反问/纯答复），会话回 IDLE 等用户
-- `human_check`：`{check_id, tool, summary, reason}`——CALL_TOOL 命中 HITL 类，**确认前零执行**，等②形应答；`check_id` = 待确认 step 的 id；`summary` 只含出参白名单标量
+- `human_check`：`{check_id, tool, summary, reason}`——CALL_TOOL 命中 HITL 类，**确认前零执行**，等②形应答；`check_id` = 待确认 step 的 id；`summary` 只含出参白名单标量；**事件推完后原消息的 SSE 流关闭（轮次挂起），应答请求开新流走续执行事件**
 - `done`：`{content, step_count}`——INTERPRET 终稿
 - `error`：`{code, detail}`——ERROR 分支，推完回 IDLE
 
-**状态机落地口径（R9）**：① PARSE 的 LLM 响应无 tool_call → CLARIFY（内容即 `question`）；有 → CALL_TOOL。② 单消息 tool_call **线性按序**执行：前 N=8 个正常走，第 9 个起全部落 `rejected` step（`error=TOOL_SEQUENCE_LIMIT`——step 级拒绝不是 HTTP 错误，流继续到 `done`）；禁 DAG。③ HUMAN_CHECK 触发 = 工具注册表 `human_check` 声明位（12.3 仅 `annotations.draft_confirm` 置位；FR-D07 其余三类——删除数据/覆写标注/发布模型/超长任务——随各自工具到来置位）；门槛序 = **Pydantic 校验 → HUMAN_CHECK → （approve 后）就绪检查/handler**——未就绪工具也能在 12.3 测通分支（approve 后落 `error` step、`TOOL_NOT_IMPLEMENTED`）。④ approve → 原调用执行，pending step 迁移 `ok`/`error`；reject → 迁移 `rejected`、零执行（step 状态迁移属 §7:466"状态迁移除外"许可项）。⑤ INTERPRET 的 LLM 调用 **`tools=None`**（协议上杜绝二次 tool_call，防 LOOP）。⑥ LLM 上下文 = 当前 skill 的 `system_prompt` + **本轮** messages（用户消息 + 工具结果回灌），**不含往轮对话**（§10-5"不要历史"落地口径；往轮审计只走 GET steps 供人看、不回灌）。⑦ `llm_call.session_id` 自 12.3 起填真实会话 id（12.1 该列一直为此预留）。⑧ `agent_session.title` = 首条用户消息截断 40 字（§3:201 服务端规则，禁 LLM 生成后回写）；会话创建时快照 `skill_version_id` = 当前 active（退役不影响老会话回放）。
+**状态机落地口径（R9 定，R10 修订两处）**：① PARSE 的 LLM 响应无 tool_call → CLARIFY（内容即 `question`）；有 → CALL_TOOL。② 单消息 tool_call **线性按序**执行：前 N=8 个正常走，第 9 个起全部落 `rejected` step（`error=TOOL_SEQUENCE_LIMIT`——step 级拒绝不是 HTTP 错误，流继续到 `done`）；禁 DAG。③ 每轮用户消息建一条 `agent_round`（R10：`user_message` 原文 + 本轮过校验 `calls_json` 落盘，作 HUMAN_CHECK 续执行锚——仅答 `{check_id,decision}` 无法恢复原消息与剩余调用，必须落盘）；HUMAN_CHECK 触发 = 工具注册表 `human_check` 声明位（12.3 仅 `annotations.draft_confirm` 置位；FR-D07 其余三类——删除数据/覆写标注/发布模型/超长任务——随各自工具到来置位）；门槛序 = **Pydantic 校验 → HUMAN_CHECK → （approve 后）就绪检查/handler**——未就绪工具也能在 12.3 测通分支（approve 后落 `error` step、`TOOL_NOT_IMPLEMENTED`）。④ approve → 从 round 恢复（`user_message` + `calls_json` 重建 assistant 消息）→ 执行待确认调用**及其后剩余调用** → INTERPRET（system + user_message + assistant + 本轮全部 tool 结果）→ done；pending step 迁移 `ok`/`error`；reject → 迁移 `rejected`、零执行、round 直接 done（SSE `done` 带"已拒绝、未执行"说明）（step 状态迁移属 §7:501"状态迁移除外"许可项）。⑤ INTERPRET 的 LLM 调用 **`tools=None`**（协议上杜绝二次 tool_call，防 LOOP）。⑥ LLM 上下文 = 当前 skill 的 `system_prompt` + **本轮** messages（用户消息 + 工具结果回灌），**不含往轮对话**（§10-5"不要历史"落地口径；**落盘≠回灌**——`agent_round.user_message` 是业务轮次数据、供续执行与审计，往轮内容仍不回灌 LLM；`llm_call` 纪律不变、仍只存 messages sha256，两口径分工明确）。⑦ `llm_call.session_id` 自 12.3 起填真实会话 id（12.1 该列一直为此预留）。⑧ `agent_session.title` = 创建时 `""`、首条用户消息后填截断 40 字（**仅空→非空一次**，服务端规则，禁 LLM 生成后回写）；`updated_at` 每轮消息后服务端更新；`skill_version_id`/`created_at` 不可改（R10 显式豁免边界：title 首填 + updated_at + round/step 状态迁移，其余内容列禁改）；会话创建时快照 `skill_version_id` = 当前 active（退役不影响老会话回放）。
 
 ---
 
@@ -410,7 +421,7 @@ CREATE TABLE IF NOT EXISTS training_mat (
 |---|---|---|
 | **12.1** | LLM 网关：`llm.py` + `llm_settings` + `llm_call` + 禁运扫描 + mock transport | mock 全链路通；禁运/超时/usage 缺失三态有测试 |
 | **12.2** | SKILL 契约：`skill_version` + 播种 + 激活 + 工具注册框架 + 几何禁入 schema 规范 | 初始 skill v1 播种；schema 扫描测试过；无 active 拒建会话 |
-| **12.3** | 状态机 + `agent_session`/`agent_step` + CLARIFY/HUMAN_CHECK/ERROR + SSE 端点 | 三分支测试过；step 全落库含 rejected |
+| **12.3** | 状态机 + `agent_session`/`agent_round`/`agent_step` + CLARIFY/HUMAN_CHECK/ERROR + SSE 端点 | 三分支测试过；step 全落库含 rejected；HUMAN_CHECK 跨请求恢复（R10） |
 | **12.4** | 6 条 mock 回归探针 + 前端常驻对话条（S01 最简） | 探针全过（不烧 token）；node/tsc 过 |
 | **12.5** | 标注 JSON：**第一件事先写 rasterize 不变量测试（实现前落盘，R6 测试先行）**：① 幂等（同一 JSON 两次栅格化逐像素相同）；② `-2` 存在性——**同一像素先 `add` 后 `uncertain` 覆盖，最终必须 -2 而非 -1**（R7：这是“从 owner 派生 label_map”实现的专用回归锚——纯 uncertain 场景该实现靠特判也能过、测不出来；erase 无法用最终值测，-1 与无覆盖同值，其正确性靠 JSON 记录审计）；③ polygon 分支与 `polygon_mask` 逐像素一致；④ regions 数组重排后结果允许变（顺序敏感是已知属性，**不做“交换律”断言**，如实记录）；再写 `annotation_draft` + schema + draft REST + 栅格化纯函数 + 互锁测试 + **既有 regions/undo 端点 draft 驱动**（§4.2 映射表） | 四条不变量测试先行落盘（②须为混合序列锚）+ draft CRUD + 原子写 + bit-exact 互锁 + **legacy action→region 映射（含 erase/uncertain）过测** |
 | **12.6** | confirm 四件套 + overlap 仲裁 HITL + 训练 MAT（exports + DDL + savemat 流式）+ **save = confirm 内部实现（四件套、无 MAT）** | confirm→四件套→MAT 全链过；旧三件套断言已同步；**legacy save 四件套 / 不产 MAT / #07 前旧版回放兼容过测** |
@@ -436,6 +447,7 @@ CREATE TABLE IF NOT EXISTS training_mat (
 - [ ] 覆写标注/删除数据 → HUMAN_CHECK，确认前工具零执行
 - [ ] 单消息 tool_call 按序执行；第 9 个被拒 `TOOL_SEQUENCE_LIMIT`
 - [ ] 每步落 `agent_step`（含 digest）；被 schema 拒的调用也落（`status='rejected'`，`arguments_json` 为 `{"_raw_sha256","_raw_truncated"}` 截断 ≤4KB，禁为空禁塞原文）
+- [ ] **HUMAN_CHECK 跨请求/重启恢复（R10）**：挂起后 `agent_round` 落盘 user_message+calls_json；approve → 续执行待确认调用**及剩余调用**再 INTERPRET（断言第二次消息的 messages 含原用户消息与被确认调用结果）；reject → 零执行、round done；待确认期间 content 形态消息被拒
 - [ ] tool_call 落地前过 Pydantic 校验（拒调用不进 handler——断言 handler 调用次数）
 
 **G3 SKILL**
@@ -498,7 +510,7 @@ CREATE TABLE IF NOT EXISTS training_mat (
 5. **API key 禁落任何盘**：db/日志/产物/转储都不行；仅进程内存。
 6. **label_map 是下游计算的唯一权威几何**：预处理/训练/统计的唯一几何输入是 `label_map`（含从 `annotation_version.snapshot_ref` 读的冻结快照）；**草稿态工作态由 JSON 栅格化派生属编辑面内部转换，不构成下游计算输入**（JSON→label_map bit-exact 是这条转换的正确性保证）；MAT 永不作任何计算输入。
 7. **MAT 原料态**：禁把任何预处理产物烤进 MAT；禁设压缩/替代格式。
-8. **SKILL / 会话 / 步骤记录只增不改**（状态迁移除外）。
+8. **SKILL / 会话 / 轮次 / 步骤记录只增不改**（状态迁移除外；`agent_session.title` 空→非空首填与 `updated_at` 服务端更新为显式豁免，R10）。
 9. **标注前置于预处理不回退**（v2.5 定版）：confirm 是预处理的输入前提。
 10. **不预置厂商、不硬编码 key、不造默认 skill**：一切配置与种子数据有显式来源。
 11. **栅格化 polygon 分支只许调用 `polygon_mask`（R19），禁止重写扫描线**：重写必坏 on_edge 口径与 bit-exact 互锁；v1 栅格化函数冻结永不删。
@@ -564,3 +576,4 @@ CREATE TABLE IF NOT EXISTS training_mat (
 | R7 | 2026-10-23 | 第六轮复核修订（三条，全部属**同一数据流边界族**——R6 新增 `sample_pixels`/`bbox` 响应字段经 §2.2 INTERPRET 回灌 LLM 撞红线 4；**判据细化：新增响应字段也算新增机制**，R6“未新增字段”的自我声明因此不准确，终止判据从“新增字段/图/端点”扩为“新增任何机制含响应字段”）：① **工具出参白名单**（§2.3 新增整段）：INTERPRET 回灌 LLM 的 `result_summary` 只允许标量+枚举+计数字符串，`sample_pixels`/`bbox`/region 几何/`document` 原文/`[[int,int],...]` 坐标数组一律剔除；冲突给 LLM 只有 `conflict_count`+纯文字提示；位置数据只走 REST 给前端；`draft_get` 回灌摘要 = `{cube_id, revision, n_regions, n_classes, updated_at}` 全标量。工程保障：出参侧构造断言 + 回归探针 ⑦（messages 序列化文本不含 `[[`、不含 `points|polygon|sample_pixels|bbox`——禁运扫描只查路径形态看不见坐标，扫描是兜底、白名单是主防线）；② **禁运扫描补坐标数组形态**（§2.1：`[[` 嵌套数组形态入扫描规则，作兜底）；③ **12.5 -2 测试改混合序列锚**（§5/§6：同像素先 add 后 uncertain 必须 -2——纯 uncertain 场景“从 owner 派生”实现靠特判也能过、测不出，断言会空转）。联动：§4.1 GET draft 行区分 REST/回灌、OVERLAP_UNRESOLVED 回灌边界、§6 新增出参白名单验收项。**同族末遍扫描结论：无残留**——全卡几何/坐标 56 处逐条过，只四类（JSON schema/DDL 存储面、REST 前端面、显式禁令、栅格化纯函数），`examples_json` 种子措辞不含几何示例、`draft_get` 描述已标回灌边界。**停止条件达成：R7 三条全属数据流边界族、无新族问题，此后停止改卡，新发现归入 12.5 不变量测试兜底**。**收尾追加（同日，复核方终审确认九处全部到位 + 独立扫描无残留后）**：§10 新增第 7 项——"引用可达性"边界（`draft_get` 回灌摘要不含任何 region_id，跨轮对话的改/删在 LLM 侧不可达；解法方向 = 摘要加 `regions:[{id,class_code,op,pixel_count}]` 限量+truncated，全符合白名单；**不现在改卡，留 12.2 由 codex 实测反馈时定**）；§11 补转 codex 两条硬提醒（12.5 先落不变量测试再写实现；§10-7 不替 codex 预决） |
 | R8 | 2026-10-23 | 12.2 开工时 codex"首触即停"报两处**卡自身不闭合**（未改一码即停，纪律按设计生效），裁定并改卡：① **状态迁移集不闭合**——:95 仅允许 `draft→active/retired`，:96"切换 = 新版本 active、旧 retired"却要求 `active→retired`。裁定：迁移集补 `active→retired`、retired 终态；激活拆两个操作——`activate(v)` 仅 draft→active 且**遇已有 active 失败**（禁自动替换防误切换），`switch(v)` = 同一事务内旧 active→retired + 新 draft→active 原子切换（"切换"语义落地，禁零/双 active 中间态）；② **种子正文缺口**——:110 要求"配方对比话术"与 examples_json 但全文无正文来源（examples_json 仅 4 处提及字段本身、指标名 SNR/Fisher 卡内零出现）。裁定：`system_prompt` 落**定稿正文**（逐条对应 :110 原要点枚举+"禁取默认值"§6:400+S05 五步原名，codex 照抄禁改一字，验收人工对读）；"配方对比"原只有标签无正文，**备卡方代拟一句**（成分 = :110 mandated 主题 + 红线4 算子·版本 + 工具表 preprocess.compare :103；科祥可单独拍板替换，不影响其余定稿）；`examples_json` = **`[]`**（八查⑤.5 显式留空，禁实现期自行编写，将来随 skill v2 只增不改进入）。联动：§3:219 DDL 注释、§6:407 验收行同步；均不动任何已定稿口径 |
 | R9 | 2026-10-23 | 12.3 开工前备卡补齐三处**接口层原空档**（§2.2/§4 有端点与状态枚举但无线格式与往返语义；D 域摘要也只到"SSE=StreamingResponse"层）：新增 **§4.3 Agent 端点契约**——① `POST /sessions`（body `{}`、无 active → `SKILL_NOT_ACTIVE` 409 仿 annotations.py:243 先例、title 空串）；② `POST .../messages` 二形互斥（content / check_id+decision，确认期间只收应答）、SSE `text/event-stream` 五事件（step/clarify/human_check/done/error，data 均 JSON，HTTP 恒 200 错误走事件）；③ `GET .../steps`；④ 状态机落地口径八条（无 tool_call → CLARIFY；N=8 线性第 9 个起落 rejected 且非 HTTP 错误；HUMAN_CHECK=注册表声明位、门槛序 校验→HITL→就绪检查使未就绪工具也可测分支；approve/reject 的 step 状态迁移；INTERPRET 调用 tools=None 防 LOOP；**"不要历史"落地=LLM 上下文仅本轮**；llm_call.session_id 起填真实会话 id；title 截断 40 字禁 LLM 回写）。均为对已定稿意图的工程化补齐，科祥可单独否决 |
+| R10 | 2026-10-23 | 12.3 开工时 codex 即停报 R9 §4.3 两处契约缺口，均属实（未改一码即停，纪律按设计生效；第四次即停），裁定并改卡：① **HUMAN_CHECK 跨重启恢复缺续执行数据**——应答仅 `{check_id,decision}`，而续执行需要原用户消息（INTERPRET 上下文）与同轮未执行的剩余 tool_calls，现有 DDL 均无落盘（title 仅 40 字、llm_call 仅哈希）。裁定：**新增 `agent_round` 表**（session→round→step 三层）：`user_message` 原文 + 本轮过校验 `calls_json`（含 id/name/arguments，几何禁入 schema 保证无坐标）落盘作续执行锚；`agent_step` 增 `round_id NOT NULL`；approve → 从 round 恢复、执行待确认调用**及其后剩余调用** → INTERPRET（system+user_message+assistant+本轮全部 tool 结果）；reject → 零执行、round 直接 done；原消息流在 human_check 事件后关闭（挂起）、应答开新流。**落盘口径分工**：`agent_round.user_message` 是业务轮次数据（续执行与审计权威源），`llm_call` 纪律不变仍只存 messages sha256——落盘≠回灌，往轮内容仍不回灌 LLM（§10-5 不动）。② **title 首填与"只增不改"冲突**——§4.3 要求创建时 title=""、首条消息后填写，§7:501 只豁免状态迁移而 agent_session 无状态列。裁定：显式豁免 `title` 空→非空**一次** + `updated_at` 服务端每轮更新（审计字段非内容）；`skill_version_id`/`created_at` 不可改；§7:501 措辞同步扩为"会话/轮次/步骤记录"并列豁免边界。联动：§3 DDL（agent_round 建表 + agent_step.round_id + 两表注释）、§4.3 口径③④⑥⑧、§5 12.3 行、§6 新增恢复验收项 |
