@@ -1,4 +1,4 @@
-"""TASK-07 12.1/12.2: G1 tables, G3 skill versions and startup seeds."""
+"""TASK-07 12.1–12.3 domain tables and startup seeds."""
 
 
 DDL = r"""-- G1：LLM 配置（非敏感，key 不在此表）
@@ -36,6 +36,38 @@ CREATE TABLE IF NOT EXISTS skill_version (
   note          TEXT,
   created_at    TEXT NOT NULL
 );
+
+-- G2/G3：会话、轮次与步骤（R10：session→round→step 三层，round 为 HUMAN_CHECK 续执行锚）
+CREATE TABLE IF NOT EXISTS agent_session (
+  id              TEXT PRIMARY KEY,
+  title           TEXT,           -- 服务端规则：创建时空串，首条用户消息后填截断 40 字（仅空→非空一次，R10 豁免），禁 LLM 生成后回写
+  skill_version_id TEXT NOT NULL REFERENCES skill_version(id), -- 创建时取当前 active，无 active 拒绝创建，此后不可改
+  created_at      TEXT NOT NULL,  -- 不可改
+  updated_at      TEXT NOT NULL   -- 服务端规则：每轮消息后更新（审计字段非内容，R10 豁免）
+);
+-- G2：编排轮次（R10：HUMAN_CHECK 挂起后续执行的持久化锚，落盘≠回灌，往轮仍不回灌 LLM）
+CREATE TABLE IF NOT EXISTS agent_round (
+  id           TEXT PRIMARY KEY,
+  session_id   TEXT NOT NULL REFERENCES agent_session(id),
+  seq          INTEGER NOT NULL,   -- 服务端自增（会话内轮次号）
+  user_message TEXT NOT NULL,      -- 本轮用户消息原文：INTERPRET 上下文与续执行的权威源（业务轮次数据，llm_call 仍只存 messages sha256，两口径分工不变）
+  calls_json   TEXT NOT NULL,      -- 本轮 LLM tool_call 序列（仅过 Pydantic 校验的调用，含 id/name/arguments，几何禁入 schema 保证无坐标谱值）
+  status       TEXT NOT NULL,      -- running|human_check|done|error
+  created_at   TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS agent_step (
+  id              TEXT PRIMARY KEY,
+  session_id      TEXT NOT NULL REFERENCES agent_session(id),
+  round_id        TEXT NOT NULL REFERENCES agent_round(id), -- 服务端规则：所属轮次（R10，剩余调用定位与续执行依赖它）
+  seq             INTEGER NOT NULL,   -- 服务端自增（会话内）
+  tool            TEXT NOT NULL,      -- LLM 返回的 tool_call.name
+  arguments_json  TEXT NOT NULL,      -- 过 Pydantic 校验后的参数，rejected 路径供值：{"_raw_sha256":…,"_raw_truncated":…}（原文截断上限 4KB，大对象禁入）
+  result_digest   TEXT,               -- 执行结果 sha256，rejected 记 NULL
+  result_summary  TEXT,               -- 服务端短摘要，大对象禁入
+  status          TEXT NOT NULL,      -- ok|rejected|human_check_pending|error
+  latency_ms      INTEGER NOT NULL,
+  created_at      TEXT NOT NULL
+);
 """
 
 SETTING_KEYS = ("base_url", "model", "temperature", "max_tokens", "timeout_ms")
@@ -54,3 +86,5 @@ def migrate(db):
     from .skill import ensure_seeded, install_guards
     install_guards(db)
     ensure_seeded(db)
+    from .state import install_guards as install_agent_guards
+    install_agent_guards(db)

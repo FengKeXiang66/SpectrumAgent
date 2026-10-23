@@ -7,6 +7,9 @@ from spectrumagent.api.datasets import make_router
 from spectrumagent.api.annotations import LABEL_PATHS, make_router as make_label_router
 from spectrumagent.api.preprocess import make_router as make_preprocess_router
 from spectrumagent.api.settings import make_router as make_settings_router
+from spectrumagent.api.agent import make_router as make_agent_router
+from spectrumagent.agent.llm import OpenAICompatibleClient
+from spectrumagent.agent.tools import build_registry
 from spectrumagent.api.registry import DatasetRegistry
 from spectrumagent.annotation.labels import LabelStore
 from spectrumagent.annotation.engines.superpixels import SuperpixelEngine
@@ -30,6 +33,11 @@ def create_app(paths, identity):
     app.state.preprocess_runner = RunEngine(registry, paths)
     app.state.preprocess_compare = CompareEngine(app.state.preprocess_runner)
     app.include_router(make_preprocess_router(app.state.preprocess_runner, app.state.preprocess_compare))
+    app.state.agent_tools = build_registry(datasets=registry, runner=app.state.preprocess_runner,
+                                          comparison=app.state.preprocess_compare, database=paths.database)
+    app.state.agent_llm_factory = lambda session_id: OpenAICompatibleClient(paths.database, session_id=session_id)
+    app.include_router(make_agent_router(paths.database, lambda: app.state.agent_tools,
+                                        lambda session_id: app.state.agent_llm_factory(session_id)))
     original_validation_handler = app.exception_handlers[RequestValidationError]
 
     @app.exception_handler(DataError)
@@ -43,7 +51,7 @@ def create_app(paths, identity):
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(request, error):
-        if request.url.path.startswith("/api/v1/settings"):
+        if request.url.path.startswith("/api/v1/settings") or request.url.path.startswith("/api/v1/agent"):
             # Validation errors may contain a submitted key, even in extra fields
             # or malformed JSON. Never echo inputs through the foundation handler.
             return JSONResponse(DataError("INVALID_REQUEST", "LLM 设置参数不合法").as_dict(), status_code=400)
@@ -60,7 +68,7 @@ def create_app(paths, identity):
     @app.middleware("http")
     async def dataset_identity(request, call_next):
         response = await call_next(request)
-        if (request.url.path in LABEL_PATHS or request.url.path == "/api/v1/datasets" or request.url.path.startswith("/api/v1/datasets/") or request.url.path.startswith("/api/v1/preprocess") or request.url.path.startswith("/api/v1/settings")) and response.status_code != 401:
+        if (request.url.path in LABEL_PATHS or request.url.path == "/api/v1/datasets" or request.url.path.startswith("/api/v1/datasets/") or request.url.path.startswith("/api/v1/preprocess") or request.url.path.startswith("/api/v1/settings") or request.url.path.startswith("/api/v1/agent")) and response.status_code != 401:
             response.headers["X-SpectrumAgent-Boot-Id"] = identity.boot_id
             response.headers["X-SpectrumAgent-Pid"] = str(identity.pid)
         return response
