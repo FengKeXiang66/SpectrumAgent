@@ -13,6 +13,8 @@ fn main() {
             "datasets_forward",
             "annotations_forward",
             "preprocess_forward",
+            "agent_forward",
+            "settings_forward",
         ]));
     if let Err(error) = tauri_build::try_build(attributes) {
         eprintln!("Tauri 构建失败：{error}");

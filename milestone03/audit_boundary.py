@@ -1,4 +1,4 @@
-"""D1/D2 boundary audit extended only by TASK-04 §5.7 approval (2026-10-20)."""
+"""D1/D2 boundary audit with approved #04/#05/#07 fixed-command deltas."""
 import hashlib
 import json
 from pathlib import Path
@@ -7,14 +7,15 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = "f4e5c90b8bad9144150d7d0b377834c2cc9909e2"
+TASK07_BASE = "e8eea56"
 
 
 def read(path):
     return (ROOT / path).read_text("utf-8")
 
 
-def original(path):
-    return subprocess.check_output(["git", "show", BASE + ":" + path], cwd=ROOT).decode("utf-8")
+def original(path, revision=BASE):
+    return subprocess.check_output(["git", "show", revision + ":" + path], cwd=ROOT).decode("utf-8")
 
 
 def main():
@@ -22,11 +23,15 @@ def main():
     old_source = original("src-tauri/src/main.rs")
     release = source.split("#[cfg(not(debug_assertions))]", 1)[1].split("let app", 1)[0]
     literal = re.search(r"tauri::generate_handler!\[[^\]]+\]", release).group()
-    expected = "tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, datasets_forward, annotations_forward, preprocess_forward]"
+    expected = "tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, datasets_forward, annotations_forward, preprocess_forward, agent_forward, settings_forward]"
     assert literal == expected
     dev_handler = lambda text: re.search(r"let builder = builder.invoke_handler\((tauri::generate_handler!\[[^\]]+\])\)", text).group(1)
     assert dev_handler(source) == expected
-    assert dev_handler(source).replace(", annotations_forward", "").replace(", preprocess_forward", "") == dev_handler(old_source)
+    assert dev_handler(source).replace(", annotations_forward", "").replace(", preprocess_forward", "").replace(", agent_forward", "").replace(", settings_forward", "") == dev_handler(old_source)
+    task07_source = original("src-tauri/src/main.rs", TASK07_BASE)
+    assert dev_handler(source).replace(", agent_forward", "").replace(", settings_forward", "") == dev_handler(task07_source)
+    task07_release = task07_source.split("#[cfg(not(debug_assertions))]", 1)[1].split("let app", 1)[0]
+    assert literal.replace(", agent_forward", "").replace(", settings_forward", "") == re.search(r"tauri::generate_handler!\[[^\]]+\]", task07_release).group()
     assert "#[cfg(debug_assertions)]\n#[tauri::command]\nasync fn datasets_forward" not in source
     assert "#[cfg(debug_assertions)]\n#[tauri::command]\nasync fn annotations_forward" not in source
     assert "#[cfg(debug_assertions)]\n#[tauri::command]\nasync fn preprocess_forward" not in source
@@ -34,6 +39,12 @@ def main():
     assert "#[cfg(debug_assertions)]\npub mod dev_engine;" in lib
     assert "#[cfg(debug_assertions)]\npub mod datasets_dev;" not in lib
     assert "pub mod annotation;" in lib and "#[cfg(debug_assertions)]\npub mod annotation;" not in lib
+    for domain in ("agent", "settings"):
+        assert f"pub mod {domain};" in lib
+        assert f"#[cfg(debug_assertions)]\npub mod {domain};" not in lib
+        assert f"#[cfg(debug_assertions)]\n#[tauri::command]\nasync fn {domain}_forward" not in source
+    command_functions = lambda text: re.findall(r"#\[tauri::command\]\s+(?:async )?fn ([a-z_]+)", text)
+    assert command_functions(source) == command_functions(task07_source) + ["agent_forward", "settings_forward"]
     isolated = ["src-tauri/src/dev_engine.rs", "src-tauri/src/dev_supervision.rs", "src-tauri/src/process.rs", "src-tauri/src/win32.rs", "src-tauri/src/handshake.rs", "src-tauri/src/engine_path.rs"]
     assert all(read(path) == original(path) for path in isolated)
     assert "#[cfg(debug_assertions)]\n#[path = \"dev_supervision.rs\"]" in read("src-tauri/src/supervisor.rs")
@@ -41,12 +52,20 @@ def main():
     old_permissions = json.loads(original("src-tauri/capabilities/main.json"))["permissions"]
     assert capability["permissions"].count("allow-annotations-forward") == 1
     assert capability["permissions"].count("allow-preprocess-forward") == 1
-    assert [p for p in capability["permissions"] if p not in ("allow-annotations-forward", "allow-preprocess-forward")] == old_permissions
-    commands = ["engine_status", "retry_engine", "run_smoke", "open_data_directory", "datasets_forward", "annotations_forward", "preprocess_forward"]
+    added_permissions = ["allow-agent-forward", "allow-settings-forward"]
+    task07_permissions = json.loads(original("src-tauri/capabilities/main.json", TASK07_BASE))["permissions"]
+    assert capability["permissions"] == task07_permissions + added_permissions
+    assert [p for p in capability["permissions"] if p not in ("allow-annotations-forward", "allow-preprocess-forward", *added_permissions)] == old_permissions
+    commands = ["engine_status", "retry_engine", "run_smoke", "open_data_directory", "datasets_forward", "annotations_forward", "preprocess_forward", "agent_forward", "settings_forward"]
     build_commands = re.search(r'\.commands\(&\[(.*?)\]\)', read("src-tauri/build.rs"), re.S).group(1)
     assert re.findall(r'"([a-z_]+)"', build_commands) == commands
     acl = json.loads(read("src-tauri/gen/schemas/acl-manifests.json"))["__app-acl__"]["permissions"]
     assert {c for p in acl.values() for c in p["commands"]["allow"]} == set(commands)
+    previous_build = re.search(r'\.commands\(&\[(.*?)\]\)', original("src-tauri/build.rs", TASK07_BASE), re.S).group(1)
+    assert commands == re.findall(r'"([a-z_]+)"', previous_build) + ["agent_forward", "settings_forward"]
+    previous_acl = json.loads(original("src-tauri/gen/schemas/acl-manifests.json", TASK07_BASE))["__app-acl__"]["permissions"]
+    assert {key: value for key, value in acl.items() if key in previous_acl} == previous_acl
+    assert set(acl) - set(previous_acl) == {f"{action}-{domain}-forward" for action in ("allow", "deny") for domain in ("agent", "settings")}
     config = json.loads(read("src-tauri/tauri.conf.json"))
     assert config["version"] == "0.1.3" and config["identifier"] == "com.spectrumagent.desktop"
     previous = json.loads(original("src-tauri/tauri.conf.json"))
@@ -67,14 +86,26 @@ def main():
     assert all(hashlib.sha256((ROOT/path).read_bytes()).hexdigest() == digest for path,digest in baseline.items())
     old_revision = "artifacts/step2/revision-20261018-smoke-headers"
     assert not subprocess.check_output(["git","diff",BASE,"--",old_revision],cwd=ROOT)
-    result = {"authorization":"TASK-03 D1=A; D2=0.1.1; TASK-04 §5.7 annotations_forward only (2026-10-20); TASK-05 §11.5 preprocess_forward approved 2026-10-21", "prior_milestone_head":BASE,
-              "release_handler_literal":literal,"release_handler_count":7,"dev_handler_matches_release":True,
-              "commands":commands,"only_added_command":"annotations_forward,preprocess_forward",
-              "unchanged_debug_adoption_and_identity_files":isolated,"only_added_permission":"allow-annotations-forward,allow-preprocess-forward",
+    historical_evidence = ["milestone03/evidence", "milestone05/evidence"]
+    assert not subprocess.check_output(["git", "diff", TASK07_BASE, "--", *historical_evidence], cwd=ROOT)
+    # Compare canonical Git blobs: Windows checkout CRLF is not a content delta.
+    evidence_hashes = {}
+    for path in subprocess.check_output(["git", "ls-tree", "-r", "--name-only", TASK07_BASE, "--", *historical_evidence], cwd=ROOT).decode().splitlines():
+        previous_bytes = subprocess.check_output(["git", "show", TASK07_BASE + ":" + path], cwd=ROOT)
+        current_blob = subprocess.check_output(["git", "hash-object", "--path", path, path], cwd=ROOT).strip()
+        previous_blob = subprocess.check_output(["git", "rev-parse", TASK07_BASE + ":" + path], cwd=ROOT).strip()
+        assert current_blob == previous_blob, path
+        evidence_hashes[path] = hashlib.sha256(previous_bytes).hexdigest()
+    result = {"authorization":"TASK-03 D1=A; D2=0.1.1; TASK-04 §5.7 annotations_forward only (2026-10-20); TASK-05 §11.5 preprocess_forward approved 2026-10-21; TASK-07 12.4 R11/R12 agent_forward + settings_forward only", "prior_milestone_head":BASE,
+              "release_handler_literal":literal,"release_handler_count":9,"dev_handler_matches_release":True,
+              "commands":commands,"only_added_command":"annotations_forward,preprocess_forward,agent_forward,settings_forward",
+              "unchanged_debug_adoption_and_identity_files":isolated,"only_added_permission":"allow-annotations-forward,allow-preprocess-forward,allow-agent-forward,allow-settings-forward",
+              "task07_delta":{"base":TASK07_BASE,"added_commands":["agent_forward","settings_forward"],"added_permissions":added_permissions,"dev_release_build_acl_equal":True,"historical_evidence_sha256":evidence_hashes},
               "product_version":"0.1.3","protocol_version":"0.1.0","locks_unchanged":baseline,
               "old_revision_tracked_diff_empty":True,"frontend_dataset_panel_release_enabled":True}
     # Keep historical #03 evidence immutable; this approved extension has its own evidence.
-    output = ROOT / "milestone05/evidence/11.5/boundary.json"
+    output = ROOT / "milestone07/evidence/12.4/boundary.json"
+    output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n","utf-8")
     print(json.dumps(result,ensure_ascii=False,indent=2))
 

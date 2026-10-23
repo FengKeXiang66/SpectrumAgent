@@ -4,6 +4,7 @@ import { listen } from '@tauri-apps/api/event';
 import { acceptSnapshot, type ExitReason, type Snapshot } from './status';
 import DatasetPanel from './components/datasets/DatasetPanel';
 import { datasets } from './components/datasets/api';
+import AssistantBar from './components/assistant/AssistantBar';
 
 type Metrics = { nan_ratio: number; reflectance_range: [number, number]; bands: number; shape: [number, number, number]; elapsed_ms: number };
 const reasons: Record<string, string> = {
@@ -69,6 +70,7 @@ export default function App() {
   };
   useEffect(() => {
     const shortcut = (event: KeyboardEvent) => {
+      if (event.target instanceof Element && event.target.closest('.assistant-bar')) return;
       if (!event.ctrlKey || status.phase !== 'Ready') return;
       if (event.key.toLowerCase() === 'k') { event.preventDefault(); input.current?.focus(); }
       if (event.key === 'Enter') { event.preventDefault(); void send(); }
@@ -112,6 +114,7 @@ export default function App() {
         <input ref={input} id="agent-input" value={text} onChange={event => setText(event.target.value)} disabled={status.phase !== 'Ready' || busy} placeholder="运行冒烟测试（Ctrl+K 聚焦，Ctrl+Enter 发送）" />
         <button type="submit" disabled={status.phase !== 'Ready' || busy}>{busy ? '运行中' : '发送'}</button>
       </form>
+      <AssistantBar key={status.generation_id} enabled={status.phase === 'Ready'} />
     </footer>
   </div>;
 }

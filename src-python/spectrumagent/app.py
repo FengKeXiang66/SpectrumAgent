@@ -54,7 +54,7 @@ def create_app(paths, identity):
         if request.url.path.startswith("/api/v1/settings") or request.url.path.startswith("/api/v1/agent"):
             # Validation errors may contain a submitted key, even in extra fields
             # or malformed JSON. Never echo inputs through the foundation handler.
-            return JSONResponse(DataError("INVALID_REQUEST", "LLM 设置参数不合法").as_dict(), status_code=400)
+            return JSONResponse(DataError("INVALID_REQUEST", "请求参数不合法").as_dict(), status_code=400)
         if request.url.path in LABEL_PATHS:
             fields = [{"field": ".".join(map(str, e["loc"])), "message": e["msg"]} for e in error.errors()]
             return JSONResponse(DataError("INVALID_LABEL", "标签登记参数不合法", fields=fields).as_dict(), status_code=422)

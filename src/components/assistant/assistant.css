@@ -1,0 +1,6 @@
+.assistant-bar { border-top: 1px solid #ddd; margin-top: 12px; padding-top: 8px; overflow-wrap: anywhere; }
+.assistant-bar h2 { margin: 4px 0; }
+.assistant-events { max-height: 28vh; overflow-y: auto; padding-left: 24px; }
+.assistant-events li { margin: 6px 0; white-space: pre-wrap; }
+.assistant-events [data-event="user"] { color: #24557a; }
+.assistant-events [data-event="error"] { color: #a32323; }

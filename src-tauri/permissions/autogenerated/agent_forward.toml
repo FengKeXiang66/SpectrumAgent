@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-agent-forward"
+description = "Enables the agent_forward command without any pre-configured scope."
+commands.allow = ["agent_forward"]
+
+[[permission]]
+identifier = "deny-agent-forward"
+description = "Denies the agent_forward command without any pre-configured scope."
+commands.deny = ["agent_forward"]
