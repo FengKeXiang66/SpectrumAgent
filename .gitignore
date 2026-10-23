@@ -39,6 +39,7 @@ artifacts/step2/revision-20261018-smoke-headers/staged/
 artifacts/step2/revision-20261018-smoke-headers/temp/
 artifacts/step2/revision-01/**/pytest-tmp*/
 .workbuddy-ai/
+.workbuddy/
 .runtime/
 build/
 dist/
