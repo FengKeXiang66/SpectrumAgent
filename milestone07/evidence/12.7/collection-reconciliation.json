@@ -1,0 +1,35 @@
+{
+  "total": 951,
+  "baseline_total": 926,
+  "focused": [
+    {
+      "file": "src-python/tests/agent/test_annotation_tools.py",
+      "baseline": 4,
+      "collected": 8,
+      "delta": 4
+    },
+    {
+      "file": "src-python/tests/annotation/test_confirm_routes.py",
+      "baseline": 0,
+      "collected": 11,
+      "delta": 11
+    },
+    {
+      "file": "src-python/tests/annotation/test_session.py",
+      "baseline": 25,
+      "collected": 29,
+      "delta": 4
+    },
+    {
+      "file": "src-python/tests/mat/test_mat.py",
+      "baseline": 0,
+      "collected": 6,
+      "delta": 6
+    }
+  ],
+  "unchanged_other_tests": 897,
+  "delta": 25,
+  "reason": "Three MAT functions x mat_case fixture params [False, True] = six collected items; static function count misses three. No tests changed.",
+  "command": "PYTEST_DEBUG_TEMPROOT=E:/AI_Agent/.runtime/pytest-tmp .venv/Scripts/python.exe -m pytest backend/tests src-python/tests --collect-only -q",
+  "mode": "default parameters; collection only"
+}

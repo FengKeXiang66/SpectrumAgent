@@ -1,0 +1,242 @@
+{
+  "started_at": "2026-10-24T05:30:44.647734+00:00",
+  "rounds_per_test": 10,
+  "mode": "fresh pytest process per exposure; harness exposures sequential; pytest default parameters, no serial-test override",
+  "environment": {
+    "PYTEST_DEBUG_TEMPROOT": "E:/AI_Agent/.runtime/pytest-tmp"
+  },
+  "per_test": {
+    "src-python/tests/annotation/test_draft.py::test_ten_concurrent_connections_have_one_winner_and_monotonic_revision": {
+      "exposures": 10,
+      "passed": 10,
+      "failed": 0
+    },
+    "src-python/tests/annotation/test_session.py::test_confirm_rechecks_revision_inside_publication_transaction": {
+      "exposures": 10,
+      "passed": 10,
+      "failed": 0
+    },
+    "src-python/tests/annotation/test_confirm_routes.py::test_failed_confirm_overwrite_invalidates_old_mat_without_rolling_back_version": {
+      "exposures": 10,
+      "passed": 10,
+      "failed": 0
+    }
+  },
+  "exposures": [
+    {
+      "test": "draft-cas",
+      "round": 1,
+      "exit_code": 0,
+      "output": "flake-draft-cas-01.txt",
+      "passed": true
+    },
+    {
+      "test": "draft-cas",
+      "round": 2,
+      "exit_code": 0,
+      "output": "flake-draft-cas-02.txt",
+      "passed": true
+    },
+    {
+      "test": "draft-cas",
+      "round": 3,
+      "exit_code": 0,
+      "output": "flake-draft-cas-03.txt",
+      "passed": true
+    },
+    {
+      "test": "draft-cas",
+      "round": 4,
+      "exit_code": 0,
+      "output": "flake-draft-cas-04.txt",
+      "passed": true
+    },
+    {
+      "test": "draft-cas",
+      "round": 5,
+      "exit_code": 0,
+      "output": "flake-draft-cas-05.txt",
+      "passed": true
+    },
+    {
+      "test": "draft-cas",
+      "round": 6,
+      "exit_code": 0,
+      "output": "flake-draft-cas-06.txt",
+      "passed": true
+    },
+    {
+      "test": "draft-cas",
+      "round": 7,
+      "exit_code": 0,
+      "output": "flake-draft-cas-07.txt",
+      "passed": true
+    },
+    {
+      "test": "draft-cas",
+      "round": 8,
+      "exit_code": 0,
+      "output": "flake-draft-cas-08.txt",
+      "passed": true
+    },
+    {
+      "test": "draft-cas",
+      "round": 9,
+      "exit_code": 0,
+      "output": "flake-draft-cas-09.txt",
+      "passed": true
+    },
+    {
+      "test": "draft-cas",
+      "round": 10,
+      "exit_code": 0,
+      "output": "flake-draft-cas-10.txt",
+      "passed": true
+    },
+    {
+      "test": "confirm-cas",
+      "round": 1,
+      "exit_code": 0,
+      "output": "flake-confirm-cas-01.txt",
+      "passed": true
+    },
+    {
+      "test": "confirm-cas",
+      "round": 2,
+      "exit_code": 0,
+      "output": "flake-confirm-cas-02.txt",
+      "passed": true
+    },
+    {
+      "test": "confirm-cas",
+      "round": 3,
+      "exit_code": 0,
+      "output": "flake-confirm-cas-03.txt",
+      "passed": true
+    },
+    {
+      "test": "confirm-cas",
+      "round": 4,
+      "exit_code": 0,
+      "output": "flake-confirm-cas-04.txt",
+      "passed": true
+    },
+    {
+      "test": "confirm-cas",
+      "round": 5,
+      "exit_code": 0,
+      "output": "flake-confirm-cas-05.txt",
+      "passed": true
+    },
+    {
+      "test": "confirm-cas",
+      "round": 6,
+      "exit_code": 0,
+      "output": "flake-confirm-cas-06.txt",
+      "passed": true
+    },
+    {
+      "test": "confirm-cas",
+      "round": 7,
+      "exit_code": 0,
+      "output": "flake-confirm-cas-07.txt",
+      "passed": true
+    },
+    {
+      "test": "confirm-cas",
+      "round": 8,
+      "exit_code": 0,
+      "output": "flake-confirm-cas-08.txt",
+      "passed": true
+    },
+    {
+      "test": "confirm-cas",
+      "round": 9,
+      "exit_code": 0,
+      "output": "flake-confirm-cas-09.txt",
+      "passed": true
+    },
+    {
+      "test": "confirm-cas",
+      "round": 10,
+      "exit_code": 0,
+      "output": "flake-confirm-cas-10.txt",
+      "passed": true
+    },
+    {
+      "test": "overwrite-mat",
+      "round": 1,
+      "exit_code": 0,
+      "output": "flake-overwrite-mat-01.txt",
+      "passed": true
+    },
+    {
+      "test": "overwrite-mat",
+      "round": 2,
+      "exit_code": 0,
+      "output": "flake-overwrite-mat-02.txt",
+      "passed": true
+    },
+    {
+      "test": "overwrite-mat",
+      "round": 3,
+      "exit_code": 0,
+      "output": "flake-overwrite-mat-03.txt",
+      "passed": true
+    },
+    {
+      "test": "overwrite-mat",
+      "round": 4,
+      "exit_code": 0,
+      "output": "flake-overwrite-mat-04.txt",
+      "passed": true
+    },
+    {
+      "test": "overwrite-mat",
+      "round": 5,
+      "exit_code": 0,
+      "output": "flake-overwrite-mat-05.txt",
+      "passed": true
+    },
+    {
+      "test": "overwrite-mat",
+      "round": 6,
+      "exit_code": 0,
+      "output": "flake-overwrite-mat-06.txt",
+      "passed": true
+    },
+    {
+      "test": "overwrite-mat",
+      "round": 7,
+      "exit_code": 0,
+      "output": "flake-overwrite-mat-07.txt",
+      "passed": true
+    },
+    {
+      "test": "overwrite-mat",
+      "round": 8,
+      "exit_code": 0,
+      "output": "flake-overwrite-mat-08.txt",
+      "passed": true
+    },
+    {
+      "test": "overwrite-mat",
+      "round": 9,
+      "exit_code": 0,
+      "output": "flake-overwrite-mat-09.txt",
+      "passed": true
+    },
+    {
+      "test": "overwrite-mat",
+      "round": 10,
+      "exit_code": 0,
+      "output": "flake-overwrite-mat-10.txt",
+      "passed": true
+    }
+  ],
+  "standalone_rechecks": [],
+  "root_cause": "not inferred",
+  "exposure_passed": 30,
+  "exposure_failed": 0,
+  "passed": true
+}

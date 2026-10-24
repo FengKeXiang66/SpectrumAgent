@@ -1,0 +1,162 @@
+{
+  "source_level": "synthetic fixed-size fixture; no physical spectral meaning; real IO/compute code paths",
+  "started_at": "2026-10-24T05:34:09.020137+00:00",
+  "runtime": "E:\\AI_Agent\\.runtime\\task07-12.7\\cc6deca685634d2a88425dc7b3f337df",
+  "shape": [
+    231,
+    640,
+    200
+  ],
+  "environment": {
+    "python": "3.12.13 (main, May 10 2026, 19:35:37) [MSC v.1944 64 bit (AMD64)]",
+    "platform": "Windows-11-10.0.26100-SP0",
+    "logical_cpus": 20,
+    "thread_environment": {
+      "OMP_NUM_THREADS": null,
+      "MKL_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null
+    }
+  },
+  "measurement_mode": "standalone e2e process, no concurrent regression/build/flake process during measured run; defaults unchanged",
+  "source": {
+    "header": "E:\\AI_Agent\\.runtime\\task07-12.7\\cc6deca685634d2a88425dc7b3f337df\\large-source\\synthetic.hdr",
+    "raw_bytes": 118272000,
+    "dtype": "<f4",
+    "formula": "1000 + (flattened sample-band index + row) % 5000"
+  },
+  "segmentation_setup": {
+    "kind": "deterministic regular grid, setup excluded; MAT gate does not measure SLIC",
+    "grid": [
+      17,
+      48
+    ],
+    "params": {
+      "n_segments": 800,
+      "compactness": 0.5,
+      "pca_components": 5,
+      "k": 3,
+      "block_size": 32,
+      "feature_version": "pca-global-zscore-clip3-unit-v1"
+    }
+  },
+  "large": {
+    "cube_id": "67cadad3-d68a-4900-99e6-78cd4c6860d0",
+    "version_id": "d415d085-ae26-488f-94b7-67243d1c0522",
+    "write": {
+      "seconds": 0.19264209998073056,
+      "tracemalloc_peak_increment_bytes": 118282655,
+      "do_compression": false
+    },
+    "status": "ok",
+    "db_row": {
+      "id": "315fc04f-afdf-40b5-b6e4-08411eaf996c",
+      "cube_id": "67cadad3-d68a-4900-99e6-78cd4c6860d0",
+      "annotation_version_id": "d415d085-ae26-488f-94b7-67243d1c0522",
+      "relative_path": "exports/67cadad3-d68a-4900-99e6-78cd4c6860d0/d415d085-ae26-488f-94b7-67243d1c0522/training_mat.mat",
+      "sha256": "922033f5fb379b3994caa1bb6ca330f987fea8d90dad40e6ad660260d92346a2",
+      "n_spectra": 147840,
+      "n_bands": 200,
+      "n_classes": 4,
+      "input_fingerprint": "e5c1fe6d6674632745c745fbf692d3aba45452a2f0fdc2ffc1071b2f70a92ef5",
+      "created_at": "2026-10-24T05:34:11.488638+00:00"
+    },
+    "file_bytes": 120049512,
+    "seconds": 0.6436063000001013,
+    "confirm_seconds": 1.711524600017583,
+    "estimated_spectra_bytes": 118272000,
+    "draft_document_bytes": 802,
+    "gate_seconds": 30,
+    "gate_passed": true
+  },
+  "small": {
+    "cube_id": "0d6ce89e-9462-4b49-a4e6-582134951e67",
+    "version_id": "25c3f594-5ad7-4c23-8ea9-69a82474f29a",
+    "write": {
+      "seconds": 0.0033192999835591763,
+      "tracemalloc_peak_increment_bytes": 51949,
+      "do_compression": false
+    },
+    "status": "ok",
+    "db_row": {
+      "id": "a1abcf41-167d-4446-bbde-29012469a373",
+      "cube_id": "0d6ce89e-9462-4b49-a4e6-582134951e67",
+      "annotation_version_id": "25c3f594-5ad7-4c23-8ea9-69a82474f29a",
+      "relative_path": "exports/0d6ce89e-9462-4b49-a4e6-582134951e67/25c3f594-5ad7-4c23-8ea9-69a82474f29a/training_mat.mat",
+      "sha256": "7f03c533472d9d0421ffdbe75a1cee7988a50a787793148495142b5f2c880f95",
+      "n_spectra": 480,
+      "n_bands": 8,
+      "n_classes": 4,
+      "input_fingerprint": "4e3eabb15c8123e78e8c4bd5cfd45ecc637c9eb4c77f6b2d08f1b7eb3364d30e",
+      "created_at": "2026-10-24T05:34:09.474759+00:00"
+    },
+    "file_bytes": 23016,
+    "seconds": 0.06341169998631813,
+    "confirm_seconds": 0.10185679999995045,
+    "shape": [
+      40,
+      12,
+      8
+    ]
+  },
+  "dialogue": {
+    "session_id": "4fedca32-fece-4178-84bd-34fa3a0cf782",
+    "initial_events": [
+      {
+        "event": "human_check",
+        "data": {
+          "check_id": "bd8be4a1-74fe-457a-860c-09031240ec64",
+          "reason": "标注版本确认",
+          "summary": {
+            "cube_id": "0d6ce89e-9462-4b49-a4e6-582134951e67",
+            "revision": 3
+          },
+          "tool": "annotations.draft_confirm"
+        }
+      }
+    ],
+    "resumed_events": [
+      {
+        "event": "step",
+        "data": {
+          "result_summary": {
+            "n_spectra": 480,
+            "overlap_conflicts": 0,
+            "training_mat_id": "809c49f6-baea-427d-96ee-38ffa21ee2c8",
+            "version_id": "e926d873-a24a-4e79-b9da-beafe8c40f38",
+            "version_no": 2
+          },
+          "seq": 1,
+          "status": "ok",
+          "tool": "annotations.draft_confirm"
+        }
+      },
+      {
+        "event": "done",
+        "data": {
+          "content": "标注版本已确认，训练 MAT 已生成。",
+          "step_count": 1
+        }
+      }
+    ],
+    "provider": "httpx.MockTransport; two callbacks; no real provider network",
+    "provider_calls": 2,
+    "message_to_human_check_seconds": 0.039642399991862476,
+    "approve_to_final_sse_seconds": 0.1260586999997031,
+    "total_http_seconds": 0.16570109999156557,
+    "provider_stages": [
+      {
+        "stage": "PARSE",
+        "seconds": 0.0001449999981559813
+      },
+      {
+        "stage": "INTERPRET",
+        "seconds": 5.9999991208314896e-05
+      }
+    ],
+    "confirm_seconds": 0.0758899999782443,
+    "mat_generation_seconds": 0.04388179999659769,
+    "savemat_seconds": 0.002440700016450137,
+    "timing_note": "nested spans, not additive; TestClient buffers finite SSE; human think time excluded"
+  },
+  "real_cube_and_real_llm": "owner smoke checklist; not executed here"
+}
