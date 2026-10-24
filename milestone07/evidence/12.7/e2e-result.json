@@ -1,8 +1,64 @@
 {
   "source_level": "R24 TestClient / real ASGI stack / synthetic DN / MockTransport",
-  "started_at": "2026-10-24T05:34:09.020137+00:00",
-  "base_commit": "21e4f84",
+  "started_at": "2026-10-24T10:40:15.116732+00:00",
+  "base_commit": "1fb2de3",
   "assertions": [
+    {
+      "name": "HTTP PUT /api/v1/settings/llm = 200",
+      "passed": true
+    },
+    {
+      "name": "identity header PUT /api/v1/settings/llm",
+      "passed": true
+    },
+    {
+      "name": "HTTP GET /api/v1/settings/llm = 200",
+      "passed": true
+    },
+    {
+      "name": "identity header GET /api/v1/settings/llm",
+      "passed": true
+    },
+    {
+      "name": "settings five-key configuration round-trip",
+      "passed": true
+    },
+    {
+      "name": "settings config PUT leaves has_key=false",
+      "passed": true
+    },
+    {
+      "name": "HTTP PUT /api/v1/settings/llm/key = 200",
+      "passed": true
+    },
+    {
+      "name": "identity header PUT /api/v1/settings/llm/key",
+      "passed": true
+    },
+    {
+      "name": "settings key PUT returns only has_key=true",
+      "passed": true
+    },
+    {
+      "name": "HTTP GET /api/v1/settings/llm = 200",
+      "passed": true
+    },
+    {
+      "name": "identity header GET /api/v1/settings/llm",
+      "passed": true
+    },
+    {
+      "name": "settings GET has_key=true after key PUT",
+      "passed": true
+    },
+    {
+      "name": "settings GET excludes key field and credential body",
+      "passed": true
+    },
+    {
+      "name": "settings key PUT preserves five-key configuration",
+      "passed": true
+    },
     {
       "name": "HTTP POST /api/v1/datasets/import = 200",
       "passed": true
@@ -12,11 +68,11 @@
       "passed": true
     },
     {
-      "name": "HTTP POST /api/v1/datasets/0d6ce89e-9462-4b49-a4e6-582134951e67/superpixels = 200",
+      "name": "HTTP POST /api/v1/datasets/df5bb004-00a3-47b8-93fd-8880638b195e/superpixels = 200",
       "passed": true
     },
     {
-      "name": "identity header POST /api/v1/datasets/0d6ce89e-9462-4b49-a4e6-582134951e67/superpixels",
+      "name": "identity header POST /api/v1/datasets/df5bb004-00a3-47b8-93fd-8880638b195e/superpixels",
       "passed": true
     },
     {
@@ -24,11 +80,11 @@
       "passed": true
     },
     {
-      "name": "HTTP GET /api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/draft = 200",
+      "name": "HTTP GET /api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/draft = 200",
       "passed": true
     },
     {
-      "name": "identity header GET /api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/draft",
+      "name": "identity header GET /api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/draft",
       "passed": true
     },
     {
@@ -36,19 +92,19 @@
       "passed": true
     },
     {
-      "name": "HTTP POST /api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/draft/regions = 200",
+      "name": "HTTP POST /api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/draft/regions = 200",
       "passed": true
     },
     {
-      "name": "identity header POST /api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/draft/regions",
+      "name": "identity header POST /api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/draft/regions",
       "passed": true
     },
     {
-      "name": "HTTP GET /api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/draft = 200",
+      "name": "HTTP GET /api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/draft = 200",
       "passed": true
     },
     {
-      "name": "identity header GET /api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/draft",
+      "name": "identity header GET /api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/draft",
       "passed": true
     },
     {
@@ -56,27 +112,27 @@
       "passed": true
     },
     {
-      "name": "HTTP POST /api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/draft/regions/r-0001 = 200",
+      "name": "HTTP POST /api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/draft/regions/r-0001 = 200",
       "passed": true
     },
     {
-      "name": "identity header POST /api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/draft/regions/r-0001",
+      "name": "identity header POST /api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/draft/regions/r-0001",
       "passed": true
     },
     {
-      "name": "HTTP POST /api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/draft/regions = 200",
+      "name": "HTTP POST /api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/draft/regions = 200",
       "passed": true
     },
     {
-      "name": "identity header POST /api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/draft/regions",
+      "name": "identity header POST /api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/draft/regions",
       "passed": true
     },
     {
-      "name": "HTTP GET /api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/draft = 200",
+      "name": "HTTP GET /api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/draft = 200",
       "passed": true
     },
     {
-      "name": "identity header GET /api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/draft",
+      "name": "identity header GET /api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/draft",
       "passed": true
     },
     {
@@ -84,11 +140,11 @@
       "passed": true
     },
     {
-      "name": "HTTP POST /api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/draft/confirm = 200",
+      "name": "HTTP POST /api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/draft/confirm = 200",
       "passed": true
     },
     {
-      "name": "identity header POST /api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/draft/confirm",
+      "name": "identity header POST /api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/draft/confirm",
       "passed": true
     },
     {
@@ -108,11 +164,11 @@
       "passed": true
     },
     {
-      "name": "HTTP GET /api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/versions/25c3f594-5ad7-4c23-8ea9-69a82474f29a/training-mat = 200",
+      "name": "HTTP GET /api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/versions/43654004-699e-4c1e-85b2-976df3a1ba6d/training-mat = 200",
       "passed": true
     },
     {
-      "name": "identity header GET /api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/versions/25c3f594-5ad7-4c23-8ea9-69a82474f29a/training-mat",
+      "name": "identity header GET /api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/versions/43654004-699e-4c1e-85b2-976df3a1ba6d/training-mat",
       "passed": true
     },
     {
@@ -236,11 +292,11 @@
       "passed": true
     },
     {
-      "name": "HTTP GET /api/v1/agent/sessions/4fedca32-fece-4178-84bd-34fa3a0cf782/steps = 200",
+      "name": "HTTP GET /api/v1/agent/sessions/3542e29a-2337-4c21-a124-79391eefd728/steps = 200",
       "passed": true
     },
     {
-      "name": "identity header GET /api/v1/agent/sessions/4fedca32-fece-4178-84bd-34fa3a0cf782/steps",
+      "name": "identity header GET /api/v1/agent/sessions/3542e29a-2337-4c21-a124-79391eefd728/steps",
       "passed": true
     },
     {
@@ -248,11 +304,11 @@
       "passed": true
     },
     {
-      "name": "HTTP POST /api/v1/datasets/0d6ce89e-9462-4b49-a4e6-582134951e67/annotations/regions = 200",
+      "name": "HTTP POST /api/v1/datasets/df5bb004-00a3-47b8-93fd-8880638b195e/annotations/regions = 200",
       "passed": true
     },
     {
-      "name": "identity header POST /api/v1/datasets/0d6ce89e-9462-4b49-a4e6-582134951e67/annotations/regions",
+      "name": "identity header POST /api/v1/datasets/df5bb004-00a3-47b8-93fd-8880638b195e/annotations/regions",
       "passed": true
     },
     {
@@ -260,11 +316,11 @@
       "passed": true
     },
     {
-      "name": "HTTP POST /api/v1/datasets/0d6ce89e-9462-4b49-a4e6-582134951e67/annotations/undo = 200",
+      "name": "HTTP POST /api/v1/datasets/df5bb004-00a3-47b8-93fd-8880638b195e/annotations/undo = 200",
       "passed": true
     },
     {
-      "name": "identity header POST /api/v1/datasets/0d6ce89e-9462-4b49-a4e6-582134951e67/annotations/undo",
+      "name": "identity header POST /api/v1/datasets/df5bb004-00a3-47b8-93fd-8880638b195e/annotations/undo",
       "passed": true
     },
     {
@@ -272,11 +328,11 @@
       "passed": true
     },
     {
-      "name": "HTTP POST /api/v1/datasets/0d6ce89e-9462-4b49-a4e6-582134951e67/annotations/save = 200",
+      "name": "HTTP POST /api/v1/datasets/df5bb004-00a3-47b8-93fd-8880638b195e/annotations/save = 200",
       "passed": true
     },
     {
-      "name": "identity header POST /api/v1/datasets/0d6ce89e-9462-4b49-a4e6-582134951e67/annotations/save",
+      "name": "identity header POST /api/v1/datasets/df5bb004-00a3-47b8-93fd-8880638b195e/annotations/save",
       "passed": true
     },
     {
@@ -304,11 +360,11 @@
       "passed": true
     },
     {
-      "name": "HTTP POST /api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/draft/confirm = 200",
+      "name": "HTTP POST /api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/draft/confirm = 200",
       "passed": true
     },
     {
-      "name": "identity header POST /api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/draft/confirm",
+      "name": "identity header POST /api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/draft/confirm",
       "passed": true
     },
     {
@@ -324,11 +380,11 @@
       "passed": true
     },
     {
-      "name": "HTTP GET /api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/versions/43741a96-bcb9-438b-ad1a-687c0b9e3e45/training-mat = 404",
+      "name": "HTTP GET /api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/versions/808efef0-89df-4d85-b38a-a3ad54c2e43c/training-mat = 404",
       "passed": true
     },
     {
-      "name": "identity header GET /api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/versions/43741a96-bcb9-438b-ad1a-687c0b9e3e45/training-mat",
+      "name": "identity header GET /api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/versions/808efef0-89df-4d85-b38a-a3ad54c2e43c/training-mat",
       "passed": true
     },
     {
@@ -348,11 +404,11 @@
       "passed": true
     },
     {
-      "name": "HTTP GET /api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/versions/43741a96-bcb9-438b-ad1a-687c0b9e3e45/training-mat = 200",
+      "name": "HTTP GET /api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/versions/808efef0-89df-4d85-b38a-a3ad54c2e43c/training-mat = 200",
       "passed": true
     },
     {
-      "name": "identity header GET /api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/versions/43741a96-bcb9-438b-ad1a-687c0b9e3e45/training-mat",
+      "name": "identity header GET /api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/versions/808efef0-89df-4d85-b38a-a3ad54c2e43c/training-mat",
       "passed": true
     },
     {
@@ -374,246 +430,280 @@
   ],
   "http": [
     {
+      "method": "PUT",
+      "path": "/api/v1/settings/llm",
+      "status": 200,
+      "seconds": 0.020491800009040162
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/settings/llm",
+      "status": 200,
+      "seconds": 0.0027555999986361712
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/settings/llm/key",
+      "status": 200,
+      "seconds": 0.0017473999760113657
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/settings/llm",
+      "status": 200,
+      "seconds": 0.002714600006584078
+    },
+    {
       "method": "POST",
       "path": "/api/v1/datasets/import",
       "status": 200,
-      "seconds": 0.04378589999396354
+      "seconds": 0.03554920002352446
     },
     {
       "method": "POST",
-      "path": "/api/v1/datasets/0d6ce89e-9462-4b49-a4e6-582134951e67/superpixels",
+      "path": "/api/v1/datasets/df5bb004-00a3-47b8-93fd-8880638b195e/superpixels",
       "status": 200,
-      "seconds": 0.0595337999984622
+      "seconds": 0.06562020001001656
     },
     {
       "method": "GET",
-      "path": "/api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/draft",
+      "path": "/api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/draft",
       "status": 200,
-      "seconds": 0.01345440000295639
+      "seconds": 0.013154199987184256
     },
     {
       "method": "POST",
-      "path": "/api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/draft/regions",
+      "path": "/api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/draft/regions",
       "status": 200,
-      "seconds": 0.040586499992059544
+      "seconds": 0.04156820001662709
     },
     {
       "method": "GET",
-      "path": "/api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/draft",
+      "path": "/api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/draft",
       "status": 200,
-      "seconds": 0.01082750002387911
+      "seconds": 0.010740300000179559
     },
     {
       "method": "POST",
-      "path": "/api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/draft/regions/r-0001",
+      "path": "/api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/draft/regions/r-0001",
       "status": 200,
-      "seconds": 0.03575090001686476
+      "seconds": 0.04028580000158399
     },
     {
       "method": "POST",
-      "path": "/api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/draft/regions",
+      "path": "/api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/draft/regions",
       "status": 200,
-      "seconds": 0.03629209997598082
+      "seconds": 0.04270459999679588
     },
     {
       "method": "GET",
-      "path": "/api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/draft",
+      "path": "/api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/draft",
       "status": 200,
-      "seconds": 0.012059800006682053
+      "seconds": 0.012319400004344061
     },
     {
       "method": "POST",
-      "path": "/api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/draft/confirm",
+      "path": "/api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/draft/confirm",
       "status": 200,
-      "seconds": 0.10183920001145452
+      "seconds": 0.11480959999607876
     },
     {
       "method": "GET",
-      "path": "/api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/versions/25c3f594-5ad7-4c23-8ea9-69a82474f29a/training-mat",
+      "path": "/api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/versions/43654004-699e-4c1e-85b2-976df3a1ba6d/training-mat",
       "status": 200,
-      "seconds": 0.008363000000827014
+      "seconds": 0.010520999989239499
     },
     {
       "method": "PUT",
       "path": "/api/v1/settings/llm",
       "status": 200,
-      "seconds": 0.012367199989967048
+      "seconds": 0.004044200002681464
     },
     {
       "method": "POST",
       "path": "/api/v1/agent/sessions",
       "status": 200,
-      "seconds": 0.014391300006536767
+      "seconds": 0.0158264999918174
     },
     {
       "method": "GET",
-      "path": "/api/v1/agent/sessions/4fedca32-fece-4178-84bd-34fa3a0cf782/steps",
+      "path": "/api/v1/agent/sessions/3542e29a-2337-4c21-a124-79391eefd728/steps",
       "status": 200,
-      "seconds": 0.004211599996779114
+      "seconds": 0.00397510000038892
     },
     {
       "method": "POST",
-      "path": "/api/v1/datasets/0d6ce89e-9462-4b49-a4e6-582134951e67/annotations/regions",
+      "path": "/api/v1/datasets/df5bb004-00a3-47b8-93fd-8880638b195e/annotations/regions",
       "status": 200,
-      "seconds": 0.05945380000048317
+      "seconds": 0.06216939998557791
     },
     {
       "method": "POST",
-      "path": "/api/v1/datasets/0d6ce89e-9462-4b49-a4e6-582134951e67/annotations/undo",
+      "path": "/api/v1/datasets/df5bb004-00a3-47b8-93fd-8880638b195e/annotations/undo",
       "status": 200,
-      "seconds": 0.052399299980606884
+      "seconds": 0.054214300005696714
     },
     {
       "method": "POST",
-      "path": "/api/v1/datasets/0d6ce89e-9462-4b49-a4e6-582134951e67/annotations/save",
+      "path": "/api/v1/datasets/df5bb004-00a3-47b8-93fd-8880638b195e/annotations/save",
       "status": 200,
-      "seconds": 0.04271889998926781
+      "seconds": 0.0426893999974709
     },
     {
       "method": "POST",
-      "path": "/api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/draft/confirm",
+      "path": "/api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/draft/confirm",
       "status": 200,
-      "seconds": 0.05161929997848347
+      "seconds": 0.053430300002219155
     },
     {
       "method": "GET",
-      "path": "/api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/versions/43741a96-bcb9-438b-ad1a-687c0b9e3e45/training-mat",
+      "path": "/api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/versions/808efef0-89df-4d85-b38a-a3ad54c2e43c/training-mat",
       "status": 404,
-      "seconds": 0.004824899981031194
+      "seconds": 0.004217600013362244
     },
     {
       "method": "GET",
-      "path": "/api/v1/annotations/0d6ce89e-9462-4b49-a4e6-582134951e67/versions/43741a96-bcb9-438b-ad1a-687c0b9e3e45/training-mat",
+      "path": "/api/v1/annotations/df5bb004-00a3-47b8-93fd-8880638b195e/versions/808efef0-89df-4d85-b38a-a3ad54c2e43c/training-mat",
       "status": 200,
-      "seconds": 0.009908400010317564
+      "seconds": 0.009614400012651458
     }
   ],
   "measurements": [
     {
-      "cube_id": "0d6ce89e-9462-4b49-a4e6-582134951e67",
-      "version_id": "25c3f594-5ad7-4c23-8ea9-69a82474f29a",
+      "cube_id": "df5bb004-00a3-47b8-93fd-8880638b195e",
+      "version_id": "43654004-699e-4c1e-85b2-976df3a1ba6d",
       "write": {
-        "seconds": 0.0033192999835591763,
-        "tracemalloc_peak_increment_bytes": 51949,
+        "seconds": 0.003361899987794459,
+        "tracemalloc_peak_increment_bytes": 52114,
         "do_compression": false
       },
       "status": "ok",
       "db_row": {
-        "id": "a1abcf41-167d-4446-bbde-29012469a373",
-        "cube_id": "0d6ce89e-9462-4b49-a4e6-582134951e67",
-        "annotation_version_id": "25c3f594-5ad7-4c23-8ea9-69a82474f29a",
-        "relative_path": "exports/0d6ce89e-9462-4b49-a4e6-582134951e67/25c3f594-5ad7-4c23-8ea9-69a82474f29a/training_mat.mat",
-        "sha256": "7f03c533472d9d0421ffdbe75a1cee7988a50a787793148495142b5f2c880f95",
+        "id": "f6f39726-6327-4a78-b19c-5d9399683f75",
+        "cube_id": "df5bb004-00a3-47b8-93fd-8880638b195e",
+        "annotation_version_id": "43654004-699e-4c1e-85b2-976df3a1ba6d",
+        "relative_path": "exports/df5bb004-00a3-47b8-93fd-8880638b195e/43654004-699e-4c1e-85b2-976df3a1ba6d/training_mat.mat",
+        "sha256": "6a0b475b966322096c40c5828a3d3df4088c539bbede93f09498cf9e1a4f34d7",
         "n_spectra": 480,
         "n_bands": 8,
         "n_classes": 4,
-        "input_fingerprint": "4e3eabb15c8123e78e8c4bd5cfd45ecc637c9eb4c77f6b2d08f1b7eb3364d30e",
-        "created_at": "2026-10-24T05:34:09.474759+00:00"
+        "input_fingerprint": "8f250f643b3ac1be42a0f3786c8a78120abbbe39538091683757b3041be2c819",
+        "created_at": "2026-10-24T10:40:15.577242+00:00"
       },
       "file_bytes": 23016,
-      "seconds": 0.06341169998631813
+      "seconds": 0.07453449998865835
     },
     {
-      "cube_id": "0d6ce89e-9462-4b49-a4e6-582134951e67",
-      "version_id": "e926d873-a24a-4e79-b9da-beafe8c40f38",
+      "cube_id": "df5bb004-00a3-47b8-93fd-8880638b195e",
+      "version_id": "6a2e5e40-c0e6-4694-877e-9b232eb4e715",
       "write": {
-        "seconds": 0.002440700016450137,
+        "seconds": 0.0021702999947592616,
         "tracemalloc_peak_increment_bytes": 26047,
         "do_compression": false
       },
       "status": "ok",
       "db_row": {
-        "id": "809c49f6-baea-427d-96ee-38ffa21ee2c8",
-        "cube_id": "0d6ce89e-9462-4b49-a4e6-582134951e67",
-        "annotation_version_id": "e926d873-a24a-4e79-b9da-beafe8c40f38",
-        "relative_path": "exports/0d6ce89e-9462-4b49-a4e6-582134951e67/e926d873-a24a-4e79-b9da-beafe8c40f38/training_mat.mat",
-        "sha256": "61f08b40f4627385e6952febac1c43b8a13ac3e59f301b875680eddab72e6f6b",
+        "id": "8ea4d5e1-da17-46cb-824c-1a5f67792eda",
+        "cube_id": "df5bb004-00a3-47b8-93fd-8880638b195e",
+        "annotation_version_id": "6a2e5e40-c0e6-4694-877e-9b232eb4e715",
+        "relative_path": "exports/df5bb004-00a3-47b8-93fd-8880638b195e/6a2e5e40-c0e6-4694-877e-9b232eb4e715/training_mat.mat",
+        "sha256": "f3d544ff5e83a9156e2bf1e4714734acc117cbe8fca99259ea96b3889db998b8",
         "n_spectra": 480,
         "n_bands": 8,
         "n_classes": 4,
-        "input_fingerprint": "8930495b35bdacfa10699e4e8223ec56a2b81614b03ecf4f08ba978ae56fccd0",
-        "created_at": "2026-10-24T05:34:09.696969+00:00"
+        "input_fingerprint": "71366a99f9feff36522bf4b8d77f5b38a8073f317e9fc34f5f663bd93505c323",
+        "created_at": "2026-10-24T10:40:15.817832+00:00"
       },
       "file_bytes": 23016,
-      "seconds": 0.04388179999659769
+      "seconds": 0.04257390002021566
     },
     {
-      "cube_id": "0d6ce89e-9462-4b49-a4e6-582134951e67",
-      "version_id": "43741a96-bcb9-438b-ad1a-687c0b9e3e45",
+      "cube_id": "df5bb004-00a3-47b8-93fd-8880638b195e",
+      "version_id": "808efef0-89df-4d85-b38a-a3ad54c2e43c",
       "write": null,
       "status": "error",
       "error_type": "DataError",
-      "seconds": 0.018685199989704415
+      "seconds": 0.018225900013931096
     },
     {
-      "cube_id": "0d6ce89e-9462-4b49-a4e6-582134951e67",
-      "version_id": "43741a96-bcb9-438b-ad1a-687c0b9e3e45",
+      "cube_id": "df5bb004-00a3-47b8-93fd-8880638b195e",
+      "version_id": "808efef0-89df-4d85-b38a-a3ad54c2e43c",
       "write": {
-        "seconds": 0.002283500012708828,
+        "seconds": 0.002530900004785508,
         "tracemalloc_peak_increment_bytes": 26031,
         "do_compression": false
       },
       "status": "ok",
       "db_row": {
-        "id": "d4b69f49-6061-4709-b18b-8e52b13283fc",
-        "cube_id": "0d6ce89e-9462-4b49-a4e6-582134951e67",
-        "annotation_version_id": "43741a96-bcb9-438b-ad1a-687c0b9e3e45",
-        "relative_path": "exports/0d6ce89e-9462-4b49-a4e6-582134951e67/43741a96-bcb9-438b-ad1a-687c0b9e3e45/training_mat.mat",
-        "sha256": "66382f65b8b59dfb8e2fc5f5f6a9c1a2400a7d540f21b86de4e20e02d8785f52",
+        "id": "6879423b-32fd-465c-9da7-f47d55a8f5bd",
+        "cube_id": "df5bb004-00a3-47b8-93fd-8880638b195e",
+        "annotation_version_id": "808efef0-89df-4d85-b38a-a3ad54c2e43c",
+        "relative_path": "exports/df5bb004-00a3-47b8-93fd-8880638b195e/808efef0-89df-4d85-b38a-a3ad54c2e43c/training_mat.mat",
+        "sha256": "b3d01c11713176360011527a7105991416a94229f3d8a3f2a63d6b8005270bbb",
         "n_spectra": 480,
         "n_bands": 8,
         "n_classes": 4,
-        "input_fingerprint": "043f1c2b501884a8221bf4c5b1310f4d477c018fb0b693f060914ee69232a31e",
-        "created_at": "2026-10-24T05:34:10.027709+00:00"
+        "input_fingerprint": "0f09cadb9f674e7b1c58217343a70c9f8d1e190ab163150be4fad811fe6ec556",
+        "created_at": "2026-10-24T10:40:16.143980+00:00"
       },
       "file_bytes": 23016,
-      "seconds": 0.04390330001479015
+      "seconds": 0.04390869999770075
     },
     {
-      "cube_id": "67cadad3-d68a-4900-99e6-78cd4c6860d0",
-      "version_id": "d415d085-ae26-488f-94b7-67243d1c0522",
+      "cube_id": "bdbd02e7-05e4-4a83-8b1d-4f0a426ac9a3",
+      "version_id": "bf8acc49-0701-4676-84eb-101450654332",
       "write": {
-        "seconds": 0.19264209998073056,
+        "seconds": 0.18850899999961257,
         "tracemalloc_peak_increment_bytes": 118282655,
         "do_compression": false
       },
       "status": "ok",
       "db_row": {
-        "id": "315fc04f-afdf-40b5-b6e4-08411eaf996c",
-        "cube_id": "67cadad3-d68a-4900-99e6-78cd4c6860d0",
-        "annotation_version_id": "d415d085-ae26-488f-94b7-67243d1c0522",
-        "relative_path": "exports/67cadad3-d68a-4900-99e6-78cd4c6860d0/d415d085-ae26-488f-94b7-67243d1c0522/training_mat.mat",
-        "sha256": "922033f5fb379b3994caa1bb6ca330f987fea8d90dad40e6ad660260d92346a2",
+        "id": "9ca06914-31ce-4172-9211-a429c6744caf",
+        "cube_id": "bdbd02e7-05e4-4a83-8b1d-4f0a426ac9a3",
+        "annotation_version_id": "bf8acc49-0701-4676-84eb-101450654332",
+        "relative_path": "exports/bdbd02e7-05e4-4a83-8b1d-4f0a426ac9a3/bf8acc49-0701-4676-84eb-101450654332/training_mat.mat",
+        "sha256": "4bb7106fab87cfa72d349dd26b0f1262a9791c4237ac89cf717866426b7de9a5",
         "n_spectra": 147840,
         "n_bands": 200,
         "n_classes": 4,
-        "input_fingerprint": "e5c1fe6d6674632745c745fbf692d3aba45452a2f0fdc2ffc1071b2f70a92ef5",
-        "created_at": "2026-10-24T05:34:11.488638+00:00"
+        "input_fingerprint": "5b3e0d9e00990acc8fd0184ccf9268b1ce0310f4fad3b654b0e70c3e367943a5",
+        "created_at": "2026-10-24T10:40:17.630147+00:00"
       },
       "file_bytes": 120049512,
-      "seconds": 0.6436063000001013
+      "seconds": 0.646166299993638
     }
   ],
   "success": true,
-  "runtime": "E:\\AI_Agent\\.runtime\\task07-12.7\\cc6deca685634d2a88425dc7b3f337df",
+  "runtime": "E:\\AI_Agent\\.runtime\\task07-12.7\\5d3436d832134d34b43a17b563af8bb8",
+  "settings_chain": {
+    "sequence": [
+      "PUT config",
+      "GET has_key=false",
+      "PUT key",
+      "GET has_key=true without key body"
+    ],
+    "configuration_preserved": true,
+    "credential_echoed": false
+  },
   "annotation": {
-    "cube_id": "0d6ce89e-9462-4b49-a4e6-582134951e67",
+    "cube_id": "df5bb004-00a3-47b8-93fd-8880638b195e",
     "version": {
-      "version_id": "25c3f594-5ad7-4c23-8ea9-69a82474f29a",
+      "version_id": "43654004-699e-4c1e-85b2-976df3a1ba6d",
       "version_no": 1,
-      "snapshot_ref": "0d6ce89e-9462-4b49-a4e6-582134951e67/v1",
-      "training_mat_id": "a1abcf41-167d-4446-bbde-29012469a373",
+      "snapshot_ref": "df5bb004-00a3-47b8-93fd-8880638b195e/v1",
+      "training_mat_id": "f6f39726-6327-4a78-b19c-5d9399683f75",
       "overlap_conflicts": 0,
       "n_spectra": 480
     },
     "export": {
-      "cube_id": "0d6ce89e-9462-4b49-a4e6-582134951e67",
-      "version_id": "25c3f594-5ad7-4c23-8ea9-69a82474f29a",
-      "training_mat_id": "a1abcf41-167d-4446-bbde-29012469a373",
+      "cube_id": "df5bb004-00a3-47b8-93fd-8880638b195e",
+      "version_id": "43654004-699e-4c1e-85b2-976df3a1ba6d",
+      "training_mat_id": "f6f39726-6327-4a78-b19c-5d9399683f75",
       "n_spectra": 480,
       "n_bands": 8,
       "n_classes": 4,
-      "sha256": "7f03c533472d9d0421ffdbe75a1cee7988a50a787793148495142b5f2c880f95",
+      "sha256": "6a0b475b966322096c40c5828a3d3df4088c539bbede93f09498cf9e1a4f34d7",
       "status": "ready"
     },
     "estimated_mat_bytes": [
@@ -621,18 +711,18 @@
       512,
       15360
     ],
-    "confirm_http_seconds": 0.10185679999995045
+    "confirm_http_seconds": 0.11482769998838194
   },
   "dialogue": {
-    "session_id": "4fedca32-fece-4178-84bd-34fa3a0cf782",
+    "session_id": "3542e29a-2337-4c21-a124-79391eefd728",
     "initial_events": [
       {
         "event": "human_check",
         "data": {
-          "check_id": "bd8be4a1-74fe-457a-860c-09031240ec64",
+          "check_id": "9ccecd03-996e-4dc7-99a1-bb4235808117",
           "reason": "标注版本确认",
           "summary": {
-            "cube_id": "0d6ce89e-9462-4b49-a4e6-582134951e67",
+            "cube_id": "df5bb004-00a3-47b8-93fd-8880638b195e",
             "revision": 3
           },
           "tool": "annotations.draft_confirm"
@@ -646,8 +736,8 @@
           "result_summary": {
             "n_spectra": 480,
             "overlap_conflicts": 0,
-            "training_mat_id": "809c49f6-baea-427d-96ee-38ffa21ee2c8",
-            "version_id": "e926d873-a24a-4e79-b9da-beafe8c40f38",
+            "training_mat_id": "8ea4d5e1-da17-46cb-824c-1a5f67792eda",
+            "version_id": "6a2e5e40-c0e6-4694-877e-9b232eb4e715",
             "version_no": 2
           },
           "seq": 1,
@@ -665,26 +755,26 @@
     ],
     "provider": "httpx.MockTransport; two callbacks; no real provider network",
     "provider_calls": 2,
-    "message_to_human_check_seconds": 0.039642399991862476,
-    "approve_to_final_sse_seconds": 0.1260586999997031,
-    "total_http_seconds": 0.16570109999156557,
+    "message_to_human_check_seconds": 0.037217100005364046,
+    "approve_to_final_sse_seconds": 0.12290989997563884,
+    "total_http_seconds": 0.16012699998100288,
     "provider_stages": [
       {
         "stage": "PARSE",
-        "seconds": 0.0001449999981559813
+        "seconds": 0.0001241000136360526
       },
       {
         "stage": "INTERPRET",
-        "seconds": 5.9999991208314896e-05
+        "seconds": 6.289998418651521e-05
       }
     ],
-    "confirm_seconds": 0.0758899999782443,
-    "mat_generation_seconds": 0.04388179999659769,
-    "savemat_seconds": 0.002440700016450137,
+    "confirm_seconds": 0.07414969999808818,
+    "mat_generation_seconds": 0.04257390002021566,
+    "savemat_seconds": 0.0021702999947592616,
     "timing_note": "nested spans, not additive; TestClient buffers finite SSE; human think time excluded"
   },
   "legacy": {
-    "version_id": "a8923dcd-3b1b-4e45-bc92-8fad89ef7da4",
+    "version_id": "f1b90df7-2b6d-4e80-825a-360d1ab54209",
     "old_snapshot_files": [
       "label_index.json",
       "label_map.npz",
@@ -694,17 +784,17 @@
     "mat_row_count_unchanged": true
   },
   "recovery": {
-    "version_id": "43741a96-bcb9-438b-ad1a-687c0b9e3e45",
+    "version_id": "808efef0-89df-4d85-b38a-a3ad54c2e43c",
     "failed_mat_id": null,
-    "rebuild_mat_id": "d4b69f49-6061-4709-b18b-8e52b13283fc",
+    "rebuild_mat_id": "6879423b-32fd-465c-9da7-f47d55a8f5bd",
     "n_spectra": 480
   },
   "large_performance": {
-    "mat_seconds": 0.6436063000001013,
-    "confirm_seconds": 1.711524600017583,
+    "mat_seconds": 0.646166299993638,
+    "confirm_seconds": 1.7303333999880124,
     "file_bytes": 120049512,
     "gate_passed": true
   },
-  "assertion_count": 92,
-  "passed_assertions": 92
+  "assertion_count": 106,
+  "passed_assertions": 106
 }

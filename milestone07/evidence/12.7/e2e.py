@@ -1,4 +1,4 @@
-"""TASK-07 12.7 / R24: real ASGI routes, mock provider, synthetic DN only.
+"""TASK-07 12.7 / R24 + 12.7.1 / R26-R27: real ASGI routes, mock provider, synthetic DN only.
 
 Run with .venv/Scripts/python.exe from the repository. The evidence copy is
 identical and runnable. No source/key/vendor configuration is supplied by users.
@@ -50,7 +50,7 @@ def rect(r0, c0, r1, c1):
 class Evidence:
     def __init__(self):
         self.data = {"source_level": "R24 TestClient / real ASGI stack / synthetic DN / MockTransport",
-                     "started_at": datetime.now(timezone.utc).isoformat(), "base_commit": "21e4f84",
+                     "started_at": datetime.now(timezone.utc).isoformat(), "base_commit": "1fb2de3",
                      "assertions": [], "http": [], "measurements": [], "success": False}
 
     def check(self, condition, label):
@@ -194,6 +194,25 @@ def annotation_chain(e, client, app, header):
     e.data["annotation"] = {"cube_id": cube, "version": confirmed, "export": exported,
                             "estimated_mat_bytes": [0, 512, 15360], "confirm_http_seconds": confirm_seconds}
     return cube
+
+
+def settings_chain(e, client):
+    # Runtime-only mock fixture, not a vendor default. No credential is written to evidence.
+    config = {"base_url": "https://mock.invalid/v1", "model": "task07-replay",
+              "temperature": "", "max_tokens": "", "timeout_ms": ""}
+    e.call(client, "PUT", "/api/v1/settings/llm", config)
+    before = e.call(client, "GET", "/api/v1/settings/llm").json()
+    e.check({key: before[key] for key in config} == config, "settings five-key configuration round-trip")
+    e.check(before["has_key"] is False, "settings config PUT leaves has_key=false")
+    credential = uuid4().hex
+    status = e.call(client, "PUT", "/api/v1/settings/llm/key", {"key": credential}).json()
+    e.check(status == {"has_key": True}, "settings key PUT returns only has_key=true")
+    after = e.call(client, "GET", "/api/v1/settings/llm").json()
+    e.check(after["has_key"] is True, "settings GET has_key=true after key PUT")
+    e.check(set(after) == set(config) | {"has_key"} and credential not in _json(after), "settings GET excludes key field and credential body")
+    e.check({key: after[key] for key in config} == config, "settings key PUT preserves five-key configuration")
+    e.data["settings_chain"] = {"sequence": ["PUT config", "GET has_key=false", "PUT key", "GET has_key=true without key body"],
+                                "configuration_preserved": True, "credential_echoed": False}
 
 
 def dialogue_chain(e, client, app, cube):
@@ -350,7 +369,7 @@ def main():
     e.data["runtime"] = str(runtime)
     # All temporary application locations are explicit and remain on E:.
     os.environ.update(TEMP=str(runtime), TMP=str(runtime))
-    set_api_key("")  # Mock provider needs no API key, and none is ever persisted.
+    set_api_key("")  # R27 starts without a credential to verify config/key separation.
     try:
         header = synthetic_cube(runtime / "small-source", (40, 12, 8))
         identity = EngineIdentity()
@@ -358,6 +377,7 @@ def main():
         generate_observer, write_observer = observe_mat(e.data["measurements"])
         with generate_observer, write_observer, TestClient(app) as client:
             client.headers["Authorization"] = "Bearer " + identity.token
+            settings_chain(e, client)
             cube = annotation_chain(e, client, app, header)
             dialogue_chain(e, client, app, cube)
             legacy_chain(e, client, app, cube)

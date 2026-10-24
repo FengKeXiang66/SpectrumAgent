@@ -12,7 +12,7 @@
 | S04 | [ ] 实际生成超像素、扩散产生候选；标签由人逐类确认，无自动赋标 | ____ |
 | S05 | [ ] S05多边形/超像素确认、不确定、擦除、撤销与重开：JSON及画布同步；既有保存/版本回看正常 | ____ |
 | S06 | [ ] 画布新“确认版本并生成训练MAT”卡在动作前显示体积；确认后四件套及MAT可用；覆写需明确选择，id/version_no/created_at保持 | ____ |
-| S07 | [ ] 设置真实DeepSeek base_url/model，key仅内存；has_key=true但GET不回显；对话真实tool_call→HUMAN_CHECK→批准/拒绝，工具摘要/结果气泡可读 | ____ |
+| S07 | [ ] 经设置屏入口设置真实DeepSeek base_url/model，key仅内存；has_key=true但GET不回显；对话真实tool_call→HUMAN_CHECK→批准/拒绝，工具摘要/结果气泡可读 | ____ |
 | S08 | [ ] 仅修改配置切换云端模型，行为仍符合工具/几何红线；记录真实云端消息→待确认与批准→完成耗时、provider上报usage；未上报就记未上报 | ____ |
 | S09 | [ ] 真实NAS PE cube全标confirm，独立记录MAT生成/全confirm秒、文件字节、峰值口径；MAT>30s立即回报重议，不预设异步分支 | ____ |
 | S10 | [ ] MAT经API/脚本下载：octet-stream、固定附件名、SHA256、原DN/标签/rows-cols/元数据可读；大MAT走API/脚本，IPC超过8MiB应拒绝，本版无应用内下载UI | ____ |

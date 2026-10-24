@@ -5,6 +5,7 @@ import { acceptSnapshot, type ExitReason, type Snapshot } from './status';
 import DatasetPanel from './components/datasets/DatasetPanel';
 import { datasets } from './components/datasets/api';
 import AssistantBar from './components/assistant/AssistantBar';
+import SettingsPanel from './components/settings/SettingsPanel';
 
 type Metrics = { nan_ratio: number; reflectance_range: [number, number]; bands: number; shape: [number, number, number]; elapsed_ms: number };
 const reasons: Record<string, string> = {
@@ -30,6 +31,7 @@ export default function App() {
   const [message, setMessage] = useState('输入“运行冒烟测试”，或点击发送。');
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [busy, setBusy] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const statusRef = useRef(status);
   statusRef.current = status;
@@ -84,6 +86,8 @@ export default function App() {
     <main>
       <h1>光谱数据 AI Agent · 数据接入</h1>
       <p aria-label="产品版本">版本 {__SPECTRUM_PRODUCT_VERSION__}</p>
+      <button disabled={status.phase !== 'Ready'} onClick={() => setSettingsOpen(true)}>设置</button>
+      {settingsOpen && status.phase === 'Ready' && <SettingsPanel key={status.generation_id} onClose={() => setSettingsOpen(false)} />}
       {status.phase === 'Ready' && <>
         <p role="status">引擎已就绪</p>
         <p>选择数据目录，查看数据集与单波段预览。</p>
