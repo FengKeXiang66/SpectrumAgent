@@ -520,6 +520,169 @@
         }
       }
     },
+    "/api/v1/annotations/{cube_id}/draft": {
+      "get": {
+        "tags": [
+          "annotation labels"
+        ],
+        "summary": "Get Draft",
+        "operationId": "get_draft_api_v1_annotations__cube_id__draft_get",
+        "parameters": [
+          {
+            "name": "cube_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Cube Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/annotations/{cube_id}/draft/regions": {
+      "post": {
+        "tags": [
+          "annotation labels"
+        ],
+        "summary": "Add Draft Region",
+        "operationId": "add_draft_region_api_v1_annotations__cube_id__draft_regions_post",
+        "parameters": [
+          {
+            "name": "cube_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Cube Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/DraftAddRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/DraftUncertainRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/DraftEraseRequest"
+                  }
+                ],
+                "title": "Request"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/annotations/{cube_id}/draft/regions/{region_id}": {
+      "post": {
+        "tags": [
+          "annotation labels"
+        ],
+        "summary": "Patch Draft Region",
+        "operationId": "patch_draft_region_api_v1_annotations__cube_id__draft_regions__region_id__post",
+        "parameters": [
+          {
+            "name": "cube_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Cube Id"
+            }
+          },
+          {
+            "name": "region_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Region Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DraftPatchRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/projects": {
       "get": {
         "tags": [
@@ -2141,6 +2304,210 @@
         ],
         "title": "DoodleSeed"
       },
+      "DraftAddRequest": {
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revision"
+          },
+          "geometry": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Polygon"
+              },
+              {
+                "$ref": "#/components/schemas/DraftGesture"
+              }
+            ],
+            "title": "Geometry"
+          },
+          "op": {
+            "type": "string",
+            "const": "add",
+            "title": "Op",
+            "default": "add"
+          },
+          "class_code": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Class Code"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "revision",
+          "geometry",
+          "class_code"
+        ],
+        "title": "DraftAddRequest"
+      },
+      "DraftEraseRequest": {
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revision"
+          },
+          "geometry": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Polygon"
+              },
+              {
+                "$ref": "#/components/schemas/DraftGesture"
+              }
+            ],
+            "title": "Geometry"
+          },
+          "op": {
+            "type": "string",
+            "const": "erase",
+            "title": "Op"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "revision",
+          "geometry",
+          "op"
+        ],
+        "title": "DraftEraseRequest"
+      },
+      "DraftGesture": {
+        "properties": {
+          "gesture_ref": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Gesture Ref"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "gesture_ref"
+        ],
+        "title": "DraftGesture"
+      },
+      "DraftPatchRequest": {
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revision"
+          },
+          "class_code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Class Code"
+          },
+          "geometry": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Polygon"
+              },
+              {
+                "$ref": "#/components/schemas/DraftGesture"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Geometry"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "deleted": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleted"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "revision"
+        ],
+        "title": "DraftPatchRequest"
+      },
+      "DraftUncertainRequest": {
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revision"
+          },
+          "geometry": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Polygon"
+              },
+              {
+                "$ref": "#/components/schemas/DraftGesture"
+              }
+            ],
+            "title": "Geometry"
+          },
+          "op": {
+            "type": "string",
+            "const": "uncertain",
+            "title": "Op"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "revision",
+          "geometry",
+          "op"
+        ],
+        "title": "DraftUncertainRequest"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -2372,6 +2739,42 @@
           "point"
         ],
         "title": "PointSeed"
+      },
+      "Polygon": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "polygon",
+            "title": "Type"
+          },
+          "points": {
+            "items": {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "type": "array",
+              "maxItems": 2,
+              "minItems": 2
+            },
+            "type": "array",
+            "minItems": 3,
+            "title": "Points"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "type",
+          "points"
+        ],
+        "title": "Polygon"
       },
       "PolygonGeometry": {
         "properties": {

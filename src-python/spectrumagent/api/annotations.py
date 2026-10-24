@@ -13,13 +13,15 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Request
 import numpy as np
 from PIL import Image, ImageColor
-from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt
+from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, model_validator
 
 from backend.database import connect_database
 from spectrumagent.annotation.labels import LabelRequest, LabelStore, plastic_catalog
 from spectrumagent.annotation.engines.superpixels import DEFAULT_COMPACTNESS, Parameters, SuperpixelEngine
 from spectrumagent.annotation.engines.diffusion import DEFAULT_THRESHOLD, DEFAULT_QUEUE_MIN_SIMILARITY, DiffusionEngine
 from spectrumagent.annotation.session import AnnotationConflict, SessionStore
+from spectrumagent.annotation.raster import polygon_mask
+from spectrumagent.annotation.draft import Polygon
 from spectrumagent.data import DataError
 
 
@@ -80,20 +82,44 @@ class SaveRequest(Input):
     confirm: StrictBool = False
 
 
-def polygon_mask(shape, vertices):
-    """R19: pixel CENTRES, even-odd, exact on-edge inclusion; no dilation."""
-    rows = np.arange(shape[0], dtype=np.float64)[:, None] + .5
-    cols = np.arange(shape[1], dtype=np.float64)[None, :] + .5
-    inside = np.zeros(shape, dtype=bool)
-    on_edge = np.zeros(shape, dtype=bool)
-    for (r0, c0), (r1, c1) in zip(vertices, vertices[1:] + vertices[:1]):
-        cross = (rows-r0)*(c1-c0) - (cols-c0)*(r1-r0)
-        on_edge |= ((cross == 0) & (rows >= min(r0, r1)) & (rows <= max(r0, r1))
-                    & (cols >= min(c0, c1)) & (cols <= max(c0, c1)))
-        if r0 != r1:
-            crossing = ((r0 > rows) != (r1 > rows)) & (cols < c0+(rows-r0)*(c1-c0)/(r1-r0))
-            inside ^= crossing
-    return inside | on_edge
+class DraftGesture(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    gesture_ref: Annotated[str, Field(min_length=1)]
+
+
+class DraftRegionInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    revision: Annotated[int, Field(ge=0)]
+    geometry: Polygon | DraftGesture
+
+
+class DraftAddRequest(DraftRegionInput):
+    op: Literal["add"] = "add"
+    class_code: Annotated[str, Field(min_length=1)]
+    confidence: Literal["high", "medium", "low"] | None = None
+
+
+class DraftUncertainRequest(DraftRegionInput):
+    op: Literal["uncertain"]
+
+
+class DraftEraseRequest(DraftRegionInput):
+    op: Literal["erase"]
+
+
+class DraftPatchRequest(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    revision: Annotated[int, Field(ge=0)]
+    class_code: Annotated[str, Field(min_length=1)] | None = None
+    geometry: Polygon | DraftGesture | None = None
+    confidence: Literal["high", "medium", "low"] | None = None
+    deleted: bool | None = None
+
+    @model_validator(mode="after")
+    def nonnull_patch(self):
+        if any(getattr(self, key) is None for key in self.model_fields_set):
+            raise ValueError("patch 不接受 null 字段")
+        return self
 
 
 def geometry_mask(state, geometry):
@@ -125,6 +151,37 @@ def label_overlay(label_map, label_index, colors):
 
 def make_router(store: LabelStore, engine: SuperpixelEngine, sessions: SessionStore, diffusion: DiffusionEngine):
     router = APIRouter(prefix="/api/v1", tags=["annotation labels"])
+
+    def change_draft(identifier, operation):
+        with sessions._lock:
+            state = sessions._state(identifier)
+            before = (state.document_json, state.label_map.copy())
+            result = operation()
+            state.undo_stack.append(before)
+            sessions._state(identifier)
+            return result
+
+    @router.get("/annotations/{cube_id}/draft")
+    def get_draft(cube_id: UUID):
+        with sessions._lock:
+            sessions._state(cube_id)
+            return sessions.drafts.view(cube_id)
+
+    @router.post("/annotations/{cube_id}/draft/regions")
+    def add_draft_region(cube_id: UUID, request: DraftAddRequest | DraftUncertainRequest | DraftEraseRequest):
+        if isinstance(request.geometry, DraftGesture):
+            raise DataError("TOOL_ARGS_INVALID", "手势引用尚未接入")
+        arguments = request.model_dump(exclude={"revision"}, exclude_unset=True)
+        arguments["geometry"] = request.geometry.model_dump()
+        result = change_draft(cube_id, lambda: sessions.drafts.add(cube_id, request.revision, **arguments))
+        return {"revision": result["revision"], "region_id": result["region_id"],
+                "statistics": sessions.drafts.statistics(cube_id, result["document"])}
+
+    @router.post("/annotations/{cube_id}/draft/regions/{region_id}")
+    def patch_draft_region(cube_id: UUID, region_id: str, request: DraftPatchRequest):
+        result = change_draft(cube_id, lambda: sessions.drafts.patch(
+            cube_id, region_id, request.revision, request.model_dump(exclude={"revision"}, exclude_unset=True)))
+        return {"revision": result["revision"], "region_id": result["region_id"]}
 
     @contextmanager
     def current_segmentation(identifier):
@@ -196,7 +253,7 @@ def make_router(store: LabelStore, engine: SuperpixelEngine, sessions: SessionSt
     def regions(identifier: UUID, request: AnnotationRegionRequest):
         with current_segmentation(identifier) as state:
             sessions.edit(identifier, geometry_mask(state, request.geometry),
-                          action=request.action, label_id=request.label_id)
+                          action=request.action, label_id=request.label_id, geometry=request.geometry.model_dump())
             return working_view(identifier)
 
     @router.post("/datasets/{identifier}/annotations/undo")

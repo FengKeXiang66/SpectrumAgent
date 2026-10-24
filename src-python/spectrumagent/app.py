@@ -34,7 +34,8 @@ def create_app(paths, identity):
     app.state.preprocess_compare = CompareEngine(app.state.preprocess_runner)
     app.include_router(make_preprocess_router(app.state.preprocess_runner, app.state.preprocess_compare))
     app.state.agent_tools = build_registry(datasets=registry, runner=app.state.preprocess_runner,
-                                          comparison=app.state.preprocess_compare, database=paths.database)
+                                          comparison=app.state.preprocess_compare, database=paths.database,
+                                          sessions=app.state.annotation_sessions)
     app.state.agent_llm_factory = lambda session_id: OpenAICompatibleClient(paths.database, session_id=session_id)
     app.include_router(make_agent_router(paths.database, lambda: app.state.agent_tools,
                                         lambda session_id: app.state.agent_llm_factory(session_id)))
@@ -51,6 +52,8 @@ def create_app(paths, identity):
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(request, error):
+        if request.url.path.startswith("/api/v1/annotations/"):
+            return JSONResponse(DataError("TOOL_ARGS_INVALID", "草稿请求参数不合法").as_dict(), status_code=400)
         if request.url.path.startswith("/api/v1/settings") or request.url.path.startswith("/api/v1/agent"):
             # Validation errors may contain a submitted key, even in extra fields
             # or malformed JSON. Never echo inputs through the foundation handler.
@@ -68,7 +71,7 @@ def create_app(paths, identity):
     @app.middleware("http")
     async def dataset_identity(request, call_next):
         response = await call_next(request)
-        if (request.url.path in LABEL_PATHS or request.url.path == "/api/v1/datasets" or request.url.path.startswith("/api/v1/datasets/") or request.url.path.startswith("/api/v1/preprocess") or request.url.path.startswith("/api/v1/settings") or request.url.path.startswith("/api/v1/agent")) and response.status_code != 401:
+        if (request.url.path in LABEL_PATHS or request.url.path == "/api/v1/datasets" or request.url.path.startswith("/api/v1/datasets/") or request.url.path.startswith("/api/v1/preprocess") or request.url.path.startswith("/api/v1/settings") or request.url.path.startswith("/api/v1/agent") or request.url.path.startswith("/api/v1/annotations/")) and response.status_code != 401:
             response.headers["X-SpectrumAgent-Boot-Id"] = identity.boot_id
             response.headers["X-SpectrumAgent-Pid"] = str(identity.pid)
         return response

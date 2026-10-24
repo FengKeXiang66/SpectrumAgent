@@ -68,6 +68,22 @@ CREATE TABLE IF NOT EXISTS agent_step (
   latency_ms      INTEGER NOT NULL,
   created_at      TEXT NOT NULL
 );
+-- G5：标注草稿（每 cube 一条活草稿）
+CREATE TABLE IF NOT EXISTS annotation_draft (
+  cube_id            TEXT PRIMARY KEY REFERENCES dataset_registry(id),
+  revision           INTEGER NOT NULL,            -- 禁 DEFAULT：忘写直接报错（八查⑤.6 显式供值，不靠默认兜底），服务端自增，写入带 CAS（见下）
+  document_json      TEXT NOT NULL,   -- 单条 UPDATE，BEGIN IMMEDIATE 事务内原子（DB TEXT 列无文件临时态），schema 校验不过不落盘
+  schema_version     INTEGER NOT NULL,-- 常量 1（禁配置化）
+  raster_rule_version INTEGER NOT NULL,-- 常量 1（禁配置化，v1 栅格化函数永不删除）
+  updated_at         TEXT NOT NULL    -- 服务端 timestamp()
+);
+-- 并发 CAS 三条规则（缺一不可）：
+--   ① 创建：revision 从 0 起，INSERT 时写 revision=1，
+--   ② 更新：UPDATE annotation_draft SET document_json=?, revision=revision+1, updated_at=? WHERE cube_id=? AND revision=?，
+--      影响行数 0 → DRAFT_REVISION_CONFLICT（HTTP 409），
+--   ③ 禁 INSERT OR REPLACE / ON CONFLICT DO UPDATE——两者都会把 revision 重置为默认值 1，客户端持旧值反而写成功，CAS 反向失效。
+-- 动因：画布与对话可同时编辑同一 cube，last-write-wins 会静默丢更新。
+
 """
 
 SETTING_KEYS = ("base_url", "model", "temperature", "max_tokens", "timeout_ms")

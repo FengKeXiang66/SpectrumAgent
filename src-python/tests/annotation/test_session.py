@@ -258,7 +258,7 @@ def test_snapshot_write_failure_never_publishes_or_inserts(annotation_case, monk
     assert list((c.paths.snapshots / c.identifier).iterdir()) == []
 
 
-def test_working_memory_only_and_empty_snapshot_three_states(annotation_case):
+def test_working_state_restored_from_draft_and_empty_snapshot_three_states(annotation_case):
     c = annotation_case
     assert c.store.working(c.identifier)["statistics"]["dominant_label_id"] is None
     c.store.edit(c.identifier, c.segments == 0, action="uncertain")
@@ -267,7 +267,11 @@ def test_working_memory_only_and_empty_snapshot_three_states(annotation_case):
     assert rows(c, "annotation_version")[0]["labeled_pixels"] == 0
     assert c.store.read_version(saved["id"])["spectra"] == {}
     fresh = SessionStore(c.registry, c.paths)
-    assert fresh.working(c.identifier)["statistics"]["blank_pixels"] == 480
+    restored = fresh.working(c.identifier)
+    assert restored["statistics"]["uncertain_pixels"] == 80
+    assert restored["statistics"]["blank_pixels"] == 400
+    from spectrumagent.annotation.raster import rasterize
+    np.testing.assert_array_equal(restored["label_map"], rasterize(fresh.drafts.get(c.identifier)["document"], c.values.shape))
     assert fresh.working(c.identifier)["params"] is None
     with pytest.raises(DataError, match="请先生成超像素"):
         fresh.save(c.identifier)
@@ -323,3 +327,51 @@ def test_cube_working_states_and_candidate_queues_are_independent(annotation_cas
     assert original["statistics"]["labeled_pixels"] == 160
     assert original["statistics"]["pending_pixels"] == 80
     assert c.store.working(other)["params"] is None
+
+
+def test_draft_undo_restores_document_map_and_never_reuses_region_id(annotation_case):
+    from spectrumagent.annotation.raster import rasterize
+    c = annotation_case
+    c.store.edit(c.identifier, c.segments == 0, action="confirm", label_id=c.labels["PE"])
+    before = c.store.drafts.get(c.identifier)
+    old_map = c.store.working(c.identifier)["label_map"]
+    c.store.edit(c.identifier, c.segments == 1, action="uncertain")
+    removed_id = c.store.drafts.get(c.identifier)["document"]["regions"][-1]["region_id"]
+    restored = c.store.undo(c.identifier)
+    after = c.store.drafts.get(c.identifier)
+    assert after["document"] == before["document"] and after["revision"] == 3
+    np.testing.assert_array_equal(restored["label_map"], old_map)
+    np.testing.assert_array_equal(restored["label_map"], rasterize(after["document"], c.values.shape))
+    c.store.edit(c.identifier, c.segments == 1, action="erase")
+    assert c.store.drafts.get(c.identifier)["document"]["regions"][-1]["region_id"] == "r-0004" != removed_id
+
+
+def test_draft_remap_persists_classes_regions_and_undo_document(annotation_case):
+    from spectrumagent.annotation.raster import rasterize
+    c = annotation_case
+    labels = LabelStore(c.paths.database)
+    custom = labels.add(CustomRequest(project_id=c.project, code="ZZZ", name="test", tree_path="材料/塑料/ZZZ", color_hex="#123456"))
+    c.store.edit(c.identifier, c.segments == 0, action="confirm", label_id=custom["id"])
+    labels.add(CatalogRequest(project_id=c.project, from_catalog="plastic", codes=["PS"]))
+    working = c.store.working(c.identifier)
+    row = c.store.drafts.get(c.identifier)
+    assert row["document"]["regions"][0]["class_index"] == 5
+    assert row["document"]["classes"][5]["code"] == "ZZZ"
+    np.testing.assert_array_equal(working["label_map"], rasterize(row["document"], c.values.shape))
+    fresh = SessionStore(c.registry, c.paths)
+    np.testing.assert_array_equal(fresh.working(c.identifier)["label_map"], working["label_map"])
+    c.store.undo(c.identifier)
+    assert len(c.store.drafts.get(c.identifier)["document"]["classes"]) == 6
+    assert c.store.working(c.identifier)["statistics"]["labeled_pixels"] == 0
+
+
+def test_label_removed_still_raises_and_draft_stays_unchanged(annotation_case):
+    c = annotation_case
+    c.store.edit(c.identifier, c.segments == 0, action="confirm", label_id=c.labels["PE"])
+    before = c.store.drafts.get(c.identifier)
+    with connect_database(c.paths.database) as db:
+        db.execute("DELETE FROM label WHERE id=?", (c.labels["PE"],))
+    with pytest.raises(DataError) as error:
+        c.store.working(c.identifier)
+    assert error.value.code == "LABEL_REMOVED"
+    assert c.store.drafts.get(c.identifier) == before

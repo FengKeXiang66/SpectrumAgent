@@ -19,6 +19,8 @@ from backend.database import connect_database
 from spectrumagent.data import DataError
 from .engines.superpixels import ReadableRows, row_blocks
 from .labels import now
+from .draft import DraftStore, remap_document
+from .raster import encode_rle, rasterize
 
 
 class AnnotationConflict(DataError):
@@ -132,6 +134,8 @@ class WorkingState:
     candidates: list = field(default_factory=list)
     # §5.4 requires >=5; no operation history is persisted.
     undo_stack: deque = field(default_factory=lambda: deque(maxlen=5))
+    document_json: str | None = None
+    revision: int = 0
 
 
 class SessionStore:
@@ -140,6 +144,7 @@ class SessionStore:
         self.database = registry.database
         self._states = {}
         self._lock = RLock()
+        self.drafts = DraftStore(self.database, registry)
 
     def _label_ids(self, cube_id):
         cube_id = str(cube_id)
@@ -157,8 +162,7 @@ class SessionStore:
         if state is None:
             dataset, _ = self.registry.readable(cube_id, raw=False)
             state = WorkingState(np.full(dataset.shape[:2], -1, dtype=np.int32), ids)
-            self._states[cube_id] = state
-        elif state.label_ids != ids:
+        if state.label_ids != ids:
             # New labels can change indices. Preserve pixel identity by label ID,
             # including undo maps; saved versions are never touched.
             positions = {label_id: i for i, label_id in enumerate(ids)}
@@ -169,9 +173,26 @@ class SessionStore:
                         raise DataError("LABEL_REMOVED", "工作态引用的标签已被删除", label_id=label_id)
                     result[old == i] = positions[label_id]
                 return result
-            state.label_map = remap(state.label_map)
-            state.undo_stack = deque((remap(old) for old in state.undo_stack), maxlen=5)
-            state.label_ids = ids
+            # Prepare both halves before writing; CAS failures change neither.
+            labels = self.drafts.labels(cube_id)
+            undo = deque(((json.dumps(remap_document(json.loads(doc), labels, state.label_ids)), remap(old))
+                          for doc, old in state.undo_stack), maxlen=5)
+            remap(state.label_map)  # Preserve LABEL_REMOVED even for unused labels.
+        else:
+            undo = state.undo_stack
+        row = self.drafts.get(cube_id)
+        document = row["document"] if row else self.drafts.empty(cube_id)
+        labels = self.drafts.labels(cube_id)
+        old_ids = state.label_ids if row and state.revision == row["revision"] and state.document_json else None
+        normalized = remap_document(document, labels, old_ids)
+        if normalized != document or state.label_ids != ids:
+            row = self.drafts.replace(cube_id, normalized, row["revision"] if row else 0)
+        state.label_map = rasterize(normalized, state.label_map.shape)
+        state.document_json = json.dumps(normalized, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        state.revision = row["revision"] if row else 0
+        state.undo_stack = undo
+        state.label_ids = ids
+        self._states[cube_id] = state
         return state
 
     def working(self, cube_id):
@@ -194,7 +215,7 @@ class SessionStore:
             state.segments = segmentation.segments.copy()
             state.params = actual
 
-    def edit(self, cube_id, mask, *, action, label_id=None):
+    def edit(self, cube_id, mask, *, action, label_id=None, geometry=None):
         """Apply an explicit human selection; no automatic label assignment."""
         with self._lock:
             state = self._state(cube_id)
@@ -208,8 +229,14 @@ class SessionStore:
                 value = -1 if action == "erase" else -2
             else:
                 raise DataError("INVALID_REGION_ACTION", "操作须为 confirm/erase/uncertain")
-            state.undo_stack.append(state.label_map.copy())
-            state.label_map[mask] = value
+            if geometry is None or "superpixels" in geometry:
+                actual = {"type": "pixel_set", "rows": encode_rle(mask), "segments_fingerprint": state.params}
+            else:
+                actual = {"type": "polygon", "points": geometry["polygon"]}
+            self.drafts.add(cube_id, state.revision, geometry=actual,
+                            op="add" if action == "confirm" else action,
+                            class_code=json.loads(state.document_json)["classes"][value]["code"] if action == "confirm" else None)
+            state.undo_stack.append((state.document_json, state.label_map.copy()))
             if action != "erase" and state.segments is not None:
                 # Consume explicitly selected candidates; generation belongs to 10.3.5.
                 state.candidates[:] = [candidate for candidate in state.candidates
@@ -221,7 +248,10 @@ class SessionStore:
             state = self._state(cube_id)
             if not state.undo_stack:
                 raise AnnotationConflict("撤销栈为空")
-            state.label_map = state.undo_stack.pop().copy()
+            document, label_map = state.undo_stack[-1]
+            self.drafts.replace(cube_id, json.loads(document), state.revision)
+            state.undo_stack.pop()
+            state.label_map = label_map.copy()
             return self.working(cube_id)
 
     def validate(self, cube_id, *, threshold=None):
