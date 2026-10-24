@@ -22,6 +22,63 @@ def manual_state(case):
     return case.store.working(case.identifier)
 
 
+@pytest.mark.parametrize("method", ["save", "confirm"])
+def test_document_snapshot_interlock_normalized_copy_and_readonly_draft(annotation_case, method):
+    from spectrumagent.annotation.raster import rasterize
+    c = annotation_case
+    c.store.edit(c.identifier, c.segments == 0, action="confirm", label_id=c.labels["PE"])
+    before = c.store.drafts.get(c.identifier)
+    with connect_database(c.paths.database) as db:
+        db.execute("UPDATE label SET name='renamed',color_hex='#010203' WHERE id=?", (c.labels["PE"],))
+    if method == "save":
+        # Legacy save normalizes the working draft before taking its snapshot.
+        c.store.working(c.identifier)
+        before = c.store.drafts.get(c.identifier)
+        saved = c.store.save(c.identifier)
+        identifier = saved["id"]
+    else:
+        saved = c.store.confirm(c.identifier, revision=before["revision"])
+        identifier = saved["version_id"]
+    folder = c.paths.snapshots / saved["snapshot_ref"]
+    assert {p.name for p in folder.iterdir()} == {"label_map.npz", "label_index.json", "spectra.npz", "annotation.json"}
+    document = json.loads((folder / "annotation.json").read_text("utf-8"))
+    assert document["regions"] == before["document"]["regions"]
+    assert document["classes"][1]["name"] == "renamed"
+    assert document["classes"][1]["color"] == "#010203"
+    assert c.store.drafts.get(c.identifier) == before
+    replay = c.store.read_version(identifier)
+    assert replay["document"] == document
+    np.testing.assert_array_equal(rasterize(document, c.values.shape), replay["label_map"])
+    assert (folder / "annotation.json").read_text("utf-8") == json.dumps(document, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def test_read_pre07_three_file_snapshot_document_is_none(annotation_case):
+    c = annotation_case
+    saved = c.store.save(c.identifier)
+    folder = c.paths.snapshots / saved["snapshot_ref"]
+    # Construct the previous on-disk format even once new saves write four files.
+    (folder / "annotation.json").unlink(missing_ok=True)
+    assert {p.name for p in folder.iterdir()} == {"label_map.npz", "label_index.json", "spectra.npz"}
+    replay = c.store.read_version(saved["id"])
+    assert replay["document"] is None
+    np.testing.assert_array_equal(replay["label_map"], np.full(c.segments.shape, -1, dtype=np.int32))
+
+
+def test_confirm_rechecks_revision_inside_publication_transaction(annotation_case, monkeypatch):
+    c = annotation_case
+    original = c.store._write_snapshot
+    def concurrent_write(*args):
+        original(*args)
+        c.store.drafts.add(c.identifier, 0, op="uncertain", geometry={"type": "polygon", "points": [[0, 0], [0, 2], [2, 2], [2, 0]]})
+    monkeypatch.setattr(c.store, "_write_snapshot", concurrent_write)
+    with pytest.raises(DataError) as error:
+        c.store.confirm(c.identifier, revision=0)
+    assert error.value.code == "DRAFT_REVISION_CONFLICT" and error.value.status_code == 409
+    assert rows(c, "annotation_version") == []
+    assert list((c.paths.snapshots / c.identifier).iterdir()) == []
+    assert c.store.drafts.get(c.identifier)["revision"] == 1
+
+
 def rows(case, table, version_id=None):
     with connect_database(case.paths.database) as db:
         db.row_factory = sqlite3.Row
@@ -67,7 +124,9 @@ def test_snapshot_replay_spectra_counts_params_and_lineage(annotation_case):
         assert sample["mean_ref"] == f"mean_{i}" and sample["std_ref"] == f"std_{i}"
         assert sample["cube_id"] == version["cube_id"] == c.identifier
         assert sample["version_id"] == annotation["version_id"] == version["id"]
-        assert json.loads(annotation["geometry"])["superpixels"] == ([0] if label_id == c.labels["PE"] else [])
+        assert json.loads(annotation["geometry"])["region_ids"] == [r["region_id"]
+            for r in c.store.drafts.get(c.identifier)["document"]["regions"]
+            if r["op"] == "add" and r["class_index"] == int(i)]
     with connect_database(c.paths.database) as db:
         assert db.execute("SELECT count(*) FROM annotation WHERE granularity='scene'").fetchone()[0] == 0
         for table in ("annotation_version", "annotation", "sample_spectrum"):
@@ -87,7 +146,7 @@ def test_relative_snapshot_path_three_files_and_no_source_writes(annotation_case
     assert relative == PurePosixPath(c.identifier, "v1")
     assert c.paths.snapshots == c.paths.root / "annotations"
     assert {p.name for p in (c.paths.snapshots / c.identifier / "v1").iterdir()} == {
-        "label_map.npz", "label_index.json", "spectra.npz"}
+        "label_map.npz", "label_index.json", "spectra.npz", "annotation.json"}
     assert before == {p.name: p.read_bytes() for p in c.header.parent.glob("sample.*")}
 
 
@@ -307,7 +366,7 @@ def test_save_reads_before_write_transaction_and_publishes_tmp(annotation_case, 
     def replace(source, target):
         publications.append((source.name, target.name))
         assert source.name.endswith(".tmp") and target.name == "v1"
-        assert {p.name for p in source.iterdir()} == {"label_map.npz", "label_index.json", "spectra.npz"}
+        assert {p.name for p in source.iterdir()} == {"label_map.npz", "label_index.json", "spectra.npz", "annotation.json"}
         return original_replace(source, target)
     monkeypatch.setattr(session.os, "replace", replace)
     c.store.save(c.identifier)

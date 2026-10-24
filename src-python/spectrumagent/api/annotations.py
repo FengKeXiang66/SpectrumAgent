@@ -11,6 +11,7 @@ from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Request
+from fastapi.responses import FileResponse
 import numpy as np
 from PIL import Image, ImageColor
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, model_validator
@@ -87,6 +88,13 @@ class DraftGesture(BaseModel):
     gesture_ref: Annotated[str, Field(min_length=1)]
 
 
+class DraftConfirmRequest(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    revision: Annotated[int, Field(ge=0)]
+    overwrite: bool = False
+    note: Annotated[str, Field(max_length=2000)] | None = None
+
+
 class DraftRegionInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
     revision: Annotated[int, Field(ge=0)]
@@ -151,6 +159,17 @@ def label_overlay(label_map, label_index, colors):
 
 def make_router(store: LabelStore, engine: SuperpixelEngine, sessions: SessionStore, diffusion: DiffusionEngine):
     router = APIRouter(prefix="/api/v1", tags=["annotation labels"])
+
+    @router.post("/annotations/{cube_id}/draft/confirm")
+    def confirm_draft(cube_id: UUID, request: DraftConfirmRequest):
+        return sessions.confirm(cube_id, **request.model_dump())
+
+    @router.get("/annotations/{cube_id}/versions/{version_id}/training-mat", response_class=FileResponse,
+                responses={200: {"content": {"application/octet-stream": {"schema": {"type": "string", "format": "binary"}}}}})
+    def training_mat(cube_id: UUID, version_id: UUID):
+        from spectrumagent.agent.mat import MatStore
+        mats = MatStore(sessions.registry, sessions.paths)
+        return FileResponse(mats.file(mats.get(cube_id, version_id)), media_type="application/octet-stream", filename="training_mat.mat")
 
     def change_draft(identifier, operation):
         with sessions._lock:

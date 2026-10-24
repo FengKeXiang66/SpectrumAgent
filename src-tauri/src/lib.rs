@@ -16,3 +16,4 @@ pub mod annotation;
 pub mod preprocess;
 pub mod agent;
 pub mod settings;
+pub mod annotations_draft;

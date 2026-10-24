@@ -4,7 +4,8 @@ The pixel map is authoritative. SQLite holds one aggregate per present label,
 never editing history; snapshots own their immutable label-index mapping.
 """
 from collections import deque
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
+from copy import deepcopy
 import json
 import os
 from pathlib import PurePosixPath
@@ -19,8 +20,8 @@ from backend.database import connect_database
 from spectrumagent.data import DataError
 from .engines.superpixels import ReadableRows, row_blocks
 from .labels import now
-from .draft import DraftStore, remap_document
-from .raster import encode_rle, rasterize
+from .draft import DraftStore, remap_document, conflict
+from .raster import encode_rle, rasterize, rasterize_with_conflicts_v1
 
 
 class AnnotationConflict(DataError):
@@ -267,12 +268,52 @@ class SessionStore:
         if state.segments is None:
             raise DataError("SUPERPIXELS_REQUIRED", "请先生成超像素分割")
 
-    def save(self, cube_id, *, overwrite=False, confirm=False, note: str | None = None):
+    def confirm(self, cube_id, *, revision, overwrite=False, note=None):
+        """Read-only draft confirmation; commit snapshot before attempting MAT."""
+        from spectrumagent.agent.mat import MatStore
+        cube_id = str(cube_id)
+        with self._lock:
+            row = self.drafts.get(cube_id)
+            if (row["revision"] if row else 0) != revision:
+                raise conflict()
+            state = self._states.get(cube_id)
+            if state is None:
+                raise DataError("SUPERPIXELS_REQUIRED", "请先生成超像素分割")
+            self._require_segments(state)
+            document = deepcopy(row["document"] if row else self.drafts.empty(cube_id))
+            labels = self.drafts.labels(cube_id)
+            if [(c["index"], c["code"]) for c in document["classes"]] != [(i, label[1]) for i, label in enumerate(labels)]:
+                raise DataError("LABEL_INDEX_MISMATCH", "草稿类别下标与项目标签不一致")
+            label_map, conflicts = rasterize_with_conflicts_v1(document, state.label_map.shape)
+            count = int(np.count_nonzero(conflicts))
+            if count:
+                rr, cc = np.nonzero(conflicts)
+                error = DataError("OVERLAP_UNRESOLVED", "存在跨类重叠，请在画布上处理后确认", conflict_count=count,
+                                  sample_pixels=np.column_stack((rr, cc))[:20].tolist(),
+                                  bbox={"min_row": int(rr.min()), "min_col": int(cc.min()),
+                                        "max_row": int(rr.max()), "max_col": int(cc.max())})
+                error.status_code = 409
+                raise error
+            document["classes"] = [{"index": i, "code": l[1], "name": l[2], "color": l[3]} for i, l in enumerate(labels)]
+            encoded = json.dumps(document, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+            saved = self.save(cube_id, overwrite=overwrite, confirm=True, note=note, frozen=(encoded, label_map, revision))
+            result = {"version_id": saved["id"], "version_no": saved["version_no"], "snapshot_ref": saved["snapshot_ref"],
+                      "training_mat_id": None, "overlap_conflicts": 0, "n_spectra": int(np.count_nonzero(label_map >= 0))}
+            try:
+                mat = MatStore(self.registry, self.paths).generate(cube_id, saved["id"], label_map)
+                result["training_mat_id"] = mat["id"]
+            except DataError as error:
+                result["mat_error"] = str(error)
+            return result
+
+    def save(self, cube_id, *, overwrite=False, confirm=False, note: str | None = None, frozen=None):
         if note is not None and (not isinstance(note, str) or len(note) > 2000):
             raise DataError("INVALID_VERSION_NOTE", "版本备注须为不超过 2000 字符的文本")
         cube_id = str(cube_id)
         with self._lock:
-            state = self._state(cube_id)
+            state = self._state(cube_id) if frozen is None else replace(
+                self._states[cube_id], document_json=frozen[0], label_map=frozen[1], revision=frozen[2],
+                label_ids=self._label_ids(cube_id))
             self._require_segments(state)
             with connect_database(self.database) as db:
                 latest = db.execute("SELECT id,version_no,created_at FROM annotation_version "
@@ -311,6 +352,10 @@ class SessionStore:
                                          "WHERE cube_id=? ORDER BY version_no DESC LIMIT 1", (cube_id,)).fetchone()
                     if current != latest:
                         raise AnnotationConflict("保存期间最新版本已改变，请重试")
+                    if frozen is not None:
+                        current_draft = db.execute("SELECT revision FROM annotation_draft WHERE cube_id=?", (cube_id,)).fetchone()
+                        if (current_draft[0] if current_draft else 0) != frozen[2]:
+                            raise conflict()
                     if directory.exists():
                         os.replace(directory, backup)
                     os.replace(temporary, directory)
@@ -320,6 +365,7 @@ class SessionStore:
                     if overwrite:
                         db.execute("DELETE FROM annotation WHERE version_id=?", (version_id,))
                         db.execute("DELETE FROM sample_spectrum WHERE version_id=?", (version_id,))
+                        db.execute("DELETE FROM training_mat WHERE annotation_version_id=?", (version_id,))
                         db.execute("UPDATE annotation_version SET snapshot_ref=?,n_pixels=?,labeled_pixels=?,"
                                    "auto_ratio=?,params=?,note=? WHERE id=?", (*values, version_id))
                     else:
@@ -344,6 +390,9 @@ class SessionStore:
                     shutil.rmtree(temporary)
             if backup.exists():
                 shutil.rmtree(backup)
+            if overwrite:
+                from spectrumagent.agent.mat import MatStore
+                MatStore(self.registry, self.paths).discard_invalidated(cube_id, version_id)
             return {"id": version_id, "cube_id": cube_id, "version_no": version_no,
                     "snapshot_ref": relative, "created_at": created, "note": note,
                     "quality": quality, "elapsed_seconds": perf_counter() - started,
@@ -360,20 +409,20 @@ class SessionStore:
             spectra[f"mean_{i}"] = moments.mean.astype(np.float64)
             spectra[f"std_{i}"] = moments.std.astype(np.float64)
         np.savez_compressed(directory / "spectra.npz", **spectra)
+        (directory / "annotation.json").write_text(state.document_json, encoding="utf-8")
 
     @staticmethod
     def _aggregate_rows(cube_id, version_id, state, aggregates, sample_code, timestamp):
-        # Full-coverage geometry only. Pixel counts ALWAYS come from label_map.
+        # Region pointers are audit summaries. Pixel counts remain map-derived.
         geometries = {i: [] for i in aggregates.labels}
-        for segment in np.unique(state.segments):
-            labels = np.unique(state.label_map[state.segments == segment])
-            if len(labels) == 1 and labels[0] >= 0:
-                geometries[int(labels[0])].append(int(segment))
+        for region in json.loads(state.document_json)["regions"]:
+            if region["op"] == "add" and region["class_index"] in geometries:
+                geometries[region["class_index"]].append(region["region_id"])
         annotation_rows, spectrum_rows = [], []
         for i, moments in aggregates.labels.items():
             count = int(np.count_nonzero(state.label_map == i))
             annotation_rows.append((str(uuid4()), cube_id, version_id, "sample", state.label_ids[i],
-                                    json.dumps({"superpixels": geometries[i]}), count, "manual", timestamp))
+                                    json.dumps({"region_ids": geometries[i]}), count, "manual", timestamp))
             spectrum_rows.append((str(uuid4()), cube_id, version_id, state.label_ids[i], sample_code,
                                   moments.count, f"mean_{i}", f"std_{i}", timestamp))
         return annotation_rows, spectrum_rows
@@ -395,4 +444,6 @@ class SessionStore:
                 spectra = {key: archive[key].copy() for key in archive.files}
             return {"label_map": label_map,
                     "label_index": json.loads((directory / "label_index.json").read_text("utf-8")),
-                    "spectra": spectra}
+                    "spectra": spectra,
+                    "document": json.loads((directory / "annotation.json").read_text("utf-8"))
+                    if (directory / "annotation.json").exists() else None}

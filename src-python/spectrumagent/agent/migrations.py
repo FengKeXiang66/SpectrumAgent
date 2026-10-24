@@ -84,6 +84,19 @@ CREATE TABLE IF NOT EXISTS annotation_draft (
 --   ③ 禁 INSERT OR REPLACE / ON CONFLICT DO UPDATE——两者都会把 revision 重置为默认值 1，客户端持旧值反而写成功，CAS 反向失效。
 -- 动因：画布与对话可同时编辑同一 cube，last-write-wins 会静默丢更新。
 
+-- G7：训练 MAT（一版标注一份）
+CREATE TABLE IF NOT EXISTS training_mat (
+  id                    TEXT PRIMARY KEY,
+  cube_id               TEXT NOT NULL,                        -- 服务端：confirm 入参
+  annotation_version_id TEXT NOT NULL UNIQUE REFERENCES annotation_version(id), -- 服务端：confirm 产物
+  relative_path         TEXT NOT NULL,                        -- 服务端生成（POSIX 相对，对齐 snapshot_ref 纪律）
+  sha256                TEXT NOT NULL,                        -- 落盘后计算
+  n_spectra             INTEGER NOT NULL,                     -- 生成时统计
+  n_bands               INTEGER NOT NULL,                     -- 生成时统计
+  n_classes             INTEGER NOT NULL,                     -- 生成时统计（= label_index 全表条目数，非 labels 中 unique 数）
+  input_fingerprint     TEXT NOT NULL,                        -- 复用 #05 算法(dataset_id|源哈希|annotation_version_id|样本像素数)
+  created_at            TEXT NOT NULL
+);
 """
 
 SETTING_KEYS = ("base_url", "model", "temperature", "max_tokens", "timeout_ms")

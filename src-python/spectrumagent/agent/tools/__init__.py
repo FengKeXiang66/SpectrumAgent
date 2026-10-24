@@ -11,7 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, ValidationError
 
 from backend.database import connect_database
 from spectrumagent.data import DataError
-from .annotations import draft_get
+from .annotations import draft_get, draft_confirm
 
 
 class ToolInput(BaseModel):
@@ -299,9 +299,12 @@ def build_registry(*, datasets=None, runner=None, comparison=None, database=None
     registry.register("annotations.draft_add_region", DraftRegionArguments,
                       "画布手势引用，op=add 必填 class_code，uncertain、erase 禁传 class_code、confidence")
     registry.register("annotations.draft_select_candidates", SLICCandidates | SAMCandidates, "SLIC、SAM 扩散算法候选")
-    registry.register("annotations.draft_confirm", ConfirmArguments, "标注版本确认", human_check=True)
+    registry.register("annotations.draft_confirm", ConfirmArguments, "标注版本确认",
+                      (lambda arguments: draft_confirm(sessions, arguments)) if sessions is not None else None, human_check=True)
     registry.register("preprocess.run", RunArguments, "预处理运行", run if runner is not None else None)
     registry.register("preprocess.compare", CompareArguments, "预处理配方对比", compare if comparison is not None else None)
-    registry.register("training_mat.export", ExportArguments, "训练 MAT 导出")
+    from .training_mat import export
+    registry.register("training_mat.export", ExportArguments, "训练 MAT 导出",
+                      (lambda arguments: export(sessions, arguments)) if sessions is not None else None)
     registry.register("settings.llm_get", NoArguments, "LLM 设置（无 key）", settings if database is not None else None)
     return registry

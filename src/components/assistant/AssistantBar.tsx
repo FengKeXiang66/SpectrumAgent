@@ -2,6 +2,7 @@ import { useReducer, useRef, useState } from 'react';
 import { agent, type MessageBody } from './api.ts';
 import { initialChat, reduceChat, scalarText, type ChatEntry } from './sse.ts';
 import './assistant.css';
+import ConfirmCard from '../annotation/ConfirmCard.ts';
 
 function entryText(entry: ChatEntry): string {
   switch (entry.event) {
@@ -45,8 +46,13 @@ export default function AssistantBar({ enabled }: { enabled: boolean }) {
     </ol>
     {state.pending && <section aria-label="人工确认">
       <p>{state.pending.reason} · {state.pending.tool} · {scalarText(state.pending.summary)}</p>
-      <button disabled={!enabled || state.busy} onClick={() => void request({ check_id: state.pending!.check_id, decision: 'approve' })}>批准</button>
-      <button disabled={!enabled || state.busy} onClick={() => void request({ check_id: state.pending!.check_id, decision: 'reject' })}>拒绝</button>
+      {state.pending.tool === 'annotations.draft_confirm' ? <ConfirmCard key={state.pending.check_id}
+        cubeId={String(state.pending.summary.cube_id ?? '')} disabled={!enabled || state.busy} approveLabel="批准" rejectLabel="拒绝"
+        onApprove={async () => { await request({ check_id: state.pending!.check_id, decision: 'approve' }); }}
+        onReject={() => void request({ check_id: state.pending!.check_id, decision: 'reject' })} /> : <>
+        <button disabled={!enabled || state.busy} onClick={() => void request({ check_id: state.pending!.check_id, decision: 'approve' })}>批准</button>
+        <button disabled={!enabled || state.busy} onClick={() => void request({ check_id: state.pending!.check_id, decision: 'reject' })}>拒绝</button>
+      </>}
     </section>}
     {state.busy && <p role="status">{state.executing ? '执行中…' : '请求中…'}</p>}
     {state.error && <p role="alert">{state.error}</p>}

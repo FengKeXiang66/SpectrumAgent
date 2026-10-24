@@ -122,7 +122,7 @@ def test_not_found_errors_and_deferred_routes(draft_api):
     assert bad_label.status_code == 400 and bad_label.json()["error"] == "LABEL_NOT_FOUND"
     missing_region = h.client.post(h.base + "/regions/r-9999", json={"revision": 0, "deleted": True})
     assert missing_region.status_code == 404 and missing_region.json()["error"] == "REGION_NOT_FOUND"
-    for suffix in ["/candidates", "/confirm"]:
+    for suffix in ["/candidates"]:
         assert h.client.post(h.base + suffix, json={}).status_code == 404
 
 

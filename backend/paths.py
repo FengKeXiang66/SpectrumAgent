@@ -48,6 +48,10 @@ class AppPaths:
     def preprocessed(self) -> Path:
         return self.root / "preprocessed"
 
+    @property
+    def exports(self) -> Path:
+        return self.root / "exports"
+
     def create_directories(self) -> None:
-        for directory in (self.run, self.logs, self.testdata, self.database.parent):
+        for directory in (self.run, self.logs, self.testdata, self.database.parent, self.exports):
             directory.mkdir(parents=True, exist_ok=True)

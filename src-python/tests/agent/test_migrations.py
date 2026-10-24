@@ -11,10 +11,10 @@ def schema(db, table):
     return db.execute(f"PRAGMA table_info({table})").fetchall()
 
 
-def test_only_seven_tables_match_card_ddl_and_comments_are_split_safe():
+def test_only_eight_tables_match_card_ddl_and_comments_are_split_safe():
     card = (Path(__file__).resolve().parents[3] / "TASK-07-对话编排与标注JSON.md").read_text("utf-8")
     sql = card.split("```sql\n", 1)[1].split("\n```", 1)[0]
-    card_ddl = sql.split("-- G7：", 1)[0]
+    card_ddl = sql
     # Comments differ only to comply with the explicit ban on both semicolons.
     without_comments = lambda value: re.sub(r"--[^\n]*", "", value).strip()
     assert without_comments(DDL.split("-- G3：SKILL", 1)[0]) == without_comments(sql.split("-- G2/G3", 1)[0])
@@ -22,7 +22,7 @@ def test_only_seven_tables_match_card_ddl_and_comments_are_split_safe():
     assert DDL[DDL.index("-- G3：SKILL"):].split("-- G2/G3", 1)[0].strip() == skill_ddl.replace("；", "，").strip()
     agent_ddl = sql[sql.index("-- G2/G3"):].split("-- G3：SKILL", 1)[0]
     assert DDL[DDL.index("-- G2/G3"):].split("-- G5：", 1)[0].strip() == agent_ddl.replace("；", "，").strip()
-    assert DDL[DDL.index("-- G5："):].strip() == sql[sql.index("-- G5："):].split("-- G7：", 1)[0].replace("；", "，").strip()
+    assert DDL[DDL.index("-- G5："):].strip() == sql[sql.index("-- G5："):].replace("；", "，").strip()
     for line in DDL.splitlines():
         if "--" in line:
             assert ";" not in line.split("--", 1)[1]
@@ -30,7 +30,7 @@ def test_only_seven_tables_match_card_ddl_and_comments_are_split_safe():
     with sqlite3.connect(":memory:") as db, sqlite3.connect(":memory:") as expected:
         migrate(db)
         expected.executescript(card_ddl)
-        tables = {"llm_settings", "llm_call", "skill_version", "agent_session", "agent_round", "agent_step", "annotation_draft"}
+        tables = {"llm_settings", "llm_call", "skill_version", "agent_session", "agent_round", "agent_step", "annotation_draft", "training_mat"}
         assert {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")} == tables
         for table in tables:
             assert schema(db, table) == schema(expected, table)
@@ -61,4 +61,4 @@ def test_startup_wires_g1_and_g3_with_empty_llm_values(tmp_path):
         assert db.execute("SELECT version_no,status FROM skill_version").fetchall() == [(1, "active")]
         assert {"agent_session", "agent_round", "agent_step"} <= tables
         assert "annotation_draft" in tables
-        assert "training_mat" not in tables
+        assert "training_mat" in tables

@@ -7,6 +7,8 @@ import { bindingProblem, changeLabelKey, chord, defaultPreferences, labelKey, re
 import AnnotationCanvas, { type PromptMode } from './canvas/AnnotationCanvas.tsx';
 import LabelPanel from './LabelPanel.tsx';
 import CandidateQueue from './CandidateQueue.tsx';
+import ConfirmCard from './ConfirmCard.ts';
+import { drafts } from './draft-api.ts';
 import DisplayToolbar, { SpectrumReadout } from './display/DisplayToolbar.tsx';
 import { DEFAULT_LUT, changeLut, displayRequest, type DisplayMode, type InspectionMode, type LutParameters } from './display/display.ts';
 import './annotation.css';
@@ -53,6 +55,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
   const [threshold, setThreshold] = useState(.92), [queueMinimum, setQueueMinimum] = useState(.80);
   const [force, setForce] = useState(false), [lastSeed, setLastSeed] = useState<Seed | null>(null);
   const [note, setNote] = useState(''), [overwrite, setOverwrite] = useState(false), [confirmOverwrite, setConfirmOverwrite] = useState(false);
+  const [confirmVersion, setConfirmVersion] = useState(false);
   const [quality, setQuality] = useState<Quality | null>(null), [history, setHistory] = useState<Png | null>(null), [historyId, setHistoryId] = useState('');
   const [lastDiffusion, setLastDiffusion] = useState<{ min: number; enqueued: boolean; blocked: number } | null>(null);
   const [preferences, setPreferences] = useState(loadPreferences), [panHeld, setPanHeld] = useState(false);
@@ -320,6 +323,15 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
           <h3>保存与版本</h3><label>版本备注（可选，≤2000 字符）<textarea value={note} onChange={event => setNote(event.target.value)} /></label>
           <label><input type="checkbox" disabled={!versions.length || busy} checked={overwrite} onChange={event => setOverwrite(event.target.checked)} />覆写最新版本（需再次确认）</label>
           <button disabled={busy || !ready || Array.from(note).length > 2000} onClick={() => { void save(); }}>保存并聚合</button>
+          <button disabled={busy || !ready || Array.from(note).length > 2000} onClick={() => setConfirmVersion(true)}>确认版本并生成训练 MAT</button>
+          {confirmVersion && <ConfirmCard key={id} cubeId={id} disabled={busy || !ready} onReject={() => setConfirmVersion(false)} onApprove={async view => {
+            let matError: string | undefined;
+            const success = await execute(async () => {
+              const result = await drafts.confirm(id, { revision: view.revision, overwrite, ...(note ? { note } : {}) });
+              matError = result.mat_error;
+            }, '标注版本已确认，训练 MAT 已生成。', true);
+            if (success) { setConfirmVersion(false); if (matError) setMessage(`标注版本已确认；训练 MAT 生成失败：${matError}`); }
+          }} />}
           {confirmOverwrite && <div role="alertdialog" aria-label="确认覆写最新版本" className="annotation-overwrite"><p>将用当前工作态重写最新版本 v{versions[0]?.version_no}，版本号与首次创建时间保留。</p><button disabled={busy} onClick={() => { void save(true); }}>确认覆写最新版本</button><button onClick={() => setConfirmOverwrite(false)}>取消</button></div>}
           <details><summary>版本记录（{versions.length}）</summary><ul>{versions.map(version => <li key={version.id}>v{version.version_no} · {version.labeled_pixels.toLocaleString()} px · {version.created_at}
             <button disabled={busy} onClick={() => { void execute(async () => { const png = await api.versionOverlay(id, version.id); if (alive.current) { setHistory(png); setHistoryId(version.id); } }, '历史叠加图已读取；当前工作态不变。'); }}>查看叠加图</button></li>)}</ul>

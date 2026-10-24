@@ -520,6 +520,111 @@
         }
       }
     },
+    "/api/v1/annotations/{cube_id}/draft/confirm": {
+      "post": {
+        "tags": [
+          "annotation labels"
+        ],
+        "summary": "Confirm Draft",
+        "operationId": "confirm_draft_api_v1_annotations__cube_id__draft_confirm_post",
+        "parameters": [
+          {
+            "name": "cube_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Cube Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DraftConfirmRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/annotations/{cube_id}/versions/{version_id}/training-mat": {
+      "get": {
+        "tags": [
+          "annotation labels"
+        ],
+        "summary": "Training Mat",
+        "operationId": "training_mat_api_v1_annotations__cube_id__versions__version_id__training_mat_get",
+        "parameters": [
+          {
+            "name": "cube_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Cube Id"
+            }
+          },
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Version Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/annotations/{cube_id}/draft": {
       "get": {
         "tags": [
@@ -2358,6 +2463,38 @@
           "class_code"
         ],
         "title": "DraftAddRequest"
+      },
+      "DraftConfirmRequest": {
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revision"
+          },
+          "overwrite": {
+            "type": "boolean",
+            "title": "Overwrite",
+            "default": false
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "revision"
+        ],
+        "title": "DraftConfirmRequest"
       },
       "DraftEraseRequest": {
         "properties": {
