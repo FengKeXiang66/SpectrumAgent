@@ -138,3 +138,55 @@ def test_create_session_only_accepts_empty_object(settings_api, body):
 def test_identity_authentication_precedes_agent_operations(settings_api, method, path, body):
     response = settings_api.client.request(method, path, json=body, headers={"Authorization": "Bearer wrong"})
     assert response.status_code == 401 and "X-SpectrumAgent-Boot-Id" not in response.headers
+
+
+@pytest.mark.parametrize("action", ["approve", "reject", "skip", "rollback"])
+def test_plan_stream_and_new_answer_preserve_step_columns(settings_api, action):
+    c = settings_api
+    fake = FakeLLM(reply(calls=[call(identifier="a"), call(identifier="b")]), reply("完成"))
+    tools, handler, _ = registry()
+    session = configure(c, fake, tools)
+    events = stream(c, session["id"], {"content": "多步查询"})
+    assert [kind for kind, _ in events] == ["plan"]
+    plan = events[0][1]
+    assert set(plan) == {"plan_id", "steps", "reason"}
+    assert all(set(step) == {"seq", "tool", "summary", "gpu", "estimate_ms"} for step in plan["steps"])
+    assert len(fake.calls) == 1 and handler.call_count == 0
+    body = {"plan_id": plan["plan_id"], "action": action}
+    if action != "approve":
+        body["reason"] = "用户原因"
+    if action in {"skip", "rollback"}:
+        body["step_ref"] = 2
+    assert c.client.post(f"{BASE}/{session['id']}/messages", json={"content": "暂停期间"}).status_code == 400
+    result = stream(c, session["id"], body)
+    assert result[-1][0] == "done"
+    expected = 2 if action == "approve" else 0 if action == "reject" else 1
+    assert handler.call_count == expected
+    rows = c.client.get(f"{BASE}/{session['id']}/steps").json()["steps"]
+    assert len(rows) == expected
+    for row in rows:
+        assert set(row) == {"seq", "tool", "status", "arguments_json", "result_digest", "result_summary", "latency_ms", "created_at"}
+    assert c.client.post(f"{BASE}/{session['id']}/messages", json=body).status_code == 400
+
+
+@pytest.mark.parametrize("body", [{"action": "skip", "step_ref": 2}, {"action": "reject"},
+    {"action": "skip", "step_ref": "2", "reason": "原因"}, {"action": "skip", "step_ref": True, "reason": "原因"},
+    {"action": "skip", "step_ref": 0, "reason": "原因"}, {"action": "rollback", "step_ref": 3, "reason": "原因"},
+    {"action": "skip", "step_ref": 1, "reason": ""}, {"action": "reject", "reason": " "},
+    {"action": "maybe"}, {"action": "approve", "step_ref": 1}, {"action": "approve", "reason": "原因"},
+    {"action": "approve", "reason": None}, {"action": "reject", "step_ref": 1, "reason": "原因"},
+    {"action": "approve", "content": "混合消息"}, {"action": "approve", "check_id": "x", "decision": "approve"}])
+def test_plan_invalid_body_is_http_400_without_claim_or_execution(settings_api, body):
+    c = settings_api
+    fake = FakeLLM(reply(calls=[call(identifier="a"), call(identifier="b")]))
+    tools, handler, _ = registry()
+    session = configure(c, fake, tools)
+    plan = stream(c, session["id"], {"content": "多步"})[0][1]
+    body = {"plan_id": plan["plan_id"], **body}
+    response = c.client.post(f"{BASE}/{session['id']}/messages", json=body)
+    assert response.status_code == 400 and response.json()["error"] == "INVALID_REQUEST"
+    other = c.client.post(BASE, json={}).json()["id"]
+    assert c.client.post(f"{BASE}/{other}/messages", json={"plan_id": plan["plan_id"], "action": "approve"}).status_code == 400
+    assert rounds(c.database)[0]["status"] == "plan_check"
+    handler.assert_not_called()
+    assert len(fake.calls) == 1

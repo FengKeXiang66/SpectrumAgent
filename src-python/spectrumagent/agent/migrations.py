@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS agent_round (
   seq          INTEGER NOT NULL,   -- 服务端自增（会话内轮次号）
   user_message TEXT NOT NULL,      -- 本轮用户消息原文：INTERPRET 上下文与续执行的权威源（业务轮次数据，llm_call 仍只存 messages sha256，两口径分工不变）
   calls_json   TEXT NOT NULL,      -- 本轮 LLM tool_call 序列（仅过 Pydantic 校验的调用，含 id/name/arguments，几何禁入 schema 保证无坐标谱值）
-  status       TEXT NOT NULL,      -- running|human_check|done|error
+  status       TEXT NOT NULL,      -- running|human_check|plan_check|done|error
   created_at   TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS agent_step (
@@ -96,6 +96,15 @@ CREATE TABLE IF NOT EXISTS training_mat (
   n_classes             INTEGER NOT NULL,                     -- 生成时统计（= label_index 全表条目数，非 labels 中 unique 数）
   input_fingerprint     TEXT NOT NULL,                        -- 复用 #05 算法(dataset_id|源哈希|annotation_version_id|样本像素数)
   created_at            TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS agent_plan_action (
+  id         TEXT PRIMARY KEY,
+  session_id TEXT NOT NULL REFERENCES agent_session(id),
+  round_id   TEXT NOT NULL REFERENCES agent_round(id),
+  action     TEXT NOT NULL,   -- reject|skip|rollback，approve 不记账（无动作即批准）
+  seq_ref    INTEGER,         -- 目标 calls 序号（1 起），reject 为 NULL（整计划）
+  reason     TEXT NOT NULL,   -- 用户原因原文，禁空
+  created_at TEXT NOT NULL
 );
 """
 

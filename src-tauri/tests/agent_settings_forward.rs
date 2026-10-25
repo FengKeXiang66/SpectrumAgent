@@ -133,6 +133,30 @@ fn agent_three_operations_and_two_body_shapes_have_literal_routes()
             "POST",
             Some(json!({"check_id":ID,"decision":"reject"})),
         ),
+        (
+            json!({"op":"send_message","id":ID,"body":{"plan_id":ID,"action":"approve"}}),
+            format!("/api/v1/agent/sessions/{ID}/messages"),
+            "POST",
+            Some(json!({"plan_id":ID,"action":"approve"})),
+        ),
+        (
+            json!({"op":"send_message","id":ID,"body":{"plan_id":ID,"action":"skip","step_ref":2,"reason":"跳过此步及之后"}}),
+            format!("/api/v1/agent/sessions/{ID}/messages"),
+            "POST",
+            Some(json!({"plan_id":ID,"action":"skip","step_ref":2,"reason":"跳过此步及之后"})),
+        ),
+        (
+            json!({"op":"send_message","id":ID,"body":{"plan_id":ID,"action":"rollback","step_ref":3,"reason":"从末步开始"}}),
+            format!("/api/v1/agent/sessions/{ID}/messages"),
+            "POST",
+            Some(json!({"plan_id":ID,"action":"rollback","step_ref":3,"reason":"从末步开始"})),
+        ),
+        (
+            json!({"op":"send_message","id":ID,"body":{"plan_id":ID,"action":"reject","reason":"暂不执行"}}),
+            format!("/api/v1/agent/sessions/{ID}/messages"),
+            "POST",
+            Some(json!({"plan_id":ID,"action":"reject","reason":"暂不执行"})),
+        ),
     ] {
         let (url, actual_method, actual_body) = agent::parse_request(value)?.destination(4321)?;
         assert_eq!(url.as_str(), format!("http://127.0.0.1:4321{path}"));
@@ -208,6 +232,18 @@ fn whitelist_rejects_paths_methods_and_mixed_message_shapes() {
         json!({"op":"send_message","id":ID,"body":{"content":"query","check_id":ID,"decision":"approve"}}),
         json!({"op":"send_message","id":ID,"body":{"check_id":ID,"decision":"maybe"}}),
         json!({"op":"send_message","id":ID,"body":{"check_id":"../health","decision":"approve"}}),
+        json!({"op":"send_message","id":ID,"body":{"plan_id":ID,"action":"reject"}}),
+        json!({"op":"send_message","id":ID,"body":{"plan_id":ID,"action":"skip","step_ref":2}}),
+        json!({"op":"send_message","id":ID,"body":{"plan_id":ID,"action":"rollback","reason":"原因"}}),
+        json!({"op":"send_message","id":ID,"body":{"plan_id":ID,"action":"skip","step_ref":"2","reason":"原因"}}),
+        json!({"op":"send_message","id":ID,"body":{"plan_id":ID,"action":"skip","step_ref":0,"reason":"原因"}}),
+        json!({"op":"send_message","id":ID,"body":{"plan_id":ID,"action":"unknown"}}),
+        json!({"op":"send_message","id":ID,"body":{"plan_id":ID,"action":"approve","content":"混合"}}),
+        json!({"op":"send_message","id":ID,"body":{"plan_id":"../health","action":"approve"}}),
+        json!({"op":"send_message","id":ID,"body":{"plan_id":ID,"action":"approve","reason":"原因"}}),
+        json!({"op":"send_message","id":ID,"body":{"plan_id":ID,"action":"approve","step_ref":1}}),
+        json!({"op":"send_message","id":ID,"body":{"plan_id":ID,"action":"approve","reason":null}}),
+        json!({"op":"send_message","id":ID,"body":{"plan_id":ID,"action":"reject","reason":" "}}),
     ] {
         assert!(agent::parse_request(request).is_err());
     }
@@ -309,6 +345,10 @@ fn sse_empty_done_suspended_human_check_and_error_close() -> Result<(), Box<dyn 
         (
             "event: human_check\r\ndata: {\"check_id\":\"check-1\",\"summary\":{\"revision\":1}}\r\n\r\n",
             json!([{"event":"human_check","data":{"check_id":"check-1","summary":{"revision":1}}}]),
+        ),
+        (
+            "event: plan\r\ndata: {\"plan_id\":\"round-1\",\"steps\":[{\"seq\":1,\"tool\":\"datasets.list\",\"summary\":{},\"gpu\":false,\"estimate_ms\":null}],\"reason\":\"执行计划待确认\"}\r\n\r\n",
+            json!([{"event":"plan","data":{"plan_id":"round-1","steps":[{"seq":1,"tool":"datasets.list","summary":{},"gpu":false,"estimate_ms":null}],"reason":"执行计划待确认"}}]),
         ),
         (
             "event: error\ndata: {\"code\":\"LLM_TRANSPORT\",\"detail\":\"LLM_TRANSPORT\"}",

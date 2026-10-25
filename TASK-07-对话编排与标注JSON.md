@@ -226,7 +226,7 @@ CREATE TABLE IF NOT EXISTS agent_round (
   seq          INTEGER NOT NULL,   -- 服务端自增（会话内轮次号）
   user_message TEXT NOT NULL,      -- 本轮用户消息原文：INTERPRET 上下文与续执行的权威源（业务轮次数据；llm_call 仍只存 messages sha256，两口径分工不变）
   calls_json   TEXT NOT NULL,      -- 本轮 LLM tool_call 序列（仅过 Pydantic 校验的调用，含 id/name/arguments；几何禁入 schema 保证无坐标谱值）
-  status       TEXT NOT NULL,      -- running|human_check|done|error
+  status       TEXT NOT NULL,      -- running|human_check|plan_check|done|error
   created_at   TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS agent_step (
@@ -284,6 +284,15 @@ CREATE TABLE IF NOT EXISTS training_mat (
   n_classes             INTEGER NOT NULL,                     -- 生成时统计（= label_index 全表条目数，非 labels 中 unique 数）
   input_fingerprint     TEXT NOT NULL,                        -- 复用 #05 算法(dataset_id|源哈希|annotation_version_id|样本像素数)
   created_at            TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS agent_plan_action (
+  id         TEXT PRIMARY KEY,
+  session_id TEXT NOT NULL REFERENCES agent_session(id),
+  round_id   TEXT NOT NULL REFERENCES agent_round(id),
+  action     TEXT NOT NULL,   -- reject|skip|rollback，approve 不记账（无动作即批准）
+  seq_ref    INTEGER,         -- 目标 calls 序号（1 起），reject 为 NULL（整计划）
+  reason     TEXT NOT NULL,   -- 用户原因原文，禁空
+  created_at TEXT NOT NULL
 );
 ```
 
@@ -597,3 +606,4 @@ CREATE TABLE IF NOT EXISTS training_mat (
 | R27 | 2026-10-24 | 12.7.1 codex 首触即停（第十二次即停；未改文件未跑基线未提交）：**R26 第 4 条 e2e 设置链时序写反（备卡提示词级错误）**——我写"PUT 配置 → GET has_key=true → PUT key"，但实测坐实：`e2e_task07.py:353` 启动 `set_api_key("")` 清空 key、`settings.py:24` PUT /llm 只写五键不碰 key——PUT 配置后首次 GET 必为 `has_key=false`。**裁定：采纳 codex 建议顺序（且更强）**——**PUT 配置 → GET `has_key=false` → PUT key → GET `has_key=true` 且响应不含 key 本体**；这一版同时证明"配置与 key 分离"的 §10-1 核心设计（配置写不动 key、key 写只影响 key、GET 永不回显 key）。**记账：备卡把 PUT /llm 与 PUT /llm/key 两个端点的 has_key 时序搞混——提示词级小错，codex 即停纪律第十二次命中（十二战十二捷）**。联动：12.7.1 提示词第 4 条同步修正 |
 | R28 | 2026-10-24 | **12.7.1 独立复核通过（P0 补丁闭环）**——commit `2e52686`，14 文件全部在前端+e2e+三文档（后端/Rust/其他 UI 零改动，git stat 实证），tracked 干净。**三出口独立复跑（本 agent 亲手）**：node **107 pass/0 fail**（95+12）+ npm build；cargo **75**（逐格一致）+ clippy 干净；**e2e 我亲自复跑 106/106 exit 0**（含设置链 14 断言：PUT 配置→GET has_key=false→PUT key→GET has_key=true 且无 key 本体——R27 时序落实，顺带证明配置/key 分离）；Python **951=基线+0**（git stat 证无 src-python/backend 改动，采 codex 实报）。深审要点：`settings-forward.ts` 单出口禁散落 invoke、`configFields` 投影剔除非五键字段；`form.ts` 错误文本把 key 替换 `[已隐藏]`（防后端回显泄露）、**write-only 到失败尝试也清空**、空密码保留现有 key、部分失败分级提示（"配置已保存，key 未保存"）、dispose 清密码；`SettingsPanel.ts` 原生 dialog modal、onKeyDown stopPropagation（防画布快捷键穿透）、Esc 防误关；**可达性断言**（读 App.tsx 源码钉 import+按钮+渲染三件套——R26 教训固化，链路再断即红）；12 个面板测试覆盖五键空态/保存序/密码框/两态/GET 失败禁保存可取消。自定项 5 条全部合理且有测试背书。三处文档修订精准（acceptance-map G1-06 补前端测试映射、smoke-checklist S07 补"经设置屏入口"、technical-debt 销账带根因）。**新基线：node 107 / e2e 106；Python 951 / cargo 75 不变**。**TASK-07（里程碑 B=v0.3.0）含 12.7.1 补丁全部收口，移交科祥：打包 → 冒烟 S01–S18（S07/S08 现已可执行）→ tag/push/Release** |
 | R29 | 2026-10-25 | **TASK-N01 外发总闸增量裁定**——第六键 `egress_enabled`，全新库和升级缺键均默认 TEXT `"1"`，关闭存 `"0"`，其余五键默认空值不变；写库显式序列化布尔，模型仅接受 bool 与字符串 `"1"/"0"`。PUT 仍为全量替换，缺省该键重置为开启，不引入 PATCH。唯一出口 `OpenAICompatibleClient.chat()` 每次入口现读，在 try 第一行、内容扫描及未配置检查之前拒绝关闭状态：`LLM_EGRESS_DISABLED / blocked`；复用 llm_call 审计，model 为当前配置、三列 tokens 为 NULL，不改 DDL。在途调用自然完成、不取消，翻转从下一次 chat 生效，PARSE/INTERPRET 同受控；关闭状态持久化，重启仍关闭。设置屏使用独立布尔复选框回调，明确关闭后对话与结果解读不可用、核心分析不受影响；规则化降级面板仍属阶段二。本增量仅验现有链路，不宣称完整 FR-I01 通过。**联动16文件**：agent/migrations.py、agent/llm.py、src-tauri/src/settings.rs、settings-forward.ts、form.ts、SettingsPanel.ts、test_migrations.py、test_llm.py、test_settings.py、test_state.py、src-tauri/tests/agent_settings_forward.rs、settings-forward.test.ts、SettingsPanel.test.ts、scripts/e2e_task07.py、api/openapi.json（真实 create_app 程序化生成）、本 TASK。R1–R28、L79/L194 及历史 SQL 块完整保留；公司HTML、发布文书及 milestone07/evidence 冻结证据不改。 |
+| R30 | 2026-10-25 | **TASK-F06 / FR-D02，v0.4.0 计划批准闸与跳过/回退裁定**——R30–R39：仅校验后调用数≥2 的轮次先 INSERT plan_check，在 PARSE 拒绝步骤之后发 plan 并挂起，单调用/clarify 不变；状态清单、会话守卫与 claim_plan 同步，挂起可跨重启、流中断保留，stale 应答拒绝且不二次执行。**备卡补漏①触发器升级**：每次 migrate 对 agent_round_transition DROP＋CREATE，增加 plan_check→running/done/error，既有三表 immutable/no_delete 与 agent_step_transition 定义保留；新增 agent_plan_action 全列 immutable＋no_delete，动作仅 INSERT（approve 无行，reject/skip/rollback 记录原始非空原因），新建/升级均建表。calls_json 不可变：approve 全量，skip(K)=calls[:K-1]，第 K 及之后全部失效，rollback(N)=calls[N-1:]，前缀不执行、从第 N 步开始；未执行不建 step，既有执行审计不改，最终 round 仍 done。effective_calls 从原计划与最后动作派生，HITL 续跑 offset 按有效集推进。**备卡补漏②INTERPRET 配对**：assistant tool_calls 与 tool 结果均按有效集组账，approve 保持原上下文；system 摘要 skipped 列全部未执行 seq/tool，rolled_back_from 仅 rollback 给 N，其余 null，禁宣称未执行已完成。PlanMessage 为 approve/reject/skip/rollback，strict 整数 step_ref 且范围 1..len，approve 禁 step_ref/reason，其他动作必填原因，human_check 仍只收原 approve/reject；计划批准不替代逐工具 HITL。工具元数据静态供给、GPU 当前全 false，draft_confirm=1700ms、training_mat.export=650ms（12.7 性能证据），其余 null，展示“预估值非实测承诺”；LLM 禁产预估。计划卡展示步骤/算子/标量白键摘要/GPU/预估，选择时标明失效范围，动作原因必填、busy 与 inFlight 防重入；SSE 与 Rust 两侧白名单加入 plan，消息投影保持强类型，计划待确认时输入禁用、历史仅保留当前挂载期间记录。OpenAPI 程序化生成并字节复核，e2e plan_chain 登记 skip/rollback/reject 的执行集、动作审计与解读摘要。**19 文件联动**：src-python/spectrumagent/agent/migrations.py、agent/state.py、agent/tools/__init__.py、api/agent.py、api/openapi.json；src-tauri/src/agent.rs、tests/agent_settings_forward.rs；src/components/assistant/sse.ts、api.ts、AssistantBar.tsx、PlanCard.ts、PlanCard.test.ts、sse.test.ts；src-python/tests/agent/test_state.py、test_agent_api.py、test_migrations.py、test_probes.py（仅 probe 6 补计划批准、原断言保留）；scripts/e2e_task07.py、本 TASK。文档仅 SQL 追加新 DDL、status 注释同文扩 plan_check 与追加本行，R1–R29、L79/L194 保留。范围留后：执行中编辑计划、细粒度依赖、产物表级失效、回退后自动重执行、挂载拉取历史均不做；A1 口径为 PARSE 1 次必需、挂起后新增 transport 0 与工具执行 0；不改发布配置、不 tag、不 push。 |

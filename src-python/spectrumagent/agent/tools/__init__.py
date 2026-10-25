@@ -180,6 +180,8 @@ class RegisteredTool:
     adapter: TypeAdapter
     handler: Callable | None
     human_check: bool = False
+    gpu: bool = False
+    estimate_ms: int | None = None
 
     @property
     def ready(self):
@@ -190,12 +192,12 @@ class ToolRegistry:
     def __init__(self):
         self._tools = {}
 
-    def register(self, name, arguments, description, handler=None, *, human_check=False):
+    def register(self, name, arguments, description, handler=None, *, human_check=False, gpu=False, estimate_ms=None):
         if name in self._tools:
             raise ValueError("duplicate tool")
         adapter = TypeAdapter(arguments)
         validate_schema(adapter.json_schema())
-        self._tools[name] = RegisteredTool(name, description, adapter, handler, human_check)
+        self._tools[name] = RegisteredTool(name, description, adapter, handler, human_check, gpu, estimate_ms)
 
     def resolve(self, name):
         try:
@@ -300,11 +302,12 @@ def build_registry(*, datasets=None, runner=None, comparison=None, database=None
                       "画布手势引用，op=add 必填 class_code，uncertain、erase 禁传 class_code、confidence")
     registry.register("annotations.draft_select_candidates", SLICCandidates | SAMCandidates, "SLIC、SAM 扩散算法候选")
     registry.register("annotations.draft_confirm", ConfirmArguments, "标注版本确认",
-                      (lambda arguments: draft_confirm(sessions, arguments)) if sessions is not None else None, human_check=True)
+                      (lambda arguments: draft_confirm(sessions, arguments)) if sessions is not None else None,
+                      human_check=True, estimate_ms=1700)
     registry.register("preprocess.run", RunArguments, "预处理运行", run if runner is not None else None)
     registry.register("preprocess.compare", CompareArguments, "预处理配方对比", compare if comparison is not None else None)
     from .training_mat import export
     registry.register("training_mat.export", ExportArguments, "训练 MAT 导出",
-                      (lambda arguments: export(sessions, arguments)) if sessions is not None else None)
+                      (lambda arguments: export(sessions, arguments)) if sessions is not None else None, estimate_ms=650)
     registry.register("settings.llm_get", NoArguments, "LLM 设置（无 key）", settings if database is not None else None)
     return registry

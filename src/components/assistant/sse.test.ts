@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { initialChat, parseSse, reduceChat, scalarText, type AgentEvent } from './sse.ts';
+import { initialChat, parseSse, reduceChat, scalarText, type AgentEvent, type PlanDecision } from './sse.ts';
 
 const step: AgentEvent = { event: 'step', data: { seq: 1, tool: 'datasets.list', status: 'ok', result_summary: { count: 2 } } };
 const done: AgentEvent = { event: 'done', data: { content: '查询完成', step_count: 1 } };
@@ -63,7 +63,7 @@ test('pending check prevents ordinary messages; sequential checks replace pendin
   assert.equal(reduceChat(pending, { type: 'send', content: 'new' }), pending);
   const nextHuman: AgentEvent = { event: 'human_check', data: { ...human.data, check_id: 'check-2' } };
   const next = reduceChat(reduceChat(pending, { type: 'decision', decision: 'approve' }), { type: 'events', events: [step, nextHuman] });
-  assert.equal(next.pending?.check_id, 'check-2');
+  assert.equal(next.pending && 'check_id' in next.pending && next.pending.check_id, 'check-2');
   assert.equal(next.busy, false);
 });
 
@@ -83,4 +83,43 @@ test('clarify and errors release busy state and keep messages in order', () => {
 test('summary renderer displays scalars and excludes unexpected objects', () => {
   assert.equal(scalarText({ revision: 2, overwrite: false, note: null, id: 'cube-1', nested: {} } as never),
     'revision: 2 · overwrite: false · note: null · id: cube-1');
+});
+
+const plan: Extract<AgentEvent, { event: 'plan' }> = { event: 'plan', data: { plan_id: 'round-1', reason: '执行计划待确认',
+  steps: [1, 2, 3].map(seq => ({ seq, tool: 'datasets.list', summary: {}, gpu: false, estimate_ms: null })) } };
+
+test('plan SSE is accepted, blocks content and cannot use the tool-decision path', () => {
+  assert.deepEqual(parseSse(encode([plan])), [plan]);
+  const pending = reduceChat(initialChat, { type: 'events', events: [plan] });
+  assert.deepEqual(pending.pending, plan.data);
+  assert.equal(reduceChat(pending, { type: 'send', content: 'new' }), pending);
+  assert.equal(reduceChat(pending, { type: 'decision', decision: 'approve' }), pending);
+  assert.equal(reduceChat(initialChat, { type: 'plan', action: 'approve' }), initialChat);
+});
+
+test('plan actions preserve pending while executing and retain the decision with the original plan', () => {
+  for (const decision of [{ action: 'approve' }, { action: 'skip', step_ref: 2, reason: '跳过' },
+    { action: 'rollback', step_ref: 3, reason: '从末步开始' }, { action: 'reject', reason: '拒绝' }] satisfies PlanDecision[]) {
+    const pending = reduceChat(initialChat, { type: 'events', events: [plan] });
+    const next = reduceChat(pending, { type: 'plan', ...decision });
+    assert.equal(next.busy, true);
+    assert.equal(next.executing, decision.action !== 'reject');
+    assert.deepEqual(next.pending, decision.action === 'reject' ? null : plan.data);
+    assert.deepEqual(next.entries, [{ ...plan, decision }]);
+    assert.equal(reduceChat(next, { type: 'plan', action: 'approve' }), next);
+    const finished = reduceChat(next, { type: 'events', events: [done] });
+    assert.equal(finished.pending, null);
+    assert.deepEqual(finished.entries[0], { ...plan, decision });
+  }
+});
+
+test('plan approval can suspend again at human check and all terminal events clear pending', () => {
+  const pending = reduceChat(initialChat, { type: 'events', events: [plan] });
+  const approved = reduceChat(pending, { type: 'plan', action: 'approve' });
+  const checked = reduceChat(approved, { type: 'events', events: [human] });
+  assert.deepEqual(checked.pending, human.data);
+  assert.equal(reduceChat(checked, { type: 'plan', action: 'approve' }), checked);
+  for (const event of [done, error, { event: 'clarify', data: { question: '补充' } } as AgentEvent]) {
+    assert.equal(reduceChat(approved, { type: 'events', events: [event] }).pending, null);
+  }
 });

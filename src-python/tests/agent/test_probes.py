@@ -107,6 +107,8 @@ def test_probe_6_ten_calls_keep_parse_rejections_first(settings_api):
     fake = FakeLLM(reply(calls=[call(identifier=f"call-{i}") for i in range(1, 11)]), reply("完成"))
     session = configure(settings_api, fake, tools)
     events = stream(settings_api, session["id"], {"content": "依序查询"})
+    assert events[-1][0] == "plan"
+    events = events[:-1] + stream(settings_api, session["id"], {"plan_id": events[-1][1]["plan_id"], "action": "approve"})
     assert [name for name, _ in events] == ["step"] * 10 + ["done"]
     rows = steps(settings_api, session)
     assert [row["seq"] for row in rows] == list(range(1, 11))

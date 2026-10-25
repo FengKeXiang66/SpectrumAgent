@@ -63,6 +63,23 @@ pub enum Decision {
 }
 
 #[derive(Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PlanAction {
+    Approve,
+    Reject,
+    Skip,
+    Rollback,
+}
+
+fn present_value<'de, D, T>(deserializer: D) -> Result<Option<T>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: Deserialize<'de>,
+{
+    T::deserialize(deserializer).map(Some)
+}
+
+#[derive(Deserialize, Serialize)]
 #[serde(untagged, deny_unknown_fields)]
 pub enum MessageBody {
     Content {
@@ -71,6 +88,22 @@ pub enum MessageBody {
     Answer {
         check_id: String,
         decision: Decision,
+    },
+    Plan {
+        plan_id: String,
+        action: PlanAction,
+        #[serde(
+            default,
+            deserialize_with = "present_value",
+            skip_serializing_if = "Option::is_none"
+        )]
+        step_ref: Option<u64>,
+        #[serde(
+            default,
+            deserialize_with = "present_value",
+            skip_serializing_if = "Option::is_none"
+        )]
+        reason: Option<String>,
     },
 }
 
@@ -100,6 +133,30 @@ impl AgentRequest {
                         Err(invalid_request())
                     }
                     MessageBody::Answer { check_id, .. } => uuid(check_id),
+                    MessageBody::Plan {
+                        plan_id,
+                        action,
+                        step_ref,
+                        reason,
+                    } => {
+                        uuid(plan_id)?;
+                        let valid = match action {
+                            PlanAction::Approve => step_ref.is_none() && reason.is_none(),
+                            PlanAction::Reject => {
+                                step_ref.is_none()
+                                    && reason.as_ref().is_some_and(|r| !r.trim().is_empty())
+                            }
+                            PlanAction::Skip | PlanAction::Rollback => {
+                                step_ref.is_some_and(|n| n >= 1)
+                                    && reason.as_ref().is_some_and(|r| !r.trim().is_empty())
+                            }
+                        };
+                        if valid {
+                            Ok(())
+                        } else {
+                            Err(invalid_request())
+                        }
+                    }
                     _ => Ok(()),
                 }
             }
@@ -164,7 +221,7 @@ pub fn parse_sse(text: &str) -> Result<Value, ForwardError> {
             .ok_or_else(|| ForwardError::new("INVALID_BODY", "SSE 事件缺少类型"))?;
         if !matches!(
             name.as_str(),
-            "step" | "clarify" | "human_check" | "done" | "error"
+            "step" | "clarify" | "human_check" | "plan" | "done" | "error"
         ) {
             return Err(ForwardError::new("INVALID_BODY", "SSE 事件类型非法"));
         }

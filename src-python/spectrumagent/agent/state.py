@@ -25,6 +25,7 @@ class State(str, Enum):
     DONE = "DONE"
     CLARIFY = "CLARIFY"
     HUMAN_CHECK = "HUMAN_CHECK"
+    PLAN_CHECK = "PLAN_CHECK"
     ERROR = "ERROR"
 
 
@@ -43,6 +44,7 @@ def install_guards(db):
         ("agent_session", "id,skill_version_id,created_at"),
         ("agent_round", "id,session_id,seq,user_message,calls_json,created_at"),
         ("agent_step", "id,session_id,round_id,seq,tool,arguments_json,created_at"),
+        ("agent_plan_action", "id,session_id,round_id,action,seq_ref,reason,created_at"),
     ):
         db.execute(f"""CREATE TRIGGER IF NOT EXISTS {table}_immutable
             BEFORE UPDATE OF {columns} ON {table}
@@ -52,13 +54,15 @@ def install_guards(db):
     db.execute("""CREATE TRIGGER IF NOT EXISTS agent_title_once BEFORE UPDATE OF title ON agent_session
         WHEN NOT (OLD.title='' AND NEW.title IS NOT NULL AND length(NEW.title)>0)
         BEGIN SELECT RAISE(ABORT,'AGENT_IMMUTABLE'); END""")
-    db.execute("""CREATE TRIGGER IF NOT EXISTS agent_round_transition BEFORE UPDATE OF status ON agent_round
-        WHEN NOT ((OLD.status='running' AND NEW.status IN ('human_check','done','error'))
-               OR (OLD.status='human_check' AND NEW.status IN ('running','done','error')))
-        BEGIN SELECT RAISE(ABORT,'AGENT_TRANSITION_INVALID'); END""")
     db.execute("""CREATE TRIGGER IF NOT EXISTS agent_step_transition
         BEFORE UPDATE OF status,result_digest,result_summary,latency_ms ON agent_step
         WHEN NOT (OLD.status='human_check_pending' AND NEW.status IN ('ok','rejected','error'))
+        BEGIN SELECT RAISE(ABORT,'AGENT_TRANSITION_INVALID'); END""")
+    db.execute("DROP TRIGGER IF EXISTS agent_round_transition")
+    db.execute("""CREATE TRIGGER agent_round_transition BEFORE UPDATE OF status ON agent_round
+        WHEN NOT ((OLD.status='running' AND NEW.status IN ('human_check','done','error'))
+               OR (OLD.status='human_check' AND NEW.status IN ('running','done','error'))
+               OR (OLD.status='plan_check' AND NEW.status IN ('running','done','error')))
         BEGIN SELECT RAISE(ABORT,'AGENT_TRANSITION_INVALID'); END""")
 
 
@@ -103,10 +107,14 @@ class AgentStore:
                 return _rows(db, "SELECT * FROM agent_step WHERE session_id=? AND round_id=? ORDER BY seq", (session_id, round_id))
             return _rows(db, "SELECT * FROM agent_step WHERE session_id=? ORDER BY seq", (session_id,))
 
-    def preflight(self, session_id, check_id=None):
+    def preflight(self, session_id, check_id=None, plan_id=None):
         self.session(session_id)
         with connect_database(self.database) as db:
-            rounds = _rows(db, "SELECT * FROM agent_round WHERE session_id=? AND status IN ('running','human_check') ORDER BY seq", (session_id,))
+            rounds = _rows(db, "SELECT * FROM agent_round WHERE session_id=? AND status IN ('running','human_check','plan_check') ORDER BY seq", (session_id,))
+            if plan_id is not None:
+                if not rounds or rounds[0]["id"] != plan_id or rounds[0]["status"] != "plan_check":
+                    raise _failure("INVALID_REQUEST", "确认引用不存在或已处理")
+                return rounds[0], None
             if check_id is None:
                 if rounds:
                     raise _failure("INVALID_REQUEST", "本轮尚未结束，只接受待确认应答")
@@ -118,7 +126,7 @@ class AgentStore:
 
     def new_round(self, session_id, content, calls, status="running"):
         with connect_database(self.database) as db, _write(db):
-            if db.execute("SELECT 1 FROM agent_round WHERE session_id=? AND status IN ('running','human_check')", (session_id,)).fetchone():
+            if db.execute("SELECT 1 FROM agent_round WHERE session_id=? AND status IN ('running','human_check','plan_check')", (session_id,)).fetchone():
                 raise _failure("INVALID_REQUEST", "本轮尚未结束")
             identifier, timestamp = str(uuid4()), _now()
             seq = db.execute("SELECT COALESCE(MAX(seq),0)+1 FROM agent_round WHERE session_id=?", (session_id,)).fetchone()[0]
@@ -139,6 +147,34 @@ class AgentStore:
             row = db.execute("UPDATE agent_round SET status='running' WHERE id=? AND status='human_check'", (round_id,))
             if row.rowcount != 1:
                 raise _failure("INVALID_REQUEST", "确认已处理")
+
+    def claim_plan(self, round_id):
+        with connect_database(self.database) as db, _write(db):
+            row = db.execute("UPDATE agent_round SET status='running' WHERE id=? AND status='plan_check'", (round_id,))
+            if row.rowcount != 1:
+                raise _failure("INVALID_REQUEST", "确认已处理")
+
+    def add_plan_action(self, round_, action, seq_ref, reason):
+        with connect_database(self.database) as db, _write(db):
+            db.execute("INSERT INTO agent_plan_action (id,session_id,round_id,action,seq_ref,reason,created_at) VALUES (?,?,?,?,?,?,?)",
+                       (str(uuid4()), round_["session_id"], round_["id"], action, seq_ref, reason, _now()))
+
+    def effective_calls(self, round_id):
+        with connect_database(self.database) as db:
+            calls = json.loads(db.execute("SELECT calls_json FROM agent_round WHERE id=?", (round_id,)).fetchone()[0])
+            actions = _rows(db, "SELECT * FROM agent_plan_action WHERE round_id=? ORDER BY rowid DESC LIMIT 1", (round_id,))
+        action = actions[0] if actions else None
+        start, stop = 0, len(calls)
+        if action:
+            if action["action"] == "reject":
+                stop = 0
+            elif action["action"] == "skip":
+                stop = action["seq_ref"] - 1
+            elif action["action"] == "rollback":
+                start = action["seq_ref"] - 1
+        skipped = [{"seq": index + 1, "tool": call["name"]} for index, call in enumerate(calls) if not start <= index < stop]
+        return calls[start:stop], {"skipped": skipped,
+            "rolled_back_from": action["seq_ref"] if action and action["action"] == "rollback" else None}
 
     def cancel_running(self, round_id):
         with connect_database(self.database) as db, _write(db):
@@ -179,7 +215,24 @@ class StateMachine:
         self.store, self.session_id, self.llm, self.tools = store, session_id, llm, tools
         self.state = State.IDLE  # Request-local execution phase, never a recovery source.
 
-    def message(self, *, content=None, check_id=None, decision=None):
+    def message(self, *, content=None, check_id=None, decision=None, plan_id=None, action=None, step_ref=None, reason=None):
+        if plan_id is not None and content is None and check_id is None and decision is None:
+            if action not in {"approve", "reject", "skip", "rollback"}:
+                raise _failure("INVALID_REQUEST", "计划动作不合法")
+            if action == "approve":
+                if step_ref is not None or reason is not None:
+                    raise _failure("INVALID_REQUEST", "批准不能携带步骤或原因")
+            elif not isinstance(reason, str) or not reason.strip():
+                raise _failure("INVALID_REQUEST", "计划动作必须填写原因")
+            continuation = self.store.preflight(self.session_id, plan_id=plan_id)
+            if action in {"skip", "rollback"}:
+                if type(step_ref) is not int or not 1 <= step_ref <= len(json.loads(continuation[0]["calls_json"])):
+                    raise _failure("INVALID_REQUEST", "计划步骤引用不合法")
+            elif step_ref is not None:
+                raise _failure("INVALID_REQUEST", "计划动作不接受步骤引用")
+            return self._generate(continuation=continuation, plan=(action, step_ref, reason))
+        if any(value is not None for value in (plan_id, action, step_ref, reason)):
+            raise _failure("INVALID_REQUEST", "消息形态不合法")
         if content is not None and check_id is None and decision is None:
             self.store.preflight(self.session_id)
             return self._generate(content=content)
@@ -207,7 +260,7 @@ class StateMachine:
             step = self.store.finish_step(pending, status, summary, elapsed)
         return step, error
 
-    def _generate(self, *, content=None, continuation=None, decision=None):
+    def _generate(self, *, content=None, continuation=None, decision=None, plan=None):
         round_ = None
         round_creation_attempted = False
         try:
@@ -230,7 +283,8 @@ class StateMachine:
                             "_raw_truncated": raw[:RAW_BYTES].decode("utf-8", errors="ignore")}, exc.code,
                             (perf_counter_ns() - started) // 1_000_000))
                 round_creation_attempted = True
-                round_ = self.store.new_round(self.session_id, content, calls, "running" if parsed.tool_calls else "done")
+                status = "plan_check" if len(calls) >= 2 else "running" if parsed.tool_calls else "done"
+                round_ = self.store.new_round(self.session_id, content, calls, status)
                 if not parsed.tool_calls:
                     self.state = State.CLARIFY
                     yield "clarify", {"question": parsed.content or ""}
@@ -240,12 +294,35 @@ class StateMachine:
                 for name, arguments, code, elapsed in rejected:
                     step = self.store.add_step(round_, name, arguments, "rejected", {"error": code}, elapsed)
                     yield self._step_event(step)
+                if len(calls) >= 2:
+                    self.state = State.PLAN_CHECK
+                    yield "plan", {"plan_id": round_["id"], "steps": [{"seq": index, "tool": call["name"],
+                        "summary": {key: value for key, value in call["arguments"].items()
+                            if key in {"cube_id", "version_id", "revision", "class_code", "overwrite"}
+                            and value is not None and isinstance(value, (str, int, float, bool))},
+                        "gpu": self.tools.resolve(call["name"]).gpu, "estimate_ms": self.tools.resolve(call["name"]).estimate_ms}
+                        for index, call in enumerate(calls, 1)], "reason": "执行计划待确认"}
+                    return
+                offset = 0
+            elif plan is not None:
+                resume_round, _ = continuation
+                self.store.claim_plan(resume_round["id"])
+                round_ = resume_round
+                action, step_ref, reason = plan
+                if action != "approve":
+                    self.store.add_plan_action(round_, action, step_ref, reason)
+                if action == "reject":
+                    self.store.round_status(round_["id"], "done")
+                    self.state = State.DONE
+                    yield "done", {"content": "计划已拒绝、未执行", "step_count": 0}
+                    return
+                calls, _ = self.store.effective_calls(round_["id"])
                 offset = 0
             else:
                 resume_round, pending = continuation
                 self.store.claim(resume_round["id"])
                 round_ = resume_round
-                calls = json.loads(round_["calls_json"])
+                calls, _ = self.store.effective_calls(round_["id"])
                 if decision == "reject":
                     step = self.store.finish_step(pending, "rejected", {"error": "HUMAN_REJECTED"}, 0)
                     yield self._step_event(step)
@@ -275,6 +352,7 @@ class StateMachine:
                     raise error
             self.state = State.INTERPRET
             steps = self.store.steps(self.session_id, round_["id"])
+            calls, plan_summary = self.store.effective_calls(round_["id"])
             messages = [{"role": "system", "content": version["system_prompt"]}, {"role": "user", "content": round_["user_message"]}]
             if calls:
                 messages.append({"role": "assistant", "content": None, "tool_calls": [
@@ -285,6 +363,8 @@ class StateMachine:
             rejections = [{"tool": step["tool"], **json.loads(step["result_summary"])} for step in steps if step["status"] == "rejected"]
             if rejections:
                 messages.append({"role": "system", "content": _json({"rejected": rejections})})
+            if plan_summary["skipped"] or plan_summary["rolled_back_from"] is not None:
+                messages.append({"role": "system", "content": _json(plan_summary)})
             final = self.llm.chat(messages, None)
             if final.tool_calls:
                 raise DataError("LLM_UNEXPECTED_TOOL_CALL", "解读阶段禁止工具调用")

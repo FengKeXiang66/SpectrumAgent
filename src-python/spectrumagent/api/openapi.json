@@ -1921,6 +1921,28 @@
                   },
                   {
                     "$ref": "#/components/schemas/CheckMessage"
+                  },
+                  {
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/PlanApproval"
+                      },
+                      {
+                        "$ref": "#/components/schemas/PlanRejection"
+                      },
+                      {
+                        "$ref": "#/components/schemas/PlanChange"
+                      }
+                    ],
+                    "discriminator": {
+                      "propertyName": "action",
+                      "mapping": {
+                        "approve": "#/components/schemas/PlanApproval",
+                        "reject": "#/components/schemas/PlanRejection",
+                        "skip": "#/components/schemas/PlanChange",
+                        "rollback": "#/components/schemas/PlanChange"
+                      }
+                    }
                   }
                 ],
                 "title": "Body"
@@ -2862,6 +2884,90 @@
           "steps"
         ],
         "title": "Pipeline"
+      },
+      "PlanApproval": {
+        "properties": {
+          "plan_id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Plan Id"
+          },
+          "action": {
+            "type": "string",
+            "const": "approve",
+            "title": "Action"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "plan_id",
+          "action"
+        ],
+        "title": "PlanApproval"
+      },
+      "PlanChange": {
+        "properties": {
+          "plan_id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Plan Id"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "skip",
+              "rollback"
+            ],
+            "title": "Action"
+          },
+          "step_ref": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Step Ref"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "plan_id",
+          "action",
+          "step_ref",
+          "reason"
+        ],
+        "title": "PlanChange"
+      },
+      "PlanRejection": {
+        "properties": {
+          "plan_id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Plan Id"
+          },
+          "action": {
+            "type": "string",
+            "const": "reject",
+            "title": "Action"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "plan_id",
+          "action",
+          "reason"
+        ],
+        "title": "PlanRejection"
       },
       "PointSeed": {
         "properties": {

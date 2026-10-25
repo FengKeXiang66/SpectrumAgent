@@ -1,6 +1,7 @@
 from pathlib import Path
 import re
 import sqlite3
+import pytest
 
 from backend.database import connect_database
 from spectrumagent.agent.migrations import DDL, migrate
@@ -11,7 +12,7 @@ def schema(db, table):
     return db.execute(f"PRAGMA table_info({table})").fetchall()
 
 
-def test_only_eight_tables_match_card_ddl_and_comments_are_split_safe():
+def test_only_nine_tables_match_card_ddl_and_comments_are_split_safe():
     card = (Path(__file__).resolve().parents[3] / "TASK-07-对话编排与标注JSON.md").read_text("utf-8")
     sql = card.split("```sql\n", 1)[1].split("\n```", 1)[0]
     card_ddl = sql
@@ -30,7 +31,7 @@ def test_only_eight_tables_match_card_ddl_and_comments_are_split_safe():
     with sqlite3.connect(":memory:") as db, sqlite3.connect(":memory:") as expected:
         migrate(db)
         expected.executescript(card_ddl)
-        tables = {"llm_settings", "llm_call", "skill_version", "agent_session", "agent_round", "agent_step", "annotation_draft", "training_mat"}
+        tables = {"llm_settings", "llm_call", "skill_version", "agent_session", "agent_round", "agent_step", "annotation_draft", "training_mat", "agent_plan_action"}
         assert {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")} == tables
         for table in tables:
             assert schema(db, table) == schema(expected, table)
@@ -64,6 +65,7 @@ def test_startup_wires_g1_and_g3_with_empty_llm_values(tmp_path):
         assert {"agent_session", "agent_round", "agent_step"} <= tables
         assert "annotation_draft" in tables
         assert "training_mat" in tables
+        assert "agent_plan_action" in tables
 
 def test_upgrade_seeds_enabled_without_overwriting_existing_values():
     with sqlite3.connect(":memory:") as db:
@@ -79,3 +81,40 @@ def test_upgrade_seeds_enabled_without_overwriting_existing_values():
         migrate(db)
         assert db.execute("SELECT value FROM llm_settings WHERE key='egress_enabled'").fetchone() == ("0",)
         assert db.execute("SELECT value FROM llm_settings WHERE key='model'").fetchone() == ("existing-model",)
+
+
+@pytest.mark.parametrize("target", ["running", "done", "error"])
+def test_old_round_trigger_and_missing_plan_table_upgrade(gateway_case, target):
+    from spectrumagent.agent.state import AgentStore
+    store = AgentStore(gateway_case.database)
+    session = store.create_session()
+    row = store.new_round(session["id"], "升级路径", [], "plan_check")
+    with connect_database(gateway_case.database) as db:
+        db.execute("DROP TABLE agent_plan_action")
+        db.execute("DROP TRIGGER agent_round_transition")
+        db.execute("""CREATE TRIGGER agent_round_transition BEFORE UPDATE OF status ON agent_round
+            WHEN NOT ((OLD.status='running' AND NEW.status IN ('human_check','done','error'))
+                   OR (OLD.status='human_check' AND NEW.status IN ('running','done','error')))
+            BEGIN SELECT RAISE(ABORT,'AGENT_TRANSITION_INVALID'); END""")
+        with pytest.raises(sqlite3.IntegrityError, match="AGENT_TRANSITION_INVALID"):
+            db.execute("UPDATE agent_round SET status=? WHERE id=?", (target, row["id"]))
+        migrate(db)
+        assert db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='agent_plan_action'").fetchone()
+        db.execute("UPDATE agent_round SET status=? WHERE id=?", (target, row["id"]))
+        assert db.execute("SELECT status FROM agent_round WHERE id=?", (row["id"],)).fetchone() == (target,)
+
+
+def test_plan_actions_are_immutable_in_every_column_and_cannot_be_deleted(gateway_case):
+    from spectrumagent.agent.state import AgentStore
+    store = AgentStore(gateway_case.database)
+    session = store.create_session()
+    row = store.new_round(session["id"], "审计", [], "plan_check")
+    store.add_plan_action(row, "reject", None, "原始原因")
+    with connect_database(gateway_case.database) as db:
+        before = db.execute("SELECT * FROM agent_plan_action").fetchall()
+        for column in ["id", "session_id", "round_id", "action", "seq_ref", "reason", "created_at"]:
+            with pytest.raises(sqlite3.IntegrityError, match="AGENT_IMMUTABLE"):
+                db.execute(f"UPDATE agent_plan_action SET {column}={column}")
+        with pytest.raises(sqlite3.IntegrityError, match="AGENT_IMMUTABLE"):
+            db.execute("DELETE FROM agent_plan_action")
+        assert db.execute("SELECT * FROM agent_plan_action").fetchall() == before

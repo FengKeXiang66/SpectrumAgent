@@ -26,6 +26,27 @@ class CheckMessage(AgentInput):
     decision: Literal["approve", "reject"]
 
 
+class PlanApproval(AgentInput):
+    plan_id: Annotated[str, Field(min_length=1)]
+    action: Literal["approve"]
+
+
+class PlanRejection(AgentInput):
+    plan_id: Annotated[str, Field(min_length=1)]
+    action: Literal["reject"]
+    reason: Annotated[str, Field(min_length=1)]
+
+
+class PlanChange(AgentInput):
+    plan_id: Annotated[str, Field(min_length=1)]
+    action: Literal["skip", "rollback"]
+    step_ref: Annotated[int, Field(ge=1)]
+    reason: Annotated[str, Field(min_length=1)]
+
+
+PlanMessage = Annotated[PlanApproval | PlanRejection | PlanChange, Field(discriminator="action")]
+
+
 def make_router(database, tools, llm_factory=None):
     router = APIRouter(prefix="/api/v1/agent", tags=["agent"])
     store = AgentStore(database)
@@ -37,7 +58,7 @@ def make_router(database, tools, llm_factory=None):
 
     @router.post("/sessions/{session_id}/messages", response_class=StreamingResponse,
                  responses={200: {"content": {"text/event-stream": {"schema": {"type": "string"}}}}})
-    def message(session_id: str, body: ContentMessage | CheckMessage):
+    def message(session_id: str, body: ContentMessage | CheckMessage | PlanMessage):
         machine = StateMachine(store, session_id, factory(session_id), tools())
         events = machine.message(**body.model_dump())  # Preflight precedes the response.
         def encode():

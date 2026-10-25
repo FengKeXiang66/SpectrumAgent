@@ -1,7 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
-import type { AgentEvent } from './sse.ts';
+import type { AgentEvent, PlanDecision } from './sse.ts';
 
-export type MessageBody = { content: string } | { check_id: string; decision: 'approve' | 'reject' };
+export type MessageBody = { content: string } | { check_id: string; decision: 'approve' | 'reject' } | ({ plan_id: string } & PlanDecision);
 export type AgentRequest = { op: 'create_session' } | { op: 'get_steps'; id: string } | { op: 'send_message'; id: string; body: MessageBody };
 export type Session = { id: string; title: string; skill_version_id: string; created_at: string };
 export type Steps = { session_id: string; steps: { seq: number; tool: string; status: string; arguments_json: string;
@@ -12,7 +12,10 @@ export type InvokeAgent = <T>(command: string, args: { request: AgentRequest }) 
 export const requests = {
   createSession: (): AgentRequest => ({ op: 'create_session' }),
   sendMessage: (id: string, body: MessageBody): AgentRequest => ({ op: 'send_message', id,
-    body: 'content' in body ? { content: body.content } : { check_id: body.check_id, decision: body.decision } }),
+    body: 'content' in body ? { content: body.content } : 'check_id' in body ? { check_id: body.check_id, decision: body.decision }
+      : body.action === 'approve' ? { plan_id: body.plan_id, action: 'approve' }
+        : body.action === 'reject' ? { plan_id: body.plan_id, action: 'reject', reason: body.reason }
+          : { plan_id: body.plan_id, action: body.action, step_ref: body.step_ref, reason: body.reason } }),
   getSteps: (id: string): AgentRequest => ({ op: 'get_steps', id }),
 };
 

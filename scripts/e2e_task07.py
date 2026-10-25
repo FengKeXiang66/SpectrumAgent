@@ -50,7 +50,7 @@ def rect(r0, c0, r1, c1):
 class Evidence:
     def __init__(self):
         self.data = {"source_level": "R24 TestClient / real ASGI stack / synthetic DN / MockTransport",
-                     "started_at": datetime.now(timezone.utc).isoformat(), "base_commit": "1fb2de3",
+                     "started_at": datetime.now(timezone.utc).isoformat(), "base_commit": "134f7b1",
                      "assertions": [], "http": [], "measurements": [], "success": False}
 
     def check(self, condition, label):
@@ -274,6 +274,64 @@ def dialogue_chain(e, client, app, cube):
         "timing_note": "nested spans, not additive; TestClient buffers finite SSE; human think time excluded"}
 
 
+def plan_chain(e, client, app):
+    """F06: real HTTP + gateway, immutable plans and plan-level invalidation."""
+    database = app.state.annotation_sessions.database
+    names = ["datasets.list", "settings.llm_get", "datasets.list"]
+    results = []
+    for action, indices in [("skip", [0]), ("rollback", [1, 2]), ("reject", [])]:
+        bodies = []
+        def provider(request):
+            body = json.loads(request.content)
+            bodies.append(body)
+            message = {"content": "仅解读已执行步骤，其余步骤未执行。"}
+            if "tools" in body:
+                message = {"content": None, "tool_calls": [{"id": f"{action}-{i}", "type": "function", "function": {
+                    "name": name, "arguments": "{}"}} for i, name in enumerate(names)]}
+            return httpx.Response(200, json={"choices": [{"message": message, "finish_reason": "stop"}]})
+        factory = lambda session: OpenAICompatibleClient(database, session_id=session, transport=httpx.MockTransport(provider))
+        with patch.object(app.state, "agent_llm_factory", factory), patch.object(app.state.agent_tools, "invoke", wraps=app.state.agent_tools.invoke) as invoke:
+            session = e.call(client, "POST", "/api/v1/agent/sessions", {}).json()
+            path = f"/api/v1/agent/sessions/{session['id']}/messages"
+            initial, _ = e.stream(client, path, {"content": f"计划动作 {action}"})
+            e.check([event["event"] for event in initial] == ["plan"], f"{action}: multistep suspends before execution")
+            plan = initial[0]["data"]
+            e.check(plan == {"plan_id": plan["plan_id"], "reason": "执行计划待确认", "steps": [
+                {"seq": i + 1, "tool": name, "summary": {}, "gpu": False, "estimate_ms": None} for i, name in enumerate(names)]},
+                f"{action}: exact static plan payload")
+            e.check(len(bodies) == 1 and invoke.call_count == 0, f"{action}: one PARSE and no tool execution while pending")
+            answer = {"plan_id": plan["plan_id"], "action": action, "reason": f"用户原因 {action}"}
+            if action != "reject":
+                answer["step_ref"] = 2
+            resumed, _ = e.stream(client, path, answer)
+            e.check([event["event"] for event in resumed] == ["step"] * len(indices) + ["done"], f"{action}: effective event sequence")
+            e.check([call.args[0] for call in invoke.call_args_list] == [names[i] for i in indices], f"{action}: only effective tools execute in order")
+        with connect_database(database) as db:
+            steps = db.execute("SELECT tool,status FROM agent_step WHERE round_id=? ORDER BY seq", (plan["plan_id"],)).fetchall()
+            audits = db.execute("SELECT session_id,action,seq_ref,reason FROM agent_plan_action WHERE round_id=?", (plan["plan_id"],)).fetchall()
+            status = db.execute("SELECT status FROM agent_round WHERE id=?", (plan["plan_id"],)).fetchone()[0]
+        e.check(steps == [(names[i], "ok") for i in indices], f"{action}: no step rows for unexecuted calls")
+        e.check(audits == [(session["id"], action, None if action == "reject" else 2, answer["reason"])], f"{action}: original reason and plan action audited")
+        e.check(status == "done", f"{action}: round finishes")
+        if action == "reject":
+            e.check(len(bodies) == 1 and resumed == [{"event": "done", "data": {"content": "计划已拒绝、未执行", "step_count": 0}}],
+                    "reject: zero execution and no INTERPRET")
+        else:
+            messages = bodies[-1]["messages"]
+            actual_calls = [call for message in messages if message["role"] == "assistant" for call in message["tool_calls"]]
+            tool_results = [message for message in messages if message["role"] == "tool"]
+            e.check(len(bodies) == 2 and "tools" not in bodies[-1], f"{action}: exactly PARSE plus INTERPRET")
+            e.check([call["id"] for call in actual_calls] == [f"{action}-{i}" for i in indices]
+                    and [message["tool_call_id"] for message in tool_results] == [call["id"] for call in actual_calls],
+                    f"{action}: tool_calls and results have matching counts and ids")
+            e.check(json.loads(messages[-1]["content"]) == {"skipped": [
+                {"seq": i + 1, "tool": name} for i, name in enumerate(names) if i not in indices],
+                "rolled_back_from": 2 if action == "rollback" else None}, f"{action}: all unexecuted calls appear in INTERPRET summary")
+        results.append({"action": action, "initial_events": initial, "resumed_events": resumed, "provider_calls": len(bodies),
+                        "executed_indices": indices, "audit": [list(row) for row in audits]})
+    e.data["plan"] = {"provider": "httpx.MockTransport; no real provider network", "cases": results}
+
+
 def legacy_chain(e, client, app, cube):
     base = f"/api/v1/datasets/{cube}/annotations"
     sessions = app.state.annotation_sessions
@@ -380,6 +438,7 @@ def main():
             settings_chain(e, client)
             cube = annotation_chain(e, client, app, header)
             dialogue_chain(e, client, app, cube)
+            plan_chain(e, client, app)
             legacy_chain(e, client, app, cube)
             recovery_chain(e, client, app, cube)
             large_performance(e, app, runtime)

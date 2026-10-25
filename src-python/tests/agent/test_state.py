@@ -131,6 +131,9 @@ def test_sequence_limit_first_eight_execute_rest_are_all_rejected(gateway_case, 
     fake = FakeLLM(reply(calls=[call(identifier=f"call-{index}") for index in range(count)]), reply("完成"))
     state = machine(gateway_case, fake, tools)
     events = list(state.message(content="执行已注册工具"))
+    plan = events.pop()
+    assert plan[0] == "plan"
+    events += list(state.message(plan_id=plan[1]["plan_id"], action="approve"))
     rows = state.store.steps(state.session_id)
     assert len(rows) == count and handler.call_count == min(count, 8)
     assert [row["seq"] for row in rows] == list(range(1, count + 1))
@@ -148,6 +151,8 @@ def test_human_check_recovers_original_message_and_remaining_calls_after_restart
     parsing = FakeLLM(reply(calls=calls))
     state = machine(gateway_case, parsing, tools)
     events = list(state.message(content=original))
+    assert events[-1][0] == "plan"
+    events = list(state.message(plan_id=events[-1][1]["plan_id"], action="approve"))
     assert [event for event, _ in events] == ["step", "human_check"]
     confirm.assert_not_called()
     assert normal.call_count == 1
@@ -178,6 +183,7 @@ def test_human_reject_executes_nothing_and_closes_round_without_llm(gateway_case
     fake = FakeLLM(reply(calls=[call("annotations.draft_confirm", '{"cube_id":"cube-1","revision":1}'), call(identifier="later")]))
     state = machine(gateway_case, fake, tools)
     pending = list(state.message(content="确认当前版本"))[-1][1]
+    pending = list(state.message(plan_id=pending["plan_id"], action="approve"))[-1][1]
     events = list(state.message(check_id=pending["check_id"], decision="reject"))
     normal.assert_not_called()
     confirm.assert_not_called()
@@ -372,3 +378,171 @@ def test_real_gateway_master_switch_controls_parse_and_interpret(gateway_case, d
     blocked = (session["id"], c.settings.model, "blocked", "LLM_EGRESS_DISABLED", None, None, None)
     assert rows == ([(session["id"], c.settings.model, "ok", None, None, None, None), blocked]
                     if disable_during_parse else [blocked])
+
+
+def plan_rows(database):
+    with connect_database(database) as db:
+        db.row_factory = sqlite3.Row
+        return [dict(row) for row in db.execute("SELECT * FROM agent_plan_action ORDER BY rowid")]
+
+
+def test_plan_gate_payload_is_static_and_no_execution_or_transport_after_suspend(gateway_case):
+    calls = [call("annotations.draft_confirm", '{"cube_id":"cube-1","revision":2,"overwrite":false}', "confirm"),
+             call("training_mat.export", '{"cube_id":"cube-1","version_id":"version-1"}', "export"), call(identifier="list")]
+    provider = Mock(return_value=httpx.Response(200, json={"choices": [{"message": {"content": None, "tool_calls": [
+        {"id": c.id, "type": "function", "function": {"name": c.name, "arguments": c.arguments_json}} for c in calls]}, "finish_reason": "tool_calls"}]}))
+    store = AgentStore(gateway_case.database)
+    session = store.create_session()
+    client = OpenAICompatibleClient(gateway_case.database, transport=httpx.MockTransport(provider), session_id=session["id"])
+    tools = build_registry()
+    tools.invoke = Mock()
+    state = StateMachine(store, session["id"], client, tools)
+    events = state.message(content="先确认再导出并查询")
+    kind, plan = next(events)
+    assert kind == "plan" and state.state == State.PLAN_CHECK
+    assert plan == {"plan_id": rounds(gateway_case.database)[0]["id"], "reason": "执行计划待确认", "steps": [
+        {"seq": 1, "tool": "annotations.draft_confirm", "summary": {"cube_id": "cube-1", "revision": 2, "overwrite": False}, "gpu": False, "estimate_ms": 1700},
+        {"seq": 2, "tool": "training_mat.export", "summary": {"cube_id": "cube-1", "version_id": "version-1"}, "gpu": False, "estimate_ms": 650},
+        {"seq": 3, "tool": "datasets.list", "summary": {}, "gpu": False, "estimate_ms": None}]}
+    assert provider.call_count == 1
+    events.close()
+    assert provider.call_count == 1 and state.state == State.IDLE
+    tools.invoke.assert_not_called()
+    assert store.steps(session["id"]) == [] and rounds(gateway_case.database)[0]["status"] == "plan_check"
+
+
+@pytest.mark.parametrize("action,ref,indices", [(None, None, [0, 1, 2]), ("reject", None, []),
+    ("skip", 1, []), ("skip", 3, [0, 1]), ("rollback", 1, [0, 1, 2]), ("rollback", 3, [2])])
+def test_effective_calls_boundaries_and_restart_preserve_immutable_plan(gateway_case, action, ref, indices):
+    store = AgentStore(gateway_case.database)
+    session = store.create_session()
+    calls = [{"id": str(i), "name": "datasets.list", "arguments": {}} for i in range(3)]
+    row = store.new_round(session["id"], "边界", calls, "plan_check")
+    if action:
+        store.add_plan_action(row, action, ref, " 原因原文 ")
+    effective, summary = AgentStore(gateway_case.database).effective_calls(row["id"])
+    assert effective == [calls[i] for i in indices]
+    assert summary == {"skipped": [{"seq": i + 1, "tool": "datasets.list"} for i in range(3) if i not in indices],
+                       "rolled_back_from": ref if action == "rollback" else None}
+    assert rounds(gateway_case.database)[0]["calls_json"] == _json(calls)
+
+
+@pytest.mark.parametrize("action,ref,indices", [("approve", None, [0, 1, 2]), ("skip", 2, [0]),
+    ("skip", 1, []), ("rollback", 2, [1, 2]), ("rollback", 3, [2])])
+def test_plan_actions_pair_only_effective_calls_in_mock_provider_messages(gateway_case, action, ref, indices):
+    names = ["datasets.list", "settings.llm_get", "datasets.list"]
+    bodies, invoked = [], []
+    tools = ToolRegistry()
+    for name in set(names):
+        tools.register(name, NoArguments, name, lambda _, name=name: invoked.append(name) or {"source": name})
+    def provider(request):
+        body = json.loads(request.content)
+        bodies.append(body)
+        message = {"content": "已按实际执行结果解读"}
+        if "tools" in body:
+            message = {"content": None, "tool_calls": [{"id": f"call-{i}", "type": "function", "function": {
+                "name": name, "arguments": "{}"}} for i, name in enumerate(names)]}
+        return httpx.Response(200, json={"choices": [{"message": message, "finish_reason": "stop"}]})
+    store = AgentStore(gateway_case.database)
+    session = store.create_session()
+    client = OpenAICompatibleClient(gateway_case.database, transport=httpx.MockTransport(provider))
+    state = StateMachine(store, session["id"], client, tools)
+    plan = list(state.message(content="多步查询"))[0][1]
+    assert invoked == [] and len(bodies) == 1
+    args = {} if action == "approve" else {"step_ref": ref, "reason": " 原因原文 "}
+    events = list(StateMachine(AgentStore(gateway_case.database), session["id"], client, tools).message(plan_id=plan["plan_id"], action=action, **args))
+    assert events[-1] == ("done", {"content": "已按实际执行结果解读", "step_count": len(indices)})
+    assert invoked == [names[i] for i in indices]
+    messages = bodies[-1]["messages"]
+    assistant = [m for m in messages if m["role"] == "assistant"]
+    completed = [m for m in messages if m["role"] == "tool"]
+    assert len(completed) == len(indices)
+    assert [c["id"] for m in assistant for c in m["tool_calls"]] == [f"call-{i}" for i in indices]
+    assert [m["tool_call_id"] for m in completed] == [f"call-{i}" for i in indices]
+    assert [json.loads(m["content"])["source"] for m in completed] == [names[i] for i in indices]
+    if action == "approve":
+        assert len(messages) == 6 and plan_rows(gateway_case.database) == []
+    else:
+        assert json.loads(messages[-1]["content"]) == {"skipped": [
+            {"seq": i + 1, "tool": name} for i, name in enumerate(names) if i not in indices],
+            "rolled_back_from": ref if action == "rollback" else None}
+        row, = plan_rows(gateway_case.database)
+        assert (row["action"], row["seq_ref"], row["reason"]) == (action, ref, " 原因原文 ")
+    assert len(bodies) == 2 and rounds(gateway_case.database)[0]["status"] == "done"
+
+
+def test_plan_reject_audits_reason_and_finishes_without_execution_or_llm(gateway_case):
+    tools, normal, confirm = registry()
+    fake = FakeLLM(reply(calls=[call(identifier="one"), call(identifier="two")]))
+    state = machine(gateway_case, fake, tools)
+    plan = list(state.message(content="多步"))[0][1]
+    assert list(state.message(plan_id=plan["plan_id"], action="reject", reason=" 暂不执行 ")) == [
+        ("done", {"content": "计划已拒绝、未执行", "step_count": 0})]
+    normal.assert_not_called(); confirm.assert_not_called()
+    assert len(fake.calls) == 1 and state.store.steps(state.session_id) == []
+    row, = plan_rows(gateway_case.database)
+    assert (row["action"], row["seq_ref"], row["reason"]) == ("reject", None, " 暂不执行 ")
+    assert rounds(gateway_case.database)[0]["status"] == "done"
+
+
+@pytest.mark.parametrize("action", ["approve", "rollback", "skip"])
+def test_plan_restart_and_human_check_use_effective_offset(gateway_case, action):
+    tools, normal, confirm = registry()
+    confirm_call = call("annotations.draft_confirm", '{"cube_id":"cube-1","revision":1}', "confirm")
+    calls = [confirm_call, call(identifier="after")] if action == "approve" else [call(identifier="before"), confirm_call, call(identifier="after")]
+    fake = FakeLLM(reply(calls=calls), reply("完成"))
+    state = machine(gateway_case, fake, tools)
+    stream = state.message(content="确认与查询")
+    _, plan = next(stream)
+    stream.close()
+    with pytest.raises(DataError, match="本轮尚未结束"):
+        state.message(content="不能插入")
+    with pytest.raises(DataError):
+        state.store.new_round(state.session_id, "不能绕过守卫", [])
+    with pytest.raises(DataError):
+        state.message(check_id=plan["plan_id"], decision="approve")
+    restarted = StateMachine(AgentStore(gateway_case.database), state.session_id, fake, tools)
+    kwargs = {} if action == "approve" else {"step_ref": 2 if action == "rollback" else 3, "reason": "只执行有效集"}
+    pending = list(restarted.message(plan_id=plan["plan_id"], action=action, **kwargs))[-1][1]
+    confirm.assert_not_called()
+    assert len(fake.calls) == 1
+    with pytest.raises(DataError):
+        restarted.message(plan_id=plan["plan_id"], action="skip", step_ref=1, reason="执行中禁改")
+    final = list(StateMachine(AgentStore(gateway_case.database), state.session_id, fake, tools).message(check_id=pending["check_id"], decision="approve"))
+    assert final[-1][0] == "done" and len(fake.calls) == 2
+    confirm.assert_called_once(); normal.assert_called_once()
+    messages = fake.calls[-1][0]
+    ids = [c["id"] for m in messages if m["role"] == "assistant" for c in m["tool_calls"]]
+    assert ids == (["before", "confirm"] if action == "skip" else ["confirm", "after"])
+
+
+def test_stale_plan_stream_cannot_execute_twice_or_corrupt_finished_round(gateway_case):
+    tools, normal, _ = registry()
+    state = machine(gateway_case, FakeLLM(reply(calls=[call(identifier="a"), call(identifier="b")]), reply("完成")), tools)
+    plan = list(state.message(content="多步"))[0][1]
+    first = state.message(plan_id=plan["plan_id"], action="approve")
+    stale = StateMachine(state.store, state.session_id, FakeLLM(), tools).message(plan_id=plan["plan_id"], action="reject", reason="晚到拒绝")
+    assert list(first)[-1][0] == "done"
+    assert list(stale)[-1][1]["code"] == "INVALID_REQUEST"
+    assert normal.call_count == 2 and plan_rows(gateway_case.database) == []
+    assert rounds(gateway_case.database)[0]["status"] == "done"
+    with pytest.raises(DataError):
+        state.message(plan_id=plan["plan_id"], action="approve")
+
+
+@pytest.mark.parametrize("body", [{"action": "skip", "step_ref": 0, "reason": "原因"},
+    {"action": "skip", "step_ref": 3, "reason": "原因"}, {"action": "rollback", "step_ref": "2", "reason": "原因"},
+    {"action": "rollback", "step_ref": True, "reason": "原因"}, {"action": "reject"}, {"action": "skip", "step_ref": 1, "reason": " "},
+    {"action": "approve", "step_ref": 1}, {"action": "approve", "reason": "原因"}, {"action": "unknown"}])
+def test_invalid_plan_answers_do_not_claim_or_execute(gateway_case, body):
+    tools, handler, _ = registry()
+    state = machine(gateway_case, FakeLLM(reply(calls=[call(identifier="a"), call(identifier="b")])), tools)
+    plan = list(state.message(content="多步"))[0][1]
+    with pytest.raises(DataError) as caught:
+        state.message(plan_id=plan["plan_id"], **body)
+    assert caught.value.code == "INVALID_REQUEST"
+    other = state.store.create_session()
+    with pytest.raises(DataError):
+        StateMachine(state.store, other["id"], FakeLLM(), tools).message(plan_id=plan["plan_id"], action="approve")
+    handler.assert_not_called()
+    assert rounds(gateway_case.database)[0]["status"] == "plan_check" and plan_rows(gateway_case.database) == []
