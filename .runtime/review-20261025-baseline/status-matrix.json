@@ -351,7 +351,17 @@
         "src-python/spectrumagent/api/settings.py:17",
         "src-tauri/src/settings.rs:25"
       ],
-      "impact_and_action": "影响：用户无法停止合法白名单内容的云端发送。建议：单独备卡，后端唯一出口检查、设置持久化及界面同步；每轮PARSE/INTERPRET均受控，关闭后网络新增请求为0，拒绝尝试仍可本地审计。验收仅覆盖本版已交付数值链路，不据此宣称完整FR-I01完成。"
+      "impact_and_action": "影响：用户无法停止合法白名单内容的云端发送。建议：单独备卡，后端唯一出口检查、设置持久化及界面同步；每轮PARSE/INTERPRET均受控，关闭后网络新增请求为0，拒绝尝试仍可本地审计。验收仅覆盖本版已交付数值链路，不据此宣称完整FR-I01完成。",
+      "updates": [
+        {
+          "batch": "n01-impl",
+          "date": "2026-10-25",
+          "asset": "App 实现（16 文件）＋TASK-07 §12 R29 记账",
+          "status": "覆盖某条需求的一部分",
+          "commit": "8b239bd37318ceca38ef0a741007cdda17a7691a",
+          "detail": "llm_settings 五键增六键 egress_enabled 默认开启（KV 文本\"1\"/\"0\"＋模型 bool 显式序列化，不靠 SQLite 亲和性）；OpenAICompatibleClient.chat() 唯一出口总闸置于 try 第一行、先于禁运内容扫描，关闭后每次调用即拒并落 llm_call 审计（LLM_EGRESS_DISABLED/blocked，tokens NULL，复用既有四值枚举不加列）；Rust 白名单仅接受 JSON 布尔；设置屏复选框走独立 onSwitch 回调；在途边界=入口现读、在途 HTTP 不取消。新增 27 个测试。四路回归：pytest 978（codex 有权环境全量 exit 0；本环境分段第一手 45+724+105+104=978 全覆盖）、node 110、cargo 75 含 doctest＋clippy 零警告、npm run build 通过；openapi.json 程序化重生成字节级一致。原型 HTML 按既定裁定不动（真实交互以 App 设置屏为准）。正式冒烟 S13（真实 key 两态＋egress 开关两态）挂起，未宣称完整 FR-I01 完成。"
+        }
+      ]
     },
     {
       "id": "N02",
