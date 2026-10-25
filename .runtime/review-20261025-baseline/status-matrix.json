@@ -22,7 +22,17 @@
       "implementation_anchors": [
         "src/components/preprocess/types.ts:69"
       ],
-      "impact_and_action": "影响：原型默认行为与P0需求相反，任务卡分期与需求也未对齐。建议：原型改默认剔除；另立FR-A05检测/掩膜→B域消费的联动补偿卡，明确分期。"
+      "impact_and_action": "影响：原型默认行为与P0需求相反，任务卡分期与需求也未对齐。建议：原型改默认剔除；另立FR-A05检测/掩膜→B域消费的联动补偿卡，明确分期。",
+      "updates": [
+        {
+          "batch": "batch2",
+          "date": "2026-10-25",
+          "asset": "原型HTML说明层",
+          "status": "覆盖某条需求的一部分",
+          "detail": "原型默认选中由插值修复改剔除，两个其他选项及告警数不变；补坏波段剔除阶段二/不适用、尚未交付说明。检测/掩膜→B域消费补偿卡仅登记待办，未改实现。",
+          "changelog": "E:/AI_Agent/.runtime/review-20261025-baseline/batch2-changelog.md"
+        }
+      ]
     },
     {
       "id": "F02",
@@ -159,7 +169,17 @@
         "src-python/spectrumagent/agent/tools/__init__.py:242",
         "src-python/spectrumagent/agent/tools/__init__.py:282"
       ],
-      "impact_and_action": "影响：数字无法可靠定位版本/来源。建议：原型补具体引用及无结果分支；metric_id与指标台账一并备卡，避免前端自造ID。"
+      "impact_and_action": "影响：数字无法可靠定位版本/来源。建议：原型补具体引用及无结果分支；metric_id与指标台账一并备卡，避免前端自造ID。",
+      "updates": [
+        {
+          "batch": "batch2",
+          "date": "2026-10-25",
+          "asset": "原型HTML说明层",
+          "status": "覆盖某条需求的一部分",
+          "detail": "按用户追加确认：原型侧出处链已补，OA有既有绑定引用metrics.oa · v1.3 · run_…0412（示例引用，不构成真实性承诺）；ROI卡明确无已绑定metric_id/run_id、出处待绑定且非真实结果凭据，不造ID。metric_id形式化随指标台账里程碑，不写全文通过。",
+          "changelog": "E:/AI_Agent/.runtime/review-20261025-baseline/batch2-changelog.md"
+        }
+      ]
     },
     {
       "id": "F06",
@@ -203,7 +223,17 @@
         "src-python/spectrumagent/agent/state.py:234",
         ".runtime/review-20261024-abc/review-probes.json"
       ],
-      "impact_and_action": "影响：拒绝执行与完成参数澄清易被混为一谈。建议：原型说明参数来源；后续D域补结构化缺参追问或在需求中批准替代路径，不能宣称系统没有CLARIFY。"
+      "impact_and_action": "影响：拒绝执行与完成参数澄清易被混为一谈。建议：原型说明参数来源；后续D域补结构化缺参追问或在需求中批准替代路径，不能宣称系统没有CLARIFY。",
+      "updates": [
+        {
+          "batch": "batch2",
+          "date": "2026-10-25",
+          "asset": "原型HTML说明层",
+          "status": "覆盖某条需求的一部分",
+          "detail": "参数原值不变；标注SNV/SG一阶导及样品分组交叉验证为用户指定，w15/p2/d1、5-fold、iPLS6区间为场景示例默认值可改。补先追问不静默默认的FR-D01要求，并说明拒绝后的统一追问待后续D域；未宣称结构化缺参追问已实现。",
+          "changelog": "E:/AI_Agent/.runtime/review-20261025-baseline/batch2-changelog.md"
+        }
+      ]
     },
     {
       "id": "F08",
@@ -345,7 +375,17 @@
       "prototype_verdict": "原型交互说明仍待补足",
       "implementation_verdict": "不能因静态HTML无真实后端就推定现有App对话无实现；现有App有发送/HUMAN_CHECK链。",
       "implementation_anchors": [],
-      "impact_and_action": "影响：开发/验收无法确定已画控件的反馈。建议：仅为现有控件补成功、失败、禁用及目标页面说明；不要求原型接真实服务，不扩大为原型外功能清单。"
+      "impact_and_action": "影响：开发/验收无法确定已画控件的反馈。建议：仅为现有控件补成功、失败、禁用及目标页面说明；不要求原型接真实服务，不扩大为原型外功能清单。",
+      "updates": [
+        {
+          "batch": "batch2",
+          "date": "2026-10-25",
+          "asset": "原型HTML说明层",
+          "status": "原型自身约束满足",
+          "detail": "仅现有输入/发送/展开助手控件补静态成功/失败/禁用状态及当前页/S01目标说明；11个input原始标签及属性完全一致，发送仅加说明性title，未改JS或接真实服务。",
+          "changelog": "E:/AI_Agent/.runtime/review-20261025-baseline/batch2-changelog.md"
+        }
+      ]
     },
     {
       "id": "N04",
@@ -523,7 +563,17 @@
       "implementation_anchors": [
         "backend/paths.py:7"
       ],
-      "impact_and_action": "影响：把共享根、实际源目录、输出目录混为一层可能误允许源内输出，或误禁数据库写入。建议：明确实际源子树及包含关系；NAS挂载只读+应用守卫另取证；守卫同时覆盖本地数据根、NAS输出根、系统temp。"
+      "impact_and_action": "影响：把共享根、实际源目录、输出目录混为一层可能误允许源内输出，或误禁数据库写入。建议：明确实际源子树及包含关系；NAS挂载只读+应用守卫另取证；守卫同时覆盖本地数据根、NAS输出根、系统temp。",
+      "updates": [
+        {
+          "batch": "batch2",
+          "date": "2026-10-25",
+          "asset": "原型HTML说明层",
+          "status": "覆盖某条需求的一部分",
+          "detail": "仅两处汇总卡说明层厘清：只读作用于来源批次子树；既有输出根与来源批次同级且不在任何来源批次内部，引用§8.1。所有路径值、导入屏正确挂载/分离说明、NAS方式/守卫/审计保持不动，不新增里程碑声明。",
+          "changelog": "E:/AI_Agent/.runtime/review-20261025-baseline/batch2-changelog.md"
+        }
+      ]
     },
     {
       "id": "D05",
@@ -661,7 +711,17 @@
       "prototype_verdict": "现有控件分支说明缺口仍在",
       "implementation_verdict": "代码已验部分源/参考阻断路径；NAS完整部署与未交付回归分支不能一起销账。",
       "implementation_anchors": [],
-      "impact_and_action": "影响：同一控件异常时应拒绝还是继续不清。建议：按已交付路径附测试证据；原型补现有控件的拒绝/重试/补输入说明；未交付回归随PLS验收。"
+      "impact_and_action": "影响：同一控件异常时应拒绝还是继续不清。建议：按已交付路径附测试证据；原型补现有控件的拒绝/重试/补输入说明；未交付回归随PLS验收。",
+      "updates": [
+        {
+          "batch": "batch2",
+          "date": "2026-10-25",
+          "asset": "原型HTML说明层",
+          "status": "覆盖某条需求的一部分",
+          "detail": "为既有路径、反射率转换、PLS回归控件补静态拒绝/重试/补凭据或参考输入/补连续量真值路径说明；不改控件属性/行为/位置。NAS分支需实机验证，未交付回归随PLS里程碑验收，不作已实现承诺。",
+          "changelog": "E:/AI_Agent/.runtime/review-20261025-baseline/batch2-changelog.md"
+        }
+      ]
     },
     {
       "id": "D10",
