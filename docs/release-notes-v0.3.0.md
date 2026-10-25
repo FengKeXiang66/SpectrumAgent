@@ -1,6 +1,6 @@
 # v0.3.0 release notes（草稿）
 
-里程碑B（TASK-07 12.5–12.7）标注JSON与训练MAT自动化验收完成，发布由科祥统一执行。当前产品配置仍为0.1.3，未打v0.3.0 tag、未推送或创建Release。验收记录见milestone07/evidence/12.7/acceptance-map.md。
+里程碑B（TASK-07 12.5–12.7）标注JSON与训练MAT自动化验收完成，发布由科祥统一执行。当前产品配置为 0.3.0（tauri.conf.json），未打v0.3.0 tag、未推送或创建Release。验收记录见milestone07/evidence/12.7/acceptance-map.md。
 
 ## 用户可感知变化
 

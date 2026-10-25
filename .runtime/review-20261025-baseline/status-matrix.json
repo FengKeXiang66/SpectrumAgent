@@ -1,0 +1,776 @@
+{
+  "date": "2026-10-25",
+  "head": "1757ee6",
+  "requirements": "E:/中达瑞和公司/光谱数据AI-Agent处理平台_需求分析与设计.html",
+  "prototype": "E:/中达瑞和公司/光谱数据AI-Agent处理平台_第一阶段UI设计与高保真原型.html",
+  "original_issue_count": 29,
+  "rows": [
+    {
+      "id": "F01",
+      "category": 1,
+      "priority": "P1",
+      "requirement_lines": [
+        517
+      ],
+      "prototype_lines": [
+        1484
+      ],
+      "requirement_basis": "FR-A05：默认在后续处理中剔除",
+      "prototype_finding": "插值修复按钮仍为选中态。",
+      "prototype_verdict": "不一致仍成立",
+      "implementation_verdict": "代码未交付坏波段检测/掩膜；types.ts:69将剔除列入阶段二，不能称默认值错误。",
+      "implementation_anchors": [
+        "src/components/preprocess/types.ts:69"
+      ],
+      "impact_and_action": "影响：原型默认行为与P0需求相反，任务卡分期与需求也未对齐。建议：原型改默认剔除；另立FR-A05检测/掩膜→B域消费的联动补偿卡，明确分期。"
+    },
+    {
+      "id": "F02",
+      "category": 1,
+      "priority": "原缺陷撤回",
+      "requirement_lines": [
+        417,
+        674
+      ],
+      "prototype_lines": [
+        1678,
+        1714,
+        1715,
+        1716,
+        1717,
+        1718,
+        1721
+      ],
+      "requirement_basis": "需求场景给出cos≥0.92；未规定报告相似度必须同参照",
+      "prototype_finding": "候选0.94/0.93/0.91/0.88/0.86，入队下限0.80。",
+      "prototype_verdict": "撤回“低于0.92入队即错误”的指控",
+      "implementation_verdict": "TASK-04:265、270、273–276已裁定：增长cos_uv（邻接对）；报告cos_s（种子参照）；queue_min_similarity=0.80。不得统一三者。",
+      "implementation_anchors": [
+        "TASK-04-标注L1.md:265"
+      ],
+      "impact_and_action": "影响：错误整改会破坏已裁定的single-linkage算法。建议：保留算法与示例数，原型补相似度参照、min_similarity定义及两道阈值说明；关联D01做文档回写。",
+      "updates": [
+        {
+          "batch": "batch1",
+          "date": "2026-10-25",
+          "asset": "prototype HTML only",
+          "status": "原缺陷仍撤回；术语回写完成",
+          "detail": "补cos_uv邻接增长、cos_s种子报告、0.80入队下限说明；所有阈值/算法及五条队列数值保持。",
+          "changelog": "E:/AI_Agent/.runtime/review-20261025-baseline/batch1-changelog.md",
+          "prototype_sha256": "78de8b003efa53e80b5231df27b2ed1d407e7bd2faaa9cd83106698d13fb1a8f",
+          "prototype_lines_unchanged": true,
+          "requirement_full_acceptance": false
+        }
+      ]
+    },
+    {
+      "id": "F03",
+      "category": 1,
+      "priority": "P1",
+      "requirement_lines": [
+        595
+      ],
+      "prototype_lines": [
+        1802,
+        1810,
+        1821,
+        1830
+      ],
+      "requirement_basis": "FR-B10：同一批带标签样本，对多套配方并排对比，展示类间距离/类内方差",
+      "prototype_finding": "原型主要是单配方前后谱/SNR及历史Kappa。",
+      "prototype_verdict": "不一致仍成立",
+      "implementation_verdict": "CompareEngine已对同cube+同annotation_version运行多配方；前端已有Fisher主排序、指标与排除原因。不是待建设功能。",
+      "implementation_anchors": [
+        "src-python/spectrumagent/preprocess/compare.py:96",
+        "src/components/preprocess/PreprocessPanel.tsx:147",
+        "TASK-05-预处理.md:91"
+      ],
+      "impact_and_action": "影响：验收会把历史模型分数误当配方选型依据。建议：按TASK-05和现有实现补原型的同批样本、多配方、Fisher及边界说明；保留任务卡定义的逐像素计算口径。",
+      "updates": [
+        {
+          "batch": "batch1",
+          "date": "2026-10-25",
+          "asset": "prototype HTML only",
+          "status": "本批原型对比口径修复完成",
+          "detail": "同cube/同annotation_version两配方并排，Fisher主排序，逐像素指标/排除/适用边界；无出参不造数，复用已有CompareEngine；历史Kappa保留阶段二标注。",
+          "changelog": "E:/AI_Agent/.runtime/review-20261025-baseline/batch1-changelog.md",
+          "prototype_sha256": "78de8b003efa53e80b5231df27b2ed1d407e7bd2faaa9cd83106698d13fb1a8f",
+          "prototype_lines_unchanged": true,
+          "requirement_full_acceptance": false
+        }
+      ]
+    },
+    {
+      "id": "F04",
+      "category": 1,
+      "priority": "P1",
+      "requirement_lines": [
+        717
+      ],
+      "prototype_lines": [
+        1948,
+        1955,
+        1978,
+        1983,
+        2866,
+        2872
+      ],
+      "requirement_basis": "FR-F04：分类指标与混淆矩阵；原型同屏各评价量应可对账",
+      "prototype_finding": "评价集21.6万；矩阵合计782500；误分43200。ps_032单cube为640×168=107520。",
+      "prototype_verdict": "原型集合/范围不自洽仍成立",
+      "implementation_verdict": "C/F域尚属后续里程碑；不能把示例数直接当代码计算缺陷。矩阵本身OA=94.479…%，四舍五入94.5%成立。",
+      "implementation_anchors": [
+        "TASK-07-对话编排与标注JSON.md:58"
+      ],
+      "impact_and_action": "影响：训练/测试/全图评价范围不清，难以验收。建议：一份版本化mock定义评价集合、cube清单、像素总数、矩阵及图；先定范围再重算，不能只把21.6万改成矩阵总数。",
+      "updates": [
+        {
+          "batch": "batch1",
+          "date": "2026-10-25",
+          "asset": "prototype HTML only",
+          "status": "授权范围已修；关联Kappa差异待科祥确认",
+          "detail": "定义ui-self-consistency-v1全文fixture；八图OOF评价782500/误分43200/OA94.5%，ps_032单图100000评价/5600误分/94.4%；0.921保留并标待核对，未全文销账。",
+          "changelog": "E:/AI_Agent/.runtime/review-20261025-baseline/batch1-changelog.md",
+          "prototype_sha256": "78de8b003efa53e80b5231df27b2ed1d407e7bd2faaa9cd83106698d13fb1a8f",
+          "prototype_lines_unchanged": true,
+          "requirement_full_acceptance": false
+        }
+      ]
+    },
+    {
+      "id": "F05",
+      "category": 1,
+      "priority": "P1",
+      "requirement_lines": [
+        640,
+        234
+      ],
+      "prototype_lines": [
+        1597,
+        1810,
+        1946,
+        2361
+      ],
+      "requirement_basis": "FR-D04：指标解读必须引用metric_id与run_id，否则只能描述未获得数值结果",
+      "prototype_finding": "助手及数值展示缺可核对的双ID出处；个别“来自算子”说明不等于引用链。",
+      "prototype_verdict": "出处不完整仍成立",
+      "implementation_verdict": "工具结果已有run_id回流；metric_id未形式化。仅能销run_id子项，不能关闭FR-D04全文。",
+      "implementation_anchors": [
+        "src-python/spectrumagent/agent/tools/__init__.py:242",
+        "src-python/spectrumagent/agent/tools/__init__.py:282"
+      ],
+      "impact_and_action": "影响：数字无法可靠定位版本/来源。建议：原型补具体引用及无结果分支；metric_id与指标台账一并备卡，避免前端自造ID。"
+    },
+    {
+      "id": "F06",
+      "category": 1,
+      "priority": "P1（需求P0）",
+      "requirement_lines": [
+        638
+      ],
+      "prototype_lines": [
+        2338,
+        2339
+      ],
+      "requirement_basis": "FR-D02：多步任务先输出执行计划，用户确认后执行；支持单步跳过与回退",
+      "prototype_finding": "整体确认前已有导入完成状态。",
+      "prototype_verdict": "时序冲突仍成立",
+      "implementation_verdict": "state.py:219–275已保存不可变calls_json序列，但没有面向用户的整体计划批准闸；普通工具可在首个HUMAN_CHECK前执行。",
+      "implementation_anchors": [
+        "src-python/spectrumagent/agent/state.py:219",
+        ".runtime/review-20261024-abc/review-probes.json"
+      ],
+      "impact_and_action": "影响：用户批准的范围与实际已执行动作不一致。建议：单独备卡，先冻结跳过/回退语义；计划整体批准先于任何计划内工具执行，已有逐工具HUMAN_CHECK继续有效。"
+    },
+    {
+      "id": "F07",
+      "category": 1,
+      "priority": "P1",
+      "requirement_lines": [
+        637,
+        641
+      ],
+      "prototype_lines": [
+        2331,
+        2359,
+        2360
+      ],
+      "requirement_basis": "FR-D01：参数缺失时主动追问而非取默认值",
+      "prototype_finding": "原型从未给定的参数直接展示SG/CV/iPLS等配置，缺参数出处/追问过程。",
+      "prototype_verdict": "原型解释缺口仍成立",
+      "implementation_verdict": "存在no-tool-call的CLARIFY；缺必填参数探针为rejected→INTERPRET→done、执行数0。无静默补齐必填参数可销；schema拒绝后必然追问尚无统一保障。",
+      "implementation_anchors": [
+        "src-python/spectrumagent/agent/state.py:234",
+        ".runtime/review-20261024-abc/review-probes.json"
+      ],
+      "impact_and_action": "影响：拒绝执行与完成参数澄清易被混为一谈。建议：原型说明参数来源；后续D域补结构化缺参追问或在需求中批准替代路径，不能宣称系统没有CLARIFY。"
+    },
+    {
+      "id": "F08",
+      "category": 1,
+      "priority": "P1",
+      "requirement_lines": [
+        606
+      ],
+      "prototype_lines": [
+        1885
+      ],
+      "requirement_basis": "FR-C01：潜变量自动推荐与手动指定，并同时给两者对比",
+      "prototype_finding": "现有PLS卡只画自动与固定10，缺同功能的手动/对比状态。",
+      "prototype_verdict": "同一已画功能的分支缺口仍成立",
+      "implementation_verdict": "归PLS里程碑，不是TASK-07当前已交付参数错误。",
+      "implementation_anchors": [
+        "TASK-07-对话编排与标注JSON.md:58"
+      ],
+      "impact_and_action": "影响：自动推荐难以与人工选择共同验收。建议：在PLS任务卡和现有原型卡补手动参数、范围规则及自动/手动对比状态。"
+    },
+    {
+      "id": "S01",
+      "category": 2,
+      "priority": "关闭原指控",
+      "requirement_lines": [
+        513
+      ],
+      "prototype_lines": [
+        546,
+        1417
+      ],
+      "requirement_basis": "FR-A01定义五类导入格式，不包含.mat/IrisCube项目包导入",
+      "prototype_finding": "ui-v2.3已明确撤回.mat与IrisCube项目包的阶段一承诺。",
+      "prototype_verdict": "原范围蔓延指控已关闭",
+      "implementation_verdict": "仅为文档层关闭；TASK-07训练MAT导出是另一项已批准能力，不应删除。",
+      "implementation_anchors": [
+        "TASK-07-对话编排与标注JSON.md:45"
+      ],
+      "impact_and_action": "影响：误沿用旧问题会错误删减已批准导出。建议：关闭S01原指控；新版HDF5/Specim分期差异另登记Δ02。"
+    },
+    {
+      "id": "S02",
+      "category": 2,
+      "priority": "待拍板",
+      "requirement_lines": [
+        592,
+        714
+      ],
+      "prototype_lines": [
+        1844
+      ],
+      "requirement_basis": "FR-B07定义预处理配方；FR-F01定义训练台账，未定义独立训练模板资产",
+      "prototype_finding": "建模区域已有“作为模板保存”。",
+      "prototype_verdict": "额外资产的范围未闭合",
+      "implementation_verdict": "不因已有配方/台账就推定训练模板已获批准；不要求本轮新增实现。",
+      "implementation_anchors": [],
+      "impact_and_action": "影响：模板的字段、版本、复用、失效规则无验收依据。建议：本阶段从原型移除此独立入口；确需纳入则先补规格并归PLS/F域，保留已批准配方版本化。"
+    },
+    {
+      "id": "S03",
+      "category": 2,
+      "priority": "待拍板",
+      "requirement_lines": [
+        1639,
+        897
+      ],
+      "prototype_lines": [
+        2310
+      ],
+      "requirement_basis": "会话实体/审计导出不等于定义导出会话功能",
+      "prototype_finding": "助手页已有“导出会话”。",
+      "prototype_verdict": "额外功能范围未闭合",
+      "implementation_verdict": "审计导出是FR-L10的另一项需求，不能连带删除。",
+      "implementation_anchors": [],
+      "impact_and_action": "影响：导出内容、格式、脱敏与附件边界无合同。建议：当前原型移除会话导出入口；后续独立补规格，保留需求明确的审计导出。"
+    },
+    {
+      "id": "N01",
+      "category": 3,
+      "priority": "P1／建议v0.3.0门槛",
+      "requirement_lines": [
+        769,
+        921
+      ],
+      "prototype_lines": [
+        2294,
+        2531
+      ],
+      "requirement_basis": "FR-I01：提供关闭外发开关，关闭后Agent降级、核心分析能力不受影响",
+      "prototype_finding": "原型仅“已开启”状态标识，未给可操作开关及完整降级状态。",
+      "prototype_verdict": "开关交互未闭合",
+      "implementation_verdict": "llm_settings五字段、Python API与Rust白名单均无外发布尔设置；禁运字段扫描不能代替用户关闭全部外发。",
+      "implementation_anchors": [
+        "src-python/spectrumagent/agent/migrations.py:102",
+        "src-python/spectrumagent/api/settings.py:17",
+        "src-tauri/src/settings.rs:25"
+      ],
+      "impact_and_action": "影响：用户无法停止合法白名单内容的云端发送。建议：单独备卡，后端唯一出口检查、设置持久化及界面同步；每轮PARSE/INTERPRET均受控，关闭后网络新增请求为0，拒绝尝试仍可本地审计。验收仅覆盖本版已交付数值链路，不据此宣称完整FR-I01完成。"
+    },
+    {
+      "id": "N02",
+      "category": 3,
+      "priority": "P2复现；确认阻断再升P1",
+      "requirement_lines": [
+        649
+      ],
+      "prototype_lines": [
+        163,
+        204,
+        206,
+        2419
+      ],
+      "requirement_basis": "FR-D13：每个业务界面保留常驻对话输入框",
+      "prototype_finding": "原型composer仍为普通流式布局。",
+      "prototype_verdict": "原型常驻布局约束仍需修",
+      "implementation_verdict": "实际footer为sticky，不能据“min-height+flex”认定缺陷。720px两种代表DOM在页底输入可见、末行不与footer重叠；非安装态结论。",
+      "implementation_anchors": [
+        "src/style.css:7",
+        "src/components/assistant/assistant.css:3",
+        ".runtime/review-20261025-baseline/layout-measurements.json"
+      ],
+      "impact_and_action": "影响：输入离屏和主内容遮挡是两种独立故障。建议：安装态同时测输入、末行内容和底部按钮可见可达；覆盖小窗口、缩放、DPI、长错误/确认卡。无复现不改外壳。"
+    },
+    {
+      "id": "N03",
+      "category": 3,
+      "priority": "P2",
+      "requirement_lines": [
+        649
+      ],
+      "prototype_lines": [
+        1244,
+        2423,
+        2427,
+        2940
+      ],
+      "requirement_basis": "FR-D13定义对话等价入口；UI自身声明为交互原型",
+      "prototype_finding": "已画输入/发送等控件缺部分状态反馈与跳转说明，脚本主要处理导航。",
+      "prototype_verdict": "原型交互说明仍待补足",
+      "implementation_verdict": "不能因静态HTML无真实后端就推定现有App对话无实现；现有App有发送/HUMAN_CHECK链。",
+      "implementation_anchors": [],
+      "impact_and_action": "影响：开发/验收无法确定已画控件的反馈。建议：仅为现有控件补成功、失败、禁用及目标页面说明；不要求原型接真实服务，不扩大为原型外功能清单。"
+    },
+    {
+      "id": "N04",
+      "category": 3,
+      "priority": "P2",
+      "requirement_lines": [],
+      "prototype_lines": [
+        1470,
+        1478,
+        1479
+      ],
+      "requirement_basis": "原型自洽约束",
+      "prototype_finding": "三项小立方体、一个异常与“其余235全通过”等摘要/明细缺统一计数口径。",
+      "prototype_verdict": "mock计数问题仍在",
+      "implementation_verdict": "不据此认定真实导入服务算错。",
+      "implementation_anchors": [],
+      "impact_and_action": "影响：批次通过/失败数量无法验收。建议：与F04/D07共享版本化fixture，并显式给批次总数、展示子集、成功/失败/未处理数量。",
+      "updates": [
+        {
+          "batch": "batch1",
+          "date": "2026-10-25",
+          "asset": "prototype HTML only",
+          "status": "本批原型计数修复完成",
+          "detail": "240成功解析=236无告警+4带告警，失败/未处理0；展示5=3+2，折叠235=233+2，3个偏小完整定位。",
+          "changelog": "E:/AI_Agent/.runtime/review-20261025-baseline/batch1-changelog.md",
+          "prototype_sha256": "78de8b003efa53e80b5231df27b2ed1d407e7bd2faaa9cd83106698d13fb1a8f",
+          "prototype_lines_unchanged": true,
+          "requirement_full_acceptance": false
+        }
+      ]
+    },
+    {
+      "id": "N05",
+      "category": 3,
+      "priority": "P2",
+      "requirement_lines": [],
+      "prototype_lines": [
+        894,
+        258,
+        1946
+      ],
+      "requirement_basis": "UI样式规则：主色仅用于可点击/选中",
+      "prototype_finding": "p-metric .v统一使用brand-d，数值卡亦使用主色。",
+      "prototype_verdict": "原型自身规范冲突仍在",
+      "implementation_verdict": "未推定App同病。",
+      "implementation_anchors": [],
+      "impact_and_action": "影响：视觉语义不一致，可点击性易误判。建议：普通指标使用正文色，或正式修订样式规则说明指标强调色，不双口径验收。"
+    },
+    {
+      "id": "N06",
+      "category": 3,
+      "priority": "P2",
+      "requirement_lines": [],
+      "prototype_lines": [
+        1642,
+        1647
+      ],
+      "requirement_basis": "原型标签标题与列表应一致",
+      "prototype_finding": "标题“标签1–4”，列表另含背景5。",
+      "prototype_verdict": "文案/计数不一致仍在",
+      "implementation_verdict": "未推定App标签枚举错误。",
+      "implementation_anchors": [],
+      "impact_and_action": "影响：背景是否为可训练类的验收不明确。建议：统一类表与标题并说明背景语义；不要只改标题而遗漏训练计数。",
+      "updates": [
+        {
+          "batch": "batch1",
+          "date": "2026-10-25",
+          "asset": "prototype HTML only",
+          "status": "本批原型标签说明修复完成",
+          "detail": "1–5含背景；本fixture背景可训练并计入类数及已标注像素；-1/-2排除；不改变项目全局政策或代码。",
+          "changelog": "E:/AI_Agent/.runtime/review-20261025-baseline/batch1-changelog.md",
+          "prototype_sha256": "78de8b003efa53e80b5231df27b2ed1d407e7bd2faaa9cd83106698d13fb1a8f",
+          "prototype_lines_unchanged": true,
+          "requirement_full_acceptance": false
+        }
+      ]
+    },
+    {
+      "id": "D01",
+      "category": 4,
+      "priority": "已有裁定回写＋余项冻结",
+      "requirement_lines": [
+        514,
+        517,
+        1683
+      ],
+      "prototype_lines": [
+        1458,
+        1524,
+        1168
+      ],
+      "requirement_basis": "需求给检测/校准原则与SG示例，未全面约束SNR8dB、波长±2nm等参数",
+      "prototype_finding": "原型带具体阈值与参数限制。",
+      "prototype_verdict": "仍有参数来源/范围说明缺口",
+      "implementation_verdict": "TASK-04已批准扩散/队列参数，TASK-05已细化SG；不能重新把已有裁定全部当未定义，也不能把示例5–51当普适硬上限。",
+      "implementation_anchors": [
+        "TASK-04-标注L1.md:265",
+        "TASK-05-预处理.md:68"
+      ],
+      "impact_and_action": "影响：同一参数出现第二套默认值或范围。建议：逐字段登记来源、默认/示例/硬约束及适用对象，既有TASK规则回写，剩余容差/阈值再拍板。",
+      "updates": [
+        {
+          "batch": "batch1",
+          "date": "2026-10-25",
+          "asset": "prototype HTML only",
+          "status": "仅SG及关联已裁定字段回写完成；其余保持待冻结",
+          "detail": "SG正奇数窗、0≤p<w、interp窗≤输入bands、band_index/delta1.0、15/2/1场景示例；未改未裁定SNR阈值或波长容差。",
+          "changelog": "E:/AI_Agent/.runtime/review-20261025-baseline/batch1-changelog.md",
+          "prototype_sha256": "78de8b003efa53e80b5231df27b2ed1d407e7bd2faaa9cd83106698d13fb1a8f",
+          "prototype_lines_unchanged": true,
+          "requirement_full_acceptance": false
+        }
+      ]
+    },
+    {
+      "id": "D02",
+      "category": 4,
+      "priority": "待冻结",
+      "requirement_lines": [
+        446,
+        3065
+      ],
+      "prototype_lines": [
+        843,
+        2169
+      ],
+      "requirement_basis": "场景检索Top-20；§9为Top-10命中率指标",
+      "prototype_finding": "原型部分流程Top-20，结果卡Top-5。",
+      "prototype_verdict": "显示/返回/评测K仍未拆清",
+      "implementation_verdict": "后续检索里程碑；不能把Top-10评测指标机械改成返回K。",
+      "implementation_anchors": [],
+      "impact_and_action": "影响：数量不同会导致误验收检索能力。建议：分别定义返回K、默认显示K、可调整范围、评测Top-10；统一已画流程的说明。"
+    },
+    {
+      "id": "D03",
+      "category": 4,
+      "priority": "文档冲突＋真实数据冒烟",
+      "requirement_lines": [
+        415,
+        416
+      ],
+      "prototype_lines": [
+        1597,
+        1608,
+        1815
+      ],
+      "requirement_basis": "同一场景范围935–1720nm，同时标出1724nm特征",
+      "prototype_finding": "原型范围935–1720，却展示R(1656)/R(1724)。",
+      "prototype_verdict": "【需求&UI自相矛盾】仍未解",
+      "implementation_verdict": "未读取NAS真实波长轴，不能证明1724可取，也不能用FWHM≈8nm替代采样轴证据。",
+      "implementation_anchors": [],
+      "impact_and_action": "影响：特征比值可能不可计算或被擅自外推。建议：NAS实样核对实际axis/单位/取点映射；再选择改样例范围或改特征，禁静默外推。"
+    },
+    {
+      "id": "D04",
+      "category": 4,
+      "priority": "部分满足／NAS证据待补",
+      "requirement_lines": [
+        523,
+        524,
+        3019
+      ],
+      "prototype_lines": [
+        1384,
+        1386,
+        1428,
+        1435,
+        2290,
+        2291
+      ],
+      "requirement_basis": "FR-A11/A12：源目录只读、输出根独立；§8.1另定义三个可写根",
+      "prototype_finding": "设置卡共享根与子输出的关系含糊；导入示例中的具体批次源与同级输出可分离。",
+      "prototype_verdict": "路径边界说明仍需统一",
+      "implementation_verdict": "本地源不修改已有证据；backend/paths.py明确no NAS access or guard，本地证据不能销两层NAS只读。",
+      "implementation_anchors": [
+        "backend/paths.py:7"
+      ],
+      "impact_and_action": "影响：把共享根、实际源目录、输出目录混为一层可能误允许源内输出，或误禁数据库写入。建议：明确实际源子树及包含关系；NAS挂载只读+应用守卫另取证；守卫同时覆盖本地数据根、NAS输出根、系统temp。"
+    },
+    {
+      "id": "D05",
+      "category": 4,
+      "priority": "待冻结；工具通道部分满足",
+      "requirement_lines": [
+        897,
+        921,
+        1763
+      ],
+      "prototype_lines": [
+        2249,
+        2269
+      ],
+      "requirement_basis": "FR-L10允许用户显式选单条光谱；NFR-06仅列摘要；另有采样示例",
+      "prototype_finding": "原型展示用户单条224点光谱。",
+      "prototype_verdict": "全局出域政策仍有歧义",
+      "implementation_verdict": "工具结果白名单收严可销；用户自然语言文本可携带一维数组到mock provider，不能称全局标量限制。",
+      "implementation_anchors": [
+        "src-python/spectrumagent/agent/llm.py:198",
+        ".runtime/review-20261024-abc/review-probes.json"
+      ],
+      "impact_and_action": "影响：用户文本与工具回灌存在不同边界。建议：冻结允许数据类型、通道、显式授权及可审计表示；未批准前不放宽现有工具通道，也不宣称自然语言通道已获得同等保障。"
+    },
+    {
+      "id": "D06",
+      "category": 4,
+      "priority": "新版部分澄清",
+      "requirement_lines": [
+        754,
+        2944,
+        2955,
+        2957,
+        369,
+        647
+      ],
+      "prototype_lines": [
+        771,
+        2169,
+        1923,
+        1925,
+        1926
+      ],
+      "requirement_basis": "FR-H05新版：FTS5+条件过滤起步，embedding确认前只能记部分完成",
+      "prototype_finding": "原型仍有pgvector谱搜、S10等阶段表述及GB·天预估。",
+      "prototype_verdict": "FTS5口径已澄清；其余阶段边界仍待核定",
+      "implementation_verdict": "SpectrumIndex光谱向量不等于台账文本语义检索；已有TASK范围不得被旧总表覆盖。",
+      "implementation_anchors": [],
+      "impact_and_action": "影响：关键词检索被误报为完整语义检索，或把阶段二计量提前承诺。建议：按文本检索/谱搜/台账/资源预估逐能力写交付阶段及完成等级；GB·天区分本地预测与收费/配额。"
+    },
+    {
+      "id": "D07",
+      "category": 4,
+      "priority": "原型mock规则待统一",
+      "requirement_lines": [],
+      "prototype_lines": [
+        1661,
+        1726,
+        1730,
+        2361
+      ],
+      "requirement_basis": "原型不同位置的单位/样本范围必须一致",
+      "prototype_finding": "504/812为超像素比例约62%；另有像素统计782500与助手“像素级62%”，单cube范围又不同。",
+      "prototype_verdict": "计量单位/评价范围缺口仍在",
+      "implementation_verdict": "真实map_statistics与前端working统计来自同一label map，不用这些原型硬编码数。",
+      "implementation_anchors": [
+        "src-python/spectrumagent/annotation/session.py:110",
+        "src/components/annotation/working.ts:14"
+      ],
+      "impact_and_action": "影响：自动占比和覆盖率易混淆，跨页面数字失真。建议：统一fixture，分别命名超像素确认率、像素标注率、自动来源比例，写明分子/分母、cube/批次范围。",
+      "updates": [
+        {
+          "batch": "batch1",
+          "date": "2026-10-25",
+          "asset": "prototype HTML only",
+          "status": "本批原型统计口径修复完成",
+          "detail": "超像素确认504/812=62.07%；ps_032像素标注88000/107520=81.85%；自动来源0/88000=0%；跨页明确版本及分母。",
+          "changelog": "E:/AI_Agent/.runtime/review-20261025-baseline/batch1-changelog.md",
+          "prototype_sha256": "78de8b003efa53e80b5231df27b2ed1d407e7bd2faaa9cd83106698d13fb1a8f",
+          "prototype_lines_unchanged": true,
+          "requirement_full_acceptance": false
+        }
+      ]
+    },
+    {
+      "id": "D08",
+      "category": 4,
+      "priority": "TASK已定义，待文档回写",
+      "requirement_lines": [
+        671
+      ],
+      "prototype_lines": [
+        1732,
+        1862
+      ],
+      "requirement_basis": "FR-E01定义三级粒度及互推，但不详述具体聚合规则",
+      "prototype_finding": "原型有生成样本级标签与训练标签来源，缺就地聚合说明。",
+      "prototype_verdict": "原型字段/规则说明缺口仍在",
+      "implementation_verdict": "TASK-04已裁定按cube×label聚合均值/标准差、sample_code、主标签多数等规则；既有聚合实现不重做。",
+      "implementation_anchors": [
+        "TASK-04-标注L1.md:298",
+        "TASK-04-标注L1.md:306"
+      ],
+      "impact_and_action": "影响：使用者可能把多数类标签当逐像素真值。建议：将既有聚合/排除-1/-2/只读主标签规则映射到已有控件说明，并区分预处理逐像素输入。",
+      "updates": [
+        {
+          "batch": "batch1",
+          "date": "2026-10-25",
+          "asset": "prototype HTML only",
+          "status": "TASK既定聚合规则回写完成",
+          "detail": "cube×label均值/标准差谱、granularity=sample、只读多数主标签、排除-1/-2；未修改实现。",
+          "changelog": "E:/AI_Agent/.runtime/review-20261025-baseline/batch1-changelog.md",
+          "prototype_sha256": "78de8b003efa53e80b5231df27b2ed1d407e7bd2faaa9cd83106698d13fb1a8f",
+          "prototype_lines_unchanged": true,
+          "requirement_full_acceptance": false
+        }
+      ]
+    },
+    {
+      "id": "D09",
+      "category": 4,
+      "priority": "按分支部分满足",
+      "requirement_lines": [
+        516,
+        525,
+        606
+      ],
+      "prototype_lines": [
+        1428,
+        1461,
+        1854
+      ],
+      "requirement_basis": "参考缺失、NAS不可达阻断；回归需要连续量真值",
+      "prototype_finding": "现有NAS导入、反射率和回归控件缺对应分支状态说明。",
+      "prototype_verdict": "现有控件分支说明缺口仍在",
+      "implementation_verdict": "代码已验部分源/参考阻断路径；NAS完整部署与未交付回归分支不能一起销账。",
+      "implementation_anchors": [],
+      "impact_and_action": "影响：同一控件异常时应拒绝还是继续不清。建议：按已交付路径附测试证据；原型补现有控件的拒绝/重试/补输入说明；未交付回归随PLS验收。"
+    },
+    {
+      "id": "D10",
+      "category": 4,
+      "priority": "符合TASK，未覆盖需求全文",
+      "requirement_lines": [
+        897,
+        3076
+      ],
+      "prototype_lines": [
+        2217,
+        2254
+      ],
+      "requirement_basis": "FR-L10要求完整payload摘要+策略命中结果，可还原送出了什么",
+      "prototype_finding": "原型审计有类别/token/run等，但缺逐次调用的可还原摘要说明。",
+      "prototype_verdict": "需求/TASK/原型口径仍冲突",
+      "implementation_verdict": "TASK-07§2.1规定全文不落库只存sha；当前prompt_sha256仅覆盖messages，另存tool_names，不是完整请求的可还原快照。",
+      "implementation_anchors": [
+        "TASK-07-对话编排与标注JSON.md:87",
+        "src-python/spectrumagent/agent/llm.py:198",
+        "src-python/spectrumagent/agent/migrations.py:11"
+      ],
+      "impact_and_action": "影响：不可逆hash不能独立回答送出了哪些内容，也未绑定全部工具schema/请求配置。建议：长期选版本化摘要级还原；摘要范围、不可变引用与保留策略先冻结。当前指纹证据只能记TASK合规，若临时带账须明确豁免。"
+    },
+    {
+      "id": "D11",
+      "category": 4,
+      "priority": "原型追踪表待修",
+      "requirement_lines": [
+        698,
+        714,
+        751,
+        921,
+        922
+      ],
+      "prototype_lines": [
+        766,
+        770,
+        772
+      ],
+      "requirement_basis": "E18/F01/H02/NFR06等是当前需求对应条目",
+      "prototype_finding": "S05/S09/S11追踪映射错条或沿用旧NFR-07。",
+      "prototype_verdict": "映射错误仍在",
+      "implementation_verdict": "只改文档映射，不据此重做功能。",
+      "implementation_anchors": [],
+      "impact_and_action": "影响：测试会引用错误验收项，阶段归属被误导。建议：重建页面→控件→FR→TASK→证据映射，逐条校验固定ID。",
+      "updates": [
+        {
+          "batch": "batch1",
+          "date": "2026-10-25",
+          "asset": "prototype HTML only",
+          "status": "本批三处追踪映射修复完成",
+          "detail": "S05 E18；S09 F01/H02；S11 NFR-06/I01/L10；未扩展其他映射修订。",
+          "changelog": "E:/AI_Agent/.runtime/review-20261025-baseline/batch1-changelog.md",
+          "prototype_sha256": "78de8b003efa53e80b5231df27b2ed1d407e7bd2faaa9cd83106698d13fb1a8f",
+          "prototype_lines_unchanged": true,
+          "requirement_full_acceptance": false
+        }
+      ]
+    },
+    {
+      "id": "D12",
+      "category": 4,
+      "priority": "待拍板；推荐裁定明确",
+      "requirement_lines": [
+        523,
+        3064
+      ],
+      "prototype_lines": [
+        2533
+      ],
+      "requirement_basis": "FR-A11要求拒写并审计；§9却写不存在任何写向源目录记录",
+      "prototype_finding": "原型也采用“无任何写向源记录”。",
+      "prototype_verdict": "【需求&UI自相矛盾】仍在",
+      "implementation_verdict": "文件写保护审计与llm_call审计是不同通道；任何一方都不能代证另一方。",
+      "implementation_anchors": [],
+      "impact_and_action": "影响：正确拦截留痕反而会被判不合格，可能诱发删审计。建议：源目录成功写入=0；全部被拒写入尝试完整留痕；用操作/结果状态区分，源哈希/mtime/树清单不变，告警可追溯。"
+    }
+  ],
+  "batch_updates": [
+    {
+      "batch": "batch1",
+      "date": "2026-10-25",
+      "head_before": "1757ee6",
+      "scope_authority": "user first-batch prompt",
+      "issue_ids": [
+        "F04",
+        "N04",
+        "D07",
+        "N06",
+        "F02",
+        "F03",
+        "D11",
+        "D08",
+        "D01"
+      ],
+      "release_notes": "one exact authorized string replacement only",
+      "prototype_path": "E:\\中达瑞和公司\\光谱数据AI-Agent处理平台_第一阶段UI设计与高保真原型.html",
+      "prototype_sha256_old": "59f7ef4b77b764fc667d562f626311f21abba7a277c3dc9daba9d2cdca295022",
+      "prototype_sha256_new": "78de8b003efa53e80b5231df27b2ed1d407e7bd2faaa9cd83106698d13fb1a8f",
+      "requirement_sha256_unchanged": "08408b0bd5dea317b4e17f365cde7b829804faf15defe96c1b8bf58ca1e29ead",
+      "line_count": 2976,
+      "line_delta": 0,
+      "pending": [
+        "F04关联Kappa冲突；保留0.921，不全文销账",
+        "既有待科祥拍板事项保持未改"
+      ],
+      "no_business_code_changes": true,
+      "no_project_tests_build_or_packaging": true
+    }
+  ]
+}
