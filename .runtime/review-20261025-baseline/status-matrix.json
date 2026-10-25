@@ -828,7 +828,17 @@
       "prototype_verdict": "【需求&UI自相矛盾】仍在",
       "implementation_verdict": "文件写保护审计与llm_call审计是不同通道；任何一方都不能代证另一方。",
       "implementation_anchors": [],
-      "impact_and_action": "影响：正确拦截留痕反而会被判不合格，可能诱发删审计。建议：源目录成功写入=0；全部被拒写入尝试完整留痕；用操作/结果状态区分，源哈希/mtime/树清单不变，告警可追溯。"
+      "impact_and_action": "影响：正确拦截留痕反而会被判不合格，可能诱发删审计。建议：源目录成功写入=0；全部被拒写入尝试完整留痕；用操作/结果状态区分，源哈希/mtime/树清单不变，告警可追溯。",
+      "updates": [
+        {
+          "batch": "batch3-wave2",
+          "date": "2026-10-25",
+          "asset": "需求HTML与原型HTML说明层",
+          "status": "覆盖某条需求的一部分",
+          "detail": "需求L3064及原型L2533统一为成功写向源目录=0、被拒写入尝试完整留痕；需求验收引用改为FR-A11并明确DENY记录与告警。仅文档措辞回写，不代证文件写保护实现或llm_call审计；拒写构造留痕验证归冒烟，未宣称需求全文验收通过。",
+          "changelog": "E:/AI_Agent/.runtime/review-20261025-baseline/batch3-changelog.md"
+        }
+      ]
     }
   ],
   "batch_updates": [
@@ -861,6 +871,44 @@
       ],
       "no_business_code_changes": true,
       "no_project_tests_build_or_packaging": true
+    },
+    {
+      "batch": "batch3-wave2",
+      "date": "2026-10-25",
+      "head_before": "90cf795859f1dca3074a15228acbdf152e29109c",
+      "scope_authority": "user wave2 six exact same-line edits; step0 independently approved",
+      "issue_ids": [
+        "D12"
+      ],
+      "non_matrix_ids": [
+        "Δ01",
+        "Δ02"
+      ],
+      "non_matrix_note": "Δ01/Δ02均非29行内ID；本波仅回写Δ01四处，Δ02保持现状，未新增矩阵行。",
+      "delta01": {
+        "asset": "requirements HTML",
+        "lines": [
+          524,
+          566,
+          3131,
+          3196
+        ],
+        "status": "run_id单层写法回写4处完成；代码不改"
+      },
+      "requirement_sha256_old": "08408b0bd5dea317b4e17f365cde7b829804faf15defe96c1b8bf58ca1e29ead",
+      "requirement_sha256_new": "c7b1b1ad0c302f180c9e19440ef6c4fbd1c09027bf66cd84f3065b1b499929a0",
+      "prototype_sha256_old": "a3eaf01a1dde04225c68760fedfe927d144d095f15d53984dd7061bc5aa737f3",
+      "prototype_sha256_new": "b9a16e021f0265be6237f6012d940bd5765e74c37f796badebd2332ca780080b",
+      "requirement_lines": 3211,
+      "prototype_lines": 2976,
+      "line_delta": 0,
+      "pending": [
+        "D12拒写构造留痕验证归冒烟；文档统一不代表实现验收通过",
+        "Δ02本波不触及，保持现状"
+      ],
+      "no_business_code_changes": true,
+      "no_tests_build_tag_or_push": true,
+      "changelog": "E:/AI_Agent/.runtime/review-20261025-baseline/batch3-changelog.md"
     }
   ]
 }
