@@ -4,11 +4,11 @@
 
 vite v8.3.4 building client environment for production...
 transforming...
-✓ 50 modules transformed.
+✓ 53 modules transformed.
 rendering chunks...
 computing gzip size...
 dist/index.html                   0.37 kB │ gzip:  0.29 kB
 dist/assets/index-C3l-qqUI.css   10.67 kB │ gzip:  2.79 kB
-dist/assets/index-D2L5BYQ4.js   307.47 kB │ gzip: 97.57 kB
+dist/assets/index-BX6BR6ZG.js   312.42 kB │ gzip: 99.37 kB
 
-✓ built in 1.16s
+✓ built in 932ms

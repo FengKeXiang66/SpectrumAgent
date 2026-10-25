@@ -2,13 +2,14 @@
   "base_commit": "21e4f84",
   "python": 951,
   "rust": 75,
-  "node": 95,
-  "e2e_assertions": 92,
+  "node": 107,
+  "e2e_assertions": 106,
   "flake_exposures": 30,
   "flake_failed": 0,
   "mat_seconds": 0.6436063000001013,
   "mat_gate_seconds": 30,
   "acceptance_items": 55,
   "implementation_changed": false,
-  "release_actions": "none; owner only"
+  "release_actions": "none; owner only",
+  "base_commit_12_7_1": "2e52686"
 }

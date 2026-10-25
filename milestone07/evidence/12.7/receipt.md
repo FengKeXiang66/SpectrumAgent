@@ -6,8 +6,8 @@
 |---|---|---|
 | Python | 951 passed / 0 failed，基线951+0 | 默认参数并发，无串行限制；环境变量与 python -m pytest 同条 |
 | Rust | 75 passed / 0 failed（含doctest1），基线75+0；Clippy零警告 | cargo test 默认并发；clippy --all-targets -- -D warnings |
-| 前端 | 95 passed / 0 failed，基线95+0；npm run build通过，含tsc --noEmit | node --test 默认发现/默认并发，含artifacts既有两项 |
-| 集成 | exit0，92/92断言通过 | TestClient真实ASGI+MockTransport，真实provider网络0 |
+| 前端 | 107 passed / 0 failed（12.7.1 后新基线；12.7 时点为 95）；npm run build通过，含tsc --noEmit | node --test 默认发现/默认并发，含artifacts既有两项 |
+| 集成 | exit0，106/106断言通过（12.7.1 后新基线；12.7 时点为 92） | TestClient真实ASGI+MockTransport，真实provider网络0 |
 | flake | 3目标各10轮，30通过/0失败，无复跑 | 暴露按轮顺序编排；各pytest新进程/默认参数 |
 | MAT门 | 0.643606s < 30s，通过 | R24合成231×640×200全标，独立计时，无并发构建/回归 |
 
@@ -52,3 +52,7 @@ acceptance-map.md（卡§6完整55项）/ performance.md+json / scripts/e2e_task
 ## 即停与剩余事项
 
 本轮没有新增即停点或实现修复。e2e首次启动的自动审批超时后按工具许可重试成功，没有失败运行被覆盖为通过。三出口、MAT门与flake均通过；真实NAS/DeepSeek/UI、签名/SmartScreen、干净机、长路径与reboot仍归科祥。未打tag、未push、未建Release、未改manifest或tauri.conf.json；五个公司文档与任务卡不动。
+
+## 12.7.1 追加（基线 2e52686，2026-10-24）
+
+LLM 设置屏前端入口：五键表单 + key 密码框 + has_key 状态 + settings_forward 封装 + UI 可达性测试；e2e 补设置链（PUT 配置→GET has_key=false→PUT key→GET has_key=true，无 key 本体）。新基线：node 107 / e2e 106；Python 951+0、Rust 75、clippy 零警告不变（该提交未动后端与 Rust）。本目录 e2e-result.json（106/106）、performance.json、acceptance-map.md G1-06 行已随 2e52686 刷新；node-test.txt、build.txt、summary.json 与本文件本次回写至 12.7.1 基线。
