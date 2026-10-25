@@ -290,7 +290,17 @@
       "prototype_verdict": "额外资产的范围未闭合",
       "implementation_verdict": "不因已有配方/台账就推定训练模板已获批准；不要求本轮新增实现。",
       "implementation_anchors": [],
-      "impact_and_action": "影响：模板的字段、版本、复用、失效规则无验收依据。建议：本阶段从原型移除此独立入口；确需纳入则先补规格并归PLS/F域，保留已批准配方版本化。"
+      "impact_and_action": "影响：模板的字段、版本、复用、失效规则无验收依据。建议：本阶段从原型移除此独立入口；确需纳入则先补规格并归PLS/F域，保留已批准配方版本化。",
+      "updates": [
+        {
+          "batch": "batch3-wave1",
+          "date": "2026-10-25",
+          "asset": "原型HTML",
+          "status": "原型自身约束满足",
+          "detail": "按本批授权将原型L1844独立训练模板按钮同行改注释，移除阶段一入口；保留已批准的配方版本化与训练MAT导出，不新增模板规格或实现。",
+          "changelog": "E:/AI_Agent/.runtime/review-20261025-baseline/batch3-changelog.md"
+        }
+      ]
     },
     {
       "id": "S03",
@@ -308,7 +318,17 @@
       "prototype_verdict": "额外功能范围未闭合",
       "implementation_verdict": "审计导出是FR-L10的另一项需求，不能连带删除。",
       "implementation_anchors": [],
-      "impact_and_action": "影响：导出内容、格式、脱敏与附件边界无合同。建议：当前原型移除会话导出入口；后续独立补规格，保留需求明确的审计导出。"
+      "impact_and_action": "影响：导出内容、格式、脱敏与附件边界无合同。建议：当前原型移除会话导出入口；后续独立补规格，保留需求明确的审计导出。",
+      "updates": [
+        {
+          "batch": "batch3-wave1",
+          "date": "2026-10-25",
+          "asset": "原型HTML",
+          "status": "原型自身约束满足",
+          "detail": "按本批授权将原型L2310导出会话按钮同行改注释，移除阶段一入口；保留FR-L10审计导出，不修改任何审计口径或实现。",
+          "changelog": "E:/AI_Agent/.runtime/review-20261025-baseline/batch3-changelog.md"
+        }
+      ]
     },
     {
       "id": "N01",
@@ -432,7 +452,17 @@
       "prototype_verdict": "原型自身规范冲突仍在",
       "implementation_verdict": "未推定App同病。",
       "implementation_anchors": [],
-      "impact_and_action": "影响：视觉语义不一致，可点击性易误判。建议：普通指标使用正文色，或正式修订样式规则说明指标强调色，不双口径验收。"
+      "impact_and_action": "影响：视觉语义不一致，可点击性易误判。建议：普通指标使用正文色，或正式修订样式规则说明指标强调色，不双口径验收。",
+      "updates": [
+        {
+          "batch": "batch3-wave1",
+          "date": "2026-10-25",
+          "asset": "原型HTML",
+          "status": "原型自身约束满足",
+          "detail": "仅原型L258的.p-metric .v将color:var(--brand-d)改为color:var(--ink)，对齐L894样式规则；.kpi .v、.tag、h3及其他主色用法不改，不推定实现同病。",
+          "changelog": "E:/AI_Agent/.runtime/review-20261025-baseline/batch3-changelog.md"
+        }
+      ]
     },
     {
       "id": "N06",
