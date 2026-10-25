@@ -547,7 +547,17 @@
       "prototype_verdict": "显示/返回/评测K仍未拆清",
       "implementation_verdict": "后续检索里程碑；不能把Top-10评测指标机械改成返回K。",
       "implementation_anchors": [],
-      "impact_and_action": "影响：数量不同会导致误验收检索能力。建议：分别定义返回K、默认显示K、可调整范围、评测Top-10；统一已画流程的说明。"
+      "impact_and_action": "影响：数量不同会导致误验收检索能力。建议：分别定义返回K、默认显示K、可调整范围、评测Top-10；统一已画流程的说明。",
+      "updates": [
+        {
+          "batch": "batch3-wave3",
+          "date": "2026-10-25",
+          "asset": "需求HTML口径回写",
+          "status": "覆盖某条需求的一部分",
+          "detail": "需求L446明确返回K=20、默认显示Top-5并可展开至20、评测Top-10命中率三种口径；仅口径回写，检索实现归后续里程碑，不写需求全文通过。",
+          "changelog": "E:/AI_Agent/.runtime/review-20261025-baseline/batch3-changelog.md"
+        }
+      ]
     },
     {
       "id": "D03",
@@ -626,7 +636,17 @@
         "src-python/spectrumagent/agent/llm.py:198",
         ".runtime/review-20261024-abc/review-probes.json"
       ],
-      "impact_and_action": "影响：用户文本与工具回灌存在不同边界。建议：冻结允许数据类型、通道、显式授权及可审计表示；未批准前不放宽现有工具通道，也不宣称自然语言通道已获得同等保障。"
+      "impact_and_action": "影响：用户文本与工具回灌存在不同边界。建议：冻结允许数据类型、通道、显式授权及可审计表示；未批准前不放宽现有工具通道，也不宣称自然语言通道已获得同等保障。",
+      "updates": [
+        {
+          "batch": "batch3-wave3",
+          "date": "2026-10-25",
+          "asset": "需求HTML口径回写",
+          "status": "覆盖某条需求的一部分",
+          "detail": "需求L897区分工具结果回灌的标量白名单与可携带一维数组的用户自然语言通道；另行审批前不视为同等保障。拒放款证据归实现，本批不新增实现证据或修改出域策略。",
+          "changelog": "E:/AI_Agent/.runtime/review-20261025-baseline/batch3-changelog.md"
+        }
+      ]
     },
     {
       "id": "D06",
@@ -652,7 +672,17 @@
       "prototype_verdict": "FTS5口径已澄清；其余阶段边界仍待核定",
       "implementation_verdict": "SpectrumIndex光谱向量不等于台账文本语义检索；已有TASK范围不得被旧总表覆盖。",
       "implementation_anchors": [],
-      "impact_and_action": "影响：关键词检索被误报为完整语义检索，或把阶段二计量提前承诺。建议：按文本检索/谱搜/台账/资源预估逐能力写交付阶段及完成等级；GB·天区分本地预测与收费/配额。"
+      "impact_and_action": "影响：关键词检索被误报为完整语义检索，或把阶段二计量提前承诺。建议：按文本检索/谱搜/台账/资源预估逐能力写交付阶段及完成等级；GB·天区分本地预测与收费/配额。",
+      "updates": [
+        {
+          "batch": "batch3-wave3",
+          "date": "2026-10-25",
+          "asset": "需求HTML与原型HTML口径回写",
+          "status": "覆盖某条需求的一部分",
+          "detail": "需求L446和原型L771标明谱搜阶段二，原型L1926将GB·天存储明确为本地预估、非收费配额；FTS5为阶段一起步口径已由需求澄清。本批不改其他能力分期、实现或L1923/L1925/L2169。",
+          "changelog": "E:/AI_Agent/.runtime/review-20261025-baseline/batch3-changelog.md"
+        }
+      ]
     },
     {
       "id": "D07",
@@ -774,7 +804,17 @@
         "src-python/spectrumagent/agent/llm.py:198",
         "src-python/spectrumagent/agent/migrations.py:11"
       ],
-      "impact_and_action": "影响：不可逆hash不能独立回答送出了哪些内容，也未绑定全部工具schema/请求配置。建议：长期选版本化摘要级还原；摘要范围、不可变引用与保留策略先冻结。当前指纹证据只能记TASK合规，若临时带账须明确豁免。"
+      "impact_and_action": "影响：不可逆hash不能独立回答送出了哪些内容，也未绑定全部工具schema/请求配置。建议：长期选版本化摘要级还原；摘要范围、不可变引用与保留策略先冻结。当前指纹证据只能记TASK合规，若临时带账须明确豁免。",
+      "updates": [
+        {
+          "batch": "batch3-wave3",
+          "date": "2026-10-25",
+          "asset": "需求HTML口径回写",
+          "status": "覆盖某条需求的一部分",
+          "detail": "需求L897及L3076登记v0.3.0起暂以prompt_sha256指纹（L897含tool_names）为例外；摘要级还原合同备卡后补，保留完整payload摘要与策略命中结果的目标要求，不将指纹例外写成摘要级还原验收通过。",
+          "changelog": "E:/AI_Agent/.runtime/review-20261025-baseline/batch3-changelog.md"
+        }
+      ]
     },
     {
       "id": "D11",
@@ -905,6 +945,46 @@
       "pending": [
         "D12拒写构造留痕验证归冒烟；文档统一不代表实现验收通过",
         "Δ02本波不触及，保持现状"
+      ],
+      "no_business_code_changes": true,
+      "no_tests_build_tag_or_push": true,
+      "changelog": "E:/AI_Agent/.runtime/review-20261025-baseline/batch3-changelog.md"
+    },
+    {
+      "batch": "batch3-wave3",
+      "date": "2026-10-25",
+      "head_before": "cd05b1486db64215dbdaaa1bcafe7e49936eb94b",
+      "scope_authority": "user six exact inline replacements; step0 independently approved",
+      "issue_ids": [
+        "D02",
+        "D05",
+        "D06",
+        "D10"
+      ],
+      "requirement_lines": [
+        446,
+        897,
+        3076
+      ],
+      "prototype_lines": [
+        771,
+        1926
+      ],
+      "fragment_entries": 6,
+      "unique_asset_lines": 5,
+      "requirement_sha256_old": "c7b1b1ad0c302f180c9e19440ef6c4fbd1c09027bf66cd84f3065b1b499929a0",
+      "requirement_sha256_new": "71579555592d034f4fe9a256cf75f54ced6be21e98b511745cedf337e32a2ed2",
+      "prototype_sha256_old": "b9a16e021f0265be6237f6012d940bd5765e74c37f796badebd2332ca780080b",
+      "prototype_sha256_new": "e6d00f6ab7af75b1ee3aff2be227d6c738436d9e01de39069a83037099f8a829",
+      "requirement_line_count": 3211,
+      "prototype_line_count": 2976,
+      "line_delta": 0,
+      "all_29_prototype_lines_unchanged": true,
+      "pending": [
+        "D02检索实现归后续里程碑",
+        "D05拒放款证据归实现",
+        "D06其余能力分期保持现状",
+        "D10摘要级还原合同备卡后补；本波仅登记指纹例外"
       ],
       "no_business_code_changes": true,
       "no_tests_build_tag_or_push": true,
