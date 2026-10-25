@@ -2777,6 +2777,11 @@
             "type": "string",
             "title": "Timeout Ms",
             "default": ""
+          },
+          "egress_enabled": {
+            "type": "boolean",
+            "title": "Egress Enabled",
+            "default": true
           }
         },
         "additionalProperties": false,

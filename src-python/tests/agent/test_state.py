@@ -10,7 +10,7 @@ import httpx
 import pytest
 
 from backend.database import connect_database
-from spectrumagent.agent import skill
+from spectrumagent.agent import llm, skill
 from spectrumagent.agent.llm import ChatResult, LLMClient, LLMError, OpenAICompatibleClient, ToolCall, _json
 from spectrumagent.agent.state import AgentStore, State, StateMachine
 from spectrumagent.agent.tools import ConfirmArguments, NoArguments, ToolRegistry, build_registry
@@ -330,3 +330,45 @@ def test_session_skill_snapshot_and_metadata_immutability(gateway_case):
     after = state.store.session(state.session_id)
     assert after["created_at"] == original["created_at"] and after["skill_version_id"] == old["id"]
     assert after["updated_at"] >= original["updated_at"]
+
+def test_egress_disabled_error_resets_idle_and_persists_failed_round(gateway_case):
+    tools, handler, _ = registry()
+    fake = FakeLLM(LLMError("LLM_EGRESS_DISABLED", "blocked"))
+    state = machine(gateway_case, fake, tools)
+    assert list(state.message(content="查询数据集")) == [
+        ("error", {"code": "LLM_EGRESS_DISABLED", "detail": "LLM_EGRESS_DISABLED"})]
+    assert state.state == State.IDLE and len(fake.calls) == 1
+    handler.assert_not_called()
+    assert rounds(gateway_case.database)[0]["status"] == "error"
+
+
+@pytest.mark.parametrize("disable_during_parse", [False, True])
+def test_real_gateway_master_switch_controls_parse_and_interpret(gateway_case, disable_during_parse):
+    c = gateway_case
+    llm.write_settings(c.database, c.settings.model_copy(update={"egress_enabled": disable_during_parse}))
+    def provider(request):
+        assert json.loads(request.content)["tools"]
+        # This already-admitted request completes normally after the persisted
+        # switch changes; only the next chat() is rejected.
+        llm.write_settings(c.database, c.settings.model_copy(update={"egress_enabled": False}))
+        return httpx.Response(200, json={"choices": [{"message": {"content": None, "tool_calls": [{
+            "id": "call-1", "type": "function",
+            "function": {"name": "datasets.list", "arguments": "{}"}}]}, "finish_reason": "tool_calls"}]})
+    store = AgentStore(c.database)
+    session = store.create_session()
+    transport = Mock(side_effect=provider)
+    client = OpenAICompatibleClient(c.database, session_id=session["id"], transport=httpx.MockTransport(transport))
+    tools, handler, _ = registry()
+    state = StateMachine(store, session["id"], client, tools)
+    events = list(state.message(content="查询数据集"))
+    assert events[-1] == ("error", {"code": "LLM_EGRESS_DISABLED", "detail": "LLM_EGRESS_DISABLED"})
+    assert [event for event, _ in events] == (["step", "error"] if disable_during_parse else ["error"])
+    assert state.state == State.IDLE and rounds(c.database)[0]["status"] == "error"
+    assert transport.call_count == handler.call_count == int(disable_during_parse)
+    if not disable_during_parse:
+        transport.assert_not_called()
+    with connect_database(c.database) as db:
+        rows = db.execute("SELECT session_id,model,status,error,prompt_tokens,completion_tokens,total_tokens FROM llm_call ORDER BY rowid").fetchall()
+    blocked = (session["id"], c.settings.model, "blocked", "LLM_EGRESS_DISABLED", None, None, None)
+    assert rows == ([(session["id"], c.settings.model, "ok", None, None, None, None), blocked]
+                    if disable_during_parse else [blocked])

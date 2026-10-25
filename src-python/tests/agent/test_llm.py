@@ -8,6 +8,7 @@ from unittest.mock import Mock
 import httpx
 import pytest
 
+from backend.database import connect_database
 from spectrumagent.agent import llm
 from .conftest import BODY, MESSAGES, TOOLS, audit_rows, mock_client
 
@@ -140,8 +141,9 @@ def test_malformed_provider_reply_is_audited(gateway_case, body):
 def test_unconfigured_call_does_not_send_and_is_audited(gateway_case):
     llm.write_settings(gateway_case.database, llm.LLMSettings())
     client, transport = mock_client(gateway_case)
-    with pytest.raises(llm.LLMError, match="LLM_NOT_CONFIGURED"):
+    with pytest.raises(llm.LLMError, match="LLM_NOT_CONFIGURED") as caught:
         client.chat(MESSAGES, TOOLS)
+    assert caught.value.code == "LLM_NOT_CONFIGURED" and caught.value.status == "http_error"
     transport.assert_not_called()
     row, = audit_rows(gateway_case)
     assert row["model"] == "" and row["status"] == "http_error"
@@ -164,3 +166,38 @@ def test_stream_delta_tool_arguments_and_usage_aggregate_into_single_result(gate
     row, = audit_rows(gateway_case)
     assert row["total_tokens"] == (29 if with_usage else None)
     assert json.loads(transport.call_args.args[0].content)["stream_options"] == {"include_usage": True}
+
+@pytest.mark.parametrize("stream", [False, True])
+def test_egress_disabled_never_transports_and_records_blocked_attempt(gateway_case, stream):
+    c = gateway_case
+    llm.write_settings(c.database, c.settings.model_copy(update={"egress_enabled": False}))
+    client, transport = mock_client(c)
+    with pytest.raises(llm.LLMError) as caught:
+        client.chat(MESSAGES, TOOLS, stream=stream)
+    assert caught.value.code == "LLM_EGRESS_DISABLED" and caught.value.status == "blocked"
+    transport.assert_not_called()
+    row, = audit_rows(c)
+    assert row["model"] == c.settings.model
+    assert row["status"] == "blocked" and row["error"] == "LLM_EGRESS_DISABLED"
+    assert all(row[k] is None for k in ("prompt_tokens", "completion_tokens", "total_tokens"))
+
+
+def test_disabled_switch_precedes_forbidden_content_scan(gateway_case):
+    c = gateway_case
+    llm.write_settings(c.database, c.settings.model_copy(update={"egress_enabled": False}))
+    client, transport = mock_client(c)
+    with pytest.raises(llm.LLMError) as caught:
+        client.chat([{"role": "user", "content": "private.img"}], TOOLS)
+    assert caught.value.code == "LLM_EGRESS_DISABLED" and caught.value.status == "blocked"
+    transport.assert_not_called()
+    row, = audit_rows(c)
+    assert (row["status"], row["error"]) == ("blocked", "LLM_EGRESS_DISABLED")
+
+
+def test_egress_boolean_storage_uses_explicit_text_encoding(gateway_case):
+    c = gateway_case
+    for enabled, encoded in [(False, "0"), (True, "1")]:
+        llm.write_settings(c.database, c.settings.model_copy(update={"egress_enabled": enabled}))
+        assert llm.read_settings(c.database).egress_enabled is enabled
+        with connect_database(c.database) as db:
+            assert db.execute("SELECT value,typeof(value) FROM llm_settings WHERE key='egress_enabled'").fetchone() == (encoded, "text")

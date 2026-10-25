@@ -1,13 +1,13 @@
 import { invoke } from '@tauri-apps/api/core';
 
-export type LLMConfig = { base_url: string; model: string; temperature: string; max_tokens: string; timeout_ms: string };
+export type LLMConfig = { base_url: string; model: string; temperature: string; max_tokens: string; timeout_ms: string; egress_enabled: boolean };
 export type LLMSettings = LLMConfig & { has_key: boolean };
 export type SettingsRequest = { op: 'get_llm' } | { op: 'put_llm'; body: LLMConfig } | { op: 'put_key'; key: string };
 export type InvokeSettings = <T>(command: string, args: { request: SettingsRequest }) => Promise<T>;
 
 export function configFields(value: LLMConfig): LLMConfig {
   return { base_url: value.base_url, model: value.model, temperature: value.temperature,
-    max_tokens: value.max_tokens, timeout_ms: value.timeout_ms };
+    max_tokens: value.max_tokens, timeout_ms: value.timeout_ms, egress_enabled: value.egress_enabled };
 }
 export const requests = {
   getLLM: (): SettingsRequest => ({ op: 'get_llm' }),
@@ -16,7 +16,7 @@ export const requests = {
 };
 
 export function settingsClient(send: InvokeSettings = invoke) {
-  // The only settings IPC exit. Neither credentials nor view state enter the five-key body.
+  // The only settings IPC exit. Neither credentials nor view state enter the six-key body.
   const forward = <T>(request: SettingsRequest) => send<T>('settings_forward', { request });
   const settings = (value: LLMSettings): LLMSettings => ({ ...configFields(value), has_key: value.has_key });
   return {

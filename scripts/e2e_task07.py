@@ -199,10 +199,10 @@ def annotation_chain(e, client, app, header):
 def settings_chain(e, client):
     # Runtime-only mock fixture, not a vendor default. No credential is written to evidence.
     config = {"base_url": "https://mock.invalid/v1", "model": "task07-replay",
-              "temperature": "", "max_tokens": "", "timeout_ms": ""}
+              "temperature": "", "max_tokens": "", "timeout_ms": "", "egress_enabled": True}
     e.call(client, "PUT", "/api/v1/settings/llm", config)
     before = e.call(client, "GET", "/api/v1/settings/llm").json()
-    e.check({key: before[key] for key in config} == config, "settings five-key configuration round-trip")
+    e.check({key: before[key] for key in config} == config, "settings six-key configuration round-trip")
     e.check(before["has_key"] is False, "settings config PUT leaves has_key=false")
     credential = uuid4().hex
     status = e.call(client, "PUT", "/api/v1/settings/llm/key", {"key": credential}).json()
@@ -210,7 +210,7 @@ def settings_chain(e, client):
     after = e.call(client, "GET", "/api/v1/settings/llm").json()
     e.check(after["has_key"] is True, "settings GET has_key=true after key PUT")
     e.check(set(after) == set(config) | {"has_key"} and credential not in _json(after), "settings GET excludes key field and credential body")
-    e.check({key: after[key] for key in config} == config, "settings key PUT preserves five-key configuration")
+    e.check({key: after[key] for key in config} == config, "settings key PUT preserves six-key configuration")
     e.data["settings_chain"] = {"sequence": ["PUT config", "GET has_key=false", "PUT key", "GET has_key=true without key body"],
                                 "configuration_preserved": True, "credential_echoed": False}
 

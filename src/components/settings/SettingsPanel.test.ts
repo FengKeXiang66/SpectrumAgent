@@ -7,7 +7,7 @@ import { SettingsPanelView } from './SettingsPanel.ts';
 import { createSettingsForm, emptyForm } from './form.ts';
 import { settingsClient, type InvokeSettings, type LLMConfig, type SettingsRequest } from './settings-forward.ts';
 
-const config: LLMConfig = { base_url: 'https://mock.invalid/v1', model: 'test-model', temperature: '0.5', max_tokens: '32', timeout_ms: '1000' };
+const config: LLMConfig = { base_url: 'https://mock.invalid/v1', model: 'test-model', temperature: '0.5', max_tokens: '32', timeout_ms: '1000', egress_enabled: true };
 type Element = ReactElement<Record<string, unknown>>;
 function find(node: ReactNode, tag: string, name?: string): Element {
   const found: Element[] = [];
@@ -29,21 +29,30 @@ function harness(send?: InvokeSettings, hasKey = false) {
     return { ...(request.op === 'put_llm' ? request.body : emptyForm().values), has_key: hasKey } as T;
   };
   const form = createSettingsForm(settingsClient(send ?? mock), next => { state = next; });
-  const props = () => ({ state, onField: form.edit, onKey: form.editKey, onSave: form.save, onClose: () => { closed++; } });
+  const props = () => ({ state, onField: form.edit, onSwitch: form.editSwitch, onKey: form.editKey, onSave: form.save, onClose: () => { closed++; } });
   const tree = () => SettingsPanelView(props());
   return { form, calls, tree, state: () => state, closed: () => closed,
     render: () => renderToStaticMarkup(createElement(SettingsPanelView, props())),
-    change(name: string, value: string) {
+    change(name: string, value: string | boolean) {
       const input = find(tree(), 'input', name);
-      (input.props.onChange as (event: { target: { value: string } }) => void)({ target: { value } });
+      if (name === 'egress_enabled') {
+        if (typeof value !== 'boolean') throw new Error('checkbox requires a boolean');
+        (input.props.onChange as (event: { target: { checked: boolean } }) => void)({ target: { checked: value } });
+      } else {
+        if (typeof value !== 'string') throw new Error('text input requires a string');
+        (input.props.onChange as (event: { target: { value: string } }) => void)({ target: { value } });
+      }
     },
     submit: () => (find(tree(), 'form').props.onSubmit as (event: { preventDefault(): void }) => Promise<void>)({ preventDefault() {} }),
   };
 }
 
-test('settings modal starts with five empty fields, a password input and an unknown key status', () => {
+test('settings modal starts with five empty text fields, an enabled egress switch, a password input and an unknown key status', () => {
   const h = harness();
-  for (const name of Object.keys(config)) assert.equal(find(h.tree(), 'input', name).props.value, '');
+  for (const name of Object.keys(config).filter(name => name !== 'egress_enabled')) assert.equal(find(h.tree(), 'input', name).props.value, '');
+  assert.equal(find(h.tree(), 'input', 'egress_enabled').props.type, 'checkbox');
+  assert.equal(find(h.tree(), 'input', 'egress_enabled').props.checked, true);
+  assert.equal(find(h.tree(), 'input', 'egress_enabled').props.disabled, true);
   const password = find(h.tree(), 'input', 'key');
   assert.equal(password.props.type, 'password');
   assert.equal(password.props.autoComplete, 'new-password');
@@ -53,7 +62,7 @@ test('settings modal starts with five empty fields, a password input and an unkn
   assert.equal(find(h.tree(), 'button', 'submit').props.disabled, true);
 });
 
-test('rendered field changes and submit save the five-key config then key, and clear the password', async () => {
+test('rendered field changes and submit save the six-key config then key, and clear the password', async () => {
   const h = harness();
   await h.form.load();
   for (const [name, value] of Object.entries(config)) h.change(name, value);
@@ -89,6 +98,7 @@ test('GET failure disables saving and fields while the rendered cancel button re
   assert.match(h.render(), /ENGINE_NOT_READY：引擎不可用/);
   assert.equal(find(h.tree(), 'button', 'submit').props.disabled, true);
   assert.equal(find(h.tree(), 'input', 'key').props.disabled, true);
+  assert.equal(find(h.tree(), 'input', 'egress_enabled').props.disabled, true);
   const cancel = find(h.tree(), 'button', 'button');
   assert.equal(cancel.props.disabled, false);
   (cancel.props.onClick as () => void)();
@@ -175,4 +185,23 @@ test('App settings entry imports and opens SettingsPanel, preserving UI-to-confi
   assert.match(source, /import SettingsPanel from '\.\/components\/settings\/SettingsPanel'/);
   assert.match(source, /onClick=\{\(\) => setSettingsOpen\(true\)\}>设置<\/button>/);
   assert.match(source, /settingsOpen && status.phase === 'Ready' && <SettingsPanel/);
+});
+
+test('egress checkbox reflects the false value returned by GET', async () => {
+  const h = harness(async <T>() => ({ ...config, egress_enabled: false, has_key: false }) as T);
+  await h.form.load();
+  assert.equal(find(h.tree(), 'input', 'egress_enabled').props.checked, false);
+  assert.equal(find(h.tree(), 'input', 'egress_enabled').props.disabled, false);
+  assert.match(h.render(), /关闭后对话与结果解读不可用，核心分析不受影响/);
+});
+
+test('unchecking egress saves a boolean false and keeps the returned switch state', async () => {
+  const h = harness();
+  await h.form.load();
+  h.change('egress_enabled', false);
+  await h.submit();
+  assert.deepEqual(h.calls, [{ op: 'get_llm' }, {
+    op: 'put_llm', body: { ...emptyForm().values, egress_enabled: false } }]);
+  assert.equal(h.state().values.egress_enabled, false);
+  assert.equal(find(h.tree(), 'input', 'egress_enabled').props.checked, false);
 });

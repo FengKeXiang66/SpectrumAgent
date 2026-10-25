@@ -2,7 +2,7 @@ import { configFields, type LLMConfig, type SettingsApi } from './settings-forwa
 
 export type FormState = { values: LLMConfig; keyInput: string; hasKey: boolean | null;
   phase: 'loading' | 'ready' | 'saving' | 'load_error'; error: string; message: string };
-export const emptyForm = (): FormState => ({ values: { base_url: '', model: '', temperature: '', max_tokens: '', timeout_ms: '' },
+export const emptyForm = (): FormState => ({ values: { base_url: '', model: '', temperature: '', max_tokens: '', timeout_ms: '', egress_enabled: true },
   keyInput: '', hasKey: null, phase: 'loading', error: '', message: '' });
 
 export function validateConfig(value: LLMConfig): string {
@@ -47,8 +47,11 @@ export function createSettingsForm(api: SettingsApi, changed: (state: FormState)
         update({ values: configFields(value), hasKey: value.has_key, phase: 'ready' });
       } catch (failure) { update({ phase: 'load_error', error: errorText(failure, '') }); }
     },
-    edit(field: keyof LLMConfig, value: string) {
+    edit(field: Exclude<keyof LLMConfig, 'egress_enabled'>, value: string) {
       if (state.phase === 'ready') update({ values: { ...state.values, [field]: value }, error: '', message: '' });
+    },
+    editSwitch(checked: boolean) {
+      if (state.phase === 'ready') update({ values: { ...state.values, egress_enabled: checked }, error: '', message: '' });
     },
     editKey(keyInput: string) {
       if (state.phase === 'ready') update({ keyInput, error: '', message: '' });

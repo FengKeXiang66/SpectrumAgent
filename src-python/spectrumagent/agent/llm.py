@@ -47,6 +47,16 @@ class LLMSettings(BaseModel):
     temperature: StrictStr = ""
     max_tokens: StrictStr = ""
     timeout_ms: StrictStr = ""
+    egress_enabled: bool = True
+
+    @field_validator("egress_enabled", mode="before")
+    @classmethod
+    def egress_switch(cls, value):
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str) and value in {"1", "0"}:
+            return value == "1"
+        raise ValueError("egress_enabled must be a boolean or the string 1/0")
 
     @field_validator("base_url")
     @classmethod
@@ -83,7 +93,8 @@ def read_settings(database: Path) -> LLMSettings:
 def write_settings(database: Path, settings: LLMSettings) -> None:
     with connect_database(database) as db:
         db.executemany("UPDATE llm_settings SET value=? WHERE key=?",
-                       [(value, key) for key, value in settings.model_dump().items()])
+                       [(("1" if value else "0") if key == "egress_enabled" else value, key)
+                        for key, value in settings.model_dump().items()])
 
 
 class ToolCall(BaseModel):
@@ -203,6 +214,8 @@ class OpenAICompatibleClient(LLMClient):
         usage = None
         status, error = "http_error", "LLM_HTTP"
         try:
+            if not settings.egress_enabled:
+                raise LLMError("LLM_EGRESS_DISABLED", "blocked")
             if _egress_blocked({"messages": messages, "tools": tools}):
                 raise LLMError("EGRESS_BLOCKED", "blocked")
             if not settings.base_url or not settings.model:

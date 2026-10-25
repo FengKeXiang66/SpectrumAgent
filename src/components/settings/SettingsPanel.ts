@@ -3,7 +3,8 @@ import { createSettingsForm, emptyForm, type FormState } from './form.ts';
 import { settings, type LLMConfig, type SettingsApi } from './settings-forward.ts';
 
 export type SettingsPanelViewProps = { state: FormState; dialogRef?: RefObject<HTMLDialogElement | null>;
-  onField(field: keyof LLMConfig, value: string): void; onKey(value: string): void;
+  onField(field: Exclude<keyof LLMConfig, 'egress_enabled'>, value: string): void;
+  onSwitch(checked: boolean): void; onKey(value: string): void;
   onSave(): void | Promise<void>; onClose(): void };
 
 export function SettingsPanelView(p: SettingsPanelViewProps) {
@@ -25,6 +26,10 @@ export function SettingsPanelView(p: SettingsPanelViewProps) {
       p.state.hasKey === null ? '正在读取 key 配置状态…' : p.state.hasKey ? 'key 已配置' : 'key 未配置'),
     h('form', { style: { display: 'grid', gap: 12 }, onSubmit: event => { event.preventDefault(); return p.onSave(); } },
       ...fields,
+      h('label', null,
+        h('input', { name: 'egress_enabled', type: 'checkbox', checked: p.state.values.egress_enabled, disabled,
+          onChange: (event: { target: { checked: boolean } }) => p.onSwitch(event.target.checked) }),
+        '允许 LLM 外发（关闭后对话与结果解读不可用，核心分析不受影响）'),
       h('label', { style: { display: 'grid', gap: 4 } }, 'API key（留空保留已配置 key）',
         h('input', { name: 'key', type: 'password', autoComplete: 'new-password', value: p.state.keyInput, disabled,
           onChange: (event: { target: { value: string } }) => p.onKey(event.target.value) })),
@@ -49,6 +54,7 @@ export default function SettingsPanel({ onClose, api = settings }: { onClose(): 
   }, [api]);
   useEffect(() => { if (dialog.current && !dialog.current.open) dialog.current.showModal(); }, []);
   return h(SettingsPanelView, { state, dialogRef: dialog, onClose,
-    onField: (field, value) => form.current?.edit(field, value), onKey: value => form.current?.editKey(value),
+    onField: (field, value) => form.current?.edit(field, value), onSwitch: checked => form.current?.editSwitch(checked),
+    onKey: value => form.current?.editKey(value),
     onSave: () => form.current?.save() });
 }

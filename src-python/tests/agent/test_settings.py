@@ -27,10 +27,12 @@ def test_get_put_empty_defaults_typed_configuration_and_identity(settings_api):
         "temperature": 0.5, "max_tokens": 256, "timeout_ms": 1000})
     assert updated.status_code == 200
     assert updated.json() == {"base_url": "https://example.invalid/v1", "model": "test", "temperature": "0.5",
-        "max_tokens": "256", "timeout_ms": "1000", "has_key": False}
+        "max_tokens": "256", "timeout_ms": "1000", "egress_enabled": True, "has_key": False}
     assert c.client.get(BASE).json() == updated.json()
     with connect_database(c.database) as db:
-        assert dict(db.execute("SELECT key,value FROM llm_settings")) == {k: v for k, v in updated.json().items() if k != "has_key"}
+        assert dict(db.execute("SELECT key,value FROM llm_settings")) == {
+            k: ("1" if v else "0") if k == "egress_enabled" else v
+            for k, v in updated.json().items() if k != "has_key"}
 
 
 @pytest.mark.parametrize("method,path,body", [("get", BASE, None), ("put", BASE, {}), ("put", BASE + "/key", {"key": "untrusted"})])
@@ -123,3 +125,53 @@ with TestClient(app) as client:
     assert json.loads(restarted.stdout) == {**c.settings.model_dump(), "has_key": False}
     assert key not in restarted.stdout + restarted.stderr
     assert llm.has_api_key()  # Parent process is still alive.
+
+@pytest.mark.parametrize("value", ["true", "yes", "on", "false", 1, 0, 1.5, None, [], {}, "", " 1", "1 "])
+def test_invalid_egress_values_are_400_without_mutating_settings(settings_api, value):
+    c = settings_api
+    before = c.client.get(BASE).json()
+    response = c.client.put(BASE, json={"egress_enabled": value})
+    assert response.status_code == 400
+    assert c.client.get(BASE).json() == before
+
+
+@pytest.mark.parametrize("value,enabled,encoded", [(False, False, "0"), (True, True, "1"),
+                                                  ("0", False, "0"), ("1", True, "1")])
+def test_egress_put_get_round_trip_is_boolean_and_text_storage(settings_api, value, enabled, encoded):
+    c = settings_api
+    response = c.client.put(BASE, json={**c.settings.model_dump(), "egress_enabled": value})
+    assert response.status_code == 200
+    assert response.json()["egress_enabled"] is enabled
+    assert c.client.get(BASE).json() == response.json()
+    with connect_database(c.database) as db:
+        assert db.execute("SELECT value FROM llm_settings WHERE key='egress_enabled'").fetchone() == (encoded,)
+
+
+def test_put_without_egress_resets_it_to_default_in_full_replacement(settings_api):
+    c = settings_api
+    llm.write_settings(c.database, c.settings.model_copy(update={"egress_enabled": False}))
+    response = c.client.put(BASE, json={"model": "replacement-model"})
+    assert response.status_code == 200
+    assert response.json() == {**llm.LLMSettings(model="replacement-model").model_dump(), "has_key": False}
+    assert c.client.get(BASE).json()["egress_enabled"] is True
+
+
+def test_disabled_egress_survives_a_new_process(settings_api):
+    c = settings_api
+    response = c.client.put(BASE, json={**c.settings.model_dump(), "egress_enabled": False})
+    assert response.status_code == 200 and response.json()["egress_enabled"] is False
+    root = Path(__file__).resolve().parents[3]
+    script = '''import json, sys
+from pathlib import Path
+from fastapi.testclient import TestClient
+from backend.paths import AppPaths
+from backend.identity import EngineIdentity
+from spectrumagent.app import create_app
+identity = EngineIdentity()
+app = create_app(AppPaths(Path(sys.argv[1])), identity)
+with TestClient(app) as client:
+    print(json.dumps(client.get("/api/v1/settings/llm", headers={"Authorization": "Bearer " + identity.token}).json()))
+'''
+    restarted = subprocess.run([sys.executable, "-c", script, str(c.paths.root)], cwd=root,
+        env={**os.environ, "PYTHONPATH": str(root / "src-python")}, capture_output=True, text=True, check=True)
+    assert json.loads(restarted.stdout) == response.json()

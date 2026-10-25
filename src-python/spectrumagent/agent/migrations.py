@@ -4,7 +4,7 @@
 DDL = r"""-- G1：LLM 配置（非敏感，key 不在此表）
 CREATE TABLE IF NOT EXISTS llm_settings (
   key   TEXT PRIMARY KEY,
-  value TEXT NOT NULL              -- 设置屏保存 body，首次启动服务端播种空值(base_url/model/temperature/max_tokens/timeout_ms)
+  value TEXT NOT NULL              -- 设置屏保存 body，六键设置默认五文本键为空且egress_enabled为1
 );
 -- 供值：value 全部来自 PUT /settings/llm 的 body 或启动播种（播种值=空串=未配置，禁预置厂商）
 
@@ -99,7 +99,9 @@ CREATE TABLE IF NOT EXISTS training_mat (
 );
 """
 
-SETTING_KEYS = ("base_url", "model", "temperature", "max_tokens", "timeout_ms")
+SETTING_KEYS = ("base_url", "model", "temperature", "max_tokens", "timeout_ms", "egress_enabled")
+SETTING_DEFAULTS = {"base_url": "", "model": "", "temperature": "", "max_tokens": "",
+                    "timeout_ms": "", "egress_enabled": "1"}
 
 
 def migrate(db):
@@ -110,7 +112,7 @@ def migrate(db):
             db.execute(statement)
     for key in SETTING_KEYS:
         if not db.execute("SELECT 1 FROM llm_settings WHERE key=?", (key,)).fetchone():
-            db.execute("INSERT INTO llm_settings (key,value) VALUES (?,?)", (key, ""))
+            db.execute("INSERT INTO llm_settings (key,value) VALUES (?,?)", (key, SETTING_DEFAULTS[key]))
     # Complete trigger statements must not pass through DDL.split(";").
     from .skill import ensure_seeded, install_guards
     install_guards(db)

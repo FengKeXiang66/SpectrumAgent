@@ -3,7 +3,7 @@ import re
 import sqlite3
 
 from backend.database import connect_database
-from spectrumagent.agent.migrations import DDL, SETTING_KEYS, migrate
+from spectrumagent.agent.migrations import DDL, migrate
 from spectrumagent.api.registry import DatasetRegistry
 
 
@@ -34,7 +34,8 @@ def test_only_eight_tables_match_card_ddl_and_comments_are_split_safe():
         assert {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")} == tables
         for table in tables:
             assert schema(db, table) == schema(expected, table)
-        assert dict(db.execute("SELECT key,value FROM llm_settings")) == dict.fromkeys(SETTING_KEYS, "")
+        assert dict(db.execute("SELECT key,value FROM llm_settings")) == {"base_url": "", "model": "", "temperature": "",
+            "max_tokens": "", "timeout_ms": "", "egress_enabled": "1"}
 
 
 def test_idempotent_migration_preserves_configuration_and_audit(gateway_case):
@@ -55,10 +56,26 @@ def test_startup_wires_g1_and_g3_with_empty_llm_values(tmp_path):
     database = tmp_path / "db.sqlite3"
     DatasetRegistry(database)
     with connect_database(database) as db:
-        assert dict(db.execute("SELECT key,value FROM llm_settings")) == dict.fromkeys(SETTING_KEYS, "")
+        assert dict(db.execute("SELECT key,value FROM llm_settings")) == {"base_url": "", "model": "", "temperature": "",
+            "max_tokens": "", "timeout_ms": "", "egress_enabled": "1"}
         tables = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         assert "skill_version" in tables
         assert db.execute("SELECT version_no,status FROM skill_version").fetchall() == [(1, "active")]
         assert {"agent_session", "agent_round", "agent_step"} <= tables
         assert "annotation_draft" in tables
         assert "training_mat" in tables
+
+def test_upgrade_seeds_enabled_without_overwriting_existing_values():
+    with sqlite3.connect(":memory:") as db:
+        migrate(db)
+        db.execute("DELETE FROM llm_settings WHERE key='egress_enabled'")
+        db.execute("UPDATE llm_settings SET value='existing-model' WHERE key='model'")
+        migrate(db)
+        assert dict(db.execute("SELECT key,value FROM llm_settings")) == {
+            "base_url": "", "model": "existing-model", "temperature": "",
+            "max_tokens": "", "timeout_ms": "", "egress_enabled": "1"}
+        db.execute("UPDATE llm_settings SET value='0' WHERE key='egress_enabled'")
+        migrate(db)
+        migrate(db)
+        assert db.execute("SELECT value FROM llm_settings WHERE key='egress_enabled'").fetchone() == ("0",)
+        assert db.execute("SELECT value FROM llm_settings WHERE key='model'").fetchone() == ("existing-model",)

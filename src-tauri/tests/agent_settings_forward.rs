@@ -149,12 +149,18 @@ fn settings_only_existing_get_put_operations_and_no_key_in_config()
     for (value, path, method, expected) in [
         (json!({"op":"get_llm"}), "/api/v1/settings/llm", "GET", None),
         (
-            json!({"op":"put_llm","body":{"base_url":"https://provider.invalid/v1","model":"m","temperature":0.25,"max_tokens":"128","timeout_ms":2500}}),
+            json!({"op":"put_llm","body":{"base_url":"https://provider.invalid/v1","model":"m","temperature":0.25,"max_tokens":"128","timeout_ms":2500,"egress_enabled":true}}),
             "/api/v1/settings/llm",
             "PUT",
             Some(
-                json!({"base_url":"https://provider.invalid/v1","model":"m","temperature":0.25,"max_tokens":"128","timeout_ms":2500}),
+                json!({"base_url":"https://provider.invalid/v1","model":"m","temperature":0.25,"max_tokens":"128","timeout_ms":2500,"egress_enabled":true}),
             ),
+        ),
+        (
+            json!({"op":"put_llm","body":{"egress_enabled":false}}),
+            "/api/v1/settings/llm",
+            "PUT",
+            Some(json!({"egress_enabled":false})),
         ),
         (
             json!({"op":"put_key","key":"synthetic-key"}),
@@ -171,6 +177,9 @@ fn settings_only_existing_get_put_operations_and_no_key_in_config()
     for body in [
         json!({"key":"secret"}),
         json!({"timeout_ms":true}),
+        json!({"egress_enabled":"true"}),
+        json!({"egress_enabled":1}),
+        json!({"egress_enabled":null}),
         json!({"model":null}),
         json!([]),
     ] {
