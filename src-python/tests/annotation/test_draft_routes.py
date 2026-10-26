@@ -12,6 +12,7 @@ from spectrumagent.annotation.raster import decode_rle, polygon_mask, rasterize
 from spectrumagent.app import create_app
 from test_draft import POLYGON
 from test_routes import http_annotation, ready_http
+from test_gestures import fake_diffusion
 
 
 @pytest.fixture
@@ -87,14 +88,75 @@ def test_patch_rejects_lineage_fields(draft_api, field):
     assert h.client.get(h.base).json()["revision"] == 1
 
 
-def test_gesture_reference_is_explicitly_unavailable_for_add_and_patch(draft_api):
+def test_gesture_reference_add_is_resolved_but_patch_still_refuses(draft_api):
     h = draft_api
-    response = post(h, geometry={"gesture_ref": "gesture-1"})
-    assert response.status_code == 400 and response.json()["error"] == "TOOL_ARGS_INVALID"
-    assert "手势引用尚未接入" in response.json()["detail"]
-    assert post(h).status_code == 200
+    h.app.state.annotation_sessions.set_segmentation(h.case.identifier, SimpleNamespace(segments=h.case.segments, report={"params": h.case.params}))
+    stored = h.client.post(f"/api/v1/annotations/{h.case.identifier}/gestures", json={"seed": {"point": [1, 1]}})
+    assert stored.status_code == 200 and stored.json()["kind"] == "point"
+    response = post(h, geometry={"gesture_ref": stored.json()["gesture_ref"]})
+    assert response.status_code == 200 and set(response.json()) == {"revision", "region_id", "statistics"}
+    assert h.client.get(h.base).json()["document"]["regions"][-1]["geometry"]["type"] == "pixel_set"
     response = h.client.post(h.base + "/regions/r-0001", json={"revision": 1, "geometry": {"gesture_ref": "gesture-1"}})
     assert response.status_code == 400 and "手势引用尚未接入" in response.json()["detail"]
+
+
+@pytest.mark.parametrize("seed", [{"point": [2, 3]}, {"box": [0, 5, 0, 4]}, {"doodle": [[1, 1], [2, 2]]}])
+def test_store_gesture_rest_shapes_unique_refs_and_unknown_refs(draft_api, seed):
+    h = draft_api
+    path = f"/api/v1/annotations/{h.case.identifier}/gestures"
+    first = h.client.post(path, json={"seed": seed})
+    second = h.client.post(path, json={"seed": seed})
+    assert first.status_code == second.status_code == 200
+    assert set(first.json()) == {"gesture_ref", "kind"} and first.json()["kind"] == next(iter(seed))
+    assert first.json()["gesture_ref"] != second.json()["gesture_ref"]
+    h.app.state.annotation_sessions.set_segmentation(h.case.identifier, SimpleNamespace(segments=h.case.segments, report={"params": h.case.params}))
+    missing = post(h, geometry={"gesture_ref": "g-" + "0" * 32})
+    assert missing.status_code == 404 and missing.json()["error"] == "GESTURE_NOT_FOUND"
+    assert h.client.get(h.base).json()["revision"] == 0
+
+
+@pytest.mark.parametrize("seed", [{}, {"point": [1]}, {"point": ["1", 2]}, {"doodle": []},
+    {"box": [0, 1, 2]}, {"point": [1, 2], "box": [0, 2, 0, 2]}])
+def test_store_gesture_rejects_malformed_seed_without_storage(draft_api, seed):
+    h = draft_api
+    response = h.client.post(f"/api/v1/annotations/{h.case.identifier}/gestures", json={"seed": seed})
+    assert response.status_code == 400 and response.json()["error"] == "TOOL_ARGS_INVALID"
+    assert not h.app.state.annotation_sessions._states
+
+
+@pytest.mark.parametrize("floor,confidence", [(.8, "medium"), (.99, "low")])
+def test_candidates_rest_shared_service_cas_and_source(draft_api, monkeypatch, floor, confidence):
+    h = draft_api
+    sessions = h.app.state.annotation_sessions
+    sessions.set_segmentation(h.case.identifier, SimpleNamespace(segments=h.case.segments, report={"params": h.case.params}))
+    controlled = fake_diffusion(SimpleNamespace(store=sessions))
+    monkeypatch.setattr(h.app.state.diffusion_engine, "generate", controlled.generate)
+    ref = sessions.store_gesture(h.case.identifier, {"point": [1, 1]})
+    body = {"revision": 0, "class_code": "PE", "method": "SAM", "params": {
+        "gesture_ref": ref, "threshold": .5, "queue_min_similarity": floor}}
+    response = h.client.post(h.base + "/candidates", json=body)
+    assert response.status_code == 200
+    assert set(response.json()) == {"revision", "region_id", "geometry_type", "preview_statistics"}
+    assert set(response.json()["preview_statistics"]) == {"n_superpixels", "pixel_count", "min_similarity", "avg_similarity"}
+    assert response.json()["geometry_type"] == "pixel_set"
+    before = h.client.get(h.base).json()
+    assert before["document"]["regions"][-1]["source"] == "algorithm"
+    assert before["document"]["regions"][-1]["confidence"] == confidence
+    assert sessions._state(h.case.identifier).candidates == []
+    stale = h.client.post(h.base + "/candidates", json=body)
+    assert stale.status_code == 409 and stale.json()["error"] == "DRAFT_REVISION_CONFLICT"
+    assert h.client.get(h.base).json() == before
+    body.update(revision=1, method="SLIC", params={"n_segments": 24, "compactness": .5, "pca_components": 5})
+    slic = h.client.post(h.base + "/candidates", json=body)
+    assert slic.status_code == 400 and slic.json()["error"] == "TOOL_NOT_IMPLEMENTED"
+    controlled.generate.assert_called_once()
+
+
+@pytest.mark.parametrize("method,params", [("SAM", {"n_segments": 8, "compactness": .5, "pca_components": 3}),
+    ("SLIC", {"gesture_ref": "g-1", "threshold": .5, "queue_min_similarity": .8}), ("SLIC", {"n_segments": 0})])
+def test_candidates_method_params_mismatch_is_400(draft_api, method, params):
+    response = draft_api.client.post(draft_api.base + "/candidates", json={"revision": 0, "class_code": "PE", "method": method, "params": params})
+    assert response.status_code == 400 and response.json()["error"] == "TOOL_ARGS_INVALID"
 
 
 def test_uncertain_erase_and_deletion_preserve_document_semantics(draft_api):
@@ -123,7 +185,8 @@ def test_not_found_errors_and_deferred_routes(draft_api):
     missing_region = h.client.post(h.base + "/regions/r-9999", json={"revision": 0, "deleted": True})
     assert missing_region.status_code == 404 and missing_region.json()["error"] == "REGION_NOT_FOUND"
     for suffix in ["/candidates"]:
-        assert h.client.post(h.base + suffix, json={}).status_code == 404
+        response = h.client.post(h.base + suffix, json={})
+        assert response.status_code == 400 and response.json()["error"] == "TOOL_ARGS_INVALID"
 
 
 def test_draft_routes_require_existing_sidecar_authentication(draft_api):

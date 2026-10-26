@@ -23,6 +23,8 @@ from spectrumagent.annotation.engines.diffusion import DEFAULT_THRESHOLD, DEFAUL
 from spectrumagent.annotation.session import AnnotationConflict, SessionStore
 from spectrumagent.annotation.raster import polygon_mask
 from spectrumagent.annotation.draft import Polygon
+from spectrumagent.annotation.gestures import region_from_gesture, select_candidates
+from spectrumagent.agent.tools import SLICParameters, SAMParameters
 from spectrumagent.data import DataError
 
 
@@ -61,6 +63,29 @@ class DiffuseRequest(Input):
     seed: PointSeed | BoxSeed | DoodleSeed
     threshold: Annotated[float, Field(ge=-1, le=1, allow_inf_nan=False)] = DEFAULT_THRESHOLD
     queue_min_similarity: Annotated[float, Field(ge=-1, le=1, allow_inf_nan=False)] = DEFAULT_QUEUE_MIN_SIMILARITY
+
+
+class StoreGestureRequest(Input):
+    seed: PointSeed | BoxSeed | DoodleSeed
+
+
+class StoredGesture(BaseModel):
+    gesture_ref: str
+    kind: Literal["point", "box", "doodle"]
+
+
+class DraftCandidatesRequest(Input):
+    revision: Annotated[int, Field(ge=0)]
+    class_code: Annotated[str, Field(min_length=1)]
+    method: Literal["SLIC", "SAM"]
+    params: SLICParameters | SAMParameters
+
+    @model_validator(mode="after")
+    def matching_params(self):
+        key = "gesture_ref" if self.method == "SAM" else "n_segments"
+        if key not in self.params.model_dump():
+            raise ValueError("method 与 params 类型不一致")
+        return self
 
 
 class SuperpixelGeometry(Input):
@@ -189,7 +214,10 @@ def make_router(store: LabelStore, engine: SuperpixelEngine, sessions: SessionSt
     @router.post("/annotations/{cube_id}/draft/regions")
     def add_draft_region(cube_id: UUID, request: DraftAddRequest | DraftUncertainRequest | DraftEraseRequest):
         if isinstance(request.geometry, DraftGesture):
-            raise DataError("TOOL_ARGS_INVALID", "手势引用尚未接入")
+            result = region_from_gesture(sessions, cube_id, request.geometry.gesture_ref, op=request.op,
+                class_code=getattr(request, "class_code", None), confidence=getattr(request, "confidence", None), expected_revision=request.revision)
+            return {"revision": result["revision"], "region_id": result["region_id"],
+                    "statistics": sessions.drafts.statistics(cube_id, result["document"])}
         arguments = request.model_dump(exclude={"revision"}, exclude_unset=True)
         arguments["geometry"] = request.geometry.model_dump()
         result = change_draft(cube_id, lambda: sessions.drafts.add(cube_id, request.revision, **arguments))
@@ -201,6 +229,18 @@ def make_router(store: LabelStore, engine: SuperpixelEngine, sessions: SessionSt
         result = change_draft(cube_id, lambda: sessions.drafts.patch(
             cube_id, region_id, request.revision, request.model_dump(exclude={"revision"}, exclude_unset=True)))
         return {"revision": result["revision"], "region_id": result["region_id"]}
+
+    @router.post("/annotations/{cube_id}/gestures", response_model=StoredGesture)
+    def store_gesture(cube_id: UUID, request: StoreGestureRequest):
+        seed = request.seed.model_dump()
+        return {"gesture_ref": sessions.store_gesture(cube_id, seed), "kind": next(iter(seed))}
+
+    @router.post("/annotations/{cube_id}/draft/candidates")
+    def draft_candidates(cube_id: UUID, request: DraftCandidatesRequest):
+        result = select_candidates(sessions, diffusion, cube_id, method=request.method, class_code=request.class_code,
+                                   params=request.params, expected_revision=request.revision)
+        return {"revision": result["revision"], "region_id": result["region_id"], "geometry_type": "pixel_set",
+                "preview_statistics": {key: result[key] for key in ("n_superpixels", "pixel_count", "min_similarity", "avg_similarity")}}
 
     @contextmanager
     def current_segmentation(identifier):
