@@ -117,7 +117,7 @@
 |---|---|
 | 2026-10-26 | 新建本文件；登记 13.1 已交付记录与 13.2 备卡 v6 的 14 条裁定、17 项验收；确立 `13.2-Rn` 编号口径 |
 | 2026-10-26 | 按 v6 与用户已确认的 A14 口径完成 13.2；保留以上历史记录和 `13.2-R1…R14` 序列，补实现证据、口径差异和前向限制（§10） |
-| 2026-10-26 | 13.2 独立复核通过；收口三项非阻塞修补：`build_sample_training_set` 波长轴一致性断言（`WAVELENGTH_AXIS_MISMATCH`）、`run.py` `training_fold` 内层 CV 折语义注记、`assert` 改显式 raise 且失败路径 `from error` 透传（消息只带异常类型名，不泄露异常文本）；`capabilities/main.json` models-forward 从句归位至「不开放通用网络能力。」之前 |
+| 2026-10-26 | 13.2 独立复核通过；收口三项非阻塞修补：`build_sample_training_set` 波长轴一致性断言（`WAVELENGTH_AXIS_MISMATCH`）、`run.py` `training_fold` 内层 CV 折语义注记、`assert` 改显式 raise 且失败路径 `from error` 透传（消息只带异常类型名，不泄露异常文本）；`capabilities/main.json` models-forward 从句归位至「不开放通用网络能力。」之前。提交 `fe67e85`（代码+测试）与 `36431c9`（台账+ACL），收据 `.runtime/132fix-results/receipt.md` |
 
 ## §10 13.2 实现与验证记录
 
