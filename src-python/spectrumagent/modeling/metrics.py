@@ -1,0 +1,90 @@
+"""Pure metrics, never database writes.
+
+Classification summaries pool all held-out predictions, not fold means.
+Regression summary RMSE/RMSEP is the sample-count-weighted fold RMSE;
+summary R2 is recalculated on pooled predictions. Sample scope follows R5
+majority voting per cube; ties use the smallest sorted value deterministically.
+Undefined sklearn scores are represented by None, never fabricated as zero.
+"""
+import numpy as np
+from sklearn.metrics import accuracy_score, cohen_kappa_score, confusion_matrix, mean_squared_error, r2_score
+
+from . import ModelingError
+
+
+def _vectors(y_true, y_pred, groups):
+    true, predicted, groups = np.asarray(y_true), np.asarray(y_pred), np.asarray(groups)
+    if true.ndim != 1 or predicted.shape != true.shape or groups.shape != true.shape or not len(true):
+        raise ModelingError("INVALID_METRIC_INPUT", "指标需要同长非空预测/真值/组向量")
+    if not np.isfinite(true).all() or not np.isfinite(predicted).all():
+        raise ModelingError("INVALID_METRIC_INPUT", "指标输入必须有限")
+    return true, predicted, groups
+
+
+def _vote(values):
+    values, counts = np.unique(values, return_counts=True)
+    return values[np.argmax(counts)]
+
+
+def _sample(true, predicted, groups):
+    keys = np.unique(groups)
+    return (np.asarray([_vote(true[groups == group]) for group in keys]),
+            np.asarray([_vote(predicted[groups == group]) for group in keys]))
+
+
+def _finite(value):
+    return float(value) if np.isfinite(value) else None
+
+
+def _score(true, predicted, task):
+    if task == "classification":
+        labels = np.unique(np.concatenate([true, predicted]))
+        return {"oa": float(accuracy_score(true, predicted)), "kappa": _finite(cohen_kappa_score(true, predicted, weights=None)),
+                "confusion": confusion_matrix(true, predicted, labels=labels).tolist(), "labels": labels.tolist()}
+    if task == "regression":
+        rmse = float(np.sqrt(mean_squared_error(true, predicted)))
+        return {"rmse": rmse, "rmsep": rmse, "r2": _finite(r2_score(true, predicted))}
+    raise ModelingError("INVALID_METRIC_INPUT", "未知指标任务")
+
+
+def _gap(scores, task, leak_report):
+    if leak_report is not None:
+        name = "oa" if task == "classification" else "rmse"
+        pixel, sample = scores["pixel"][name], scores["sample"][name]
+        gap = abs(pixel-sample)
+        if gap > .1:
+            leak_report["pixel_sample_gap_warning"] = {"metric": name, "pixel": pixel, "sample": sample, "gap": gap}
+        else:
+            leak_report.pop("pixel_sample_gap_warning", None)
+
+
+def score_predictions(y_true, y_pred, groups, *, task, leak_report=None):
+    true, predicted, groups = _vectors(y_true, y_pred, groups)
+    sample_true, sample_predicted = _sample(true, predicted, groups)
+    scores = {"pixel": _score(true, predicted, task), "sample": _score(sample_true, sample_predicted, task)}
+    _gap(scores, task, leak_report)
+    return scores
+
+
+def summarize_folds(predictions, *, task, leak_report=None):
+    """fold_index=NULL: pooled classification; count-weighted regression RMSE.
+
+    Counts mean pixels for pixel scope and cube votes for sample scope.
+    R2 uses pooled predictions; do not average per-fold R2 or weight by folds.
+    """
+    if not predictions:
+        raise ModelingError("INVALID_METRIC_INPUT", "汇总至少需要一折预测")
+    vectors = [_vectors(row["y_true"], row["y_pred"], row["groups"]) for row in predictions]
+    pooled = [np.concatenate([item[i] for item in vectors]) for i in range(3)]
+    result = score_predictions(*pooled, task=task)
+    if task == "regression":
+        for scope in ("pixel", "sample"):
+            scores, weights = [], []
+            for true, predicted, groups in vectors:
+                if scope == "sample":
+                    true, predicted = _sample(true, predicted, groups)
+                scores.append(float(np.sqrt(mean_squared_error(true, predicted))))
+                weights.append(len(true))
+            result[scope]["rmse"] = result[scope]["rmsep"] = float(np.average(scores, weights=weights))
+    _gap(result, task, leak_report)
+    return result
