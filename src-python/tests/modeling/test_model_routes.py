@@ -107,6 +107,8 @@ def test_validation_order_is_all_versions_then_runs_then_task_then_groups(model_
     for key in ("cube_ids", "annotation_version_ids", "preprocess_run_ids"):
         request[key] = request[key][:1]
     assert client.post("/api/v1/models/runs/preflight", json=request).json()["error"] == "TARGET_UNSUPPORTED"
+    request.update(task="classification", target="label", cv_strategy="random")
+    assert client.post("/api/v1/models/runs/preflight", json=request).json()["error"] == "INSUFFICIENT_GROUPS"
     assert count(c) == 0
 
 

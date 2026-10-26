@@ -34,7 +34,7 @@ class TrainingRuns:
         rows = _inputs(self.registry, cube_ids=cube_ids, annotation_version_ids=annotation_version_ids,
                        preprocess_run_ids=preprocess_run_ids, target=target, task=task)
         groups_count = len(set(cube_ids))
-        if cv_strategy == "group_kfold" and groups_count < cv_folds:
+        if groups_count < cv_folds:
             raise ModelingError("INSUFFICIENT_GROUPS", f"实际组数 {groups_count}，请求折数 {cv_folds}；需多数据集或样品分组能力",
                                 n_groups=groups_count, requested_folds=cv_folds)
         # All schema/reference/shape/CV validation completes before INSERT.
