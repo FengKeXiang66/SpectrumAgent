@@ -375,6 +375,12 @@
           "markdownDescription": "Enables the engine_status command without any pre-configured scope."
         },
         {
+          "description": "Enables the models_forward command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-models-forward",
+          "markdownDescription": "Enables the models_forward command without any pre-configured scope."
+        },
+        {
           "description": "Enables the open_data_directory command without any pre-configured scope.",
           "type": "string",
           "const": "allow-open-data-directory",
@@ -433,6 +439,12 @@
           "type": "string",
           "const": "deny-engine-status",
           "markdownDescription": "Denies the engine_status command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the models_forward command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-models-forward",
+          "markdownDescription": "Denies the models_forward command without any pre-configured scope."
         },
         {
           "description": "Denies the open_data_directory command without any pre-configured scope.",

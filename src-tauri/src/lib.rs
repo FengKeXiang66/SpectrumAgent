@@ -14,6 +14,7 @@ pub mod dev_engine;
 pub mod datasets_dev;
 pub mod annotation;
 pub mod preprocess;
+pub mod models;
 pub mod agent;
 pub mod settings;
 pub mod annotations_draft;

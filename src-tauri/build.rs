@@ -13,6 +13,7 @@ fn main() {
             "datasets_forward",
             "annotations_forward",
             "preprocess_forward",
+            "models_forward",
             "agent_forward",
             "settings_forward",
             "annotations_draft_forward",
