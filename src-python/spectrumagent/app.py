@@ -35,7 +35,7 @@ def create_app(paths, identity):
     app.include_router(make_preprocess_router(app.state.preprocess_runner, app.state.preprocess_compare))
     app.state.agent_tools = build_registry(datasets=registry, runner=app.state.preprocess_runner,
                                           comparison=app.state.preprocess_compare, database=paths.database,
-                                          sessions=app.state.annotation_sessions)
+                                          sessions=app.state.annotation_sessions, diffusion=app.state.diffusion_engine)
     app.state.agent_llm_factory = lambda session_id: OpenAICompatibleClient(paths.database, session_id=session_id)
     app.include_router(make_agent_router(paths.database, lambda: app.state.agent_tools,
                                         lambda session_id: app.state.agent_llm_factory(session_id)))

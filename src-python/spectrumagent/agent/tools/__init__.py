@@ -11,7 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, ValidationError
 
 from backend.database import connect_database
 from spectrumagent.data import DataError
-from .annotations import draft_get, draft_confirm
+from .annotations import draft_get, draft_confirm, add_region, select_candidates
 
 
 class ToolInput(BaseModel):
@@ -257,7 +257,7 @@ def _run_summary(row):
     return result
 
 
-def build_registry(*, datasets=None, runner=None, comparison=None, database=None, sessions=None):
+def build_registry(*, datasets=None, runner=None, comparison=None, database=None, sessions=None, diffusion=None):
     """Bind available services without constructing engines or making requests."""
     registry = ToolRegistry()
 
@@ -299,8 +299,10 @@ def build_registry(*, datasets=None, runner=None, comparison=None, database=None
                       "草稿摘要：cube_id、revision、n_regions、n_classes、updated_at、estimated_mat_bytes，完整 document 只走 REST 响应",
                       (lambda arguments: draft_get(sessions, arguments)) if sessions is not None else None)
     registry.register("annotations.draft_add_region", DraftRegionArguments,
-                      "画布手势引用，op=add 必填 class_code，uncertain、erase 禁传 class_code、confidence")
-    registry.register("annotations.draft_select_candidates", SLICCandidates | SAMCandidates, "SLIC、SAM 扩散算法候选")
+                      "画布手势引用，op=add 必填 class_code，uncertain、erase 禁传 class_code、confidence",
+                      (lambda arguments: add_region(sessions, arguments)) if sessions is not None else None)
+    registry.register("annotations.draft_select_candidates", SLICCandidates | SAMCandidates, "SLIC、SAM 扩散算法候选",
+                      (lambda arguments: select_candidates(sessions, diffusion, arguments)) if sessions is not None else None)
     registry.register("annotations.draft_confirm", ConfirmArguments, "标注版本确认",
                       (lambda arguments: draft_confirm(sessions, arguments)) if sessions is not None else None,
                       human_check=True, estimate_ms=1700)

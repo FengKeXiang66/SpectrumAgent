@@ -19,10 +19,10 @@ from .conftest import MESSAGES, mock_client
 EXPECTED_NAMES = {"datasets.list", "datasets.describe", "annotations.draft_get", "annotations.draft_add_region",
     "annotations.draft_select_candidates", "annotations.draft_confirm", "preprocess.run", "preprocess.compare",
     "training_mat.export", "settings.llm_get"}
+REGION_ARGUMENTS = {"cube_id": "cube-1", "revision": 1, "class_code": "PP", "geometry": {"gesture_ref": "gesture-1"}}
+SLIC_ARGUMENTS = {"cube_id": "cube-1", "class_code": "PP", "method": "SLIC", "params": {"n_segments": 8, "compactness": 1.0, "pca_components": 3}}
 PENDING = {
     "annotations.draft_get": {"cube_id": "cube-1"},
-    "annotations.draft_add_region": {"cube_id": "cube-1", "revision": 1, "class_code": "PP", "geometry": {"gesture_ref": "gesture-1"}},
-    "annotations.draft_select_candidates": {"cube_id": "cube-1", "class_code": "PP", "method": "SLIC", "params": {"n_segments": 8, "compactness": 1.0, "pca_components": 3}},
     "annotations.draft_confirm": {"cube_id": "cube-1", "revision": 1},
     "training_mat.export": {"cube_id": "cube-1", "version_id": "version-1"},
 }
@@ -83,6 +83,19 @@ def test_unready_tools_have_registered_schema_and_explicit_failure(gateway_case,
     assert caught.value.code == "TOOL_NOT_IMPLEMENTED"
 
 
+def test_slic_handler_refuses_only_after_schema_validation():
+    registry = build_registry(sessions=Mock())
+    assert registry.resolve("annotations.draft_select_candidates").ready
+    body = {"cube_id": "cube-1", "class_code": "PP", "method": "SLIC", "params": {"n_segments": 8, "compactness": 1.0, "pca_components": 3}}
+    with pytest.raises(DataError) as error:
+        registry.invoke("annotations.draft_select_candidates", body)
+    assert error.value.code == "TOOL_NOT_IMPLEMENTED"
+    body["params"]["n_segments"] = 0
+    with pytest.raises(DataError) as error:
+        registry.invoke("annotations.draft_select_candidates", body)
+    assert error.value.code == "TOOL_ARGS_INVALID"
+
+
 @pytest.mark.parametrize("op", ["add", "uncertain", "erase"])
 def test_gesture_reference_is_only_geometry_and_each_valid_op_executes(op):
     registry = ToolRegistry()
@@ -119,7 +132,7 @@ def test_invalid_geometry_extra_or_coerced_types_reject_before_handler(changes):
     registry = ToolRegistry()
     handler = Mock(return_value={"ok": True})
     registry.register("region", DraftRegionArguments, "fixture", handler)
-    arguments = {**PENDING["annotations.draft_add_region"], **changes}
+    arguments = {**REGION_ARGUMENTS, **changes}
     with pytest.raises(DataError) as caught:
         registry.invoke("region", arguments)
     assert caught.value.code == "TOOL_ARGS_INVALID"
@@ -129,7 +142,7 @@ def test_invalid_geometry_extra_or_coerced_types_reject_before_handler(changes):
 
 def test_add_requires_class_code_and_json_input_is_strict():
     registry = build_registry()
-    arguments = deepcopy(PENDING["annotations.draft_add_region"])
+    arguments = deepcopy(REGION_ARGUMENTS)
     del arguments["class_code"]
     with pytest.raises(DataError) as caught:
         registry.validate("annotations.draft_add_region", json.dumps(arguments))
@@ -143,7 +156,7 @@ def test_add_requires_class_code_and_json_input_is_strict():
 
 def test_candidates_require_typed_parameters_reject_nested_geometry_and_unknown_method():
     registry = build_registry()
-    slic = PENDING["annotations.draft_select_candidates"]
+    slic = SLIC_ARGUMENTS
     assert registry.validate("annotations.draft_select_candidates", slic).method == "SLIC"
     sam = {"cube_id": "cube-1", "class_code": "PP", "method": "SAM", "params": {
         "gesture_ref": "gesture-1", "threshold": 0.9, "queue_min_similarity": 0.8}}
@@ -193,7 +206,8 @@ def test_existing_service_bindings_filter_paths_geometries_and_credentials(gatew
         {"rank": 1, "run_id": "run-1", "recipe_version_id": "recipe-1", "fisher": 3.5}], "document": {"points": [[1, 2]]}}))
     registry = build_registry(datasets=datasets, runner=runner, comparison=comparison, database=c.database)
     assert registry.snapshot() == build_registry().snapshot()
-    assert {name for name in EXPECTED_NAMES if registry.resolve(name).ready} == EXPECTED_NAMES - set(PENDING)
+    assert {name for name in EXPECTED_NAMES if registry.resolve(name).ready} == EXPECTED_NAMES - set(PENDING) - {
+        "annotations.draft_add_region", "annotations.draft_select_candidates"}
     with connect_database(c.database) as db:
         db.execute("INSERT INTO dataset_registry (id,header_key,raw,payload) VALUES ('cube-1','fixture',1,'{}')")
     llm.set_api_key("test-memory-only")
