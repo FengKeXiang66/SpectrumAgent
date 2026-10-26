@@ -1,0 +1,8 @@
+.model-panel { padding: 1.25rem; max-width: 76rem; margin: auto; }
+.model-panel header { display: flex; align-items: center; gap: 1rem; }
+.model-panel fieldset { margin: 1rem 0; padding: 1rem; border: 1px solid #cbd5e1; border-radius: .5rem; }
+.model-panel label { display: block; margin: .65rem 0; }
+.model-panel label input, .model-panel label select { margin-left: .75rem; max-width: 90%; }
+.model-panel pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 20rem; overflow: auto; }
+.model-panel dl { display: flex; flex-wrap: wrap; gap: 1.5rem; }
+.model-panel dd { margin: .5rem 0; font-variant-numeric: tabular-nums; }

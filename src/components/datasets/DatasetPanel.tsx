@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { describeError, mergeRecords, type DatasetRecord, type DatasetTransport, type Preview } from './types';
 import AnnotationWorkbench from '../annotation/AnnotationWorkbench';
 import PreprocessPanel from '../preprocess/PreprocessPanel';
+import ModelPanel from '../modeling/ModelPanel';
 
 function BandCanvas({ preview, thumbnail = false }: { preview: Preview; thumbnail?: boolean }) {
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -44,6 +45,7 @@ export default function DatasetPanel({ api }: { api: DatasetTransport }) {
   const [annotation, setAnnotation] = useState<DatasetRecord | null>(null);
   const [preprocess, setPreprocess] = useState<DatasetRecord | null>(null);
   const [raw, setRaw] = useState(false);
+  const [modeling, setModeling] = useState(false);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [message, setMessage] = useState('选择数据目录，登记数据引用；源文件保持只读。');
@@ -99,9 +101,11 @@ export default function DatasetPanel({ api }: { api: DatasetTransport }) {
   if (annotation) return <AnnotationWorkbench key={annotation.id} record={annotation} records={records} datasets={api}
     onNavigate={setAnnotation} onClose={() => setAnnotation(null)} />;
   if (preprocess) return <PreprocessPanel key={preprocess.id} record={preprocess} onClose={() => setPreprocess(null)} />;
+  if (modeling) return <ModelPanel records={records} onClose={() => setModeling(false)} />;
 
   return <section aria-label="数据集管理">
     <h2>数据接入</h2>
+    <button disabled={busy || !records.length} onClick={() => setModeling(true)}>PLS 回归与样品取值</button>
     <label><input type="checkbox" checked={raw} disabled={busy} onChange={event => setRaw(event.target.checked)} /> 原始 DN 模式（未除 scale factor）</label>{' '}
     <button disabled={busy} onClick={() => { void choose(); }}>{busy ? '正在导入…' : '选择数据目录'}</button>
     <p role="status">{message}</p>
