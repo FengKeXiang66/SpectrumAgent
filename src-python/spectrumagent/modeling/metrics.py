@@ -11,6 +11,9 @@ from sklearn.metrics import accuracy_score, cohen_kappa_score, confusion_matrix,
 
 from . import ModelingError
 
+REGRESSION_METRICS = {"rmse": "RMSEC", "r2": "R²C", "rmsep": "RMSEP", "r2p": "R²P",
+                      "rpd": "RPD", "rer": "RER", "bias": "偏差"}
+
 
 def _vectors(y_true, y_pred, groups):
     true, predicted, groups = np.asarray(y_true), np.asarray(y_pred), np.asarray(groups)
@@ -48,6 +51,8 @@ def _score(true, predicted, task):
 
 
 def _gap(scores, task, leak_report):
+    if "pixel" not in scores:
+        return
     if leak_report is not None:
         name = "oa" if task == "classification" else "rmse"
         pixel, sample = scores["pixel"][name], scores["sample"][name]
@@ -88,3 +93,19 @@ def summarize_folds(predictions, *, task, leak_report=None):
             result[scope]["rmse"] = result[scope]["rmsep"] = float(np.average(scores, weights=weights))
     _gap(result, task, leak_report)
     return result
+
+
+def _regression(true, predicted, set):
+    true, predicted = np.asarray(true, dtype=float), np.asarray(predicted, dtype=float)
+    if true.ndim != 1 or predicted.shape != true.shape or not len(true) or not np.isfinite(true).all() or not np.isfinite(predicted).all():
+        raise ModelingError("INVALID_METRIC_INPUT", "回归指标需要同长非空有限向量")
+    rmse = float(np.sqrt(np.mean((predicted-true)**2)))
+    r2 = float(r2_score(true, predicted)) if len(true) > 1 and np.ptp(true) > 0 else None
+    if set == "calibration":
+        return {"rmse": rmse, "r2": r2}
+    if set != "prediction":
+        raise ModelingError("INVALID_METRIC_INPUT", "未知校准/预测集合")
+    return {"rmsep": rmse, "r2p": r2,
+            "rpd": float(np.std(true, ddof=1)/rmse) if len(true) > 1 and np.ptp(true) > 0 and rmse > 0 else None,
+            "rer": float(np.ptp(true)/rmse) if len(true) > 1 and np.ptp(true) > 0 and rmse > 0 else None,
+            "bias": float(np.mean(predicted-true))}

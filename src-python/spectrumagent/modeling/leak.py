@@ -1,5 +1,6 @@
 """Visible preflight findings; acknowledging full-data fit does not remove it."""
 from itertools import combinations
+import numpy as np
 
 FULL_FIT_REASON = "现有算子 fit-on-apply 合一（preprocess/operators/standardize.py L1）；阶段一接受全数据拟合"
 GLOBAL_FIT_OPERATORS = frozenset({"standardize", "msc", "emsc", "pca", "mnf", "ica"})
@@ -27,3 +28,18 @@ def preflight_report(meta, folds, *, strategy):
             "random_split_requested": strategy == "random",
             "random_split_warning": "随机像素划分可能使同一cube跨训练/测试，不能代替按cube验证" if strategy == "random" else None,
             "passed": violations == 0 and not duplicates}
+
+
+def sample_preflight_report(meta, folds, X_raw):
+    report = preflight_report(meta, folds, strategy="kfold")
+    X = np.asarray(X_raw, dtype=float)
+    norms = np.linalg.norm(X, axis=1)
+    pairs = []
+    for left, right in combinations(range(len(X)), 2):
+        denominator = norms[left]*norms[right]
+        similarity = float(np.clip(np.dot(X[left], X[right])/denominator, -1, 1)) if denominator else None
+        if similarity is not None and similarity > .999:
+            pairs.append({"cube_ids": [meta["cubes"][left]["cube_id"], meta["cubes"][right]["cube_id"]], "similarity": similarity})
+    report["near_duplicate_spectra"] = {"threshold": .999, "pairs": pairs, "pair_count": len(pairs)}
+    report["passed"] = report["passed"] and not pairs
+    return report

@@ -1,12 +1,13 @@
-"""Reference-only modeling preflight endpoints, no spectra or artifact paths."""
+"""Modeling references, sample targets and PLS results; no local file paths."""
 from typing import Annotated, Literal
 
 from fastapi import APIRouter
-from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr
+from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, StrictBool, model_validator
 
 from spectrumagent.modeling.run import TrainingRuns
 from spectrumagent.modeling import ModelingError
 from spectrumagent.data import DataError
+from spectrumagent.modeling.dataset import SampleTargets
 
 
 class PreflightRequest(BaseModel):
@@ -16,14 +17,73 @@ class PreflightRequest(BaseModel):
     preprocess_run_ids: list[StrictStr]
     task: Literal["classification", "regression"]
     target: StrictStr
-    cv_strategy: Literal["group_kfold", "random"]
+    cv_strategy: Literal["group_kfold", "random", "kfold", "loo"]
     cv_folds: Annotated[StrictInt, Field(ge=2)]
     seed: StrictInt
+    split_strategy: Literal["ks", "spxy", "random", "stratified", "none"] = "none"
+
+    @model_validator(mode="after")
+    def compatible_split(self):
+        if (self.task == "classification") != (self.split_strategy == "none"):
+            raise ValueError("分类无外层划分；回归须显式指定外层划分")
+        return self
+
+
+class TargetValue(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    value: Annotated[float, Field(allow_inf_nan=False)]
+
+
+class TargetCSV(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    project_id: StrictStr
+    csv_text: Annotated[StrictStr, Field(max_length=2*1024*1024)]
+    overwrite: StrictBool = False
+
+
+class RegressionRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    preprocess_run_ids: Annotated[list[StrictStr], Field(min_length=4)]
+    target_schema_id: StrictStr
+    task: Literal["regression"] = "regression"
+    split_strategy: Literal["ks"] = "ks"
+    test_ratio: Annotated[float, Field(gt=0, lt=1)] = 1/3
+    cv_strategy: Literal["kfold", "loo"] = "kfold"
+    cv_folds: Annotated[StrictInt, Field(ge=2)] = 5
+    seed: StrictInt = 17
+    n_components: Annotated[StrictInt, Field(ge=1)] | None = None
+    max_components: Annotated[StrictInt, Field(ge=1)] | None = None
 
 
 def make_router(sessions, runner):
     router = APIRouter(prefix="/api/v1/models", tags=["models"])
     runs = TrainingRuns(runner.registry, sessions.paths)
+    targets = SampleTargets(runner.registry.database)
+
+    @router.post("/sample-targets/import-csv")
+    def import_targets(body: TargetCSV):
+        return targets.import_csv(body.project_id, body.csv_text, overwrite=body.overwrite)
+
+    @router.put("/sample-targets/{cube_id}/{schema_id}")
+    def put_target(cube_id: str, schema_id: str, body: TargetValue):
+        return targets.put(cube_id, schema_id, body.value)
+
+    @router.get("/sample-targets")
+    def list_targets(project_id: str | None = None):
+        return targets.list(project_id)
+
+    @router.post("/runs")
+    def regression(body: RegressionRequest):
+        try:
+            return runs.regress(**body.model_dump())
+        except ModelingError:
+            raise
+        except (DataError, OSError, ValueError) as error:
+            raise ModelingError(error.code if isinstance(error, DataError) else "INVALID_MODEL_INPUT", "回归输入不可用") from None
+
+    @router.get("/runs/{run_id}/lv-sweep")
+    def lv_sweep(run_id: str):
+        return runs.artifact(run_id, "lv_sweep")
 
     @router.post("/runs/preflight")
     def preflight(body: PreflightRequest):

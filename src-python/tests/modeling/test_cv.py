@@ -25,7 +25,7 @@ def test_single_cube_refuses_group_cv_with_actual_counts():
     assert "1" in str(error.value) and "2" in str(error.value) and "需多数据集或样品分组能力" in str(error.value)
 
 
-@pytest.mark.parametrize("task,strategy", [("classification", "group_kfold"), ("classification", "random"), ("regression", "random")])
+@pytest.mark.parametrize("task,strategy", [("classification", "group_kfold"), ("classification", "random"), ("regression", "kfold")])
 def test_seed_reproducible_and_random_uses_required_splitter(task, strategy):
     y = np.tile([0, 1], 12)
     groups = np.repeat(np.arange(4), 6)

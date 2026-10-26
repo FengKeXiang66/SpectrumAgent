@@ -2081,6 +2081,43 @@
             }
           }
         }
+      },
+      "post": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Regression",
+        "operationId": "regression_api_v1_models_runs_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegressionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/agent/sessions": {
@@ -2219,6 +2256,191 @@
             "schema": {
               "type": "string",
               "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/models/sample-targets/import-csv": {
+      "post": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Import Targets",
+        "operationId": "import_targets_api_v1_models_sample_targets_import_csv_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TargetCSV"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/models/sample-targets/{cube_id}/{schema_id}": {
+      "put": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Put Target",
+        "operationId": "put_target_api_v1_models_sample_targets__cube_id___schema_id__put",
+        "parameters": [
+          {
+            "name": "cube_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Cube Id"
+            }
+          },
+          {
+            "name": "schema_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Schema Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TargetValue"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/models/sample-targets": {
+      "get": {
+        "tags": [
+          "models"
+        ],
+        "summary": "List Targets",
+        "operationId": "list_targets_api_v1_models_sample_targets_get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Project Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/models/runs/{run_id}/lv-sweep": {
+      "get": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Lv Sweep",
+        "operationId": "lv_sweep_api_v1_models_runs__run_id__lv_sweep_get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
             }
           }
         ],
@@ -3358,7 +3580,9 @@
             "type": "string",
             "enum": [
               "group_kfold",
-              "random"
+              "random",
+              "kfold",
+              "loo"
             ],
             "title": "Cv Strategy"
           },
@@ -3370,6 +3594,18 @@
           "seed": {
             "type": "integer",
             "title": "Seed"
+          },
+          "split_strategy": {
+            "type": "string",
+            "enum": [
+              "ks",
+              "spxy",
+              "random",
+              "stratified",
+              "none"
+            ],
+            "title": "Split Strategy",
+            "default": "none"
           }
         },
         "additionalProperties": false,
@@ -4088,6 +4324,131 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "RegressionRequest": {
+        "properties": {
+          "preprocess_run_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 4,
+            "title": "Preprocess Run Ids"
+          },
+          "target_schema_id": {
+            "type": "string",
+            "title": "Target Schema Id"
+          },
+          "task": {
+            "type": "string",
+            "const": "regression",
+            "title": "Task",
+            "default": "regression"
+          },
+          "split_strategy": {
+            "type": "string",
+            "const": "ks",
+            "title": "Split Strategy",
+            "default": "ks"
+          },
+          "test_ratio": {
+            "type": "number",
+            "exclusiveMaximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Test Ratio",
+            "default": 0.3333333333333333
+          },
+          "cv_strategy": {
+            "type": "string",
+            "enum": [
+              "kfold",
+              "loo"
+            ],
+            "title": "Cv Strategy",
+            "default": "kfold"
+          },
+          "cv_folds": {
+            "type": "integer",
+            "minimum": 2.0,
+            "title": "Cv Folds",
+            "default": 5
+          },
+          "seed": {
+            "type": "integer",
+            "title": "Seed",
+            "default": 17
+          },
+          "n_components": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "N Components"
+          },
+          "max_components": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Components"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "preprocess_run_ids",
+          "target_schema_id"
+        ],
+        "title": "RegressionRequest"
+      },
+      "TargetCSV": {
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "title": "Project Id"
+          },
+          "csv_text": {
+            "type": "string",
+            "maxLength": 2097152,
+            "title": "Csv Text"
+          },
+          "overwrite": {
+            "type": "boolean",
+            "title": "Overwrite",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "project_id",
+          "csv_text"
+        ],
+        "title": "TargetCSV"
+      },
+      "TargetValue": {
+        "properties": {
+          "value": {
+            "type": "number",
+            "title": "Value"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "value"
+        ],
+        "title": "TargetValue"
       }
     }
   }

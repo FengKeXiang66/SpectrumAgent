@@ -84,3 +84,46 @@ def model_case(tmp_path):
                            runs=runs, values=values, maps=maps, pipeline=pipeline,
                            arguments={"cube_ids": cubes, "annotation_version_ids": versions,
                                       "preprocess_run_ids": runs, "target": "label"})
+
+
+@pytest.fixture
+def regression_factory(tmp_path):
+    """Real source/snapshot/DB fixtures; ready preprocess rows are explicit test inputs."""
+    def make(n=12):
+        from spectrumagent.modeling.dataset import SampleTargets
+        from spectrumagent.annotation.labels import LabelStore, SchemaRequest
+        paths = AppPaths(tmp_path / str(uuid4()))
+        registry = DatasetRegistry(paths.database)
+        runner = RunEngine(registry, paths)
+        project = LabelStore(paths.database).projects()[0]["id"]
+        schema = LabelStore(paths.database).add(SchemaRequest.model_validate({"project_id":project,
+            "schema":{"name":"含量","tree_path":"含量","field_type":"continuous","unit":"%"}}))["id"]
+        recipe = runner.recipes.create("regression-fixture", "regression", None,
+            {"steps":[{"op":"standardize","version":1,"params":{"method":"standard"}}]})["versions"][0]["id"]
+        with connect_database(paths.database) as db:
+            label_ids = dict(db.execute("SELECT code,id FROM label"))
+        cubes, versions, runs, values, maps = [], [], [], [], []
+        for i in range(n):
+            x = np.tile(np.random.default_rng(132+i).integers(500,8500,8,dtype=np.uint16),(2,3,1))
+            x[0,0] = np.arange(8)*1000
+            x[0,1] += 100
+            header = tmp_path / f"{paths.root.name}-sample-{i}.hdr"
+            header.with_suffix(".img").write_bytes(x.tobytes())
+            header.write_text("ENVI\nlines=2\nsamples=3\nbands=8\ndata type=12\ninterleave=bip\nbyte order=0\nreflectance scale factor=10000\n","utf-8")
+            cube = str(registry.import_path(str(header),raw=True).datasets[0].id)
+            version, run = str(uuid4()), str(uuid4())
+            folder = paths.snapshots/cube/"v1"; folder.mkdir(parents=True)
+            labels = np.array([[0,1,1],[1,1,-1]],np.int32)
+            np.savez_compressed(folder/"label_map.npz",label_map=labels)
+            (folder/"label_index.json").write_text(json.dumps({"0":label_ids["BG"],"1":label_ids["PE"]}),"utf-8")
+            with connect_database(paths.database) as db:
+                db.execute("INSERT INTO annotation_version (id,cube_id,version_no,snapshot_ref,n_pixels,labeled_pixels,params,created_at) VALUES (?,?,1,?,6,5,'{}','fixture')",(version,cube,f"{cube}/v1"))
+                db.execute("INSERT INTO preprocess_run (id,cube_id,annotation_version_id,recipe_version_id,b01_branch,input_fingerprint,status,created_at) VALUES (?,?,?,?,'scale',?,'succeeded','fixture')",(run,cube,version,recipe,str(uuid4())))
+            cubes.append(cube); versions.append(version);runs.append(run); values.append(x.astype(float)/10000);maps.append(labels)
+        targets = SampleTargets(paths.database)
+        names = [registry.get(cube)[0].name for cube in cubes]
+        csv_text = "cube_name,schema,value\n" + "".join(f"{name},含量,{i*.2+values[i][0,1,0]}\n" for i,name in enumerate(names))
+        return SimpleNamespace(paths=paths,registry=registry,runner=runner,project=project,schema=schema,
+            cubes=cubes,versions=versions,runs=runs,values=values,maps=maps,targets=targets,csv_text=csv_text,
+            label_ids=label_ids,arguments={"preprocess_run_ids":runs,"target_schema_id":schema,"cv_folds":3,"max_components":3})
+    return make

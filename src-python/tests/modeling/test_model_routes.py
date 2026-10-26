@@ -59,7 +59,7 @@ def test_three_routes_exact_shapes_sorted_list_and_no_models_or_metrics(model_ap
 
 
 @pytest.mark.parametrize("kind,code", [("length", "ARGUMENT_LENGTH_MISMATCH"), ("version", "VERSION_CUBE_MISMATCH"),
-    ("run", "PREPROCESS_RUN_NOT_READY"), ("regression", "TARGET_UNSUPPORTED"),
+    ("run", "PREPROCESS_RUN_NOT_READY"), ("regression", "TARGET_SCHEMA_REQUIRED"),
     ("groups", "INSUFFICIENT_GROUPS"), ("shape", "LABEL_MAP_SHAPE_MISMATCH")])
 def test_six_validation_errors_leave_zero_training_rows(model_api, kind, code):
     c, client = model_api
@@ -72,7 +72,7 @@ def test_six_validation_errors_leave_zero_training_rows(model_api, kind, code):
         with connect_database(c.paths.database) as db:
             db.execute("UPDATE preprocess_run SET status='running' WHERE id=?", (c.runs[0],))
     elif kind == "regression":
-        request.update(task="regression", target="strength")
+        request.update(task="regression", target="strength", split_strategy="ks")
     elif kind == "groups":
         for key in ("cube_ids", "annotation_version_ids", "preprocess_run_ids"):
             request[key] = request[key][:1]
@@ -101,13 +101,13 @@ def test_validation_order_is_all_versions_then_runs_then_task_then_groups(model_
     request["annotation_version_ids"][3] = "missing"
     assert client.post("/api/v1/models/runs/preflight", json=request).json()["error"] == "VERSION_CUBE_MISMATCH"
     request["annotation_version_ids"] = c.versions
-    request.update(task="regression", target="strength")
+    request.update(task="regression", target="strength", split_strategy="ks")
     assert client.post("/api/v1/models/runs/preflight", json=request).json()["error"] == "PREPROCESS_RUN_NOT_READY"
     request["preprocess_run_ids"] = c.runs
     for key in ("cube_ids", "annotation_version_ids", "preprocess_run_ids"):
         request[key] = request[key][:1]
-    assert client.post("/api/v1/models/runs/preflight", json=request).json()["error"] == "TARGET_UNSUPPORTED"
-    request.update(task="classification", target="label", cv_strategy="random")
+    assert client.post("/api/v1/models/runs/preflight", json=request).json()["error"] == "TARGET_SCHEMA_REQUIRED"
+    request.update(task="classification", target="label", cv_strategy="random", split_strategy="none")
     assert client.post("/api/v1/models/runs/preflight", json=request).json()["error"] == "INSUFFICIENT_GROUPS"
     assert count(c) == 0
 
