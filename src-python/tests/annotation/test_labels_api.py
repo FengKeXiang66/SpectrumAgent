@@ -1,9 +1,10 @@
 from concurrent.futures import ThreadPoolExecutor
+from threading import Barrier
 
 import pytest
 
 from backend.database import connect_database
-from spectrumagent.annotation.labels import plastic_catalog
+from spectrumagent.annotation.labels import CustomRequest, LabelStore, plastic_catalog
 
 
 def custom(project_id, **extra):
@@ -105,7 +106,8 @@ def test_unknown_project_and_non_enum_schema_fail(label_api):
     assert client.post("/api/v1/labels", json=body).status_code == 422
 
 
-def test_concurrent_custom_sort_order(label_api):
+@pytest.mark.parametrize("round_index", range(1, 11))
+def test_concurrent_custom_sort_order(label_api, round_index):
     client, _, project_id = label_api
     def add(i):
         request = custom(project_id)
@@ -114,7 +116,34 @@ def test_concurrent_custom_sort_order(label_api):
         assert response.status_code == 201
         return response.json()["sort_order"]
     with ThreadPoolExecutor(3) as pool:
-        assert sorted(pool.map(add, range(3))) == [4, 5, 6]
+        orders = sorted(pool.map(add, range(3)))
+    assert orders == [4, 5, 6]
+    print(f"LABEL_HTTP_ROUND={round_index} sort_order={orders}")
+
+
+@pytest.mark.parametrize("round_index", range(1, 11))
+def test_direct_label_add_tight_concurrency(label_api, round_index):
+    _, paths, project_id = label_api
+    database = paths.database
+    store = LabelStore(database)
+    requests = []
+    for i in range(3):
+        request = custom(project_id)
+        request.update(code=f"DIRECT{i}", tree_path=f"材料/塑料/DIRECT{i}")
+        requests.append(CustomRequest.model_validate(request))
+    with connect_database(database) as db:
+        journal_mode = db.execute("PRAGMA journal_mode").fetchone()[0]
+    assert journal_mode == "wal"
+    barrier = Barrier(3)
+    def add(request):
+        barrier.wait(timeout=10)
+        return store.add(request)["sort_order"]
+    with ThreadPoolExecutor(3) as pool:
+        orders = sorted(pool.map(add, requests))
+    assert orders == [4, 5, 6] and len(set(orders)) == 3
+    with connect_database(database) as db:
+        assert db.execute("SELECT sort_order FROM label WHERE code LIKE 'DIRECT%' ORDER BY sort_order").fetchall() == [(4,), (5,), (6,)]
+    print(f"LABEL_DIRECT_ROUND={round_index} journal_mode={journal_mode} sort_order={orders}")
 
 
 def test_auth_identity_and_stage_boundary(label_api):
