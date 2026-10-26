@@ -1,6 +1,6 @@
 {
   "identifier": "main",
-  "description": "主窗口订阅状态并调用十一个固定业务命令；datasets-forward 固定/api/v1/datasets/*，annotations-forward 固定数据集标注及/api/v1/projects、/api/v1/labels、/api/v1/catalog/plastic；preprocess-forward 固定/api/v1/preprocess/*及/api/v1/datasets/*/preprocess/*，取消选用固定DELETE，其余固定GET/POST，总超时300s；agent-forward 仅会话创建、消息与步骤，SSE收集后一次返回；settings-forward 仅LLM设置GET/PUT及key PUT；annotations-draft-forward 仅/api/v1/annotations/* 的草稿三路由、确认及训练MAT，固定GET/POST；仅本代127.0.0.1握手端口、固定方法、响应8MiB并核验身份与代次，标签请求64KiB。原生选择仅允许open，不开放通用网络能力。 models-forward 仅/api/v1/models 下八个固定操作（preflight_run/create_run/list_runs/get_run/lv_sweep/list_targets/import_targets/put_target），固定GET/POST/PUT，300s超时，8MiB响应、身份与代次核验。",
+  "description": "主窗口订阅状态并调用十一个固定业务命令；datasets-forward 固定/api/v1/datasets/*，annotations-forward 固定数据集标注及/api/v1/projects、/api/v1/labels、/api/v1/catalog/plastic；preprocess-forward 固定/api/v1/preprocess/*及/api/v1/datasets/*/preprocess/*，取消选用固定DELETE，其余固定GET/POST，总超时300s；agent-forward 仅会话创建、消息与步骤，SSE收集后一次返回；settings-forward 仅LLM设置GET/PUT及key PUT；annotations-draft-forward 仅/api/v1/annotations/* 的草稿三路由、确认及训练MAT，固定GET/POST；models-forward 仅/api/v1/models 下八个固定操作（preflight_run/create_run/list_runs/get_run/lv_sweep/list_targets/import_targets/put_target），固定GET/POST/PUT，300s超时，8MiB响应、身份与代次核验；仅本代127.0.0.1握手端口、固定方法、响应8MiB并核验身份与代次，标签请求64KiB。原生选择仅允许open，不开放通用网络能力。",
   "windows": [
     "main"
   ],
