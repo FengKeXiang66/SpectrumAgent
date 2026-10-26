@@ -788,6 +788,110 @@
         }
       }
     },
+    "/api/v1/annotations/{cube_id}/gestures": {
+      "post": {
+        "tags": [
+          "annotation labels"
+        ],
+        "summary": "Store Gesture",
+        "operationId": "store_gesture_api_v1_annotations__cube_id__gestures_post",
+        "parameters": [
+          {
+            "name": "cube_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Cube Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreGestureRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoredGesture"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/annotations/{cube_id}/draft/candidates": {
+      "post": {
+        "tags": [
+          "annotation labels"
+        ],
+        "summary": "Draft Candidates",
+        "operationId": "draft_candidates_api_v1_annotations__cube_id__draft_candidates_post",
+        "parameters": [
+          {
+            "name": "cube_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Cube Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DraftCandidatesRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/projects": {
       "get": {
         "tags": [
@@ -2486,6 +2590,48 @@
         ],
         "title": "DraftAddRequest"
       },
+      "DraftCandidatesRequest": {
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revision"
+          },
+          "class_code": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Class Code"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "SLIC",
+              "SAM"
+            ],
+            "title": "Method"
+          },
+          "params": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SLICParameters"
+              },
+              {
+                "$ref": "#/components/schemas/SAMParameters"
+              }
+            ],
+            "title": "Params"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "revision",
+          "class_code",
+          "method",
+          "params"
+        ],
+        "title": "DraftCandidatesRequest"
+      },
       "DraftConfirmRequest": {
         "properties": {
           "revision": {
@@ -3345,6 +3491,62 @@
         ],
         "title": "RegionResponse"
       },
+      "SAMParameters": {
+        "properties": {
+          "gesture_ref": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Gesture Ref"
+          },
+          "threshold": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": -1.0,
+            "title": "Threshold"
+          },
+          "queue_min_similarity": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": -1.0,
+            "title": "Queue Min Similarity"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "gesture_ref",
+          "threshold",
+          "queue_min_similarity"
+        ],
+        "title": "SAMParameters"
+      },
+      "SLICParameters": {
+        "properties": {
+          "n_segments": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "N Segments"
+          },
+          "compactness": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Compactness"
+          },
+          "pca_components": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Pca Components"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "n_segments",
+          "compactness",
+          "pca_components"
+        ],
+        "title": "SLICParameters"
+      },
       "SaveRequest": {
         "properties": {
           "note": {
@@ -3557,6 +3759,53 @@
           "params"
         ],
         "title": "Step"
+      },
+      "StoreGestureRequest": {
+        "properties": {
+          "seed": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PointSeed"
+              },
+              {
+                "$ref": "#/components/schemas/BoxSeed"
+              },
+              {
+                "$ref": "#/components/schemas/DoodleSeed"
+              }
+            ],
+            "title": "Seed"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "seed"
+        ],
+        "title": "StoreGestureRequest"
+      },
+      "StoredGesture": {
+        "properties": {
+          "gesture_ref": {
+            "type": "string",
+            "title": "Gesture Ref"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "point",
+              "box",
+              "doodle"
+            ],
+            "title": "Kind"
+          }
+        },
+        "type": "object",
+        "required": [
+          "gesture_ref",
+          "kind"
+        ],
+        "title": "StoredGesture"
       },
       "SuperpixelGeometry": {
         "properties": {

@@ -11,6 +11,7 @@ import math
 import os
 from pathlib import Path
 import platform
+import re
 import shutil
 import sys
 from time import perf_counter
@@ -50,7 +51,7 @@ def rect(r0, c0, r1, c1):
 class Evidence:
     def __init__(self):
         self.data = {"source_level": "R24 TestClient / real ASGI stack / synthetic DN / MockTransport",
-                     "started_at": datetime.now(timezone.utc).isoformat(), "base_commit": "134f7b1",
+                     "started_at": datetime.now(timezone.utc).isoformat(), "base_commit": "c9795c8",
                      "assertions": [], "http": [], "measurements": [], "success": False}
 
     def check(self, condition, label):
@@ -332,6 +333,84 @@ def plan_chain(e, client, app):
     e.data["plan"] = {"provider": "httpx.MockTransport; no real provider network", "cases": results}
 
 
+def gesture_chain(e, client, app, cube):
+    """12.8: stored gestures -> SAM/region -> scalar tool interpretation."""
+    base = f"/api/v1/annotations/{cube}"
+    sessions = app.state.annotation_sessions
+    initial = e.call(client, "GET", base + "/draft").json()
+    revision, writes = initial["revision"], []
+    refs = {}
+    for kind, seed in [("point", {"point": [2, 3]}), ("box", {"box": [0, 4, 0, 4]}),
+                       ("doodle", {"doodle": [[2, 3], [3, 3]]})]:
+        result = e.call(client, "POST", base + "/gestures", {"seed": seed}).json()
+        e.check(set(result) == {"gesture_ref", "kind"} and result["kind"] == kind
+                and re.fullmatch(r"g-[0-9a-f]{32}", result["gesture_ref"]), f"gesture: {kind} stored with opaque reference")
+        refs[kind] = result["gesture_ref"]
+    working = f"/api/v1/datasets/{cube}/annotations/working"
+    queue_before = e.call(client, "GET", working).json()["queue"]
+    sam_results = []
+    for floor, confidence in [(-1, "medium"), (.99, "low")]:
+        result = e.call(client, "POST", base + "/draft/candidates", {"revision": revision, "class_code": "PE", "method": "SAM",
+            "params": {"gesture_ref": refs["doodle"], "threshold": .5, "queue_min_similarity": floor}}).json()
+        e.check(set(result) == {"revision", "region_id", "geometry_type", "preview_statistics"}
+                and set(result["preview_statistics"]) == {"n_superpixels", "pixel_count", "min_similarity", "avg_similarity"}, "gesture: exact SAM response shape")
+        revision = result["revision"]; writes.append(revision)
+        document = e.call(client, "GET", base + "/draft").json()["document"]
+        region = document["regions"][-1]
+        e.check(region["source"] == "algorithm" and region["confidence"] == confidence
+                and region["geometry"]["type"] == "pixel_set", f"gesture: SAM source and {confidence} confidence persisted")
+        if confidence == "low":
+            e.check(result["preview_statistics"]["min_similarity"] < floor, "gesture: real SAM minimum is below 0.99")
+        e.check(len(e.call(client, "GET", working).json()["queue"]) == len(queue_before), "gesture: no ghost candidate remains")
+        sam_results.append(result)
+    manual = e.call(client, "POST", base + "/draft/regions", {"revision": revision, "class_code": "PP", "geometry": {"gesture_ref": refs["box"]}}).json()
+    revision = manual["revision"]; writes.append(revision)
+    region = e.call(client, "GET", base + "/draft").json()["document"]["regions"][-1]
+    e.check(region["source"] == "manual" and region["confidence"] == "high", "gesture: manual default high confidence")
+    bodies = []
+    arguments = {"cube_id": cube, "revision": revision, "class_code": "PET", "geometry": {"gesture_ref": refs["doodle"]}}
+    def provider(request):
+        body = json.loads(request.content); bodies.append(body)
+        message = {"content": "手势标注已完成。"}
+        if "tools" in body:
+            message = {"content": None, "tool_calls": [{"id": "gesture-tool", "type": "function", "function": {
+                "name": "annotations.draft_add_region", "arguments": _json(arguments)}}]}
+        return httpx.Response(200, json={"choices": [{"message": message, "finish_reason": "stop"}]})
+    factory = lambda session: OpenAICompatibleClient(sessions.database, session_id=session, transport=httpx.MockTransport(provider))
+    with patch.object(app.state, "agent_llm_factory", factory):
+        session = e.call(client, "POST", "/api/v1/agent/sessions", {}).json()
+        path = f"/api/v1/agent/sessions/{session['id']}/messages"
+        events, _ = e.stream(client, path, {"content": "用当前手势标注 PET"})
+        e.check([event["event"] for event in events] == ["step", "done"] and events[0]["data"]["status"] == "ok", "gesture: tool replay executes")
+        summary = events[0]["data"]["result_summary"]
+        e.check(set(summary) == {"cube_id", "revision", "region_id", "op", "n_superpixels", "pixel_count", "class_code"}
+                and all(value is None or type(value) in (str, int, float, bool) for value in summary.values()), "gesture: tool summary is exactly seven scalars")
+        revision = summary["revision"]; writes.append(revision)
+        text = _json(bodies[-1]["messages"])
+        e.check("[[" not in text and not re.search(r"\b(points|polygon|sample_pixels|bbox|document)\b", text), "gesture: no geometry in INTERPRET")
+        row = e.call(client, "GET", base + "/draft").json()["document"]
+        region = row["regions"][-1]
+        e.check(region["source"] == "manual" and row["classes"][region["class_index"]]["code"] == "PET", "gesture: tool wrote manual PET")
+        stale_events, _ = e.stream(client, path, {"content": "重放旧 revision"})
+        e.check([event["event"] for event in stale_events] == ["step", "error"]
+                and stale_events[0]["data"]["status"] == "error" and stale_events[-1]["data"]["code"] == "DRAFT_REVISION_CONFLICT", "gesture: stale tool revision is an audited step error")
+        e.check(e.call(client, "GET", base + "/draft").json()["document"] == row, "gesture: stale tool leaves document unchanged")
+    slic = e.call(client, "POST", base + "/draft/candidates", {"revision": revision, "class_code": "PE", "method": "SLIC",
+        "params": {"n_segments": 24, "compactness": .5, "pca_components": 5}}, status=400)
+    e.check(slic.json()["error"] == "TOOL_NOT_IMPLEMENTED", "gesture: SLIC remains explicitly unsupported")
+    missing = e.call(client, "POST", base + "/draft/regions", {"revision": revision, "class_code": "PP", "geometry": {"gesture_ref": "g-" + "0" * 32}}, status=404)
+    e.check(missing.json()["error"] == "GESTURE_NOT_FOUND", "gesture: unknown reference is 404")
+    stale = e.call(client, "POST", base + "/draft/regions", {"revision": arguments["revision"], "class_code": "PP", "geometry": {"gesture_ref": refs["box"]}}, status=409)
+    e.check(stale.json()["error"] == "DRAFT_REVISION_CONFLICT", "gesture: stale REST revision is HTTP 409")
+    # Isolate this chain's intentional cross-class overlaps from later confirm
+    # recovery tests. Reuse the same undo service; no document/table manipulation.
+    for _ in reversed(writes):
+        sessions.undo(cube)
+    e.check(sessions.drafts.get(cube)["document"] == initial["document"], "gesture: undo restores fixture for subsequent chains")
+    e.data["gesture"] = {"refs": refs, "sam": sam_results, "manual": manual, "tool_events": events,
+        "stale_tool_events": stale_events, "provider_calls": len(bodies), "isolated_writes_undone": len(writes)}
+
+
 def legacy_chain(e, client, app, cube):
     base = f"/api/v1/datasets/{cube}/annotations"
     sessions = app.state.annotation_sessions
@@ -439,6 +518,7 @@ def main():
             cube = annotation_chain(e, client, app, header)
             dialogue_chain(e, client, app, cube)
             plan_chain(e, client, app)
+            gesture_chain(e, client, app, cube)
             legacy_chain(e, client, app, cube)
             recovery_chain(e, client, app, cube)
             large_performance(e, app, runtime)
