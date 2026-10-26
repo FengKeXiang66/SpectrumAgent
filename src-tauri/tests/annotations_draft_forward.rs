@@ -89,13 +89,19 @@ fn requests() -> [Value; 2] {
 }
 
 #[test]
-fn five_literal_routes_and_methods() -> TestResult {
+fn six_literal_routes_and_methods() -> TestResult {
     for (request, suffix, method, body) in [
         (
             json!({"op":"get_draft","cube_id":ID}),
             "draft".into(),
             "GET",
             None,
+        ),
+        (
+            json!({"op":"store_gesture","cube_id":ID,"body":{"seed":{"point":[2,3]}}}),
+            "gestures".into(),
+            "POST",
+            Some(json!({"seed":{"point":[2,3]}})),
         ),
         (
             json!({"op":"add_region","cube_id":ID,"body":{"revision":0}}),
@@ -161,6 +167,8 @@ fn paths_methods_candidates_and_extra_fields_are_rejected() {
         json!({"op":"candidates","cube_id":ID}),
         json!({"op":"rebuild","cube_id":ID}),
         json!({"op":"confirm","cube_id":ID,"body":[]}),
+        json!({"op":"store_gesture","cube_id":ID,"body":[]}),
+        json!({"op":"store_gesture","cube_id":"../health","body":{}}),
     ] {
         assert!(draft::parse_request(request).is_err());
     }

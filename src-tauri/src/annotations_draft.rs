@@ -1,4 +1,4 @@
-//! TASK-07 12.6: five fixed draft/export routes. Legacy annotation stays frozen.
+//! TASK-07 12.8: six fixed gesture/draft/export routes. Legacy annotation stays frozen.
 pub use crate::agent::{ForwardError, MAX_RESPONSE_BYTES, validate_generation};
 use crate::{
     agent::{fixed_url, forward_http, invalid_request, uuid},
@@ -14,6 +14,10 @@ use std::{io::Read, time::Duration};
 pub enum DraftRequest {
     GetDraft {
         cube_id: String,
+    },
+    StoreGesture {
+        cube_id: String,
+        body: Value,
     },
     AddRegion {
         cube_id: String,
@@ -44,6 +48,7 @@ impl DraftRequest {
     fn validate(&self) -> Result<(), ForwardError> {
         let cube_id = match self {
             Self::GetDraft { cube_id }
+            | Self::StoreGesture { cube_id, .. }
             | Self::AddRegion { cube_id, .. }
             | Self::PatchRegion { cube_id, .. }
             | Self::Confirm { cube_id, .. }
@@ -62,6 +67,7 @@ impl DraftRequest {
             _ => {}
         }
         if let Self::AddRegion { body, .. }
+        | Self::StoreGesture { body, .. }
         | Self::PatchRegion { body, .. }
         | Self::Confirm { body, .. } = self
             && !body.is_object()
@@ -78,6 +84,11 @@ impl DraftRequest {
                 format!("/api/v1/annotations/{cube_id}/draft"),
                 Method::GET,
                 None,
+            ),
+            Self::StoreGesture { cube_id, body } => (
+                format!("/api/v1/annotations/{cube_id}/gestures"),
+                Method::POST,
+                Some(body.clone()),
             ),
             Self::AddRegion { cube_id, body } => (
                 format!("/api/v1/annotations/{cube_id}/draft/regions"),
