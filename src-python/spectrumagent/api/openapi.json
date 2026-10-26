@@ -1957,6 +1957,132 @@
         }
       }
     },
+    "/api/v1/models/runs/preflight": {
+      "post": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Preflight",
+        "operationId": "preflight_api_v1_models_runs_preflight_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreflightRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/models/runs/{run_id}": {
+      "get": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Get Run",
+        "operationId": "get_run_api_v1_models_runs__run_id__get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/models/runs": {
+      "get": {
+        "tags": [
+          "models"
+        ],
+        "summary": "List Runs",
+        "operationId": "list_runs_api_v1_models_runs_get",
+        "parameters": [
+          {
+            "name": "cube_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cube Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/agent/sessions": {
       "post": {
         "tags": [
@@ -3192,6 +3318,73 @@
           "polygon"
         ],
         "title": "PolygonGeometry"
+      },
+      "PreflightRequest": {
+        "properties": {
+          "cube_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Cube Ids"
+          },
+          "annotation_version_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Annotation Version Ids"
+          },
+          "preprocess_run_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Preprocess Run Ids"
+          },
+          "task": {
+            "type": "string",
+            "enum": [
+              "classification",
+              "regression"
+            ],
+            "title": "Task"
+          },
+          "target": {
+            "type": "string",
+            "title": "Target"
+          },
+          "cv_strategy": {
+            "type": "string",
+            "enum": [
+              "group_kfold",
+              "random"
+            ],
+            "title": "Cv Strategy"
+          },
+          "cv_folds": {
+            "type": "integer",
+            "minimum": 2.0,
+            "title": "Cv Folds"
+          },
+          "seed": {
+            "type": "integer",
+            "title": "Seed"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "cube_ids",
+          "annotation_version_ids",
+          "preprocess_run_ids",
+          "task",
+          "target",
+          "cv_strategy",
+          "cv_folds",
+          "seed"
+        ],
+        "title": "PreflightRequest"
       },
       "PreprocessCompareRequest": {
         "properties": {
