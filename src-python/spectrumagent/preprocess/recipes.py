@@ -4,6 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 import sqlite3
+from threading import RLock
 from uuid import uuid4
 
 from backend.database import connect_database
@@ -47,6 +48,7 @@ def _version(row):
 class RecipeStore:
     def __init__(self, database, registry=None):
         self.database = Path(database)
+        self.lock = RLock()
         self.registry = registry if registry is not None else builtin_registry()
         self.database.parent.mkdir(parents=True, exist_ok=True)
         with connect_database(self.database) as db:
@@ -63,7 +65,7 @@ class RecipeStore:
             raise ValueError("description/note 须为字符串或 None")
         encoded = self._pipeline(pipeline)
         identifier, timestamp = str(uuid4()), _timestamp()
-        with connect_database(self.database, timeout=10) as db:
+        with self.lock, connect_database(self.database, timeout=10) as db:
             db.execute("BEGIN IMMEDIATE")
             db.execute("INSERT INTO preprocess_recipe (id,code,name,description,builtin,created_at) VALUES (?,?,?,?,?,?)",
                        (identifier, code, name, description, 0, timestamp))
@@ -77,7 +79,7 @@ class RecipeStore:
         encoded = self._pipeline(pipeline)
         row = {"id": str(uuid4()), "recipe_id": str(recipe_id), "pipeline": encoded,
                "note": note, "created_at": _timestamp()}
-        with connect_database(self.database, timeout=10) as db:
+        with self.lock, connect_database(self.database, timeout=10) as db:
             db.execute("BEGIN IMMEDIATE")
             if not db.execute("SELECT 1 FROM preprocess_recipe WHERE id=?", (str(recipe_id),)).fetchone():
                 raise KeyError(recipe_id)
@@ -104,7 +106,7 @@ class RecipeStore:
         return [self.get(identifier) for identifier in identifiers]
 
     def select_project(self, project_id, recipe_id):
-        with connect_database(self.database, timeout=10) as db:
+        with self.lock, connect_database(self.database, timeout=10) as db:
             db.execute("BEGIN IMMEDIATE")
             db.execute("INSERT INTO project_recipe (project_id,recipe_id,selected_at) VALUES (?,?,?) "
                        "ON CONFLICT(project_id,recipe_id) DO NOTHING", (str(project_id), str(recipe_id), _timestamp()))
