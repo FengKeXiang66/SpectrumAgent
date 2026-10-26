@@ -135,11 +135,12 @@ def build_sample_training_set(registry, paths, *, preprocess_run_ids, target_sch
         raise ModelingError("DUPLICATE_CUBE", "每个数据集只能提供一个预处理 run")
     rows = _inputs(registry, cube_ids=[r[0] for r in references], annotation_version_ids=[r[1] for r in references],
                    preprocess_run_ids=preprocess_run_ids, target="", task="regression", target_schema_id=target_schema_id)
-    means, cubes = [], []
+    means, cubes, axes = [], [], []
     for row in rows:
         cube = row["cube_id"]
         dataset, _ = registry.readable(cube, raw=False)
-        shape, wavelengths = dataset.shape, dataset.wavelengths
+        shape = dataset.shape
+        axes.append(np.asarray(dataset.wavelengths, dtype=np.float64))
         ref = row["annotation"]["snapshot_ref"]
         relative, base = PurePosixPath(ref), paths.snapshots.resolve()
         folder = base.joinpath(*relative.parts).resolve()
@@ -174,8 +175,13 @@ def build_sample_training_set(registry, paths, *, preprocess_run_ids, target_sch
     if len({json.dumps(row["pipeline"], sort_keys=True) for row in rows}) != 1:
         raise ModelingError("RECIPE_MISMATCH", "整样谱建模须采用相同配方步骤和参数")
     raw = np.stack(means)
+    # np.stack enforces equal band counts, not equal wavelength scales: equal
+    # band counts with different axes would silently run SG/derivatives on the
+    # wrong scale. All cubes must share one axis; all-unknown stays uniform.
+    if len({axis.tobytes() for axis in axes}) != 1:
+        raise ModelingError("WAVELENGTH_AXIS_MISMATCH", "各数据集波长轴刻度须一致")
     # Fit-on-apply across sample means is explicitly retained in leak_report.
-    processed = builtin_registry().run(raw, rows[0]["pipeline"], wavelengths=wavelengths or None).spectra
+    processed = builtin_registry().run(raw, rows[0]["pipeline"], wavelengths=axes[0] if axes[0].size else None).spectra
     if not np.isfinite(processed).all():
         raise ModelingError("NON_FINITE_SPECTRA", "整样谱预处理含非有限值")
     return {"X": processed, "X_raw": raw, "y": np.asarray([row["y"] for row in rows], dtype=float),

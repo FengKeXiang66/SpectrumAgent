@@ -165,6 +165,10 @@ class TrainingRuns:
                        "VALUES (?,?,?,?,?,?,?,?,?,'pls',?,'pending',?,'ks',?)",
                        (identifier, _json(groups.tolist()), _json(params["annotation_version_ids"]), _json(data["preprocess_run_ids"]),
                         task, data["target"], cv_strategy, len(inner), seed, _json(params), _now(), target_schema_id))
+            # training_fold records the INNER CV folds here; the outer KS hold-out
+            # lives only in model_params.train_cube_ids/test_cube_ids. 13.1
+            # classification rows use the same table for evaluation folds, so do
+            # not read this table across tasks without checking model_params.
             db.executemany("INSERT INTO training_fold VALUES (?,?,?,?,?,?,?)", [(str(uuid4()), identifier, f["fold_index"],
                            len(f["train_idx"]), len(f["test_idx"]), _json(f["train_groups"]), _json(f["test_groups"])) for f in inner])
         self._transition(identifier, "running", report=report)
@@ -187,7 +191,8 @@ class TrainingRuns:
             model = PLSRegression(n_components=selected).fit(X[train], y[train])
             calibration, prediction = model.predict(X[train]).reshape(-1), model.predict(X[test]).reshape(-1)
             metrics = {**_regression(y[train], calibration, "calibration"), **_regression(y[test], prediction, "prediction")}
-            assert set(metrics) == set(REGRESSION_METRICS)
+            if set(metrics) != set(REGRESSION_METRICS):
+                raise ModelingError("INVALID_METRIC_INPUT", "回归指标集合与七指标口径不符")
             sweep = {"curve": curve, "best_lv": best["n_components"], "elbow_lv": elbow, "selected_lv": selected,
                      "by_cv_min": best["n_components"], "by_elbow": elbow,
                      "manual_override": n_components is not None, "definition": "pooled held-out RMSECV; elbow <= best RMSECV + one SD of best fold RMSE"}
@@ -210,9 +215,11 @@ class TrainingRuns:
                 db.executemany("INSERT INTO model_artifact VALUES (?,?,?,?,?,?)", records)
                 db.execute("UPDATE training_run SET model_params=? WHERE id=?", (_json(params), identifier))
             self._transition(identifier, "succeeded", report=report)
-        except Exception:
+        except Exception as error:
             # Only remove the three filenames created by this run, no recursive
-            # cleanup of an application/user directory on failure.
+            # cleanup of an application/user directory on failure. The cause is
+            # chained (never from None) so tracebacks keep the failing frame;
+            # only the exception type reaches the message, never its text.
             for kind in ("model", "predictions", "lv_sweep"):
                 try:
                     (folder / (kind+".json")).unlink(missing_ok=True)
@@ -223,6 +230,7 @@ class TrainingRuns:
                     folder.rmdir()
                 except OSError:
                     pass
-            self._transition(identifier, "failed", report=report, error={"error": "PLS_FIT_FAILED", "detail": "PLS 拟合或产物持久化失败"})
-            raise ModelingError("PLS_FIT_FAILED", "PLS 拟合或产物持久化失败") from None
+            detail = f"PLS 拟合或产物持久化失败（{type(error).__name__}）"
+            self._transition(identifier, "failed", report=report, error={"error": "PLS_FIT_FAILED", "detail": detail})
+            raise ModelingError("PLS_FIT_FAILED", detail) from error
         return self.get(identifier)

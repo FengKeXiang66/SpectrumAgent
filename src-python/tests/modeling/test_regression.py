@@ -75,6 +75,44 @@ def test_sample_mean_bg_version_binding_snapshot_index_and_missing_y(regression_
     assert len(filtered['preprocess_run_ids']) == len(filtered['groups']) == 11
 
 
+def test_wavelength_axis_must_match_across_cubes(regression_factory):
+    from pathlib import Path
+    c = seed(regression_factory(2))
+    def add_cube(rng_seed,axis):
+        x = np.tile(np.random.default_rng(rng_seed).integers(500,8500,8,dtype=np.uint16),(2,3,1))
+        header = Path(c.registry.get(c.cubes[0])[0].header_path).with_name(f"axis-{rng_seed}.hdr")
+        header.with_suffix(".img").write_bytes(x.tobytes())
+        head = "ENVI\nlines=2\nsamples=3\nbands=8\ndata type=12\ninterleave=bip\nbyte order=0\nreflectance scale factor=10000\n"
+        if axis is not None:
+            head += "wavelength = {"+",".join(str(v) for v in axis)+"}\n"
+        header.write_text(head,"utf-8")
+        cube = str(c.registry.import_path(str(header),raw=True).datasets[0].id)
+        version, run = str(uuid4()), str(uuid4())
+        folder = c.paths.snapshots/cube/"v1"; folder.mkdir(parents=True)
+        np.savez_compressed(folder/"label_map.npz",label_map=np.array([[0,1,1],[1,1,-1]],np.int32))
+        (folder/"label_index.json").write_text(json.dumps({"0":c.label_ids["BG"],"1":c.label_ids["PE"]}),"utf-8")
+        with connect_database(c.paths.database) as db:
+            recipe = db.execute("SELECT recipe_version_id FROM preprocess_run WHERE id=?",(c.runs[0],)).fetchone()[0]
+            db.execute("INSERT INTO annotation_version (id,cube_id,version_no,snapshot_ref,n_pixels,labeled_pixels,params,created_at) VALUES (?,?,1,?,6,5,'{}','fixture')",(version,cube,f"{cube}/v1"))
+            db.execute("INSERT INTO preprocess_run (id,cube_id,annotation_version_id,recipe_version_id,b01_branch,input_fingerprint,status,created_at) VALUES (?,?,?,?,'scale',?,'succeeded','fixture')",(run,cube,version,recipe,str(uuid4())))
+        c.targets.put(cube,c.schema,1.5)
+        return run
+    axis = [900.0,901.0,902.0,903.0,904.0,905.0,906.0,907.0]
+    first, second = add_cube(901,axis), add_cube(902,axis)
+    # Identical axes on every cube build fine.
+    shared = build_sample_training_set(c.registry,c.paths,preprocess_run_ids=[first,second],target_schema_id=c.schema)
+    assert shared['meta']['n_samples']==2 and shared['meta']['n_features']==8
+    # Same band count, shifted scale on one cube: silently wrong axis, refused.
+    shifted = add_cube(903,[v+1 for v in axis])
+    with pytest.raises(DataError) as error:
+        build_sample_training_set(c.registry,c.paths,preprocess_run_ids=[first,shifted],target_schema_id=c.schema)
+    assert error.value.code=='WAVELENGTH_AXIS_MISMATCH'
+    # Known on one cube and unknown on another is not uniform either.
+    with pytest.raises(DataError) as error:
+        build_sample_training_set(c.registry,c.paths,preprocess_run_ids=[first,c.runs[0]],target_schema_id=c.schema)
+    assert error.value.code=='WAVELENGTH_AXIS_MISMATCH'
+
+
 def test_no_bg_fallback_and_all_background_error(regression_factory):
     c=seed(regression_factory())
     with connect_database(c.paths.database) as db:
