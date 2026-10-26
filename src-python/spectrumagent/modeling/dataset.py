@@ -70,6 +70,9 @@ def _build(registry, paths, rows):
         x = np.empty((selected_count, shape[2]), dtype=np.float64)
         y = np.empty(selected_count, dtype=np.int64)
         offset = 0
+        # raw=False 等价于 B01 的 scale/passthrough（header.scale 默认 1.0）。
+        # preprocess 不传参考谱，reference 不可达；将来 preprocess 支持参考谱时，
+        # 此处须同步改为 raw=True + 显式 reflectance。
         for first, last, block in row_blocks(ReadableRows(registry, cube, shape), 32):
             labels = label_map[first:last].ravel()
             mask = labels >= 0
