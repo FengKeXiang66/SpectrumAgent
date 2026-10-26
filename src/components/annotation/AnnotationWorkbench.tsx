@@ -54,6 +54,8 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
   // TASK-04 §5.3: S1 example default / S05 UI guard default, both adjustable.
   const [threshold, setThreshold] = useState(.92), [queueMinimum, setQueueMinimum] = useState(.80);
   const [force, setForce] = useState(false), [lastSeed, setLastSeed] = useState<Seed | null>(null);
+  const [lastGestureRef, setLastGestureRef] = useState<string | null>(null);
+  const [draftRevision, setDraftRevision] = useState<number | null>(null);
   const [note, setNote] = useState(''), [overwrite, setOverwrite] = useState(false), [confirmOverwrite, setConfirmOverwrite] = useState(false);
   const [confirmVersion, setConfirmVersion] = useState(false);
   const [quality, setQuality] = useState<Quality | null>(null), [history, setHistory] = useState<Png | null>(null), [historyId, setHistoryId] = useState('');
@@ -74,6 +76,14 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
   const validThresholds = Number.isFinite(threshold) && threshold >= -1 && threshold <= 1
     && Number.isFinite(queueMinimum) && queueMinimum >= -1 && queueMinimum <= 1;
   const seconds = timing.current ? estimateRemaining(timing.current.started, timing.current.labeled, stats, performance.now()) : null;
+
+  useEffect(() => {
+    let cancelled = false;
+    setDraftRevision(null); setLastGestureRef(null);
+    void drafts.get(id).then(result => { if (!cancelled) setDraftRevision(result.revision); })
+      .catch(() => { if (!cancelled) setDraftRevision(null); });
+    return () => { cancelled = true; };
+  }, [id]);
 
   const applyWorking = (next: Working) => {
     setWorking(next); setSelectedKey(previous => recoverSelection(next, previous));
@@ -179,9 +189,11 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
   };
   const diffuse = async (seed: Seed) => {
     if (!ready || !validThresholds) return;
-    setLastSeed(seed); setDraft(null);
     let admitted = false;
     await execute(async () => {
+      const gesture = await drafts.storeGesture(id, seed);
+      if (!alive.current) return;
+      setLastGestureRef(gesture.gesture_ref); setLastSeed(seed); setDraft(null);
       const result = await api.diffuse(id, seed, { threshold, queue_min_similarity: queueMinimum });
       admitted = result.enqueued;
       if (alive.current) setLastDiffusion({ min: result.candidate.min_similarity, enqueued: result.enqueued, blocked: result.not_queued_reasons.below_queue_min_similarity });
@@ -292,6 +304,8 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
             <label>提示方式<select disabled={busy} value={prompt} onChange={event => { setPrompt(event.target.value as PromptMode); setTool('diffuse'); setTab('prompt'); }}><option value="point">单击</option><option value="box">框选</option><option value="doodle">涂鸦</option></select></label>
           </div>
           <p className="annotation-hint">已有种子时，阈值输入完成、移出输入框即重新扩散预览；也可点击“扩散到相似区域”。</p>
+          {lastGestureRef && <p className="annotation-hint">当前手势 {lastGestureRef}，可在对话中引用</p>}
+          {draftRevision === 0 && <p className="annotation-hint">当前无标注草稿：手势需先建立首个标注（画布多边形或运行扩散）</p>}
           {!validThresholds && <p className="annotation-warning">两项余弦阈值都须为 [-1,1] 内的有限数。</p>}
           {lastDiffusion && <p className={lastDiffusion.enqueued ? 'annotation-hint' : 'annotation-warning'}>本次候选最小种子相似度 {lastDiffusion.min.toFixed(4)} · {lastDiffusion.enqueued ? '已入队' : `被护栏拦下，未入队 ${lastDiffusion.blocked} 项`}。</p>}
           <details className="annotation-hint"><summary>默认值与相似度口径</summary>SLIC 默认值来自 TASK-04 §5.2（11 cube 标定 compactness=0.5）；扩散默认 0.92 来自需求场景 S1；入队默认 0.80 来自 UI 原型 S05。增长比较邻接对原谱均值；报告比较种子原谱。均为可调默认值。</details>
