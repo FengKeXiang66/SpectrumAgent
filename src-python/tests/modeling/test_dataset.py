@@ -1,9 +1,14 @@
 import sqlite3
+import tracemalloc
+
+import numpy as np
 
 import pytest
 
 from backend.database import connect_database
 from spectrumagent.modeling.migrations import migrate
+from spectrumagent.modeling.dataset import build_training_set
+from spectrumagent.data import DataError, SpectrumDataSet
 from conftest import insert_run
 
 
@@ -42,3 +47,48 @@ def test_fold_and_metric_uniqueness(legacy_case, table):
         db.execute(sql, ("first",))
         with pytest.raises(sqlite3.IntegrityError):
             db.execute(sql, ("second",))
+
+
+def test_training_pixels_match_whole_cube_recipe_and_exclude_both_negative_states(model_case, monkeypatch):
+    c = model_case
+    monkeypatch.setattr(SpectrumDataSet, "to_numpy", lambda *_: pytest.fail("full materialization forbidden"))
+    original = SpectrumDataSet.read_region
+    reads = []
+    def bounded(dataset, first, last, left, right):
+        assert last - first <= 32
+        reads.append(last-first)
+        return original(dataset, first, last, left, right)
+    monkeypatch.setattr(SpectrumDataSet, "read_region", bounded)
+    result = build_training_set(c.registry, c.paths, **c.arguments)
+    assert result["X"].shape == (96, 8) and result["X"].dtype == np.float64
+    assert result["y"].dtype == np.int64 and result["groups"].dtype == np.int32
+    for index in range(4):
+        raw = c.values[index][c.maps[index] >= 0]
+        expected = (raw-raw.mean(axis=0))/raw.std(axis=0)
+        chosen = result["groups"] == index
+        np.testing.assert_allclose(result["X"][chosen], expected, atol=1e-12)
+        np.testing.assert_array_equal(result["y"][chosen], c.maps[index][c.maps[index] >= 0])
+        assert chosen.sum() == 24
+    assert reads and result["meta"]["n_samples"] == 96
+
+
+def test_training_snapshot_shape_mismatch_is_explicit(model_case):
+    c = model_case
+    with connect_database(c.paths.database) as db:
+        ref = db.execute("SELECT snapshot_ref FROM annotation_version WHERE id=?", (c.versions[0],)).fetchone()[0]
+    np.savez_compressed(c.paths.snapshots/ref/"label_map.npz", label_map=np.zeros((1, 1), np.int32))
+    with pytest.raises(DataError) as error:
+        build_training_set(c.registry, c.paths, **c.arguments)
+    assert error.value.code == "LABEL_MAP_SHAPE_MISMATCH"
+
+
+def test_training_build_reports_tracemalloc_peak(model_case):
+    c = model_case
+    tracemalloc.start()
+    try:
+        result = build_training_set(c.registry, c.paths, **c.arguments)
+        _, peak = tracemalloc.get_traced_memory()
+    finally:
+        tracemalloc.stop()
+    assert peak >= result["X"].nbytes and result["meta"]["n_samples"] == 96
+    print(f"MODEL_BUILD_MEMORY samples=96 bands=8 peak_bytes={peak}")

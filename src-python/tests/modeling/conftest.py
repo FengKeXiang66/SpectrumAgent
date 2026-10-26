@@ -1,10 +1,15 @@
 """Isolated real databases and confirmed snapshots for modeling tests."""
 from types import SimpleNamespace
 from unittest.mock import patch
+import json
+from uuid import uuid4
+
+import numpy as np
 
 import pytest
 
 from backend.paths import AppPaths
+from backend.database import connect_database
 from spectrumagent.api.registry import DatasetRegistry
 from spectrumagent.preprocess.run import RunEngine
 
@@ -23,3 +28,41 @@ def insert_run(db, identifier="training", status="pending"):
                "task,target,cv_strategy,cv_folds,seed,status,created_at) "
                "VALUES (?,'[]','[]','[]','classification','label','group_kfold',2,17,?,'fixture')",
                (identifier, status))
+
+
+@pytest.fixture
+def model_case(tmp_path):
+    paths = AppPaths(tmp_path / "model-app")
+    registry = DatasetRegistry(paths.database)
+    runner = RunEngine(registry, paths)
+    pipeline = {"steps": [{"op": "standardize", "version": 1, "params": {"method": "standard"}}]}
+    recipe = runner.recipes.create("training-fixture", "training", None, pipeline)["versions"][0]["id"]
+    cubes, versions, runs, values, maps = [], [], [], [], []
+    for index in range(4):
+        x = np.random.default_rng(131 + index).integers(1000, 30000, (12, 4, 8), dtype=np.uint16)
+        header = tmp_path / f"cube-{index}.hdr"
+        header.with_suffix(".img").write_bytes(x.tobytes())
+        header.write_text("ENVI\nlines=12\nsamples=4\nbands=8\ndata type=12\ninterleave=bip\n"
+                          "byte order=0\nreflectance scale factor=65535\n", "utf-8")
+        cube = str(registry.import_path(str(header), raw=True).datasets[0].id)
+        label_map = np.tile(np.array([-2, -1, 0, 1], np.int32), (12, 1))
+        version = str(uuid4())
+        relative = f"{cube}/v1"
+        folder = paths.snapshots / relative
+        folder.mkdir(parents=True)
+        np.savez_compressed(folder / "label_map.npz", label_map=label_map)
+        with np.load(folder / "label_map.npz", allow_pickle=False) as archive:
+            assert archive.files == ["label_map"]  # R2 actual snapshot key.
+        with connect_database(paths.database) as db:
+            labels = [r[0] for r in db.execute("SELECT id FROM label ORDER BY sort_order,code")]
+            db.execute("INSERT INTO annotation_version (id,cube_id,version_no,snapshot_ref,n_pixels,labeled_pixels,params,created_at) "
+                       "VALUES (?,?,1,?,48,24,'{}','fixture')", (version, cube, relative))
+        (folder / "label_index.json").write_text(json.dumps(dict(enumerate(labels))), "utf-8")
+        run = runner.run(cube, version, recipe, block_size=4)
+        assert run["status"] == "succeeded", run["error"]
+        cubes.append(cube); versions.append(version); runs.append(run["id"])
+        values.append(x.astype(float)/65535); maps.append(label_map)
+    return SimpleNamespace(paths=paths, registry=registry, runner=runner, cubes=cubes, versions=versions,
+                           runs=runs, values=values, maps=maps, pipeline=pipeline,
+                           arguments={"cube_ids": cubes, "annotation_version_ids": versions,
+                                      "preprocess_run_ids": runs, "target": "label"})
