@@ -9,7 +9,8 @@ from backend.database import connect_database
 from spectrumagent.modeling.migrations import migrate
 from spectrumagent.modeling.dataset import build_training_set
 from spectrumagent.data import DataError, SpectrumDataSet
-from conftest import insert_run
+from spectrumagent.data.readers.header import classic, read_text
+from spectrumagent.preprocess import builtin_registry
 
 
 def test_migration_upgrades_21_tables_repeats_without_changing_existing_schema(legacy_case):
@@ -24,7 +25,7 @@ def test_migration_upgrades_21_tables_repeats_without_changing_existing_schema(l
 
 
 @pytest.mark.parametrize("status", ["pending", "running", "succeeded", "failed", "cancelled"])
-def test_training_status_four_states_only(legacy_case, status):
+def test_training_status_four_states_only(legacy_case, status, insert_run):
     with connect_database(legacy_case.paths.database) as db:
         migrate(db)
         if status == "cancelled":
@@ -36,7 +37,7 @@ def test_training_status_four_states_only(legacy_case, status):
 
 
 @pytest.mark.parametrize("table", ["training_fold", "metric"])
-def test_fold_and_metric_uniqueness(legacy_case, table):
+def test_fold_and_metric_uniqueness(legacy_case, table, insert_run):
     with connect_database(legacy_case.paths.database) as db:
         migrate(db)
         insert_run(db)
@@ -92,3 +93,19 @@ def test_training_build_reports_tracemalloc_peak(model_case):
         tracemalloc.stop()
     assert peak >= result["X"].nbytes and result["meta"]["n_samples"] == 96
     print(f"MODEL_BUILD_MEMORY samples=96 bands=8 peak_bytes={peak}")
+
+
+def test_reader_reflectance_equals_raw_plus_b01_for_reachable_branches(reflectance_cube):
+    c = reflectance_cube
+    reflected, _ = c.registry.readable(c.cube, raw=False)
+    raw, _ = c.registry.readable(c.cube, raw=True)
+    hdr = classic(read_text(c.header))
+    original = raw.read_region(0, 3, 0, 4)
+    converted = builtin_registry().run(original.reshape(-1, 8), {"steps": [
+        {"op": "reflectance", "version": 1, "params": {"hdr": hdr, "guard": "clip"}}
+    ]})
+    assert converted.steps[0]["meta"]["branch"] == c.branch
+    assert np.array_equal(original, c.values.astype(np.float64))
+    assert np.array_equal(reflected.read_region(0, 3, 0, 4), converted.spectra.reshape(3, 4, 8))
+    assert reflected.shape[2] == converted.spectra.shape[1] == 8
+    print(f"B01_EQUIVALENCE branch={c.branch} array_equal=True n_features=8")
