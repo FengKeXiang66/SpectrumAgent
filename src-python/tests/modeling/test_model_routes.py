@@ -158,3 +158,30 @@ def test_reader_failure_does_not_expose_paths_or_create_training_run(model_api):
     assert response.status_code == 400 and response.json()["error"] == "SOURCE_CHANGED"
     assert response.json()["context"] == {} and dataset.data_path not in response.text
     assert str(c.paths.root) not in response.text and count(c) == 0
+
+
+def test_random_five_folds_accepts_four_cubes_and_reports_requested_split(model_api):
+    c, client = model_api
+    response = client.post("/api/v1/models/runs/preflight", json={**body(c), "cv_strategy": "random", "cv_folds": 5})
+    assert response.status_code == 200, response.text
+    result = response.json()
+    assert len(result["folds"]) == 5 and result["leak_report"]["random_split_requested"] is True
+    assert count(c) == 1
+    print("RANDOM_FIVE_FOLDS cubes=4 HTTP=200 random_split_requested=true")
+
+
+@pytest.mark.parametrize("strategy,cube_count", [("random", 1), ("group_kfold", 1), ("group_kfold", 4)])
+def test_group_count_rejections_leave_zero_training_rows(model_api, strategy, cube_count):
+    c, client = model_api
+    request = {**body(c), "cv_strategy": strategy, "cv_folds": 5}
+    for key in ("cube_ids", "annotation_version_ids", "preprocess_run_ids"):
+        request[key] = request[key][:cube_count]
+    response = client.post("/api/v1/models/runs/preflight", json=request)
+    assert response.status_code == 400 and response.json()["error"] == "INSUFFICIENT_GROUPS", response.text
+    detail = response.json()["detail"]
+    if cube_count == 1:
+        assert "单数据集无法分组交叉验证" in detail
+    else:
+        assert "实际组数 4" in detail and "请求折数 5" in detail
+    assert count(c) == 0
+    print(f"GROUP_VALIDATION strategy={strategy} cubes={cube_count} folds=5 HTTP=400 training_run=0")
