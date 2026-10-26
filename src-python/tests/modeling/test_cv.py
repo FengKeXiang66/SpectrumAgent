@@ -3,6 +3,7 @@ import pytest
 from sklearn.model_selection import KFold, StratifiedKFold
 
 from spectrumagent.data import DataError
+from spectrumagent.modeling.run import TrainingRuns
 from spectrumagent.modeling.cv import plan_folds
 
 
@@ -46,3 +47,31 @@ def test_seed_reproducible_and_random_uses_required_splitter(task, strategy):
 def test_invalid_cv_vectors_rejected(y, groups, folds):
     with pytest.raises(DataError, match="CV"):
         plan_folds(y, groups, task="classification", strategy="group_kfold", folds=folds, seed=17)
+
+
+def test_preflight_random_allows_five_folds_with_four_cube_groups(model_case):
+    c = model_case
+    result = TrainingRuns(c.registry, c.paths).preflight(**c.arguments, task="classification",
+             cv_strategy="random", cv_folds=5, seed=17)
+    assert len(result["folds"]) == 5 and result["n_samples"] == 96
+    assert result["leak_report"]["random_split_requested"] is True
+
+
+@pytest.mark.parametrize("strategy", ["group_kfold", "random"])
+def test_preflight_single_cube_refuses_any_strategy(model_case, strategy):
+    c = model_case
+    arguments = {key: value[:1] if isinstance(value, list) else value for key, value in c.arguments.items()}
+    with pytest.raises(DataError) as error:
+        TrainingRuns(c.registry, c.paths).preflight(**arguments, task="classification",
+                     cv_strategy=strategy, cv_folds=5, seed=17)
+    assert error.value.code == "INSUFFICIENT_GROUPS"
+    assert "单数据集无法分组交叉验证" in str(error.value)
+
+
+def test_preflight_group_folds_report_actual_and_requested_counts(model_case):
+    c = model_case
+    with pytest.raises(DataError) as error:
+        TrainingRuns(c.registry, c.paths).preflight(**c.arguments, task="classification",
+                     cv_strategy="group_kfold", cv_folds=5, seed=17)
+    assert error.value.code == "INSUFFICIENT_GROUPS"
+    assert "实际组数 4" in str(error.value) and "请求折数 5" in str(error.value)
