@@ -133,6 +133,7 @@ class WorkingState:
     segments: np.ndarray | None = None
     params: dict | None = None
     candidates: list = field(default_factory=list)
+    gestures: dict = field(default_factory=dict)
     # §5.4 requires >=5; no operation history is persisted.
     undo_stack: deque = field(default_factory=lambda: deque(maxlen=5))
     document_json: str | None = None
@@ -216,7 +217,23 @@ class SessionStore:
             state.segments = segmentation.segments.copy()
             state.params = actual
 
-    def edit(self, cube_id, mask, *, action, label_id=None, geometry=None):
+    def store_gesture(self, cube_id, seed):
+        with self._lock:
+            state = self._state(cube_id)
+            reference = "g-" + uuid4().hex
+            state.gestures[reference] = {"seed": deepcopy(seed), "created_at": now()}
+            return reference
+
+    def resolve_gesture(self, cube_id, gesture_ref):
+        with self._lock:
+            entry = self._state(cube_id).gestures.get(gesture_ref)
+            if entry is None:
+                error = DataError("GESTURE_NOT_FOUND", "手势引用不存在或已失效")
+                error.status_code = 404
+                raise error
+            return deepcopy(entry["seed"])
+
+    def edit(self, cube_id, mask, *, action, label_id=None, geometry=None, source=None, confidence=None):
         """Apply an explicit human selection; no automatic label assignment."""
         with self._lock:
             state = self._state(cube_id)
@@ -236,7 +253,8 @@ class SessionStore:
                 actual = {"type": "polygon", "points": geometry["polygon"]}
             self.drafts.add(cube_id, state.revision, geometry=actual,
                             op="add" if action == "confirm" else action,
-                            class_code=json.loads(state.document_json)["classes"][value]["code"] if action == "confirm" else None)
+                            class_code=json.loads(state.document_json)["classes"][value]["code"] if action == "confirm" else None,
+                            source=source or "manual", confidence=confidence)
             state.undo_stack.append((state.document_json, state.label_map.copy()))
             if action != "erase" and state.segments is not None:
                 # Consume explicitly selected candidates; generation belongs to 10.3.5.

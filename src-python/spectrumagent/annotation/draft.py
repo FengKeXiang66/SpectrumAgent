@@ -195,7 +195,7 @@ class DraftStore:
     def replace(self, cube_id, document, revision):
         return self._change(cube_id, revision, lambda old, next_revision: (deepcopy(document), {}))
 
-    def add(self, cube_id, revision, *, geometry, op="add", class_code=None, confidence=None):
+    def add(self, cube_id, revision, *, geometry, op="add", class_code=None, confidence=None, source="manual"):
         if op not in {"add", "uncertain", "erase"}:
             raise invalid()
         if not isinstance(geometry, dict):
@@ -204,7 +204,7 @@ class DraftStore:
             raise invalid("手势引用尚未接入")
         def change(document, next_revision):
             region = {"region_id": f"r-{next_revision:04d}", "op": op, "geometry": deepcopy(geometry),
-                      "source": "manual", "created_at": now()}
+                      "source": source, "created_at": now()}
             if op == "add":
                 index = next((c["index"] for c in document["classes"] if c["code"] == class_code), None)
                 if index is None:
