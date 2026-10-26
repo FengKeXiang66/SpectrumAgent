@@ -13,6 +13,7 @@ from pydantic import TypeAdapter
 from backend.database import connect_database
 from spectrumagent.annotation.migrations import default_project_id, migrate
 from spectrumagent.agent.migrations import migrate as migrate_agent
+from spectrumagent.modeling.migrations import migrate as migrate_modeling
 
 from spectrumagent.data import DataError, SpectrumDataSet
 from spectrumagent.data.readers import BinaryReader, FallbackEnviReader, open_envi
@@ -87,6 +88,7 @@ class DatasetRegistry:
             db.execute("CREATE TABLE IF NOT EXISTS dataset_registry (id TEXT PRIMARY KEY, header_key TEXT NOT NULL, raw INTEGER NOT NULL, payload TEXT NOT NULL, UNIQUE(header_key,raw))")
             migrate(db)
             migrate_agent(db)
+            migrate_modeling(db)
 
     def import_path(self, value: str, *, raw=False, data_path=None):
         root = absolute(value)
