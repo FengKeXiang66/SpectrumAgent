@@ -23,11 +23,29 @@ def legacy_case(tmp_path):
     return SimpleNamespace(paths=paths, registry=registry, runner=runner)
 
 
-def insert_run(db, identifier="training", status="pending"):
-    db.execute("INSERT INTO training_run (id,cube_ids,annotation_version_ids,preprocess_run_ids,"
-               "task,target,cv_strategy,cv_folds,seed,status,created_at) "
-               "VALUES (?,'[]','[]','[]','classification','label','group_kfold',2,17,?,'fixture')",
-               (identifier, status))
+@pytest.fixture
+def insert_run():
+    def insert(db, identifier="training", status="pending"):
+        db.execute("INSERT INTO training_run (id,cube_ids,annotation_version_ids,preprocess_run_ids,"
+                   "task,target,cv_strategy,cv_folds,seed,status,created_at) "
+                   "VALUES (?,'[]','[]','[]','classification','label','group_kfold',2,17,?,'fixture')",
+                   (identifier, status))
+    return insert
+
+
+@pytest.fixture(params=["scale", "passthrough"])
+def reflectance_cube(tmp_path, request):
+    registry = DatasetRegistry(tmp_path / "equivalence.sqlite3")
+    branch = request.param
+    values = np.arange(1, 97).reshape(3, 4, 8)
+    values = values.astype(np.uint16) if branch == "scale" else values.astype(np.float32) / 128
+    header = tmp_path / f"{branch}.hdr"
+    header.with_suffix(".img").write_bytes(values.tobytes())
+    header.write_text("ENVI\nlines=3\nsamples=4\nbands=8\ninterleave=bip\nbyte order=0\n"
+                      + ("data type=12\nreflectance scale factor=100\n" if branch == "scale" else "data type=4\n"),
+                      "utf-8")
+    cube = str(registry.import_path(str(header), raw=True).datasets[0].id)
+    return SimpleNamespace(registry=registry, cube=cube, header=header, branch=branch, values=values)
 
 
 @pytest.fixture
