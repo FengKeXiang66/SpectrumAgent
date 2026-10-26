@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 import json
 from pathlib import Path
 import sqlite3
+from threading import RLock
 from typing import Annotated, Literal
 from uuid import uuid4
 
@@ -108,6 +109,7 @@ def insert_label(db, request: CustomRequest, *, origin):
 class LabelStore:
     def __init__(self, database):
         self.database = database
+        self.lock = RLock()
 
     def projects(self):
         with connect_database(self.database) as db:
@@ -131,7 +133,7 @@ class LabelStore:
             return schemas
 
     def add(self, request: LabelRequest):
-        with connect_database(self.database) as db:
+        with self.lock, connect_database(self.database, timeout=10) as db:
             # Serialize max+1 and uniqueness checks with writes, including batches.
             db.execute("BEGIN IMMEDIATE")
             self.require_project(db, request.project_id)
