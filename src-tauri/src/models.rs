@@ -56,6 +56,9 @@ pub enum ModelRequest {
     GetInferenceMap {
         id: String,
     },
+    GetCoefficients {
+        model_id: String,
+    },
 }
 
 fn invalid() -> ForwardError {
@@ -199,6 +202,14 @@ impl ModelRequest {
                 identifier(id)?;
                 (
                     format!("/api/v1/models/inference-runs/{id}/map"),
+                    Method::GET,
+                    None,
+                )
+            }
+            Self::GetCoefficients { model_id } => {
+                identifier(model_id)?;
+                (
+                    format!("/api/v1/models/registry/{model_id}/coefficients"),
                     Method::GET,
                     None,
                 )

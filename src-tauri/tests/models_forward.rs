@@ -13,6 +13,7 @@ const ID: &str = "00000000-0000-0000-0000-000000000001";
 const TOKEN: &str = "0123456789abcdef0123456789abcdef";
 
 fn exchange(request: Value, status: &str, headers: &str, body: &str) -> Result<Value, String> {
+    let coefficients = request["op"] == "get_coefficients";
     let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
     let port = listener.local_addr().unwrap().port();
     let identity=handshake::parse(&serde_json::to_vec(&json!({"boot_id":"1234abcd","pid":123,"port":port,"token":TOKEN,
@@ -47,6 +48,13 @@ fn exchange(request: Value, status: &str, headers: &str, body: &str) -> Result<V
             }
         }
         let text = String::from_utf8(all).unwrap().to_lowercase();
+        if coefficients {
+            assert_eq!(
+                text.lines().next().unwrap(),
+                format!("get /api/v1/models/registry/{ID}/coefficients http/1.1")
+            );
+            assert!(text.ends_with("\r\n\r\n")); // GET has no JSON body.
+        }
         assert!(text.contains(&format!("authorization: bearer {TOKEN}")));
         assert!(text.lines().next().unwrap().contains("/api/v1/models/"));
         // A bounded client may close immediately after an oversized header.
@@ -83,6 +91,31 @@ fn fixed_model_operations_reach_fake_engine_with_native_identity() {
         );
     }
     println!("MODELS_FORWARD eight fixed operations passed with native identity");
+}
+
+#[test]
+fn registered_coefficients_reach_fake_engine_with_native_identity() {
+    let headers = "X-SpectrumAgent-Boot-Id: 1234abcd\r\nX-SpectrumAgent-Pid: 123\r\n";
+    let request = json!({"op":"get_coefficients","model_id":ID});
+    assert_eq!(
+        exchange(request, "200 OK", headers, "{\"coefficients\":[1,-2]}").unwrap()["coefficients"],
+        json!([1, -2])
+    );
+    println!("MODELS_FORWARD get_coefficients read-only GET passed with native identity");
+}
+
+#[test]
+fn coefficient_requests_reject_invalid_missing_and_extra_fields_before_network() {
+    for value in [
+        json!({"op":"get_coefficients","model_id":"bad id"}),
+        json!({"op":"get_coefficients"}),
+        json!({"op":"get_coefficients","model_id":ID,"extra":1}),
+        json!({"op":"get_coefficients","model_id":"../health"}),
+        json!({"op":"get_coefficients","model_id":""}),
+        json!({"op":"get_coefficients","model_id":"x".repeat(65)}),
+    ] {
+        assert!(parse_request(value).is_err());
+    }
 }
 
 #[test]
