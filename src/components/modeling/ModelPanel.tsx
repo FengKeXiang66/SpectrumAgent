@@ -4,6 +4,8 @@ import type { LabelSchema, Project } from '../annotation/types.ts';
 import type { DatasetRecord } from '../datasets/types.ts';
 import { preprocessing } from '../preprocess/api.ts';
 import { metricLabels, modeling, type ImportResult, type Result, type Sweep, type Target } from './api.ts';
+import { failureMessage, regressionCharts } from './chart.ts';
+import RegressionCharts from './RegressionCharts.tsx';
 import './modeling.css';
 
 export default function ModelPanel({ records, onClose }: { records: DatasetRecord[]; onClose(): void }) {
@@ -14,6 +16,8 @@ export default function ModelPanel({ records, onClose }: { records: DatasetRecor
   const [choices, setChoices] = useState<Record<string, { id: string; version: string }[]>>({}), [selected, setSelected] = useState<Record<string, string>>({});
   const [strategy, setStrategy] = useState<'kfold' | 'loo'>('kfold'), [folds, setFolds] = useState(5), [ratio, setRatio] = useState(1 / 3), [lv, setLV] = useState('');
   const [result, setResult] = useState<Result | null>(null), [sweep, setSweep] = useState<Sweep | null>(null);
+  const [chartsRequested, setChartsRequested] = useState(false), [chartLoading, setChartLoading] = useState(false);
+  const [runError, setRunError] = useState(''), [sweepError, setSweepError] = useState('');
   const [history, setHistory] = useState<{ id: string; task: string; status: string }[]>([]);
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [message, setMessage] = useState('');
   const work = async (action: () => Promise<void>) => {
@@ -40,9 +44,28 @@ export default function ModelPanel({ records, onClose }: { records: DatasetRecor
     }).catch(failure => { if (live) setError(JSON.stringify(failure)); });
     return () => { live = false; };
   }, [project]);
-  const load = async (id: string) => {
+  const beginCharts = () => {
     setResult(null); setSweep(null);
-    const row = await modeling.run(id); setResult(row); setSweep(row.status === 'succeeded' ? await modeling.sweep(id) : null);
+    setChartsRequested(true); setChartLoading(true); setRunError(''); setSweepError('');
+  };
+  const rejectResult = (failure: unknown): never => {
+    setRunError(failureMessage(failure)); setChartLoading(false);
+    throw failure;
+  };
+  const acceptResult = async (row: Result) => {
+    setResult(row);
+    try {
+      if (row.status === 'succeeded') setSweep(await modeling.sweep(row.run_id));
+      else setSweepError('该记录尚未成功，暂无曲线产物。');
+    } catch (failure) {
+      // A missing LV artifact must not hide the run's metrics or prediction plots.
+      setSweepError(failureMessage(failure));
+    } finally { setChartLoading(false); }
+  };
+  const load = async (id: string) => {
+    beginCharts();
+    const row = await modeling.run(id).catch(rejectResult);
+    await acceptResult(row);
   };
   const importCSV = async (overwrite: boolean) => { setImported(await modeling.importCSV(project, csv, overwrite)); setTargets(await modeling.targets(project)); };
   const runIds = Object.values(selected).filter(Boolean);
@@ -74,18 +97,19 @@ export default function ModelPanel({ records, onClose }: { records: DatasetRecor
       {Math.round(runIds.length * (1 - ratio)) < 15 && <p>训练样品少于 15 个时，建议选择 LOO。</p>}
       <label>手动 LV（留空自动推荐）<input type="number" min={1} value={lv} onChange={e => setLV(e.target.value)} /></label>
       <button disabled={!schema || runIds.length < 4} onClick={() => void work(async () => {
-        setResult(null); setSweep(null);
-        const row = await modeling.train({ task: 'regression', preprocess_run_ids: runIds, target_schema_id: schema, split_strategy: 'ks', test_ratio: ratio, cv_strategy: strategy, cv_folds: folds, seed: 17, ...(lv ? { n_components: Number(lv) } : {}) });
-        setResult(row); setSweep(row.status === 'succeeded' ? await modeling.sweep(row.run_id) : null); setHistory(await modeling.runs());
+        beginCharts();
+        const row = await modeling.train({ task: 'regression', preprocess_run_ids: runIds, target_schema_id: schema, split_strategy: 'ks', test_ratio: ratio, cv_strategy: strategy, cv_folds: folds, seed: 17, ...(lv ? { n_components: Number(lv) } : {}) }).catch(rejectResult);
+        await acceptResult(row); setHistory(await modeling.runs());
       })}>{busy ? '正在计算…' : '训练 PLS'}</button>
     </fieldset>
     <label>回归记录<select value={result?.run_id ?? ''} disabled={busy} onChange={e => { if (e.target.value) void work(() => load(e.target.value)); }}><option value="">请选择</option>{history.filter(row => row.task === 'regression').map(row => <option key={row.id} value={row.id}>{row.id} · {row.status}</option>)}</select></label>
     {result && <section aria-label="回归结果"><h3>回归结果 · {result.status}</h3><p>样品 {result.n_samples} 个；实际使用前景像素 {result.n_pixels_used} 个。</p>
       <p>交叉验证最小建议 LV：{result.best_lv ?? '不适用'}；使用 LV：{result.selected_lv ?? '不适用'}{sweep ? `；拐点法建议 LV：${sweep.elbow_lv}` : ''}</p>
       {result.quality_label && <strong role="status">{result.quality_label}</strong>}
-      <dl>{Object.entries(metricLabels).map(([key, label]) => <div key={key}><dt>{label}</dt><dd>{result.metrics[key] ?? '不适用'}</dd></div>)}</dl>
+      <dl>{Object.entries(metricLabels).map(([key, label]) => <div key={key}><dt>{label}</dt><dd>{result.metrics?.[key] ?? '不适用'}</dd></div>)}</dl>
       <details><summary>划分与泄漏预检</summary><pre>{JSON.stringify(result.leak_report, null, 2)}</pre></details>
       {result.error != null && <pre role="alert">{JSON.stringify(result.error, null, 2)}</pre>}
     </section>}
+    {chartsRequested && <RegressionCharts charts={regressionCharts({ result, sweep, runError, sweepError, loading: chartLoading })} />}
   </section>;
 }

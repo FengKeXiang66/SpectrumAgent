@@ -6,3 +6,17 @@
 .model-panel pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 20rem; overflow: auto; }
 .model-panel dl { display: flex; flex-wrap: wrap; gap: 1.5rem; }
 .model-panel dd { margin: .5rem 0; font-variant-numeric: tabular-nums; }
+.model-charts { margin-top: 1.5rem; }
+.model-chart-scope { color: #48596c; }
+.model-chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 34rem), 1fr)); gap: 1rem; }
+.model-chart { margin: 0; min-width: 0; background: #fff; color: #26374b; border: 1px solid #cbd5e1; border-radius: .5rem; overflow: hidden; }
+.model-chart header { padding: .9rem 1rem 0; flex-wrap: wrap; justify-content: space-between; gap: .5rem; }
+.model-chart h4 { margin: 0; }
+.model-chart-quality { padding: .2rem .5rem; background: #fff0cd; color: #724a00; border-radius: .25rem; }
+.model-chart-viewport { overflow-x: auto; }
+.model-chart canvas { display: block; width: 100%; min-width: 36rem; height: auto; }
+.model-chart figcaption { padding: 0 1rem .8rem; }
+.model-chart-legend { display: flex; flex-wrap: wrap; gap: .5rem 1rem; padding: 0; list-style: none; }
+.model-chart-legend li { display: flex; align-items: center; gap: .4rem; }
+.model-chart-legend span { display: inline-block; width: .8rem; height: .8rem; border-radius: .15rem; }
+.model-chart-note { margin: .35rem 0; color: #526174; font-size: .85rem; overflow-wrap: anywhere; }

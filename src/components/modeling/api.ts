@@ -4,9 +4,12 @@ export type Target = { cube_id: string; schema_id: string; tree_path: string; va
 export type ImportResult = { imported: number; unmatched: unknown[]; pending_confirmation: unknown[]; invalid: unknown[]; unknown_fields: unknown[]; out_of_range: unknown[] };
 export type TrainBody = { task: 'regression'; preprocess_run_ids: string[]; target_schema_id: string; split_strategy: 'ks';
   cv_strategy: 'kfold' | 'loo'; cv_folds: number; test_ratio: number; seed: number; n_components?: number };
-export type Result = { run_id: string; status: string; n_samples: number; n_pixels_used: number; selected_lv: number;
-  best_lv: number; metrics: Record<string, number | null>; quality_label: string | null; leak_report: unknown; error: unknown };
-export type Sweep = { best_lv: number; elbow_lv: number; selected_lv: number; curve: { n_components: number; rmsecv: number; sd: number }[] };
+export type Prediction = { cube_id: string; y_true: number; y_pred: number; residual: number; set: 'calibration' | 'prediction' };
+export type Result = { run_id: string; status: string; n_samples: number; n_pixels_used: number; selected_lv: number | null;
+  best_lv: number | null; metrics: Record<string, number | null>; quality_label: string | null; leak_report: unknown; error: unknown;
+  predictions?: Prediction[]; semi_quantitative?: boolean };
+export type Sweep = { best_lv: number; elbow_lv: number; selected_lv: number; by_cv_min: number; by_elbow: number;
+  manual_override: boolean; definition: string; curve: { n_components: number; rmsecv: number; sd: number }[] };
 export type PreflightBody = { cube_ids: string[]; annotation_version_ids: string[]; preprocess_run_ids: string[];
   task: 'classification'; target: 'label'; cv_strategy: 'group_kfold' | 'random'; cv_folds: number; seed: number };
 export type Request = { op: 'list_targets'; project_id: string } | { op: 'put_target'; cube_id: string; schema_id: string; value: number }
