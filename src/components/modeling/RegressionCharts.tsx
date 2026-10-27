@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { FRAME, SERIES, type ChartModel } from './chart.ts';
 
-function ChartCanvas({ chart }: { chart: ChartModel }) {
+export function ChartCanvas({ chart }: { chart: ChartModel }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const context = canvas.current?.getContext('2d');

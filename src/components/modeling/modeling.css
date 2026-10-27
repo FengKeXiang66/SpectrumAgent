@@ -30,3 +30,5 @@
 .model-colorbar { width: min(28rem, 100%); height: 1rem; margin-top: .75rem; border-radius: .25rem; }
 .model-colorbar-labels { display: flex; justify-content: space-between; width: min(28rem, 100%); font-variant-numeric: tabular-nums; }
 .model-residual-band { width: fit-content; margin: .5rem 0; padding: .35rem .7rem; border-inline: 2px solid #7b8ea5; background: #7b8ea522; }
+.model-coefficient-chart { margin-top: 1rem; }
+.model-coefficient-chart header { flex-wrap: wrap; }

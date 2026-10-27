@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
+import ts from 'typescript';
+import { Children, isValidElement, type ReactNode } from 'react';
 import { modelingClient, mapSource, paletteGradient, clippingMessage, inferenceWarning, stageLabels,
   type Request, type ConcentrationMap, type InferenceStats } from './api.ts';
 
@@ -56,4 +58,78 @@ test('components use the client, disclose calibration, progress and independent 
   assert.match(inference, /全局训练残差区间/);
   assert.match(inference, /clippingMessage/);
   assert.match(inference, /pixel_mean/); assert.match(inference, /sample_prediction/);
+});
+
+test('registered coefficient button is lazy per model and shows pending then success or 404 state', async () => {
+  // No DOM/Canvas: execute the actual component's event callbacks with isolated
+  // hook state and React element objects, using the existing TypeScript compiler.
+  const calls: Request[] = [], states: unknown[] = [], effects: (() => void)[] = [];
+  let cursor = 0, mounted = false;
+  const pending = new Map<string, { resolve(value: unknown): void; reject(error: unknown): void }>();
+  const client = modelingClient(async <T>(_command: string, { request }: { request: Request }): Promise<T> => {
+    calls.push(request);
+    if (request.op === 'list_runs') return [] as T;
+    if (request.op === 'list_models') return ['first', 'second'].map(id => ({
+      id, name: id, version: 1, stage: 'experiment', quality_label: '仅可做半定量', metrics: {},
+      applicability: { y_min: 0, y_max: 1, n_features: 3 },
+    })) as T;
+    if (request.op === 'get_coefficients') return new Promise<T>((resolve, reject) => {
+      pending.set(request.model_id, { resolve: value => resolve(value as T), reject });
+    });
+    throw new Error('unexpected request');
+  });
+  const key = '__coefficient_event_test_135';
+  const scope = globalThis as unknown as Record<string, unknown>;
+  scope[key] = {
+    modeling: client, stageLabels, failureMessage: (error: { detail?: string }) => error.detail ?? String(error),
+    useState: (initial: unknown) => {
+      const index = cursor++;
+      if (!(index in states)) states[index] = initial;
+      return [states[index], (next: unknown) => {
+        states[index] = typeof next === 'function' ? next(states[index]) : next;
+      }];
+    },
+    useEffect: (effect: () => void) => { if (!mounted) effects.push(effect); },
+  };
+  try {
+    let source = readFileSync(new URL('./RegistryPanel.tsx', import.meta.url), 'utf8');
+    source = source.replace(/^import .* from 'react';$/m, 'const {useState,useEffect} = globalThis["' + key + '"];')
+      .replace(/^import .* from '.\/api.ts';$/m, 'const {modeling,stageLabels} = globalThis["' + key + '"];')
+      .replace(/^import .* from '.\/chart.ts';$/m, 'const {failureMessage} = globalThis["' + key + '"];')
+      .replace(/^import CoefficientChart from '.\/CoefficientChart.tsx';$/m, 'const CoefficientChart = () => null;');
+    const output = ts.transpileModule(source, { compilerOptions: { jsx: ts.JsxEmit.ReactJSX, module: ts.ModuleKind.ESNext } })
+      .outputText.replace(/(["'])react\/jsx-runtime\1/g, JSON.stringify(import.meta.resolve('react/jsx-runtime')));
+    const { default: Panel } = await import('data:text/javascript;base64,' + Buffer.from(output).toString('base64'));
+    const render = (): ReactNode => { cursor = 0; const tree = Panel({ onClose() {} }); mounted = true; return tree; };
+    const elements = (tree: ReactNode) => {
+      const found: { type: unknown; props: Record<string, unknown> }[] = [];
+      const visit = (node: ReactNode) => {
+        if (!isValidElement<Record<string, unknown>>(node)) return;
+        found.push(node); Children.forEach(node.props.children as ReactNode, visit);
+      };
+      visit(tree); return found;
+    };
+    const buttons = () => elements(render()).filter(node => node.type === 'button' && node.props.children === '查看波段系数');
+    const charts = () => elements(render()).filter(node => node.props.input !== undefined).map(node => node.props.input as {
+      loading?: boolean; result?: { model_id: string }; error?: string;
+    });
+    render(); effects.forEach(effect => effect());
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(buttons().length, 2);
+    assert.deepEqual(calls.map(row => row.op), ['list_runs', 'list_models']);
+    assert.equal(charts().length, 0);
+    (buttons()[0].props.onClick as () => void)();
+    assert.deepEqual(calls.at(-1), { op: 'get_coefficients', model_id: 'first' });
+    assert.equal(buttons()[0].props.disabled, true); assert.equal(charts()[0].loading, true);
+    pending.get('first')!.resolve({ model_id: 'first', coefficients: [1, -2, 3] });
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(charts()[0].result?.model_id, 'first');
+    assert.equal(buttons()[0].props.disabled, false);
+    (buttons()[1].props.onClick as () => void)();
+    pending.get('second')!.reject({ error: 'MODEL_NOT_FOUND', detail: '注册模型不存在' });
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(charts()[1].error, '注册模型不存在');
+    assert.equal(charts()[0].result?.model_id, 'first');
+    assert.deepEqual(calls.map(row => row.op), ['list_runs', 'list_models', 'get_coefficients', 'get_coefficients']);
+  } finally { delete scope[key]; }
 });

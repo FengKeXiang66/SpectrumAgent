@@ -30,3 +30,14 @@ test('PLS request retains explicit bound runs and only regression CV; seven resu
   assert.deepEqual(sent, [{ op: 'create_run', body }, { op: 'get_run', id: 'run' }, { op: 'lv_sweep', id: 'run' }]);
   assert.deepEqual(Object.keys(metricLabels), ['rmse', 'r2', 'rmsep', 'r2p', 'rpd', 'rer', 'bias']);
 });
+
+test('coefficients use one fixed read-only native operation and exact model id body', async () => {
+  const sent: unknown[] = [];
+  const api = modelingClient(async <T>(command: string, args: { request: Request }) => {
+    sent.push({ command, args }); return { model_id: 'registered', coefficients: [1, -2] } as T;
+  });
+  assert.equal(sent.length, 0);
+  const row = await api.coefficients('registered');
+  assert.deepEqual(row.coefficients, [1, -2]);
+  assert.deepEqual(sent, [{ command: 'models_forward', args: { request: { op: 'get_coefficients', model_id: 'registered' } } }]);
+});

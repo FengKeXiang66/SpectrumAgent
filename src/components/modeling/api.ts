@@ -26,12 +26,16 @@ export type InferenceStats = { n_pixels: number; n_foreground: number; mean: num
 export type InferenceResult = InferenceBody & { id: string; status: string; stats: InferenceStats | null; error: unknown };
 export type ConcentrationMap = { width: number; height: number; mime: 'image/png'; png_base64: string;
   applicability_png_base64: string; low: number; high: number; palette: number[][]; stats: InferenceStats };
+export type Coefficients = { model_id: string; name: string; version: number; stage: ModelStage; selected_lv: number;
+  quality_label: string | null; n_features: number; n_wavelengths: number; comparable: boolean;
+  coefficients: number[]; wavelengths: number[]; limitation: string };
 export type Request = { op: 'list_targets'; project_id: string } | { op: 'put_target'; cube_id: string; schema_id: string; value: number }
   | { op: 'import_targets'; project_id: string; csv_text: string; overwrite: boolean } | { op: 'create_run'; body: TrainBody }
   | { op: 'preflight_run'; body: PreflightBody } | { op: 'list_runs' } | { op: 'get_run' | 'lv_sweep'; id: string }
   | { op: 'register_model'; run_id: string; name?: string } | { op: 'list_models' }
   | { op: 'set_model_stage'; id: string; stage: ModelStage }
-  | ({ op: 'create_inference' } & InferenceBody) | { op: 'get_inference' | 'get_inference_map'; id: string };
+  | ({ op: 'create_inference' } & InferenceBody) | { op: 'get_inference' | 'get_inference_map'; id: string }
+  | { op: 'get_coefficients'; model_id: string };
 type Send = <T>(command: string, args: { request: Request }) => Promise<T>;
 export function modelingClient(send: Send = invoke) {
   const forward = <T>(request: Request) => send<T>('models_forward', { request });
@@ -54,6 +58,7 @@ export function modelingClient(send: Send = invoke) {
       model_id: body.model_id, cube_id: body.cube_id, preprocess_run_id: body.preprocess_run_id, annotation_version_id: body.annotation_version_id }),
     inference: (id: string) => forward<InferenceResult>({ op: 'get_inference', id }),
     inferenceMap: (id: string) => forward<ConcentrationMap>({ op: 'get_inference_map', id }),
+    coefficients: (model_id: string) => forward<Coefficients>({ op: 'get_coefficients', model_id }),
   };
 }
 export const modeling = modelingClient();

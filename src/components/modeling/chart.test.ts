@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { extent, failureMessage, FRAME, histogram, mapValue, niceTicks, regressionCharts, SERIES, splitRuns } from './chart.ts';
+import { coefficientChart, extent, failureMessage, FRAME, histogram, mapValue, niceTicks, regressionCharts, SERIES, splitRuns } from './chart.ts';
 
 const sweep = {
   best_lv: 2, elbow_lv: 3, selected_lv: 1, by_cv_min: 2, by_elbow: 3, manual_override: true,
@@ -209,4 +209,77 @@ test('error descriptions handle structured native errors and opaque values witho
   const cyclic: { self?: unknown } = {}; cyclic.self = cyclic;
   assert.equal(failureMessage(cyclic), '请求失败，请重试');
   assert.notEqual(SERIES[0].color, SERIES[1].color);
+});
+
+const coefficientFixture = { model_id: 'registered', name: 'PLS', version: 2, stage: 'experiment', selected_lv: 2,
+  coefficients: [-2, 1, 3], wavelengths: [450, 550, 650], n_features: 3, n_wavelengths: 3,
+  comparable: true, quality_label: '仅可做半定量', limitation: 'fixture' };
+
+test('coefficient chart preserves signed values, zero reference, backend quality and tick targets', () => {
+  const [chart] = coefficientChart({ result: coefficientFixture });
+  assert.equal(chart.kind, 'coefficient'); assert.equal(chart.status, 'ready');
+  assert.equal(chart.xLabel, '波长'); assert.equal(chart.yLabel, '回归系数');
+  assert.equal(chart.qualityLabel, '仅可做半定量');
+  assert.deepEqual(chart.xTicks.map(t => t.label), niceTicks({ low: 450, high: 650 }, 6).map(String));
+  assert.deepEqual(chart.yTicks.map(t => t.label), niceTicks({ low: -2, high: 3 }, 5).map(String));
+  assert.deepEqual(chart.lines[0], { color: '#a4b2c1', dashed: true, points: [
+    { x: FRAME.left, y: mapValue(0, { low: -2, high: 3 }, FRAME.bottom, FRAME.top) },
+    { x: FRAME.right, y: mapValue(0, { low: -2, high: 3 }, FRAME.bottom, FRAME.top) },
+  ] });
+  assert.equal(chart.lines[1].color, SERIES[0].color); assert.equal(chart.lines[1].points.length, 3);
+  assert.ok(chart.notes.includes('虚线为零值参考线；系数符号反映该波段对预测值的贡献方向。'));
+  assert.ok(chart.notes.includes('系数对应该模型训练所用预处理后的 3 个特征，与 3 个输入波段一一对应。'));
+  assert.equal(chart.definition, '采用 LV：2'); finiteOutput(chart);
+});
+
+for (const [name, patch, message] of [
+  ['unknown axis', { n_wavelengths: 0, wavelengths: [], comparable: false }, '该模型未记录波长轴（数据集波长未知），无法按波长绘制系数。'],
+  ['dimension mismatch', { n_features: 2, coefficients: [1, 2], comparable: false }, '该模型特征数 2 与波长数 3 不一致（预处理改变了波段维度），无法按波长绘制系数。'],
+  ['same dimensions unsafe operator', { comparable: false }, '该模型预处理包含不保留逐波段对应的算子，特征与波长不再逐点对应，本图不绘制。'],
+] as const) test('coefficient refusal: ' + name, () => {
+  const [chart] = coefficientChart({ result: { ...coefficientFixture, ...patch } });
+  assert.equal(chart.status, 'unavailable'); assert.equal(chart.message, message);
+  assert.equal(chart.qualityLabel, '仅可做半定量');
+  for (const values of [chart.lines, chart.points, chart.bars, chart.markers, chart.xTicks, chart.yTicks]) assert.equal(values.length, 0);
+  assert.ok(chart.notes.some(note => note.includes('域外适用性图'))); finiteOutput(chart);
+});
+
+test('coefficient loading, missing artifact and 404 have visible messages without secondary errors', () => {
+  const [loading] = coefficientChart({ loading: true, qualityLabel: '仅可做半定量' });
+  assert.equal(loading.status, 'loading'); assert.equal(loading.message, '正在获取波段系数…');
+  assert.equal(loading.qualityLabel, '仅可做半定量');
+  const [missing] = coefficientChart({}); assert.equal(missing.status, 'unavailable'); assert.ok(missing.message);
+  const [failed] = coefficientChart({ error: { error: 'MODEL_NOT_FOUND', detail: '注册模型不存在' } });
+  assert.equal(failed.status, 'unavailable'); assert.equal(failed.message, '无法获取波段系数：注册模型不存在');
+  finiteOutput([loading, missing, failed]);
+});
+
+test('coefficient empty and invalid arrays are distinct and never draw malformed nested coefficients', () => {
+  assert.equal(coefficientChart({ result: { ...coefficientFixture, coefficients: [] } })[0].status, 'empty');
+  for (const patch of [{ coefficients: [[1, 2, 3]] }, { coefficients: [1, NaN, 3] }, { wavelengths: [450, Infinity, 650] },
+    { coefficients: ['1', '2', '3'] }, { coefficients: undefined }, { n_features: '3' }]) {
+    const [chart] = coefficientChart({ result: { ...coefficientFixture, ...patch } });
+    assert.equal(chart.status, 'unavailable'); assert.ok(chart.message); assert.equal(chart.lines.length, 0);
+    finiteOutput(chart);
+  }
+});
+
+for (const values of [[1, 1, 1], [-3, -3, -3], [0, 0, 0], [1, 2, 3], [-1, -2, -3]]) {
+  test('coefficient zero line remains inside frame for ' + values.join(','), () => {
+    const [chart] = coefficientChart({ result: { ...coefficientFixture, coefficients: values } });
+    assert.equal(chart.status, 'ready');
+    const zero = chart.lines.find(line => line.dashed)!;
+    assert.equal(zero.points.length, 2);
+    for (const point of zero.points) assert.ok(point.y >= FRAME.top && point.y <= FRAME.bottom);
+    finiteOutput(chart);
+  });
+}
+
+test('single coefficient is one square; nonascending wavelengths retain artifact order and disclose it', () => {
+  const [single] = coefficientChart({ result: { ...coefficientFixture, coefficients: [2], wavelengths: [550], n_features: 1, n_wavelengths: 1 } });
+  assert.equal(single.status, 'ready'); assert.equal(single.points.length, 1); assert.equal(single.points[0].square, true);
+  assert.equal(single.points[0].x, (FRAME.left + FRAME.right) / 2); finiteOutput(single);
+  const [unordered] = coefficientChart({ result: { ...coefficientFixture, wavelengths: [650, 450, 550] } });
+  assert.deepEqual(unordered.lines[1].points.map(point => point.x), [FRAME.right, FRAME.left, (FRAME.left + FRAME.right) / 2]);
+  assert.ok(unordered.notes.includes('按产物波长顺序绘制')); finiteOutput(unordered);
 });

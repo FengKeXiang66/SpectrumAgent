@@ -10,7 +10,7 @@ export const SERIES = [
 type Tick = { at: number; label: string };
 type Line = { points: Point[]; color: string; dashed?: boolean };
 export type ChartModel = {
-  kind: 'curve' | 'scatter' | 'residual' | 'histogram'; title: string;
+  kind: 'curve' | 'scatter' | 'residual' | 'histogram' | 'coefficient'; title: string;
   status: 'ready' | 'empty' | 'unavailable' | 'loading'; message: string;
   xLabel: string; yLabel: string; xTicks: Tick[]; yTicks: Tick[]; notes: string[];
   qualityLabel: string | null; definition: string | null; legend: { label: string; color: string }[];
@@ -217,4 +217,52 @@ export function regressionCharts(input: ChartInput): ChartModel[] {
   const label = typeof result?.quality_label === 'string' && result.quality_label ? result.quality_label
     : result?.semi_quantitative === true ? '仅可做半定量' : null;
   return [curveChart(input), ...predictionCharts(input)].map(chart => ({ ...chart, qualityLabel: label }));
+}
+
+export type CoefficientInput = { result?: unknown; loading?: boolean; error?: unknown; qualityLabel?: string | null };
+export function coefficientChart(input: CoefficientInput): ChartModel[] {
+  const row = object(input.result);
+  const model = empty('coefficient', '波段回归系数', '无可用系数数据');
+  model.qualityLabel = typeof row?.quality_label === 'string' && row.quality_label ? row.quality_label : input.qualityLabel ?? null;
+  model.notes = ['虚线为零值参考线；系数符号反映该波段对预测值的贡献方向。'];
+  const unavailable = (message: string) => [{ ...model, status: 'unavailable' as const, message }];
+  if (input.error) return unavailable('无法获取波段系数：' + failureMessage(input.error));
+  if (input.loading) return [{ ...model, status: 'loading', message: '正在获取波段系数…' }];
+  if (!row) return unavailable('无法获取波段系数：未提供系数产物。');
+  if (typeof row.name === 'string' && finite(row.version)) model.title = row.name + ' · v' + row.version + ' 波段系数';
+  const k = row.n_features, n = row.n_wavelengths, coefs = row.coefficients, waves = row.wavelengths;
+  if (!finite(k) || !Number.isInteger(k) || k < 0 || !finite(n) || !Number.isInteger(n) || n < 0
+      || typeof row.comparable !== 'boolean') return unavailable('无法获取波段系数：特征或波长计数无效。');
+  const alternative = '可结合域外适用性图及模型评价图判断模型行为。';
+  if (n === 0) {
+    model.notes.push(alternative);
+    return unavailable('该模型未记录波长轴（数据集波长未知），无法按波长绘制系数。');
+  }
+  if (k !== n) {
+    model.notes.push(alternative);
+    return unavailable('该模型特征数 ' + k + ' 与波长数 ' + n + ' 不一致（预处理改变了波段维度），无法按波长绘制系数。');
+  }
+  if (!row.comparable) {
+    model.notes.push(alternative);
+    return unavailable('该模型预处理包含不保留逐波段对应的算子，特征与波长不再逐点对应，本图不绘制。');
+  }
+  model.notes.push('系数对应该模型训练所用预处理后的 ' + k + ' 个特征，与 ' + n + ' 个输入波段一一对应。');
+  if (!Array.isArray(coefs) || !Array.isArray(waves)) return unavailable('无法获取波段系数：缺少系数或波长数组。');
+  if (coefs.length === 0) return [model];
+  if (coefs.length !== k || waves.length !== n || !coefs.every(finite) || !waves.every(finite)) {
+    return unavailable('无法获取波段系数：数组形状或有限数值校验失败。');
+  }
+  const xd = extent(waves)!, yd = extent([0, ...coefs])!;
+  model.status = 'ready'; model.message = ''; model.xLabel = '波长'; model.yLabel = '回归系数';
+  model.xTicks = niceTicks(xd, 6).map(value => ({ at: mapValue(value, xd, FRAME.left, FRAME.right)!, label: String(value) }));
+  model.yTicks = niceTicks(yd, 5).map(value => ({ at: mapValue(value, yd, FRAME.bottom, FRAME.top)!, label: String(value) }));
+  const zero = mapValue(0, yd, FRAME.bottom, FRAME.top)!;
+  model.lines.push({ points: [{ x: FRAME.left, y: zero }, { x: FRAME.right, y: zero }], color: '#a4b2c1', dashed: true });
+  const points = coefs.map((coef, i) => mapped(waves[i], coef, xd, yd)!);
+  if (points.length === 1) model.points = [{ ...points[0], set: 'calibration', square: true }];
+  else model.lines.push({ points, color: SERIES[0].color });
+  model.legend = [{ label: '回归系数', color: SERIES[0].color }, { label: '零值参考线', color: '#a4b2c1' }];
+  if (waves.some((value, i) => i > 0 && value <= waves[i - 1])) model.notes.push('按产物波长顺序绘制');
+  if (finite(row.selected_lv) && Number.isInteger(row.selected_lv) && row.selected_lv > 0) model.definition = '采用 LV：' + row.selected_lv;
+  return [model];
 }

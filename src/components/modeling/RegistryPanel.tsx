@@ -1,16 +1,27 @@
 import { useEffect, useState } from 'react';
 import { modeling, stageLabels, type RegisteredModel, type ModelStage } from './api.ts';
-import { failureMessage } from './chart.ts';
+import { failureMessage, type CoefficientInput } from './chart.ts';
+import CoefficientChart from './CoefficientChart.tsx';
 
 export default function RegistryPanel({ onClose }: { onClose(): void }) {
   const [runs, setRuns] = useState<{ id: string; task: string; status: string }[]>([]);
   const [rows, setRows] = useState<RegisteredModel[]>([]), [run, setRun] = useState(''), [name, setName] = useState('');
   const [busy, setBusy] = useState(false), [registering, setRegistering] = useState(false), [error, setError] = useState('');
+  const [charts, setCharts] = useState<Record<string, CoefficientInput>>({});
   const refresh = async () => { const [history, models] = await Promise.all([modeling.runs(), modeling.models()]); setRuns(history); setRows(models); };
   useEffect(() => { void refresh().catch(failure => setError(failureMessage(failure))); }, []);
   const work = async (action: () => Promise<void>) => {
     setBusy(true); setError('');
     try { await action(); await refresh(); } catch (failure) { setError(failureMessage(failure)); } finally { setBusy(false); setRegistering(false); }
+  };
+  const loadCoefficients = async (row: RegisteredModel) => {
+    setCharts(previous => ({ ...previous, [row.id]: { loading: true, qualityLabel: row.quality_label } }));
+    try {
+      const result = await modeling.coefficients(row.id);
+      setCharts(previous => ({ ...previous, [row.id]: { result } }));
+    } catch (failure) {
+      setCharts(previous => ({ ...previous, [row.id]: { error: failureMessage(failure), qualityLabel: row.quality_label } }));
+    }
   };
   return <section className="model-panel" aria-label="模型注册">
     <header><button disabled={busy} onClick={onClose}>返回回归工作台</button><h2>模型注册</h2></header>
@@ -35,6 +46,8 @@ export default function RegistryPanel({ onClose }: { onClose(): void }) {
       <label>阶段<select disabled={busy} value={row.stage} onChange={e => void work(async () => { await modeling.stage(row.id, e.target.value as ModelStage); })}>
         {Object.entries(stageLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
       <details><summary>版本与适用域</summary><p>训练记录：{row.run_id}</p><p>数据指纹：{row.data_fingerprint}</p><p>配方版本：{row.applicability.recipe_version_id}</p><p>波长轴：{row.applicability.wavelength_axis_sha256}</p></details>
+      <button disabled={busy || charts[row.id]?.loading === true} onClick={() => void loadCoefficients(row)}>查看波段系数</button>
+      {charts[row.id] && <CoefficientChart input={charts[row.id]} />}
     </article>)}</div>
   </section>;
 }
