@@ -6,9 +6,12 @@ import { preprocessing } from '../preprocess/api.ts';
 import { metricLabels, modeling, type ImportResult, type Result, type Sweep, type Target } from './api.ts';
 import { failureMessage, regressionCharts } from './chart.ts';
 import RegressionCharts from './RegressionCharts.tsx';
+import RegistryPanel from './RegistryPanel.tsx';
+import InferencePanel from './InferencePanel.tsx';
 import './modeling.css';
 
 export default function ModelPanel({ records, onClose }: { records: DatasetRecord[]; onClose(): void }) {
+  const [view, setView] = useState<'training' | 'registry' | 'inference'>('training');
   const [projects, setProjects] = useState<Project[]>([]), [project, setProject] = useState('');
   const [schemas, setSchemas] = useState<LabelSchema[]>([]), [schema, setSchema] = useState('');
   const [cube, setCube] = useState(records[0]?.id ?? ''), [value, setValue] = useState('');
@@ -69,8 +72,11 @@ export default function ModelPanel({ records, onClose }: { records: DatasetRecor
   };
   const importCSV = async (overwrite: boolean) => { setImported(await modeling.importCSV(project, csv, overwrite)); setTargets(await modeling.targets(project)); };
   const runIds = Object.values(selected).filter(Boolean);
+  if (view === 'registry') return <RegistryPanel onClose={() => setView('training')} />;
+  if (view === 'inference') return <InferencePanel records={records} onClose={() => setView('training')} />;
   return <section className="model-panel" aria-label="PLS 回归工作台">
     <header><button disabled={busy} onClick={onClose}>返回数据集</button><h2>PLS 回归</h2></header>
+    <nav aria-label="建模操作"><button disabled={busy} onClick={() => setView('registry')}>模型注册</button><button disabled={busy} onClick={() => setView('inference')}>批量推理</button></nav>
     <p role="status">{message}</p>{error && <pre role="alert">{error}</pre>}
     <fieldset disabled={busy}><legend>样品连续量</legend>
       <label>项目<select value={project} onChange={e => setProject(e.target.value)}>{projects.map(row => <option key={row.id} value={row.id}>{row.name}</option>)}</select></label>
