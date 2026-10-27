@@ -20,7 +20,7 @@ def test_migration_upgrades_21_tables_repeats_without_changing_existing_schema(l
         migrate(db)
         migrate(db)
         after = dict(db.execute("SELECT name,sql FROM sqlite_master WHERE type='table'"))
-        assert set(after) - set(before) == {"training_run", "training_fold", "metric", "model_artifact", "sample_target"}
+        assert set(after) - set(before) == {"training_run", "training_fold", "metric", "model_artifact", "sample_target", "model_registry", "inference_run", "inference_artifact"}
         assert all(after[name] == sql for name, sql in before.items())
 
 

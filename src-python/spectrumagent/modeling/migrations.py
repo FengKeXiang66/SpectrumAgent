@@ -35,6 +35,30 @@ CREATE TABLE IF NOT EXISTS sample_target (
  source TEXT NOT NULL CHECK(source IN ('import','annotation')), created_at TEXT NOT NULL,
  UNIQUE(cube_id,schema_id)
 );
+CREATE TABLE IF NOT EXISTS model_registry (
+ id TEXT PRIMARY KEY, run_id TEXT NOT NULL REFERENCES training_run(id),
+ name TEXT NOT NULL, version INTEGER NOT NULL CHECK(version>0),
+ target_schema_id TEXT NOT NULL REFERENCES label_schema(id),
+ data_fingerprint TEXT NOT NULL, applicability TEXT NOT NULL, calibration TEXT NOT NULL,
+ stage TEXT NOT NULL DEFAULT 'experiment' CHECK(stage IN ('experiment','candidate','production')),
+ created_at TEXT NOT NULL, UNIQUE(name,version)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS model_registry_one_production
+ ON model_registry(target_schema_id) WHERE stage='production';
+CREATE TABLE IF NOT EXISTS inference_run (
+ id TEXT PRIMARY KEY, model_id TEXT NOT NULL REFERENCES model_registry(id),
+ cube_id TEXT NOT NULL REFERENCES dataset_registry(id),
+ preprocess_run_id TEXT NOT NULL REFERENCES preprocess_run(id),
+ annotation_version_id TEXT NOT NULL REFERENCES annotation_version(id),
+ status TEXT NOT NULL CHECK(status IN ('pending','running','succeeded','failed')),
+ stats TEXT, error TEXT, created_at TEXT NOT NULL, finished_at TEXT
+);
+CREATE TABLE IF NOT EXISTS inference_artifact (
+ id TEXT PRIMARY KEY, run_id TEXT NOT NULL REFERENCES inference_run(id),
+ kind TEXT NOT NULL CHECK(kind IN ('prediction','state','applicability','map')),
+ relative_path TEXT NOT NULL, sha256 TEXT NOT NULL, created_at TEXT NOT NULL,
+ UNIQUE(run_id,kind)
+);
 """
 
 

@@ -96,3 +96,18 @@ def compose_rgb(r, g, b, stretch):
     data = (b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR', struct.pack('>IIBBBBB', width, height, 8, 2, 0, 0, 0))
             + chunk(b'IDAT', zlib.compress(rows))+chunk(b'IEND', b''))
     return base64.b64encode(data).decode('ascii')
+
+
+CONCENTRATION_PALETTE = [[68, 1, 84], [59, 82, 139], [33, 145, 140], [94, 201, 98], [253, 231, 37]]
+
+
+def concentration_colors(values, low, high):
+    """Fixed training-Y range; callers must disclose clipped values separately."""
+    values = np.asarray(values, dtype=np.float64)
+    if not np.isfinite(values).all() or not np.isfinite([low, high]).all() or high < low:
+        raise ValueError("finite values and ordered fixed range required")
+    scaled = np.full(values.shape, .5) if high == low else np.clip((values-low)/(high-low), 0, 1)
+    palette = np.asarray(CONCENTRATION_PALETTE)
+    positions = np.linspace(0, 1, len(palette))
+    return np.stack([np.rint(np.interp(scaled, positions, palette[:, channel])).astype(np.uint8)
+                     for channel in range(3)], axis=-1)
