@@ -35,6 +35,27 @@ pub enum ModelRequest {
     LvSweep {
         id: String,
     },
+    RegisterModel {
+        run_id: String,
+        name: Option<String>,
+    },
+    ListModels,
+    SetModelStage {
+        id: String,
+        stage: String,
+    },
+    CreateInference {
+        model_id: String,
+        cube_id: String,
+        preprocess_run_id: String,
+        annotation_version_id: String,
+    },
+    GetInference {
+        id: String,
+    },
+    GetInferenceMap {
+        id: String,
+    },
 }
 
 fn invalid() -> ForwardError {
@@ -57,7 +78,7 @@ pub fn parse_request(value: Value) -> Result<ModelRequest, ForwardError> {
     }
     let extra = value.as_object().is_none_or(|fields| fields.len() != 1);
     let request: ModelRequest = serde_json::from_value(value).map_err(|_| invalid())?;
-    if matches!(request, ModelRequest::ListRuns) && extra {
+    if matches!(request, ModelRequest::ListRuns | ModelRequest::ListModels) && extra {
         return Err(invalid());
     }
     request.destination(1)?;
@@ -119,6 +140,65 @@ impl ModelRequest {
                 identifier(id)?;
                 (
                     format!("/api/v1/models/runs/{id}/lv-sweep"),
+                    Method::GET,
+                    None,
+                )
+            }
+            Self::RegisterModel { run_id, name } => {
+                identifier(run_id)?;
+                if name
+                    .as_ref()
+                    .is_some_and(|s| s.trim().is_empty() || s.chars().count() > 200)
+                {
+                    return Err(invalid());
+                }
+                (
+                    "/api/v1/models/registry".into(),
+                    Method::POST,
+                    Some(json!({"run_id":run_id,"name":name})),
+                )
+            }
+            Self::ListModels => ("/api/v1/models/registry".into(), Method::GET, None),
+            Self::SetModelStage { id, stage } => {
+                identifier(id)?;
+                if !["experiment", "candidate", "production"].contains(&stage.as_str()) {
+                    return Err(invalid());
+                }
+                (
+                    format!("/api/v1/models/registry/{id}/stage"),
+                    Method::PUT,
+                    Some(json!({"stage":stage})),
+                )
+            }
+            Self::CreateInference {
+                model_id,
+                cube_id,
+                preprocess_run_id,
+                annotation_version_id,
+            } => {
+                for id in [model_id, cube_id, preprocess_run_id, annotation_version_id] {
+                    identifier(id)?;
+                }
+                (
+                    "/api/v1/models/inference-runs".into(),
+                    Method::POST,
+                    Some(
+                        json!({"model_id":model_id,"cube_id":cube_id,"preprocess_run_id":preprocess_run_id,"annotation_version_id":annotation_version_id}),
+                    ),
+                )
+            }
+            Self::GetInference { id } => {
+                identifier(id)?;
+                (
+                    format!("/api/v1/models/inference-runs/{id}"),
+                    Method::GET,
+                    None,
+                )
+            }
+            Self::GetInferenceMap { id } => {
+                identifier(id)?;
+                (
+                    format!("/api/v1/models/inference-runs/{id}/map"),
                     Method::GET,
                     None,
                 )
@@ -244,6 +324,131 @@ mod tests {
             json!({"op":"import_targets","project_id":ID,"csv_text":"x".repeat(2*1024*1024),"overwrite":false}),
         ] {
             assert!(parse_request(value).is_err());
+        }
+    }
+    #[test]
+    fn registry_inference_six_fixed_operations() {
+        for (request, method, path) in [
+            (
+                json!({"op":"register_model","run_id":ID,"name":"PLS"}),
+                Method::POST,
+                "/api/v1/models/registry".to_string(),
+            ),
+            (
+                json!({"op":"list_models"}),
+                Method::GET,
+                "/api/v1/models/registry".into(),
+            ),
+            (
+                json!({"op":"set_model_stage","id":ID,"stage":"production"}),
+                Method::PUT,
+                format!("/api/v1/models/registry/{ID}/stage"),
+            ),
+            (
+                json!({"op":"create_inference","model_id":ID,"cube_id":ID,"preprocess_run_id":ID,"annotation_version_id":ID}),
+                Method::POST,
+                "/api/v1/models/inference-runs".into(),
+            ),
+            (
+                json!({"op":"get_inference","id":ID}),
+                Method::GET,
+                format!("/api/v1/models/inference-runs/{ID}"),
+            ),
+            (
+                json!({"op":"get_inference_map","id":ID}),
+                Method::GET,
+                format!("/api/v1/models/inference-runs/{ID}/map"),
+            ),
+        ] {
+            let (url, actual, body) = parse_request(request).unwrap().destination(123).unwrap();
+            assert_eq!(actual, method);
+            assert_eq!(url.path(), path);
+            assert_eq!(url.host_str(), Some("127.0.0.1"));
+            assert_eq!(url.port(), Some(123));
+            if method == Method::POST {
+                assert!(body.unwrap().is_object());
+            }
+        }
+    }
+    #[test]
+    fn new_ops_reject_proxy_fields_invalid_stages_and_all_id_traversal() {
+        for request in [
+            json!({"op":"list_models","url":"https://example.com"}),
+            json!({"op":"register_model","run_id":"../health"}),
+            json!({"op":"register_model","run_id":ID,"name":""}),
+            json!({"op":"set_model_stage","id":ID,"stage":"traffic_split"}),
+            json!({"op":"get_inference_map","id":"x?token=secret"}),
+            json!({"op":"get_inference","id":"x/y"}),
+            json!({"op":"create_inference","model_id":ID,"cube_id":ID,"preprocess_run_id":ID,"annotation_version_id":"../x"}),
+            json!({"op":"create_inference","model_id":ID,"cube_id":ID,"preprocess_run_id":ID,"annotation_version_id":ID,"pipeline":{}}),
+        ] {
+            assert!(parse_request(request).is_err());
+        }
+    }
+    #[test]
+    fn six_new_ops_reach_loopback_with_native_auth_and_exact_bodies() {
+        use std::{io::Write, net::TcpListener, thread};
+        const TOKEN: &str = "0123456789abcdef0123456789abcdef";
+        for request in [
+            json!({"op":"register_model","run_id":ID,"name":"model"}),
+            json!({"op":"list_models"}),
+            json!({"op":"set_model_stage","id":ID,"stage":"production"}),
+            json!({"op":"create_inference","model_id":ID,"cube_id":ID,"preprocess_run_id":ID,"annotation_version_id":ID}),
+            json!({"op":"get_inference","id":ID}),
+            json!({"op":"get_inference_map","id":ID}),
+        ] {
+            let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+            let port = listener.local_addr().unwrap().port();
+            let identity = crate::handshake::parse(&serde_json::to_vec(&json!({
+                "boot_id":"1234abcd","pid":123,"port":port,"token":TOKEN,"protocol":1,"version":"0.1.0",
+                "process_created_at":"2026-10-27T00:00:00.000Z","started_at":"2026-10-27T00:00:00.000Z"
+            })).unwrap()).unwrap();
+            let parsed = parse_request(request).unwrap();
+            let (url, method, expected_body) = parsed.destination(port).unwrap();
+            let server = thread::spawn(move || {
+                let (mut socket, _) = listener.accept().unwrap();
+                socket
+                    .set_read_timeout(Some(Duration::from_secs(5)))
+                    .unwrap();
+                let mut data = Vec::new();
+                loop {
+                    let mut bytes = [0; 4096];
+                    let n = socket.read(&mut bytes).unwrap();
+                    assert!(n > 0);
+                    data.extend_from_slice(&bytes[..n]);
+                    if let Some(end) = data.windows(4).position(|s| s == b"\r\n\r\n") {
+                        let header = String::from_utf8_lossy(&data[..end]).to_lowercase();
+                        let length = header
+                            .lines()
+                            .find_map(|s| {
+                                s.strip_prefix("content-length: ")
+                                    .and_then(|s| s.parse::<usize>().ok())
+                            })
+                            .unwrap_or(0);
+                        if data.len() < end + 4 + length {
+                            continue;
+                        }
+                        assert!(header.starts_with(&format!(
+                            "{} {} http/1.1",
+                            method.as_str().to_lowercase(),
+                            url.path()
+                        )));
+                        assert!(header.contains(&format!("authorization: bearer {TOKEN}")));
+                        if let Some(body) = expected_body {
+                            assert_eq!(
+                                serde_json::from_slice::<Value>(&data[end + 4..]).unwrap(),
+                                body
+                            );
+                        } else {
+                            assert_eq!(length, 0);
+                        }
+                        break;
+                    }
+                }
+                socket.write_all(b"HTTP/1.1 200 OK\r\nConnection: close\r\nX-SpectrumAgent-Boot-Id: 1234abcd\r\nX-SpectrumAgent-Pid: 123\r\nContent-Length: 11\r\n\r\n{\"ok\":true}").unwrap();
+            });
+            assert_eq!(forward(&identity, &parsed).unwrap(), json!({"ok":true}));
+            server.join().unwrap();
         }
     }
 }
