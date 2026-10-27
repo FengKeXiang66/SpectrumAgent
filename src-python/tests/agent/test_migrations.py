@@ -44,13 +44,13 @@ def test_idempotent_migration_preserves_configuration_and_audit(gateway_case):
     with connect_database(c.database) as db:
         db.execute("INSERT INTO llm_call (id,model,prompt_sha256,latency_ms,status,created_at) "
                    "VALUES ('existing','mock','digest',0,'ok','fixture')")
-        before = list(db.iterdump())
+        before = sorted(db.iterdump())
         migrate(db)
         migrate(db)
-        assert list(db.iterdump()) == before
+        assert sorted(db.iterdump()) == before
     DatasetRegistry(c.database)
     with connect_database(c.database) as db:
-        assert list(db.iterdump()) == before
+        assert sorted(db.iterdump()) == before
 
 
 def test_startup_wires_g1_and_g3_with_empty_llm_values(tmp_path):
