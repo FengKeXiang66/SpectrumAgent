@@ -29,7 +29,10 @@ Remove-Item Env:RUSTFLAGS -ErrorAction SilentlyContinue
 function Run-Step([string]$Name, [string]$Executable, [string[]]$Arguments) {
     $log = Join-Path $buildRoot "$Name.txt"
     Write-Host "[$Name] $Executable $($Arguments -join ' ')"
-    & $Executable @Arguments *> $log
+    $prevEAP = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    & $Executable @Arguments > $log 2>&1
+    $ErrorActionPreference = $prevEAP
     $stepExit = $LASTEXITCODE
     Get-Content -LiteralPath $log -Tail 12
     if ($stepExit -ne 0) { throw "$Name failed (exit $stepExit). Full log: $log" }
