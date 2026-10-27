@@ -4,3 +4,8 @@
 .assistant-events li { margin: 6px 0; white-space: pre-wrap; }
 .assistant-events [data-event="user"] { color: #24557a; }
 .assistant-events [data-event="error"] { color: #a32323; }
+/* TASK-07b R2: tool execution logs folded out of the conversation flow. */
+.assistant-logs { margin: 6px 0; font-size: 0.85em; color: #666; border: 1px solid #eee; border-radius: 4px; padding: 4px 8px; }
+.assistant-logs summary { cursor: pointer; user-select: none; }
+.assistant-logs ol { margin: 6px 0 0; padding-left: 20px; }
+.assistant-logs li { margin: 3px 0; white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }

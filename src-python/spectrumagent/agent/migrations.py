@@ -43,9 +43,10 @@ CREATE TABLE IF NOT EXISTS agent_session (
   title           TEXT,           -- 服务端规则：创建时空串，首条用户消息后填截断 40 字（仅空→非空一次，R10 豁免），禁 LLM 生成后回写
   skill_version_id TEXT NOT NULL REFERENCES skill_version(id), -- 创建时取当前 active，无 active 拒绝创建，此后不可改
   created_at      TEXT NOT NULL,  -- 不可改
-  updated_at      TEXT NOT NULL   -- 服务端规则：每轮消息后更新（审计字段非内容，R10 豁免）
+  updated_at      TEXT NOT NULL,  -- 服务端规则：每轮消息后更新（审计字段非内容，R10 豁免）
+  auto_confirm    INTEGER NOT NULL DEFAULT 0  -- TASK-07b R3：会话级跳过确认闸开关，0=默认走确认
 );
--- G2：编排轮次（R10：HUMAN_CHECK 挂起后续执行的持久化锚，落盘≠回灌，往轮仍不回灌 LLM）
+-- G2：编排轮次（R10：HUMAN_CHECK 挂起后续执行的持久化锚，落盘不回灌的设计已由 TASK-07b 放宽，已完成轮次 status='done' 现回灌 LLM 作为 PARSE 与 INTERPRET 上下文前缀）
 CREATE TABLE IF NOT EXISTS agent_round (
   id           TEXT PRIMARY KEY,
   session_id   TEXT NOT NULL REFERENCES agent_session(id),
@@ -119,6 +120,11 @@ def migrate(db):
     for statement in DDL.split(";"):
         if statement.strip():
             db.execute(statement)
+    # TASK-07b R3: session-level opt-in to skip all confirmation gates.
+    # SQLite ADD COLUMN has no IF NOT EXISTS; guard via PRAGMA (idempotent).
+    columns = {row[1] for row in db.execute("PRAGMA table_info(agent_session)")}
+    if "auto_confirm" not in columns:
+        db.execute("ALTER TABLE agent_session ADD COLUMN auto_confirm INTEGER NOT NULL DEFAULT 0")
     for key in SETTING_KEYS:
         if not db.execute("SELECT 1 FROM llm_settings WHERE key=?", (key,)).fetchone():
             db.execute("INSERT INTO llm_settings (key,value) VALUES (?,?)", (key, SETTING_DEFAULTS[key]))

@@ -75,12 +75,30 @@ export function reduceChat(state: ChatState, action: ChatAction): ChatState {
     if (event.event === 'human_check') next.pending = event.data;
     if (event.event === 'plan') next.pending = event.data;
     if (event.event === 'done' || event.event === 'error' || event.event === 'clarify') next.pending = null;
-    if (event.event === 'error') next.error = `${event.data.code}：${event.data.detail}`;
+    if (event.event === 'error') next.error = friendlyError(event.data.code, event.data.detail);
   }
   return next;
 }
 
 export function scalarText(summary: Scalars): string {
+  const truncate = (value: string) => value.length > 50 ? value.slice(0, 47) + '…' : value;
   return Object.entries(summary).filter(([, value]) => value === null || ['string', 'number', 'boolean'].includes(typeof value))
-    .map(([key, value]) => `${key}: ${String(value)}`).join(' · ');
+    .map(([key, value]) => `${key}: ${typeof value === 'string' ? truncate(value) : String(value)}`).join(' · ');
+}
+
+// TASK-07b R4: map internal error codes to user-facing Chinese; unknown codes fall back.
+const ERROR_MESSAGES: Record<string, string> = {
+  LLM_HTTP: '模型服务返回异常，请稍后重试',
+  LLM_TRANSPORT: '无法连接模型服务，请检查网络或网关设置',
+  http_error: '模型服务返回异常，请稍后重试',
+  transport_error: '无法连接模型服务，请检查网络或网关设置',
+  TOOL_FAILED: '工具执行失败',
+  AGENT_FAILED: '编排执行失败',
+  AGENT_STORAGE: '编排留痕存储失败',
+  SESSION_NOT_FOUND: '会话不存在',
+  INVALID_REQUEST: '请求不合法',
+};
+
+export function friendlyError(code: string, detail: string): string {
+  return ERROR_MESSAGES[code] ?? `${code}：${detail}`;
 }

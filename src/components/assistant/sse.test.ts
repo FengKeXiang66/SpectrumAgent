@@ -76,7 +76,7 @@ test('clarify and errors release busy state and keep messages in order', () => {
   assert.equal(clarified.pending, null);
   assert.equal(clarified.busy, false);
   const failed = reduceChat(sending, { type: 'events', events: [error] });
-  assert.equal(failed.error, 'LLM_TRANSPORT：LLM_TRANSPORT');
+  assert.equal(failed.error, '无法连接模型服务，请检查网络或网关设置');
   assert.equal(reduceChat(sending, { type: 'failed', detail: 'ENGINE_NOT_READY' }).busy, false);
 });
 

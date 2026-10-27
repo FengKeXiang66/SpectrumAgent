@@ -84,7 +84,7 @@ def test_error_transport_branch_resets_idle_no_retry_and_persists_round(gateway_
     assert rounds(gateway_case.database)[0]["status"] == "error"
 
 
-def test_normal_steps_digest_interpret_tools_none_and_second_turn_has_no_history(gateway_case):
+def test_normal_steps_second_turn_includes_prior_round_history(gateway_case):
     fake = FakeLLM(reply(calls=[call()]), reply("第一轮结论"), reply(calls=[call(identifier="call-2")]), reply("第二轮结论"))
     state = machine(gateway_case, fake)
     first = list(state.message(content="第一轮专有文字"))
@@ -100,10 +100,52 @@ def test_normal_steps_digest_interpret_tools_none_and_second_turn_has_no_history
         assert row["result_digest"] == sha256(_json({"count": 2}).encode()).hexdigest()
         assert row["latency_ms"] >= 0
     assert fake.calls[1][1] is None and fake.calls[3][1] is None
-    assert "第一轮专有文字" not in _json(fake.calls[2][0]) + _json(fake.calls[3][0])
+    # TASK-07b R1: prior round is replayed into both PARSE and INTERPRET context.
+    assert "第一轮专有文字" in _json(fake.calls[2][0]) + _json(fake.calls[3][0])
     assert "第二轮专有文字" in _json(fake.calls[3][0])
+    # The prior round's tool call id is replayed, proving history is injected.
+    assert '"call-1"' in _json(fake.calls[3][0])
     assert state.store.session(state.session_id)["title"] == first_title
     assert [row["seq"] for row in rounds(gateway_case.database)] == [1, 2]
+
+
+def test_auto_confirm_directive_enables_session_and_bypasses_human_check(gateway_case):
+    tools, normal, confirm = registry()
+    state = machine(gateway_case, FakeLLM(reply("好的，已开启自动执行")), tools)
+    # Opt-in message (no tool calls -> clarify, but sets auto_confirm).
+    assert list(state.message(content="请自动执行标注过程"))[-1][0] == "clarify"
+    assert state.store.session(state.session_id)["auto_confirm"] == 1
+    # A round that would normally gate on human_check now executes directly.
+    fake = FakeLLM(reply(calls=[call("annotations.draft_confirm", '{"cube_id":"cube-1","revision":1}'), call(identifier="after")]),
+                   reply("确认后完成"))
+    state = StateMachine(AgentStore(gateway_case.database), state.session_id, fake, tools)
+    events = list(state.message(content="执行标注"))
+    assert [event for event, _ in events] == ["step", "step", "done"]
+    confirm.assert_called_once()
+    assert normal.call_count == 1
+
+
+def test_auto_confirm_bypasses_plan_check_and_runs_all_calls(gateway_case):
+    tools, normal, confirm = registry()
+    state = machine(gateway_case, FakeLLM(reply("已开启")), tools)
+    assert list(state.message(content="无需确认"))[-1][0] == "clarify"
+    assert state.store.session(state.session_id)["auto_confirm"] == 1
+    calls = [call("annotations.draft_confirm", '{"cube_id":"cube-1","revision":1}', "confirm"), call(identifier="after")]
+    fake = FakeLLM(reply(calls=calls), reply("完成"))
+    resumed = StateMachine(AgentStore(gateway_case.database), state.session_id, fake, tools)
+    events = list(resumed.message(content="确认并查询"))
+    # No "plan" event: auto_confirm skips the >=2 plan gate and runs directly.
+    assert [event for event, _ in events] == ["step", "step", "done"]
+    confirm.assert_called_once(); normal.assert_called_once()
+
+
+def test_auto_confirm_opt_out_restores_gate(gateway_case):
+    tools, normal, confirm = registry()
+    state = machine(gateway_case, FakeLLM(reply("好的"), reply("好的")), tools)
+    assert list(state.message(content="自动执行"))[-1][0] == "clarify"
+    assert state.store.session(state.session_id)["auto_confirm"] == 1
+    assert list(state.message(content="需要确认"))[-1][0] == "clarify"
+    assert state.store.session(state.session_id)["auto_confirm"] == 0
 
 
 def test_schema_rejection_audit_is_bounded_and_raw_arguments_never_reach_interpret(gateway_case):

@@ -1,6 +1,6 @@
 import { useReducer, useRef, useState } from 'react';
 import { agent, type MessageBody } from './api.ts';
-import { initialChat, reduceChat, scalarText, type ChatEntry, type PendingCheck } from './sse.ts';
+import { initialChat, reduceChat, scalarText, friendlyError, type ChatEntry, type PendingCheck } from './sse.ts';
 import './assistant.css';
 import ConfirmCard from '../annotation/ConfirmCard.ts';
 import PlanCard from './PlanCard.ts';
@@ -13,7 +13,7 @@ function entryText(entry: ChatEntry): string {
     case 'human_check': return `${entry.data.reason} · ${entry.data.tool} · ${scalarText(entry.data.summary)}`;
     case 'plan': return `${entry.data.reason} · ${entry.data.steps.length} 步`;
     case 'done': return entry.data.content;
-    case 'error': return `${entry.data.code}：${entry.data.detail}`;
+    case 'error': return friendlyError(entry.data.code, entry.data.detail);
   }
 }
 
@@ -55,12 +55,24 @@ export default function AssistantBar({ enabled }: { enabled: boolean }) {
   </section>;
   return <section className="assistant-bar" aria-label="S01 助手">
     <h2>编排助手</h2>
-    <ol className="assistant-events" aria-label="对话记录" aria-live="polite">
-      {state.entries.map((entry, index) => <li key={index} data-event={entry.event}>
-        {entry.event === 'plan' && (!state.pending || !('plan_id' in state.pending) || state.pending.plan_id !== entry.data.plan_id)
-          ? <PlanCard plan={entry.data} decision={entry.decision} readOnly /> : entryText(entry)}
-      </li>)}
-    </ol>
+    {(() => {
+      // TASK-07b R2: step/error events leave the conversation flow. Steps fold
+      // into a collapsible "执行日志" panel; errors surface via the alert below.
+      const conversation = state.entries.filter(entry => entry.event !== 'step' && entry.event !== 'error');
+      const logs = state.entries.filter(entry => entry.event === 'step');
+      return <>
+        <ol className="assistant-events" aria-label="对话记录" aria-live="polite">
+          {conversation.map((entry, index) => <li key={index} data-event={entry.event}>
+            {entry.event === 'plan' && (!state.pending || !('plan_id' in state.pending) || state.pending.plan_id !== entry.data.plan_id)
+              ? <PlanCard plan={entry.data} decision={entry.decision} readOnly /> : entryText(entry)}
+          </li>)}
+        </ol>
+        {logs.length > 0 && <details className="assistant-logs" aria-label="执行日志">
+          <summary>执行日志（{logs.length}）</summary>
+          <ol>{logs.map((entry, index) => <li key={index} data-event={entry.event}>{entryText(entry)}</li>)}</ol>
+        </details>}
+      </>;
+    })()}
     {state.pending && ('plan_id' in state.pending
       ? <PlanCard key={state.pending.plan_id} plan={state.pending} disabled={!enabled || state.busy}
         onAction={async decision => { if (state.pending && 'plan_id' in state.pending) await request({ plan_id: state.pending.plan_id, ...decision }); }} />

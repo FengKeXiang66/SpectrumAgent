@@ -16,6 +16,23 @@ from .skill import _write, active_skill
 MAX_TOOL_CALLS = 8  # TASK-07 §10-4, per PARSE response.
 RAW_BYTES = 4 * 1024  # TASK-07 §3 rejected-arguments excerpt limit.
 
+# TASK-07b R3: session-level opt-in to skip all confirmation gates.
+_AUTO_CONFIRM_ON = ("自动执行", "自动帮我执行", "无需确认", "不用确认", "跳过确认")
+_AUTO_CONFIRM_OFF = ("恢复确认", "需要确认", "不要自动", "停止自动", "取消自动")
+
+
+def _auto_confirm_directive(content):
+    """Return 1 to enable, 0 to disable, or None if the message is not a directive."""
+    if not content:
+        return None
+    for phrase in _AUTO_CONFIRM_OFF:
+        if phrase in content:
+            return 0
+    for phrase in _AUTO_CONFIRM_ON:
+        if phrase in content:
+            return 1
+    return None
+
 
 class State(str, Enum):
     IDLE = "IDLE"
@@ -106,6 +123,25 @@ class AgentStore:
             if round_id is not None:
                 return _rows(db, "SELECT * FROM agent_step WHERE session_id=? AND round_id=? ORDER BY seq", (session_id, round_id))
             return _rows(db, "SELECT * FROM agent_step WHERE session_id=? ORDER BY seq", (session_id,))
+
+    def rounds(self, session_id, *, exclude_round_id=None, limit=None):
+        """TASK-07b R1: completed rounds for history injection, newest last."""
+        self.session(session_id)
+        with connect_database(self.database) as db:
+            sql = "SELECT * FROM agent_round WHERE session_id=? AND status='done'"
+            args = [session_id]
+            if exclude_round_id is not None:
+                sql += " AND id<>?"
+                args.append(exclude_round_id)
+            sql += " ORDER BY seq"
+            if limit is not None:
+                sql += f" LIMIT {int(limit)}"
+            return _rows(db, sql, args)
+
+    def set_auto_confirm(self, session_id, value):
+        """TASK-07b R3: persist the session-level confirmation opt-in."""
+        with connect_database(self.database) as db, _write(db):
+            db.execute("UPDATE agent_session SET auto_confirm=? WHERE id=?", (int(value), session_id))
 
     def preflight(self, session_id, check_id=None, plan_id=None):
         self.session(session_id)
@@ -245,6 +281,27 @@ class StateMachine:
     def _step_event(step):
         return "step", {"seq": step["seq"], "tool": step["tool"], "status": step["status"], "result_summary": json.loads(step["result_summary"])}
 
+    def _history_messages(self, version, *, exclude_round_id=None, limit=10):
+        """TASK-07b R1: replay completed rounds as prior context for the LLM.
+
+        For each done round emit [user_message, assistant(tool_calls), tool results].
+        Steps align 1:1 with calls by order, so rejected calls surface as error
+        tool messages rather than dropping alignment.
+        """
+        prior = self.store.rounds(self.session_id, exclude_round_id=exclude_round_id, limit=limit)
+        messages = []
+        for prior_round in prior:
+            messages.append({"role": "user", "content": prior_round["user_message"]})
+            calls, _ = self.store.effective_calls(prior_round["id"])
+            if calls:
+                messages.append({"role": "assistant", "content": None, "tool_calls": [
+                    {"id": call["id"], "type": "function",
+                     "function": {"name": call["name"], "arguments": _json(call["arguments"])}} for call in calls]})
+                steps = self.store.steps(self.session_id, prior_round["id"])
+                messages.extend({"role": "tool", "tool_call_id": call["id"], "content": step["result_summary"]}
+                                for call, step in zip(calls, steps))
+        return messages
+
     def _execute(self, round_, call, pending=None):
         started = perf_counter_ns()
         try:
@@ -265,10 +322,17 @@ class StateMachine:
         round_creation_attempted = False
         try:
             version = self.store.skill(self.session_id)
+            auto_confirm = self.store.session(self.session_id)["auto_confirm"]
             if continuation is None:
                 self.state = State.PARSE
-                parsed = self.llm.chat([{"role": "system", "content": version["system_prompt"]}, {"role": "user", "content": content}],
+                history = self._history_messages(version)
+                parsed = self.llm.chat([{"role": "system", "content": version["system_prompt"]},
+                                        *history, {"role": "user", "content": content}],
                                        json.loads(version["tools_json"]))
+                directive = _auto_confirm_directive(content)
+                if directive is not None:
+                    self.store.set_auto_confirm(self.session_id, directive)
+                    auto_confirm = directive
                 calls, rejected = [], []
                 for index, call in enumerate(parsed.tool_calls):
                     started = perf_counter_ns()
@@ -283,7 +347,8 @@ class StateMachine:
                             "_raw_truncated": raw[:RAW_BYTES].decode("utf-8", errors="ignore")}, exc.code,
                             (perf_counter_ns() - started) // 1_000_000))
                 round_creation_attempted = True
-                status = "plan_check" if len(calls) >= 2 else "running" if parsed.tool_calls else "done"
+                needs_plan = len(calls) >= 2 and not auto_confirm
+                status = "plan_check" if needs_plan else "running" if parsed.tool_calls else "done"
                 round_ = self.store.new_round(self.session_id, content, calls, status)
                 if not parsed.tool_calls:
                     self.state = State.CLARIFY
@@ -294,7 +359,7 @@ class StateMachine:
                 for name, arguments, code, elapsed in rejected:
                     step = self.store.add_step(round_, name, arguments, "rejected", {"error": code}, elapsed)
                     yield self._step_event(step)
-                if len(calls) >= 2:
+                if needs_plan:
                     self.state = State.PLAN_CHECK
                     yield "plan", {"plan_id": round_["id"], "steps": [{"seq": index, "tool": call["name"],
                         "summary": {key: value for key, value in call["arguments"].items()
@@ -339,7 +404,7 @@ class StateMachine:
             self.state = State.CALL_TOOL
             for call in calls[offset:]:
                 tool = self.tools.resolve(call["name"])
-                if tool.human_check:
+                if tool.human_check and not auto_confirm:
                     summary = {key: value for key, value in call["arguments"].items()
                                if key in {"cube_id", "version_id", "revision", "class_code", "overwrite"} and value is not None}
                     step = self.store.add_step(round_, call["name"], call["arguments"], "human_check_pending", summary, 0)
@@ -353,7 +418,9 @@ class StateMachine:
             self.state = State.INTERPRET
             steps = self.store.steps(self.session_id, round_["id"])
             calls, plan_summary = self.store.effective_calls(round_["id"])
-            messages = [{"role": "system", "content": version["system_prompt"]}, {"role": "user", "content": round_["user_message"]}]
+            history = self._history_messages(version, exclude_round_id=round_["id"])
+            messages = [{"role": "system", "content": version["system_prompt"]}, *history,
+                        {"role": "user", "content": round_["user_message"]}]
             if calls:
                 messages.append({"role": "assistant", "content": None, "tool_calls": [
                     {"id": call["id"], "type": "function", "function": {"name": call["name"], "arguments": _json(call["arguments"])}} for call in calls]})
