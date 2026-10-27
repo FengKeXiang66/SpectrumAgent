@@ -105,6 +105,10 @@ def make_router(sessions, runner):
     def set_model_stage(model_id: str, body: ModelStage):
         return models.set_stage(model_id, body.stage)
 
+    @router.get("/registry/{model_id}/coefficients")
+    def get_coefficients(model_id: str):
+        return models.coefficients(model_id)
+
     @router.post("/inference-runs")
     def create_inference(body: InferenceRequest):
         return guarded(lambda: inferences.create(**body.model_dump()))

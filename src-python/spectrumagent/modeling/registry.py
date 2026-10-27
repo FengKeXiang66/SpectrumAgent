@@ -176,3 +176,44 @@ class ModelRegistry:
                            "AND stage='production' AND id<>?", (row[0], str(identifier)))
             db.execute("UPDATE model_registry SET stage=? WHERE id=?", (stage, str(identifier)))
         return self.get(identifier)
+
+    def coefficients(self, identifier):
+        """Read only the frozen registration; never reopen cubes or fit a recipe."""
+        try:
+            row = self.get(identifier, calibration=True)
+            cal, app = row["calibration"], row["applicability"]
+            if not isinstance(cal, dict) or not isinstance(app, dict):
+                raise ValueError("invalid calibration")
+            model = cal["model"]
+            if not isinstance(model, dict):
+                raise ValueError("invalid model")
+            coef, waves, lv = model["coef"], cal["wavelengths"], model["selected_lv"]
+            features, inputs = app["n_features"], cal["input_n_features"]
+            if (type(lv) is not int or lv < 1 or type(features) is not int or features < 1
+                    or type(inputs) is not int or inputs < 1
+                    or not isinstance(coef, list) or len(coef) != 1 or not isinstance(coef[0], list)
+                    or not isinstance(waves, list)):
+                raise ValueError("invalid shape")
+            flat = coef[0]
+            if (len(flat) != features or (waves and len(waves) != inputs)
+                    or any(type(value) not in (int, float) or not np.isfinite(value) for value in flat + waves)):
+                raise ValueError("invalid coefficients or wavelengths")
+            # Dimension equality alone is insufficient: full-width PCA mixes
+            # bands and equal-length resampling changes their wavelength grid.
+            preserving = {"reflectance", "sg_smooth", "sg_derivative", "snv", "msc",
+                          "emsc", "standardize", "continuum", "crop"}
+            steps = cal.get("steps")
+            comparable = bool(waves) and len(waves) == features and isinstance(steps, list) and all(
+                isinstance(step, dict) and isinstance(step.get("op"), str) and step["op"] in preserving
+                for step in steps)
+            return {
+                "model_id": row["id"], "name": row["name"], "version": row["version"], "stage": row["stage"],
+                "selected_lv": lv, "quality_label": row["quality_label"],
+                "n_features": features, "n_wavelengths": len(waves), "comparable": comparable,
+                "coefficients": flat, "wavelengths": waves,
+                "limitation": "回归系数刻画各特征与预测值的线性关系方向与幅度；不构成重要性排序，特征不对应波长时不具波长可解释性。",
+            }
+        except ModelingError:
+            raise
+        except (KeyError, TypeError, ValueError, OverflowError) as error:
+            raise ModelingError("INVALID_MODEL_ARTIFACT", "注册模型的系数或输入波长轴产物无效") from error

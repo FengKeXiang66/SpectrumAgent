@@ -192,3 +192,139 @@ def test_row_operators_json_roundtrip_and_block_replay(op,params):
     whole=apply_with_calibration(cal,pipeline,x)
     np.testing.assert_allclose(whole,fit.spectra,rtol=1e-12,atol=1e-12)
     assert np.array_equal(whole,np.concatenate([apply_with_calibration(cal,pipeline,x[i:i+8]) for i in range(0,65,8)]))
+
+
+COEFFICIENT_KEYS = {"model_id", "name", "version", "stage", "selected_lv", "quality_label",
+                    "n_features", "n_wavelengths", "comparable", "coefficients", "wavelengths", "limitation"}
+COEFFICIENT_LIMITATION = "回归系数刻画各特征与预测值的线性关系方向与幅度；不构成重要性排序，特征不对应波长时不具波长可解释性。"
+
+
+def coefficient_case(factory, pipeline=None, *, known_axis=True):
+    """Real registered models; only explicit fixture source/metadata is prepared."""
+    from pathlib import Path
+    from spectrumagent.api.registry import read_header
+    c = factory()
+    if known_axis:
+        axis = np.linspace(450., 900., 8).tolist()
+        for cube in c.cubes:
+            dataset, _ = c.registry.get(cube)
+            header = Path(dataset.header_path)
+            header.write_text(header.read_text("utf-8") + "\nwavelength={" + ",".join(map(str,axis)) + "}\n", "utf-8")
+            updated = read_header(header, Path(dataset.data_path), raw=True)
+            with connect_database(c.paths.database) as db:
+                db.execute("UPDATE dataset_registry SET payload=? WHERE id=?", (json.dumps(updated.as_dict()), cube))
+    if pipeline is not None:
+        with connect_database(c.paths.database) as db:
+            db.execute("UPDATE preprocess_recipe_version SET pipeline=?", (json.dumps(pipeline),))
+    c.targets.import_csv(c.project,c.csv_text)
+    c.training = TrainingRuns(c.registry,c.paths)
+    c.result = c.training.regress(**c.arguments)
+    c.models = ModelRegistry(c.registry,c.paths)
+    c.model = c.models.register(c.result["run_id"])
+    return c
+
+
+@pytest.mark.parametrize("case,pipeline,known,comparable,features", [
+    ("preserving", None, True, True, 8),
+    ("no_steps", {"steps":[]}, True, True, 8),
+    *[(op+"_full", {"steps":[{"op":op,"version":1,"params":{"n_components":8}}]}, True, False, 8)
+      for op in ("pca","mnf","ica")],
+    ("resample_same_length", {"steps":[{"op":"resample","version":1,"params":{
+        "source":np.linspace(450.,900.,8).tolist(),"target":np.linspace(451.,899.,8).tolist(),"method":"linear"}}]}, True, False, 8),
+    ("crop_partial", {"steps":[{"op":"crop","version":1,"params":{
+        "source":np.linspace(450.,900.,8).tolist(),"range":[500.,850.]}}]}, True, False, 6),
+    ("crop_whole", {"steps":[{"op":"crop","version":1,"params":{
+        "source":np.linspace(450.,900.,8).tolist(),"range":[450.,900.]}}]}, True, True, 8),
+    ("unknown_axis", None, False, False, 8),
+])
+def test_coefficients_real_registration_twelve_keys_and_correspondence(regression_factory, case, pipeline, known, comparable, features):
+    from pathlib import Path
+    c = coefficient_case(regression_factory,pipeline,known_axis=known)
+    with connect_database(c.paths.database) as db:
+        before = list(db.iterdump())
+    row = c.models.coefficients(c.model["id"])
+    assert set(row) == COEFFICIENT_KEYS
+    for key in ("calibration","source_hashes","probe","steps","pipeline","feature_min","feature_max",
+                "residual_interval","intercept","x_mean"):
+        assert key not in row
+    assert row["limitation"] == COEFFICIENT_LIMITATION
+    assert row["comparable"] is comparable
+    assert row["n_features"] == features and len(row["coefficients"]) == features
+    assert row["n_wavelengths"] == (8 if known else 0)
+    raw = c.models.get(c.model["id"],calibration=True)["calibration"]["model"]
+    assert row["coefficients"] == raw["coef"][0] and row["selected_lv"] == raw["selected_lv"]
+    assert row["quality_label"] == c.models.get(c.model["id"])["quality_label"]
+    with connect_database(c.paths.database) as db:
+        assert list(db.iterdump()) == before  # Entire projection is read-only.
+    print("COEFFICIENT_SAMPLE " + json.dumps({"case":case, **row},ensure_ascii=False,allow_nan=False))
+    # Synthetic data only; no credentials/source paths in these review samples.
+    out = Path(__file__).resolve().parents[3]/".runtime/135-results"
+    out.mkdir(parents=True,exist_ok=True)
+    (out/("sample-"+case+".json")).write_text(json.dumps(row,ensure_ascii=False,indent=2,allow_nan=False), "utf-8")
+
+
+@pytest.mark.parametrize("bad",[
+    {"model":None}, {"model":[]}, {"model":{}},
+    {"coef":[1.,2.]}, {"coef":[[1.],[2.]]}, {"coef":[[float("nan")]*8]},
+    {"coef":[[1.]*7]}, {"coef":[["1"]*8]}, {"coef":[[True]*8]},
+    {"wavelengths":[float("inf")]*8}, {"wavelengths":[1.,2.]}, {"wavelengths":None},
+    {"selected_lv":0}, {"selected_lv":True}, {"selected_lv":1.5},
+])
+def test_coefficients_invalid_artifacts_have_specific_existing_code(monkeypatch,bad):
+    from types import SimpleNamespace
+    cal = {"model":{"coef":[[1.]*8],"selected_lv":2},"wavelengths":list(range(8)),
+           "input_n_features":8,"steps":[{"op":"standardize"}]}
+    for key,value in bad.items():
+        if key in ("coef","selected_lv"):
+            cal["model"][key] = value
+        else:
+            cal[key] = value
+    models = ModelRegistry(SimpleNamespace(database=None),None)
+    monkeypatch.setattr(models,"get",lambda *a,**kw: {"id":"fixture","name":"fixture","version":1,"stage":"experiment",
+        "quality_label":None,"calibration":cal,"applicability":{"n_features":8}})
+    with fails("INVALID_MODEL_ARTIFACT"):
+        models.coefficients("fixture")
+
+
+@pytest.mark.parametrize("steps",[None,{},[{"op":"future_operator"}],[None],[{"op":[]}],["pca"]])
+def test_coefficients_step_whitelist_fails_closed(regression_factory,steps):
+    c = coefficient_case(regression_factory)
+    cal = c.models.get(c.model["id"],calibration=True)["calibration"]
+    if steps is None:
+        cal.pop("steps")
+    else:
+        cal["steps"] = steps
+    with connect_database(c.paths.database) as db:
+        db.execute("UPDATE model_registry SET calibration=?", (json.dumps(cal),))
+    assert c.models.coefficients(c.model["id"])["comparable"] is False
+
+
+def test_coefficients_http_projection_missing_corrupt_quality_and_no_run_fallback(regression_factory):
+    from backend.identity import EngineIdentity
+    from fastapi.testclient import TestClient
+    from spectrumagent.app import create_app
+    c = coefficient_case(regression_factory)
+    identity = EngineIdentity()
+    with TestClient(create_app(c.paths,identity)) as client:
+        client.headers["Authorization"] = "Bearer "+identity.token
+        url = "/api/v1/models/registry/"+c.model["id"]+"/coefficients"
+        for rpd, expected in [(2.49,"仅可做半定量"),(2.5,None),(None,None)]:
+            with connect_database(c.paths.database) as db:
+                db.execute("UPDATE metric SET value=? WHERE run_id=? AND name='rpd'",(rpd,c.result["run_id"]))
+            response = client.get(url)
+            assert response.status_code == 200 and set(response.json()) == COEFFICIENT_KEYS
+            assert response.json()["quality_label"] == expected == c.models.get(c.model["id"])["quality_label"]
+        for identifier in ("missing",c.result["run_id"]):
+            response = client.get("/api/v1/models/registry/"+identifier+"/coefficients")
+            assert response.status_code == 404 and response.json()["error"] == "MODEL_NOT_FOUND"
+        cal = c.models.get(c.model["id"],calibration=True)["calibration"]
+        cal["model"]["coef"] = [1.,2.]
+        with connect_database(c.paths.database) as db:
+            db.execute("UPDATE model_registry SET calibration=?",(json.dumps(cal),))
+        response = client.get(url)
+        assert response.status_code == 400 and response.json()["error"] == "INVALID_MODEL_ARTIFACT"
+        assert "MODEL_INPUT_UNAVAILABLE" not in response.text
+        with connect_database(c.paths.database) as db:
+            db.execute("UPDATE model_registry SET calibration='invalid-json'")
+        response = client.get(url)
+        assert response.status_code == 400 and response.json()["error"] == "INVALID_MODEL_ARTIFACT"

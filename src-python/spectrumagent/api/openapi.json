@@ -2690,6 +2690,46 @@
           }
         }
       }
+    },
+    "/api/v1/models/registry/{model_id}/coefficients": {
+      "get": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Get Coefficients",
+        "operationId": "get_coefficients_api_v1_models_registry__model_id__coefficients_get",
+        "parameters": [
+          {
+            "name": "model_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Model Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
