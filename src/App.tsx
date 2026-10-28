@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { acceptSnapshot, type ExitReason, type Snapshot } from './status';
@@ -6,6 +6,10 @@ import DatasetPanel from './components/datasets/DatasetPanel';
 import { datasets } from './components/datasets/api';
 import AssistantBar from './components/assistant/AssistantBar';
 import SettingsPanel from './components/settings/SettingsPanel';
+import type { DatasetRecord } from './components/datasets/types';
+import type { WorkspaceContext } from './components/assistant/api';
+import { selectWorkspace } from './components/assistant/presentation';
+import type { WorkspaceEventData } from './components/assistant/sse';
 
 type Metrics = { nan_ratio: number; reflectance_range: [number, number]; bands: number; shape: [number, number, number]; elapsed_ms: number };
 const reasons: Record<string, string> = {
@@ -32,12 +36,22 @@ export default function App() {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [busy, setBusy] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [workspace, setWorkspace] = useState<WorkspaceContext>({});
+  const [records, setRecords] = useState<DatasetRecord[]>([]);
+  const [refreshVersions, setRefreshVersions] = useState<Record<string, number>>({});
+  const [navigation, setNavigation] = useState<WorkspaceEventData | null>(null);
+  const [workspaceName, setWorkspaceName] = useState('');
+  const [previewCandidates, setPreviewCandidates] = useState<Record<string, string>>({});
+  const changeWorkspace = useCallback((next: WorkspaceContext) => {
+    setWorkspace(current => selectWorkspace(current, next)); setNavigation(null); setWorkspaceName('');
+  }, []);
   const input = useRef<HTMLInputElement>(null);
   const statusRef = useRef(status);
   statusRef.current = status;
   useEffect(() => {
     setBusy(false); setMetrics(null); setText('');
     setMessage('输入“运行冒烟测试”，或点击发送。');
+    setWorkspace({}); setRecords([]); setRefreshVersions({}); setNavigation(null); setWorkspaceName(''); setPreviewCandidates({});
   }, [status.generation_id]);
   useEffect(() => {
     let disposed = false;
@@ -92,7 +106,8 @@ export default function App() {
         <p role="status">引擎已就绪</p>
         <p>选择数据目录，查看数据集与单波段预览。</p>
         <p>进程 {status.pid} · 端口 {status.port} · 启动代次 {status.generation_id}</p>
-        <DatasetPanel key={status.generation_id} api={datasets} />
+        <DatasetPanel key={status.generation_id} api={datasets} onRecordsChange={setRecords}
+          onWorkspaceChange={changeWorkspace} refreshVersions={refreshVersions} navigation={navigation} previewCandidates={previewCandidates} />
         {metrics && <pre aria-label="冒烟测试真实结果">{JSON.stringify(metrics, null, 2)}</pre>}
       </>}
       {status.phase === 'Failed' && <section role="alert">
@@ -118,7 +133,15 @@ export default function App() {
         <input ref={input} id="agent-input" value={text} onChange={event => setText(event.target.value)} disabled={status.phase !== 'Ready' || busy} placeholder="运行冒烟测试（Ctrl+K 聚焦，Ctrl+Enter 发送）" />
         <button type="submit" disabled={status.phase !== 'Ready' || busy}>{busy ? '运行中' : '发送'}</button>
       </form>
-      <AssistantBar key={status.generation_id} enabled={status.phase === 'Ready'} />
+      <AssistantBar key={status.generation_id} enabled={status.phase === 'Ready'} workspace={workspace} records={records} displayName={workspaceName}
+        onWorkspaceChange={changeWorkspace}
+        onWorkspaceNavigate={selection => { setNavigation(selection); setWorkspaceName(selection.display_name ?? ''); }}
+        onPreviewCandidate={(cubeId, candidateRef) => setPreviewCandidates(current => ({ ...current, [cubeId]: candidateRef }))}
+        onDataChanged={cubeIds => setRefreshVersions(current => {
+          const next = { ...current };
+          for (const cubeId of cubeIds) next[cubeId] = (next[cubeId] ?? 0) + 1;
+          return next;
+        })} />
     </footer>
   </div>;
 }

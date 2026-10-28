@@ -26,7 +26,7 @@ export type AnnotationRequest =
 
 export type Png = { width: number; height: number; mime?: 'image/png'; png_base64: string };
 export type Parameters = { n_segments: number; compactness: number; pca_components: number; k: number; block_size: number; feature_version: string; pca_batch_size: number };
-export type Candidate = { superpixels: number[]; pixel_count: number; seed_superpixels: number[]; min_similarity: number; avg_similarity: number; cos_s: number[]; overlay: Png };
+export type Candidate = { candidate_ref?: string; superpixels: number[]; pixel_count: number; seed_superpixels: number[]; min_similarity: number; avg_similarity: number; cos_s: number[]; overlay: Png };
 export type Statistics = {
   n_pixels: number; labeled_pixels: number; uncertain_pixels: number; blank_pixels: number;
   labeled_percent: number; uncertain_percent: number; blank_percent: number;

@@ -132,8 +132,10 @@ def test_reconfigure_same_client_without_code_changes_and_optional_settings_empt
 @pytest.mark.parametrize("body", [{}, {"choices": []}, {"choices": [{"message": {"tool_calls": [{}]}}]}])
 def test_malformed_provider_reply_is_audited(gateway_case, body):
     client, transport = mock_client(gateway_case, body)
-    with pytest.raises(llm.LLMError, match="LLM_HTTP"):
+    with pytest.raises(llm.LLMError) as error:
         client.chat(MESSAGES, TOOLS)
+    assert error.value.code == "LLM_HTTP"
+    assert "响应格式" in error.value.payload.detail
     transport.assert_called_once()
     assert len(audit_rows(gateway_case)) == 1
 

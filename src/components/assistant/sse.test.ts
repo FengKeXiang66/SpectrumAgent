@@ -58,9 +58,12 @@ test('reject immediately closes confirmation card; server result remains ordered
   assert.deepEqual(reduceChat(rejected, { type: 'events', events }).entries, [human, ...events]);
 });
 
-test('pending check prevents ordinary messages; sequential checks replace pending id', () => {
+test('pending check accepts ordinary dialogue and sequential checks replace pending id', () => {
   const pending = reduceChat(initialChat, { type: 'events', events: [human] });
-  assert.equal(reduceChat(pending, { type: 'send', content: 'new' }), pending);
+  const sending = reduceChat(pending, { type: 'send', content: '确认保存' });
+  assert.equal(sending.busy, true);
+  assert.deepEqual(sending.pending, human.data);
+  assert.equal(sending.entries.at(-1)?.event, 'user');
   const nextHuman: AgentEvent = { event: 'human_check', data: { ...human.data, check_id: 'check-2' } };
   const next = reduceChat(reduceChat(pending, { type: 'decision', decision: 'approve' }), { type: 'events', events: [step, nextHuman] });
   assert.equal(next.pending && 'check_id' in next.pending && next.pending.check_id, 'check-2');
@@ -88,13 +91,31 @@ test('summary renderer displays scalars and excludes unexpected objects', () => 
 const plan: Extract<AgentEvent, { event: 'plan' }> = { event: 'plan', data: { plan_id: 'round-1', reason: '执行计划待确认',
   steps: [1, 2, 3].map(seq => ({ seq, tool: 'datasets.list', summary: {}, gpu: false, estimate_ms: null })) } };
 
-test('plan SSE is accepted, blocks content and cannot use the tool-decision path', () => {
+test('plan SSE is accepted, accepts dialogue and cannot use the tool-decision path', () => {
   assert.deepEqual(parseSse(encode([plan])), [plan]);
   const pending = reduceChat(initialChat, { type: 'events', events: [plan] });
   assert.deepEqual(pending.pending, plan.data);
-  assert.equal(reduceChat(pending, { type: 'send', content: 'new' }), pending);
+  assert.equal(reduceChat(pending, { type: 'send', content: '批准执行' }).busy, true);
+  assert.deepEqual(reduceChat(pending, { type: 'send', content: '批准执行' }).pending, plan.data);
   assert.equal(reduceChat(pending, { type: 'decision', decision: 'approve' }), pending);
   assert.equal(reduceChat(initialChat, { type: 'plan', action: 'approve' }), initialChat);
+});
+
+test('unrecognized approval dialogue keeps its card while terminal outcomes clear it', () => {
+  for (const card of [human, plan]) {
+    const pending = reduceChat(initialChat, { type: 'events', events: [card] });
+    const sending = reduceChat(pending, { type: 'send', content: '解释一下这一步' });
+    const clarify: AgentEvent = { event: 'clarify', data: { question: '请明确批准或拒绝，原计划尚未执行。', keep_pending: true } };
+    const waiting = reduceChat(sending, { type: 'events', events: [clarify] });
+    assert.deepEqual(waiting.pending, card.data);
+    assert.equal(waiting.busy, false);
+    assert.equal(reduceChat(waiting, { type: 'send', content: '同意' }).busy, true);
+    for (const terminal of [done, error, { event: 'clarify', data: { question: '请选择数据' } } as AgentEvent]) {
+      assert.equal(reduceChat(sending, { type: 'events', events: [terminal] }).pending, null);
+    }
+    assert.deepEqual(parseSse(encode([clarify])), [clarify]);
+  }
+  assert.throws(() => parseSse('event: clarify\ndata: {"question":"批准吗","keep_pending":"true"}\n\n'));
 });
 
 test('plan actions preserve pending while executing and retain the decision with the original plan', () => {

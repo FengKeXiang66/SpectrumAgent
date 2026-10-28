@@ -12,9 +12,12 @@ import { drafts } from './draft-api.ts';
 import DisplayToolbar, { SpectrumReadout } from './display/DisplayToolbar.tsx';
 import { DEFAULT_LUT, changeLut, displayRequest, type DisplayMode, type InspectionMode, type LutParameters } from './display/display.ts';
 import './annotation.css';
+import type { WorkspaceContext } from '../assistant/api.ts';
+import { candidatePreviewKey } from '../assistant/presentation.ts';
 
 type Props = { record: DatasetRecord; records: DatasetRecord[]; datasets: DatasetTransport;
-  api?: AnnotationApi; onNavigate(record: DatasetRecord): void; onClose(): void };
+  api?: AnnotationApi; onNavigate(record: DatasetRecord): void; onClose(): void;
+  onWorkspaceChange?(context: WorkspaceContext): void; refreshVersion?: number; previewCandidateRef?: string };
 const preferenceKey = 'spectrum.annotation.shortcuts.v1';
 const seenKey = 'spectrum.annotation.shortcuts.seen.v1';
 const commandNames: Record<Command, string> = { confirm: '确认候选', undo: '撤销', diffuse: '扩散工具', brush: '画笔/涂鸦提示',
@@ -30,7 +33,8 @@ function loadPreferences(): Preferences {
   return defaultPreferences();
 }
 
-export default function AnnotationWorkbench({ record, records, datasets, api = annotations, onNavigate, onClose }: Props) {
+export default function AnnotationWorkbench({ record, records, datasets, api = annotations, onNavigate, onClose,
+  onWorkspaceChange, refreshVersion = 0, previewCandidateRef }: Props) {
   const id = record.id;
   const [working, setWorking] = useState<Working | null>(null);
   const [schemas, setSchemas] = useState<LabelSchema[]>([]), [catalog, setCatalog] = useState<CatalogItem[]>([]);
@@ -65,6 +69,8 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
   const [busy, setBusy] = useState(true), [error, setError] = useState(''), [message, setMessage] = useState('正在读取工作态…');
   const [synchronized, setSynchronized] = useState(false);
   const alive = useRef(true), busyRef = useRef(true);
+  const seenRefresh = useRef(refreshVersion);
+  const focusedPreview = useRef<string | null>(null);
   const thresholdOnFocus = useRef(threshold), minimumOnFocus = useRef(queueMinimum);
   const timing = useRef<{ started: number; labeled: number } | null>(null);
   const labels = orderedLabels(schemas), stats = statistics(working);
@@ -72,6 +78,11 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
   const dirty = !!working?.params && (['n_segments', 'compactness', 'pca_components'] as const).some(key => parameters[key] !== working.params![key]);
   const ready = !!working?.params && !dirty && synchronized;
   const selected = selectedCandidate(working, selectedKey);
+  useEffect(() => {
+    if (!previewCandidateRef || focusedPreview.current === previewCandidateRef) return;
+    const key = candidatePreviewKey(working, previewCandidateRef);
+    if (key !== null) { setSelectedKey(key); setDraft(null); focusedPreview.current = previewCandidateRef; }
+  }, [previewCandidateRef, working]);
   const geometry = draft ?? (selected ? { superpixels: selected.superpixels } : null);
   const validThresholds = Number.isFinite(threshold) && threshold >= -1 && threshold <= 1
     && Number.isFinite(queueMinimum) && queueMinimum >= -1 && queueMinimum <= 1;
@@ -84,6 +95,9 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
       .catch(() => { if (!cancelled) setDraftRevision(null); });
     return () => { cancelled = true; };
   }, [id]);
+  useEffect(() => {
+    onWorkspaceChange?.({ cube_id: id, ...(lastGestureRef ? { gesture_ref: lastGestureRef } : {}) });
+  }, [id, lastGestureRef, onWorkspaceChange]);
 
   const applyWorking = (next: Working) => {
     setWorking(next); setSelectedKey(previous => recoverSelection(next, previous));
@@ -173,6 +187,22 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
       return false;
     } finally { if (alive.current) { setBusy(false); busyRef.current = false; } }
   };
+  useEffect(() => {
+    if (seenRefresh.current === refreshVersion || busy) return;
+    seenRefresh.current = refreshVersion;
+    void execute(async () => {
+      const [current, next] = await Promise.all([drafts.get(id), readWorking(api, id)]);
+      if (alive.current) setDraftRevision(current.revision);
+      if (next.params) {
+        // Identical effective parameters retrieve the existing segmentation,
+        // just as initial recovery does; no force/re-diffuse or label guesses.
+        const report = await api.superpixels(id, { n_segments: next.params.n_segments,
+          compactness: next.params.compactness, pca_components: next.params.pca_components });
+        if (alive.current) setSegmentation(report.overlay);
+      }
+      if (alive.current) setQuality(null);
+    }, '已同步助手执行后的标注状态。', true);
+  }, [refreshVersion, busy, id]);
   const edit = async (action: 'confirm' | 'uncertain' | 'erase', target = geometry) => {
     if (!ready || !target) { setError('先生成超像素并选中候选，或完成一个多边形。'); return; }
     if (action === 'confirm' && !selectedId) { setError('请先选择一个已登记标签。'); return; }
@@ -304,7 +334,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
             <label>提示方式<select disabled={busy} value={prompt} onChange={event => { setPrompt(event.target.value as PromptMode); setTool('diffuse'); setTab('prompt'); }}><option value="point">单击</option><option value="box">框选</option><option value="doodle">涂鸦</option></select></label>
           </div>
           <p className="annotation-hint">已有种子时，阈值输入完成、移出输入框即重新扩散预览；也可点击“扩散到相似区域”。</p>
-          {lastGestureRef && <p className="annotation-hint">当前手势 {lastGestureRef}，可在对话中引用</p>}
+          {lastGestureRef && <p className="annotation-hint">最近的画布提示已自动带入对话，可直接说“用刚才的提示”。</p>}
           {draftRevision === 0 && <p className="annotation-hint">当前无标注草稿：手势需先建立首个标注（画布多边形或运行扩散）</p>}
           {!validThresholds && <p className="annotation-warning">两项余弦阈值都须为 [-1,1] 内的有限数。</p>}
           {lastDiffusion && <p className={lastDiffusion.enqueued ? 'annotation-hint' : 'annotation-warning'}>本次候选最小种子相似度 {lastDiffusion.min.toFixed(4)} · {lastDiffusion.enqueued ? '已入队' : `被护栏拦下，未入队 ${lastDiffusion.blocked} 项`}。</p>}

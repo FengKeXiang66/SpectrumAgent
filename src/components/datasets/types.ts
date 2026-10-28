@@ -20,6 +20,7 @@ export type PreviewOptions = { band?: number; bands?: string; stretch?: 'auto' |
 export type SpectrumRegion = { l0: number; l1: number; s0: number; s1: number; raw?: boolean };
 export type MeanSpectrum = { id: string; shape: [number, number]; count: number; mean: (number | null)[]; nan_bands: number[] };
 export type DatasetTransport = {
+  get: (id: string) => Promise<DatasetRecord>;
   chooseDirectories: () => Promise<string[] | null>;
   importDirectory: (path: string, raw: boolean) => Promise<ImportResponse>;
   preview: (id: string, selection: number | PreviewOptions) => Promise<Preview>;

@@ -7,6 +7,8 @@ from starlette.responses import StreamingResponse
 
 from spectrumagent.agent.llm import OpenAICompatibleClient, _json
 from spectrumagent.agent.state import AgentStore, StateMachine
+from spectrumagent.agent.skill import ensure_workflow_skill, _write
+from backend.database import connect_database
 
 
 class AgentInput(BaseModel):
@@ -17,8 +19,14 @@ class CreateSession(AgentInput):
     pass
 
 
+class Workspace(AgentInput):
+    cube_id: Annotated[str, Field(min_length=1, max_length=128, pattern=r"^[A-Za-z0-9_-]+$")]
+    gesture_ref: Annotated[str, Field(min_length=1, max_length=128, pattern=r"^[A-Za-z0-9_-]+$")] | None = None
+
+
 class ContentMessage(AgentInput):
     content: Annotated[str, Field(min_length=1)]
+    workspace: Workspace | None = None
 
 
 class CheckMessage(AgentInput):
@@ -54,13 +62,22 @@ def make_router(database, tools, llm_factory=None):
 
     @router.post("/sessions")
     def create_session(body: CreateSession):
+        registry = tools()
+        if getattr(registry, "catalogue_version", 1) == 2:
+            try:
+                with connect_database(database) as db, _write(db):
+                    ensure_workflow_skill(db, registry)
+            except Exception as error:
+                if getattr(error, "code", None) == "SKILL_NOT_ACTIVE":
+                    error.status_code = 409
+                raise
         return store.create_session()
 
     @router.post("/sessions/{session_id}/messages", response_class=StreamingResponse,
                  responses={200: {"content": {"text/event-stream": {"schema": {"type": "string"}}}}})
     def message(session_id: str, body: ContentMessage | CheckMessage | PlanMessage):
         machine = StateMachine(store, session_id, factory(session_id), tools())
-        events = machine.message(**body.model_dump())  # Preflight precedes the response.
+        events = machine.message(**body.model_dump(exclude_none=True))  # Preflight precedes the response.
         def encode():
             try:
                 for event, data in events:

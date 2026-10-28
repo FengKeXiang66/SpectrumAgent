@@ -1957,18 +1957,35 @@
         }
       }
     },
-    "/api/v1/models/runs/preflight": {
+    "/api/v1/models/registry": {
+      "get": {
+        "tags": [
+          "models"
+        ],
+        "summary": "List Models",
+        "operationId": "list_models_api_v1_models_registry_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": [
           "models"
         ],
-        "summary": "Preflight",
-        "operationId": "preflight_api_v1_models_runs_preflight_post",
+        "summary": "Register Model",
+        "operationId": "register_model_api_v1_models_registry_post",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/PreflightRequest"
+                "$ref": "#/components/schemas/RegisterModel"
               }
             }
           },
@@ -1996,13 +2013,142 @@
         }
       }
     },
-    "/api/v1/models/runs/{run_id}": {
+    "/api/v1/models/registry/{model_id}/stage": {
+      "put": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Set Model Stage",
+        "operationId": "set_model_stage_api_v1_models_registry__model_id__stage_put",
+        "parameters": [
+          {
+            "name": "model_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Model Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelStage"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/models/registry/{model_id}/coefficients": {
       "get": {
         "tags": [
           "models"
         ],
-        "summary": "Get Run",
-        "operationId": "get_run_api_v1_models_runs__run_id__get",
+        "summary": "Get Coefficients",
+        "operationId": "get_coefficients_api_v1_models_registry__model_id__coefficients_get",
+        "parameters": [
+          {
+            "name": "model_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Model Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/models/inference-runs": {
+      "post": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Create Inference",
+        "operationId": "create_inference_api_v1_models_inference_runs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InferenceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/models/inference-runs/{run_id}": {
+      "get": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Get Inference",
+        "operationId": "get_inference_api_v1_models_inference_runs__run_id__get",
         "parameters": [
           {
             "name": "run_id",
@@ -2036,226 +2182,21 @@
         }
       }
     },
-    "/api/v1/models/runs": {
+    "/api/v1/models/inference-runs/{run_id}/map": {
       "get": {
         "tags": [
           "models"
         ],
-        "summary": "List Runs",
-        "operationId": "list_runs_api_v1_models_runs_get",
+        "summary": "Get Inference Map",
+        "operationId": "get_inference_map_api_v1_models_inference_runs__run_id__map_get",
         "parameters": [
           {
-            "name": "cube_id",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Cube Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "models"
-        ],
-        "summary": "Regression",
-        "operationId": "regression_api_v1_models_runs_post",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RegressionRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/agent/sessions": {
-      "post": {
-        "tags": [
-          "agent"
-        ],
-        "summary": "Create Session",
-        "operationId": "create_session_api_v1_agent_sessions_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateSession"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/agent/sessions/{session_id}/messages": {
-      "post": {
-        "tags": [
-          "agent"
-        ],
-        "summary": "Message",
-        "operationId": "message_api_v1_agent_sessions__session_id__messages_post",
-        "parameters": [
-          {
-            "name": "session_id",
+            "name": "run_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Session Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "anyOf": [
-                  {
-                    "$ref": "#/components/schemas/ContentMessage"
-                  },
-                  {
-                    "$ref": "#/components/schemas/CheckMessage"
-                  },
-                  {
-                    "oneOf": [
-                      {
-                        "$ref": "#/components/schemas/PlanApproval"
-                      },
-                      {
-                        "$ref": "#/components/schemas/PlanRejection"
-                      },
-                      {
-                        "$ref": "#/components/schemas/PlanChange"
-                      }
-                    ],
-                    "discriminator": {
-                      "propertyName": "action",
-                      "mapping": {
-                        "approve": "#/components/schemas/PlanApproval",
-                        "reject": "#/components/schemas/PlanRejection",
-                        "skip": "#/components/schemas/PlanChange",
-                        "rollback": "#/components/schemas/PlanChange"
-                      }
-                    }
-                  }
-                ],
-                "title": "Body"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "text/event-stream": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/agent/sessions/{session_id}/steps": {
-      "get": {
-        "tags": [
-          "agent"
-        ],
-        "summary": "Steps",
-        "operationId": "steps_api_v1_agent_sessions__session_id__steps_get",
-        "parameters": [
-          {
-            "name": "session_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Session Id"
+              "title": "Run Id"
             }
           }
         ],
@@ -2426,6 +2367,90 @@
         }
       }
     },
+    "/api/v1/models/runs": {
+      "post": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Regression",
+        "operationId": "regression_api_v1_models_runs_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegressionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "models"
+        ],
+        "summary": "List Runs",
+        "operationId": "list_runs_api_v1_models_runs_get",
+        "parameters": [
+          {
+            "name": "cube_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cube Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/models/runs/{run_id}/lv-sweep": {
       "get": {
         "tags": [
@@ -2466,35 +2491,18 @@
         }
       }
     },
-    "/api/v1/models/registry": {
-      "get": {
-        "tags": [
-          "models"
-        ],
-        "summary": "List Models",
-        "operationId": "list_models_api_v1_models_registry_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        }
-      },
+    "/api/v1/models/runs/preflight": {
       "post": {
         "tags": [
           "models"
         ],
-        "summary": "Register Model",
-        "operationId": "register_model_api_v1_models_registry_post",
+        "summary": "Preflight",
+        "operationId": "preflight_api_v1_models_runs_preflight_post",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RegisterModel"
+                "$ref": "#/components/schemas/PreflightRequest"
               }
             }
           },
@@ -2522,21 +2530,100 @@
         }
       }
     },
-    "/api/v1/models/registry/{model_id}/stage": {
-      "put": {
+    "/api/v1/models/runs/{run_id}": {
+      "get": {
         "tags": [
           "models"
         ],
-        "summary": "Set Model Stage",
-        "operationId": "set_model_stage_api_v1_models_registry__model_id__stage_put",
+        "summary": "Get Run",
+        "operationId": "get_run_api_v1_models_runs__run_id__get",
         "parameters": [
           {
-            "name": "model_id",
+            "name": "run_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Model Id"
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/agent/sessions": {
+      "post": {
+        "tags": [
+          "agent"
+        ],
+        "summary": "Create Session",
+        "operationId": "create_session_api_v1_agent_sessions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSession"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/agent/sessions/{session_id}/messages": {
+      "post": {
+        "tags": [
+          "agent"
+        ],
+        "summary": "Message",
+        "operationId": "message_api_v1_agent_sessions__session_id__messages_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
             }
           }
         ],
@@ -2545,7 +2632,37 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ModelStage"
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/ContentMessage"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CheckMessage"
+                  },
+                  {
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/PlanApproval"
+                      },
+                      {
+                        "$ref": "#/components/schemas/PlanRejection"
+                      },
+                      {
+                        "$ref": "#/components/schemas/PlanChange"
+                      }
+                    ],
+                    "discriminator": {
+                      "propertyName": "action",
+                      "mapping": {
+                        "approve": "#/components/schemas/PlanApproval",
+                        "reject": "#/components/schemas/PlanRejection",
+                        "skip": "#/components/schemas/PlanChange",
+                        "rollback": "#/components/schemas/PlanChange"
+                      }
+                    }
+                  }
+                ],
+                "title": "Body"
               }
             }
           }
@@ -2554,8 +2671,10 @@
           "200": {
             "description": "Successful Response",
             "content": {
-              "application/json": {
-                "schema": {}
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
               }
             }
           },
@@ -2572,140 +2691,21 @@
         }
       }
     },
-    "/api/v1/models/inference-runs": {
-      "post": {
-        "tags": [
-          "models"
-        ],
-        "summary": "Create Inference",
-        "operationId": "create_inference_api_v1_models_inference_runs_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/InferenceRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/models/inference-runs/{run_id}": {
+    "/api/v1/agent/sessions/{session_id}/steps": {
       "get": {
         "tags": [
-          "models"
+          "agent"
         ],
-        "summary": "Get Inference",
-        "operationId": "get_inference_api_v1_models_inference_runs__run_id__get",
+        "summary": "Steps",
+        "operationId": "steps_api_v1_agent_sessions__session_id__steps_get",
         "parameters": [
           {
-            "name": "run_id",
+            "name": "session_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Run Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/models/inference-runs/{run_id}/map": {
-      "get": {
-        "tags": [
-          "models"
-        ],
-        "summary": "Get Inference Map",
-        "operationId": "get_inference_map_api_v1_models_inference_runs__run_id__map_get",
-        "parameters": [
-          {
-            "name": "run_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Run Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/models/registry/{model_id}/coefficients": {
-      "get": {
-        "tags": [
-          "models"
-        ],
-        "summary": "Get Coefficients",
-        "operationId": "get_coefficients_api_v1_models_registry__model_id__coefficients_get",
-        "parameters": [
-          {
-            "name": "model_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Model Id"
+              "title": "Session Id"
             }
           }
         ],
@@ -2987,6 +2987,16 @@
             "type": "string",
             "minLength": 1,
             "title": "Content"
+          },
+          "workspace": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Workspace"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -3515,6 +3525,35 @@
         ],
         "title": "ImportSummary"
       },
+      "InferenceRequest": {
+        "properties": {
+          "model_id": {
+            "type": "string",
+            "title": "Model Id"
+          },
+          "cube_id": {
+            "type": "string",
+            "title": "Cube Id"
+          },
+          "preprocess_run_id": {
+            "type": "string",
+            "title": "Preprocess Run Id"
+          },
+          "annotation_version_id": {
+            "type": "string",
+            "title": "Annotation Version Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "model_id",
+          "cube_id",
+          "preprocess_run_id",
+          "annotation_version_id"
+        ],
+        "title": "InferenceRequest"
+      },
       "JsonValue": {},
       "KeyRequest": {
         "properties": {
@@ -3626,6 +3665,25 @@
           "nan_bands"
         ],
         "title": "MeanSpectrum"
+      },
+      "ModelStage": {
+        "properties": {
+          "stage": {
+            "type": "string",
+            "enum": [
+              "experiment",
+              "candidate",
+              "production"
+            ],
+            "title": "Stage"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "stage"
+        ],
+        "title": "ModelStage"
       },
       "Pipeline": {
         "properties": {
@@ -4185,6 +4243,119 @@
         ],
         "title": "RegionResponse"
       },
+      "RegisterModel": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "run_id"
+        ],
+        "title": "RegisterModel"
+      },
+      "RegressionRequest": {
+        "properties": {
+          "preprocess_run_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 4,
+            "title": "Preprocess Run Ids"
+          },
+          "target_schema_id": {
+            "type": "string",
+            "title": "Target Schema Id"
+          },
+          "task": {
+            "type": "string",
+            "const": "regression",
+            "title": "Task",
+            "default": "regression"
+          },
+          "split_strategy": {
+            "type": "string",
+            "const": "ks",
+            "title": "Split Strategy",
+            "default": "ks"
+          },
+          "test_ratio": {
+            "type": "number",
+            "exclusiveMaximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Test Ratio",
+            "default": 0.3333333333333333
+          },
+          "cv_strategy": {
+            "type": "string",
+            "enum": [
+              "kfold",
+              "loo"
+            ],
+            "title": "Cv Strategy",
+            "default": "kfold"
+          },
+          "cv_folds": {
+            "type": "integer",
+            "minimum": 2.0,
+            "title": "Cv Folds",
+            "default": 5
+          },
+          "seed": {
+            "type": "integer",
+            "title": "Seed",
+            "default": 17
+          },
+          "n_components": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "N Components"
+          },
+          "max_components": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Components"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "preprocess_run_ids",
+          "target_schema_id"
+        ],
+        "title": "RegressionRequest"
+      },
       "SAMParameters": {
         "properties": {
           "gesture_ref": {
@@ -4550,6 +4721,45 @@
         "type": "object",
         "title": "SuperpixelRequest"
       },
+      "TargetCSV": {
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "title": "Project Id"
+          },
+          "csv_text": {
+            "type": "string",
+            "maxLength": 2097152,
+            "title": "Csv Text"
+          },
+          "overwrite": {
+            "type": "boolean",
+            "title": "Overwrite",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "project_id",
+          "csv_text"
+        ],
+        "title": "TargetCSV"
+      },
+      "TargetValue": {
+        "properties": {
+          "value": {
+            "type": "number",
+            "title": "Value"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "value"
+        ],
+        "title": "TargetValue"
+      },
       "ValidationError": {
         "properties": {
           "loc": {
@@ -4590,205 +4800,36 @@
         ],
         "title": "ValidationError"
       },
-      "RegressionRequest": {
+      "Workspace": {
         "properties": {
-          "preprocess_run_ids": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "minItems": 4,
-            "title": "Preprocess Run Ids"
-          },
-          "target_schema_id": {
-            "type": "string",
-            "title": "Target Schema Id"
-          },
-          "task": {
-            "type": "string",
-            "const": "regression",
-            "title": "Task",
-            "default": "regression"
-          },
-          "split_strategy": {
-            "type": "string",
-            "const": "ks",
-            "title": "Split Strategy",
-            "default": "ks"
-          },
-          "test_ratio": {
-            "type": "number",
-            "exclusiveMaximum": 1.0,
-            "exclusiveMinimum": 0.0,
-            "title": "Test Ratio",
-            "default": 0.3333333333333333
-          },
-          "cv_strategy": {
-            "type": "string",
-            "enum": [
-              "kfold",
-              "loo"
-            ],
-            "title": "Cv Strategy",
-            "default": "kfold"
-          },
-          "cv_folds": {
-            "type": "integer",
-            "minimum": 2.0,
-            "title": "Cv Folds",
-            "default": 5
-          },
-          "seed": {
-            "type": "integer",
-            "title": "Seed",
-            "default": 17
-          },
-          "n_components": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 1.0
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "N Components"
-          },
-          "max_components": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 1.0
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Max Components"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "preprocess_run_ids",
-          "target_schema_id"
-        ],
-        "title": "RegressionRequest"
-      },
-      "TargetCSV": {
-        "properties": {
-          "project_id": {
-            "type": "string",
-            "title": "Project Id"
-          },
-          "csv_text": {
-            "type": "string",
-            "maxLength": 2097152,
-            "title": "Csv Text"
-          },
-          "overwrite": {
-            "type": "boolean",
-            "title": "Overwrite",
-            "default": false
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "project_id",
-          "csv_text"
-        ],
-        "title": "TargetCSV"
-      },
-      "TargetValue": {
-        "properties": {
-          "value": {
-            "type": "number",
-            "title": "Value"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "value"
-        ],
-        "title": "TargetValue"
-      },
-      "InferenceRequest": {
-        "properties": {
-          "model_id": {
-            "type": "string",
-            "title": "Model Id"
-          },
           "cube_id": {
             "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
             "title": "Cube Id"
           },
-          "preprocess_run_id": {
-            "type": "string",
-            "title": "Preprocess Run Id"
-          },
-          "annotation_version_id": {
-            "type": "string",
-            "title": "Annotation Version Id"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "model_id",
-          "cube_id",
-          "preprocess_run_id",
-          "annotation_version_id"
-        ],
-        "title": "InferenceRequest"
-      },
-      "ModelStage": {
-        "properties": {
-          "stage": {
-            "type": "string",
-            "enum": [
-              "experiment",
-              "candidate",
-              "production"
-            ],
-            "title": "Stage"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "stage"
-        ],
-        "title": "ModelStage"
-      },
-      "RegisterModel": {
-        "properties": {
-          "run_id": {
-            "type": "string",
-            "title": "Run Id"
-          },
-          "name": {
+          "gesture_ref": {
             "anyOf": [
               {
                 "type": "string",
-                "maxLength": 200,
-                "minLength": 1
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_-]+$"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Name"
+            "title": "Gesture Ref"
           }
         },
         "additionalProperties": false,
         "type": "object",
         "required": [
-          "run_id"
+          "cube_id"
         ],
-        "title": "RegisterModel"
+        "title": "Workspace"
       }
     }
   }

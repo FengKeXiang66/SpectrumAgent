@@ -21,7 +21,9 @@ CREATE TABLE IF NOT EXISTS llm_call (
   latency_ms        INTEGER NOT NULL, -- 服务端计时
   status            TEXT NOT NULL, -- ok|blocked|transport_error|http_error
   error             TEXT,
-  created_at        TEXT NOT NULL   -- 服务端 timestamp()
+  created_at        TEXT NOT NULL,
+  http_status       INTEGER,
+  error_stage       TEXT            -- sanitized phase only, no response bodies
 );
 
 -- G3：SKILL 版本（只增不改，内容 UPDATE 禁止，仅状态迁移 draft→active / draft→retired / active→retired，retired 终态）
@@ -44,7 +46,8 @@ CREATE TABLE IF NOT EXISTS agent_session (
   skill_version_id TEXT NOT NULL REFERENCES skill_version(id), -- 创建时取当前 active，无 active 拒绝创建，此后不可改
   created_at      TEXT NOT NULL,  -- 不可改
   updated_at      TEXT NOT NULL,  -- 服务端规则：每轮消息后更新（审计字段非内容，R10 豁免）
-  auto_confirm    INTEGER NOT NULL DEFAULT 0  -- TASK-07b R3：会话级跳过确认闸开关，0=默认走确认
+  auto_confirm    INTEGER NOT NULL DEFAULT 0,
+  context_json    TEXT NOT NULL DEFAULT '{}' -- bounded, reference-only task memory
 );
 -- G2：编排轮次（R10：HUMAN_CHECK 挂起后续执行的持久化锚，落盘不回灌的设计已由 TASK-07b 放宽，已完成轮次 status='done' 现回灌 LLM 作为 PARSE 与 INTERPRET 上下文前缀）
 CREATE TABLE IF NOT EXISTS agent_round (
@@ -54,7 +57,9 @@ CREATE TABLE IF NOT EXISTS agent_round (
   user_message TEXT NOT NULL,      -- 本轮用户消息原文：INTERPRET 上下文与续执行的权威源（业务轮次数据，llm_call 仍只存 messages sha256，两口径分工不变）
   calls_json   TEXT NOT NULL,      -- 本轮 LLM tool_call 序列（仅过 Pydantic 校验的调用，含 id/name/arguments，几何禁入 schema 保证无坐标谱值）
   status       TEXT NOT NULL,      -- running|human_check|plan_check|done|error
-  created_at   TEXT NOT NULL
+  created_at   TEXT NOT NULL,
+  turn_id      TEXT,               -- batches belonging to one user turn
+  assistant_content TEXT           -- the answer actually shown to the user
 );
 CREATE TABLE IF NOT EXISTS agent_step (
   id              TEXT PRIMARY KEY,
@@ -67,7 +72,8 @@ CREATE TABLE IF NOT EXISTS agent_step (
   result_summary  TEXT,               -- 服务端短摘要，大对象禁入
   status          TEXT NOT NULL,      -- ok|rejected|human_check_pending|error
   latency_ms      INTEGER NOT NULL,
-  created_at      TEXT NOT NULL
+  created_at      TEXT NOT NULL,
+  tool_call_id    TEXT             -- stable association, never zip by step position
 );
 -- G5：标注草稿（每 cube 一条活草稿）
 CREATE TABLE IF NOT EXISTS annotation_draft (
@@ -125,6 +131,16 @@ def migrate(db):
     columns = {row[1] for row in db.execute("PRAGMA table_info(agent_session)")}
     if "auto_confirm" not in columns:
         db.execute("ALTER TABLE agent_session ADD COLUMN auto_confirm INTEGER NOT NULL DEFAULT 0")
+    for table, name, definition in (
+        ("llm_call", "http_status", "INTEGER"),
+        ("llm_call", "error_stage", "TEXT"),
+        ("agent_session", "context_json", "TEXT NOT NULL DEFAULT '{}'"),
+        ("agent_round", "turn_id", "TEXT"),
+        ("agent_round", "assistant_content", "TEXT"),
+        ("agent_step", "tool_call_id", "TEXT"),
+    ):
+        if name not in {row[1] for row in db.execute(f"PRAGMA table_info({table})")}:
+            db.execute(f"ALTER TABLE {table} ADD COLUMN {name} {definition}")
     for key in SETTING_KEYS:
         if not db.execute("SELECT 1 FROM llm_settings WHERE key=?", (key,)).fetchone():
             db.execute("INSERT INTO llm_settings (key,value) VALUES (?,?)", (key, SETTING_DEFAULTS[key]))

@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from hashlib import sha256
 import json
+import re
 import sqlite3
 from time import perf_counter_ns
 from uuid import uuid4
@@ -11,10 +12,13 @@ from backend.database import connect_database
 from spectrumagent.data import DataError
 from .llm import LLMClient, _json
 from .skill import _write, active_skill
+from . import context as memory
 
 
 MAX_TOOL_CALLS = 8  # TASK-07 §10-4, per PARSE response.
 RAW_BYTES = 4 * 1024  # TASK-07 §3 rejected-arguments excerpt limit.
+MAX_WORKFLOW_BATCHES = 16
+MAX_WORKFLOW_STEPS = 32
 
 # TASK-07b R3: session-level opt-in to skip all confirmation gates.
 _AUTO_CONFIRM_ON = ("自动执行", "自动帮我执行", "无需确认", "不用确认", "跳过确认")
@@ -59,11 +63,12 @@ def _failure(code, detail, status=400):
 def install_guards(db):
     for table, columns in (
         ("agent_session", "id,skill_version_id,created_at"),
-        ("agent_round", "id,session_id,seq,user_message,calls_json,created_at"),
-        ("agent_step", "id,session_id,round_id,seq,tool,arguments_json,created_at"),
+        ("agent_round", "id,session_id,seq,user_message,calls_json,created_at,turn_id"),
+        ("agent_step", "id,session_id,round_id,seq,tool,arguments_json,created_at,tool_call_id"),
         ("agent_plan_action", "id,session_id,round_id,action,seq_ref,reason,created_at"),
     ):
-        db.execute(f"""CREATE TRIGGER IF NOT EXISTS {table}_immutable
+        db.execute(f"DROP TRIGGER IF EXISTS {table}_immutable")
+        db.execute(f"""CREATE TRIGGER {table}_immutable
             BEFORE UPDATE OF {columns} ON {table}
             BEGIN SELECT RAISE(ABORT,'AGENT_IMMUTABLE'); END""")
         db.execute(f"""CREATE TRIGGER IF NOT EXISTS {table}_no_delete BEFORE DELETE ON {table}
@@ -75,6 +80,10 @@ def install_guards(db):
         BEFORE UPDATE OF status,result_digest,result_summary,latency_ms ON agent_step
         WHEN NOT (OLD.status='human_check_pending' AND NEW.status IN ('ok','rejected','error'))
         BEGIN SELECT RAISE(ABORT,'AGENT_TRANSITION_INVALID'); END""")
+    db.execute("""CREATE TRIGGER IF NOT EXISTS agent_answer_once
+        BEFORE UPDATE OF assistant_content ON agent_round
+        WHEN OLD.assistant_content IS NOT NULL OR NEW.assistant_content IS NULL
+        BEGIN SELECT RAISE(ABORT,'AGENT_IMMUTABLE'); END""")
     db.execute("DROP TRIGGER IF EXISTS agent_round_transition")
     db.execute("""CREATE TRIGGER agent_round_transition BEFORE UPDATE OF status ON agent_round
         WHEN NOT ((OLD.status='running' AND NEW.status IN ('human_check','done','error'))
@@ -125,7 +134,7 @@ class AgentStore:
             return _rows(db, "SELECT * FROM agent_step WHERE session_id=? ORDER BY seq", (session_id,))
 
     def rounds(self, session_id, *, exclude_round_id=None, limit=None):
-        """TASK-07b R1: completed rounds for history injection, newest last."""
+        """Latest completed user turns, including all their dependent batches."""
         self.session(session_id)
         with connect_database(self.database) as db:
             sql = "SELECT * FROM agent_round WHERE session_id=? AND status='done'"
@@ -133,10 +142,28 @@ class AgentStore:
             if exclude_round_id is not None:
                 sql += " AND id<>?"
                 args.append(exclude_round_id)
-            sql += " ORDER BY seq"
             if limit is not None:
-                sql += f" LIMIT {int(limit)}"
-            return _rows(db, sql, args)
+                sql += " AND COALESCE(turn_id,id) IN (SELECT COALESCE(turn_id,id) FROM agent_round WHERE session_id=? AND status='done' GROUP BY COALESCE(turn_id,id) ORDER BY MAX(seq) DESC LIMIT ?)"
+                args.extend((session_id, max(0, int(limit))))
+            return _rows(db, sql + " ORDER BY seq", args)
+
+    def context(self, session_id):
+        return json.loads(self.session(session_id)["context_json"])
+
+    def save_context(self, session_id, context):
+        value = _json(context)
+        if len(value.encode("utf-8")) > 65536:
+            raise _failure("AGENT_CONTEXT_LIMIT", "任务上下文过大，请缩小数据范围")
+        with connect_database(self.database) as db, _write(db):
+            db.execute("UPDATE agent_session SET context_json=? WHERE id=?", (value, session_id))
+
+    def save_answer(self, round_id, content):
+        with connect_database(self.database) as db, _write(db):
+            db.execute("UPDATE agent_round SET assistant_content=? WHERE id=? AND assistant_content IS NULL", (content, round_id))
+
+    def turn_rounds(self, session_id, turn_id):
+        with connect_database(self.database) as db:
+            return _rows(db, "SELECT * FROM agent_round WHERE session_id=? AND COALESCE(turn_id,id)=? ORDER BY seq", (session_id, turn_id))
 
     def set_auto_confirm(self, session_id, value):
         """TASK-07b R3: persist the session-level confirmation opt-in."""
@@ -160,14 +187,23 @@ class AgentStore:
             raise _failure("INVALID_REQUEST", "确认引用不存在或已处理")
         return rounds[0], pending[0]
 
-    def new_round(self, session_id, content, calls, status="running"):
+    def pending(self, session_id):
+        self.session(session_id)
+        with connect_database(self.database) as db:
+            rows = _rows(db, "SELECT * FROM agent_round WHERE session_id=? AND status IN ('human_check','plan_check') ORDER BY seq LIMIT 1", (session_id,))
+            if not rows:
+                return None
+            steps = _rows(db, "SELECT id FROM agent_step WHERE round_id=? AND status='human_check_pending' ORDER BY seq LIMIT 1", (rows[0]["id"],))
+            return rows[0], steps[0]["id"] if steps else None
+
+    def new_round(self, session_id, content, calls, status="running", *, turn_id=None):
         with connect_database(self.database) as db, _write(db):
             if db.execute("SELECT 1 FROM agent_round WHERE session_id=? AND status IN ('running','human_check','plan_check')", (session_id,)).fetchone():
                 raise _failure("INVALID_REQUEST", "本轮尚未结束")
             identifier, timestamp = str(uuid4()), _now()
             seq = db.execute("SELECT COALESCE(MAX(seq),0)+1 FROM agent_round WHERE session_id=?", (session_id,)).fetchone()[0]
-            db.execute("INSERT INTO agent_round (id,session_id,seq,user_message,calls_json,status,created_at) VALUES (?,?,?,?,?,?,?)",
-                       (identifier, session_id, seq, content, _json(calls), status, timestamp))
+            db.execute("INSERT INTO agent_round (id,session_id,seq,user_message,calls_json,status,created_at,turn_id) VALUES (?,?,?,?,?,?,?,?)",
+                       (identifier, session_id, seq, content, _json(calls), status, timestamp, turn_id or identifier))
             if content and db.execute("SELECT title FROM agent_session WHERE id=?", (session_id,)).fetchone()[0] == "":
                 db.execute("UPDATE agent_session SET title=? WHERE id=?", (content[:40], session_id))
             db.execute("UPDATE agent_session SET updated_at=? WHERE id=?", (timestamp, session_id))
@@ -218,15 +254,15 @@ class AgentStore:
             if row.rowcount:
                 db.execute("UPDATE agent_session SET updated_at=? WHERE id=(SELECT session_id FROM agent_round WHERE id=?)", (_now(), round_id))
 
-    def add_step(self, round_, tool, arguments, status, summary, latency):
+    def add_step(self, round_, tool, arguments, status, summary, latency, *, tool_call_id=None):
         with connect_database(self.database) as db, _write(db):
             seq = db.execute("SELECT COALESCE(MAX(seq),0)+1 FROM agent_step WHERE session_id=?", (round_["session_id"],)).fetchone()[0]
             identifier = str(uuid4())
             text = _json(summary)
             digest = None if status == "rejected" else sha256(text.encode("utf-8")).hexdigest()
-            db.execute("INSERT INTO agent_step (id,session_id,round_id,seq,tool,arguments_json,result_digest,result_summary,status,latency_ms,created_at) "
-                       "VALUES (?,?,?,?,?,?,?,?,?,?,?)", (identifier, round_["session_id"], round_["id"], seq, tool,
-                        _json(arguments), digest, text, status, latency, _now()))
+            db.execute("INSERT INTO agent_step (id,session_id,round_id,seq,tool,arguments_json,result_digest,result_summary,status,latency_ms,created_at,tool_call_id) "
+                           "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", (identifier, round_["session_id"], round_["id"], seq, tool,
+                        _json(arguments), digest, text, status, latency, _now(), tool_call_id))
             if status == "human_check_pending":
                 db.execute("UPDATE agent_round SET status='human_check' WHERE id=?", (round_["id"],))
                 db.execute("UPDATE agent_session SET updated_at=? WHERE id=?", (_now(), round_["session_id"]))
@@ -251,7 +287,11 @@ class StateMachine:
         self.store, self.session_id, self.llm, self.tools = store, session_id, llm, tools
         self.state = State.IDLE  # Request-local execution phase, never a recovery source.
 
-    def message(self, *, content=None, check_id=None, decision=None, plan_id=None, action=None, step_ref=None, reason=None):
+    def _workflow_enabled(self):
+        return any(tool["function"]["name"] == "annotations.prepare"
+                   for tool in json.loads(self.store.skill(self.session_id)["tools_json"]))
+
+    def message(self, *, content=None, check_id=None, decision=None, plan_id=None, action=None, step_ref=None, reason=None, workspace=None):
         if plan_id is not None and content is None and check_id is None and decision is None:
             if action not in {"approve", "reject", "skip", "rollback"}:
                 raise _failure("INVALID_REQUEST", "计划动作不合法")
@@ -266,40 +306,87 @@ class StateMachine:
                     raise _failure("INVALID_REQUEST", "计划步骤引用不合法")
             elif step_ref is not None:
                 raise _failure("INVALID_REQUEST", "计划动作不接受步骤引用")
-            return self._generate(continuation=continuation, plan=(action, step_ref, reason))
+            return self._dispatch(continuation=continuation, plan=(action, step_ref, reason))
         if any(value is not None for value in (plan_id, action, step_ref, reason)):
             raise _failure("INVALID_REQUEST", "消息形态不合法")
         if content is not None and check_id is None and decision is None:
+            if self._workflow_enabled():
+                pending = self.store.pending(self.session_id)
+                if pending:
+                    text = content.strip().strip("。！! ")
+                    approve = re.fullmatch(r"(?:请)?(?:批准(?:执行)?|同意(?:执行)?|确认(?:保存|执行)?|继续(?:执行)?|保存(?:这一版)?|可以(?:执行)?|好(?:的)?|是)", text)
+                    reject = re.fullmatch(r"(?:请)?(?:拒绝|取消|不同意|不批准|停止|不要(?:执行|保存)?|先别(?:执行|保存))", text)
+                    if approve or reject:
+                        row, pending_id = pending
+                        if row["status"] == "plan_check":
+                            return self.message(plan_id=row["id"], action="approve" if approve else "reject",
+                                                reason=None if approve else content)
+                        return self.message(check_id=pending_id, decision="approve" if approve else "reject")
+                    def clarify_pending():
+                        yield "clarify", {"question": "当前操作正在等待你的确认。可以回复“批准执行”“确认保存”或“取消”；也可以使用下方操作卡。", "keep_pending": True}
+                    return clarify_pending()
             self.store.preflight(self.session_id)
-            return self._generate(content=content)
+            return self._dispatch(content=content, workspace=workspace)
         if content is None and check_id is not None and decision in {"approve", "reject"}:
             continuation = self.store.preflight(self.session_id, check_id)
-            return self._generate(continuation=continuation, decision=decision)
+            return self._dispatch(continuation=continuation, decision=decision)
         raise _failure("INVALID_REQUEST", "消息形态不合法")
+
+    def _dispatch(self, **kwargs):
+        if self._workflow_enabled():
+            from .workflow import generate
+            return generate(self, **kwargs)
+        kwargs.pop("workspace", None)
+        return self._generate(**kwargs)
 
     @staticmethod
     def _step_event(step):
         return "step", {"seq": step["seq"], "tool": step["tool"], "status": step["status"], "result_summary": json.loads(step["result_summary"])}
 
-    def _history_messages(self, version, *, exclude_round_id=None, limit=10):
-        """TASK-07b R1: replay completed rounds as prior context for the LLM.
+    def _round_messages(self, round_):
+        calls, plan_summary = self.store.effective_calls(round_["id"])
+        remaining = self.store.steps(self.session_id, round_["id"])
+        pairs = []
+        for call in calls:
+            step = next((step for step in remaining if step.get("tool_call_id") == call["id"]), None)
+            if step is None:
+                # Legacy rows have no call id. Match name AND validated args;
+                # rejected raw-argument audit rows can never steal this slot.
+                step = next((step for step in remaining if step.get("tool_call_id") is None
+                             and step["tool"] == call["name"]
+                             and json.loads(step["arguments_json"]) == call["arguments"]), None)
+            if step is not None and step["status"] != "human_check_pending":
+                pairs.append((call, step))
+                remaining.remove(step)
+        messages = []
+        if pairs:
+            messages.append({"role": "assistant", "content": None, "tool_calls": [
+                {"id": call["id"], "type": "function", "function": {"name": call["name"],
+                 "arguments": _json(call["arguments"])}} for call, _ in pairs]})
+            messages.extend({"role": "tool", "tool_call_id": call["id"], "content": step["result_summary"]}
+                            for call, step in pairs)
+        rejected = [{"tool": step["tool"], **json.loads(step["result_summary"])} for step in remaining if step["status"] == "rejected"]
+        if rejected:
+            messages.append({"role": "system", "content": _json({"rejected": rejected})})
+        if plan_summary["skipped"] or plan_summary["rolled_back_from"] is not None:
+            messages.append({"role": "system", "content": _json(plan_summary)})
+        return messages
 
-        For each done round emit [user_message, assistant(tool_calls), tool results].
-        Steps align 1:1 with calls by order, so rejected calls surface as error
-        tool messages rather than dropping alignment.
-        """
+    def _history_messages(self, version, *, exclude_round_id=None, exclude_turn_id=None, limit=10):
+        """Replay actual answers and only complete call/result pairs."""
         prior = self.store.rounds(self.session_id, exclude_round_id=exclude_round_id, limit=limit)
         messages = []
+        seen_turns = set()
         for prior_round in prior:
-            messages.append({"role": "user", "content": prior_round["user_message"]})
-            calls, _ = self.store.effective_calls(prior_round["id"])
-            if calls:
-                messages.append({"role": "assistant", "content": None, "tool_calls": [
-                    {"id": call["id"], "type": "function",
-                     "function": {"name": call["name"], "arguments": _json(call["arguments"])}} for call in calls]})
-                steps = self.store.steps(self.session_id, prior_round["id"])
-                messages.extend({"role": "tool", "tool_call_id": call["id"], "content": step["result_summary"]}
-                                for call, step in zip(calls, steps))
+            turn_id = prior_round.get("turn_id") or prior_round["id"]
+            if turn_id == exclude_turn_id:
+                continue
+            if turn_id not in seen_turns:
+                messages.append({"role": "user", "content": prior_round["user_message"]})
+                seen_turns.add(turn_id)
+            messages.extend(self._round_messages(prior_round))
+            if prior_round.get("assistant_content"):
+                messages.append({"role": "assistant", "content": prior_round["assistant_content"]})
         return messages
 
     def _execute(self, round_, call, pending=None):
@@ -312,7 +399,7 @@ class StateMachine:
             status, summary = "error", {"error": error.code}
         elapsed = (perf_counter_ns() - started) // 1_000_000
         if pending is None:
-            step = self.store.add_step(round_, call["name"], call["arguments"], status, summary, elapsed)
+            step = self.store.add_step(round_, call["name"], call["arguments"], status, summary, elapsed, tool_call_id=call["id"])
         else:
             step = self.store.finish_step(pending, status, summary, elapsed)
         return step, error
@@ -329,6 +416,8 @@ class StateMachine:
                 parsed = self.llm.chat([{"role": "system", "content": version["system_prompt"]},
                                         *history, {"role": "user", "content": content}],
                                        json.loads(version["tools_json"]))
+                from .llm import validate_tool_response
+                validate_tool_response(parsed)
                 directive = _auto_confirm_directive(content)
                 if directive is not None:
                     self.store.set_auto_confirm(self.session_id, directive)
@@ -352,6 +441,7 @@ class StateMachine:
                 round_ = self.store.new_round(self.session_id, content, calls, status)
                 if not parsed.tool_calls:
                     self.state = State.CLARIFY
+                    self.store.save_answer(round_["id"], parsed.content or "")
                     yield "clarify", {"question": parsed.content or ""}
                     return
                 # PARSE rejects are audited immediately. Only validated calls
@@ -407,7 +497,7 @@ class StateMachine:
                 if tool.human_check and not auto_confirm:
                     summary = {key: value for key, value in call["arguments"].items()
                                if key in {"cube_id", "version_id", "revision", "class_code", "overwrite"} and value is not None}
-                    step = self.store.add_step(round_, call["name"], call["arguments"], "human_check_pending", summary, 0)
+                    step = self.store.add_step(round_, call["name"], call["arguments"], "human_check_pending", summary, 0, tool_call_id=call["id"])
                     self.state = State.HUMAN_CHECK
                     yield "human_check", {"check_id": step["id"], "tool": call["name"], "summary": summary, "reason": "标注版本确认"}
                     return
@@ -433,9 +523,12 @@ class StateMachine:
             if plan_summary["skipped"] or plan_summary["rolled_back_from"] is not None:
                 messages.append({"role": "system", "content": _json(plan_summary)})
             final = self.llm.chat(messages, None)
+            from .llm import validate_tool_response
+            validate_tool_response(final)
             if final.tool_calls:
                 raise DataError("LLM_UNEXPECTED_TOOL_CALL", "解读阶段禁止工具调用")
             self.store.round_status(round_["id"], "done")
+            self.store.save_answer(round_["id"], final.content or "")
             self.state = State.DONE
             yield "done", {"content": final.content or "", "step_count": len(steps)}
         except GeneratorExit:

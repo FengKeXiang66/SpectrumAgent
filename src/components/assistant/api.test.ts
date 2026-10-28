@@ -33,3 +33,16 @@ test('structured preflight HTTP status and errors pass through unchanged', async
   const send: InvokeAgent = async () => { throw error; };
   await assert.rejects(agentClient(send).sendMessage('s', { content: '查询' }), actual => actual === error);
 });
+
+test('workspace context projects opaque references and cannot leak display data or geometry', () => {
+  const workspace = { cube_id: 'cube-1', gesture_ref: 'g-0123456789abcdef0123456789abcdef',
+    path: 'private/source', name: 'private name', points: [[1, 2]], key: 'secret' };
+  assert.deepEqual(requests.sendMessage('session-1', { content: '用刚才的提示', workspace }), {
+    op: 'send_message', id: 'session-1', body: { content: '用刚才的提示', workspace: {
+      cube_id: 'cube-1', gesture_ref: 'g-0123456789abcdef0123456789abcdef',
+    } },
+  });
+  assert.deepEqual(requests.sendMessage('session-1', { check_id: 'check-1', decision: 'approve', workspace } as MessageBody), {
+    op: 'send_message', id: 'session-1', body: { check_id: 'check-1', decision: 'approve' },
+  });
+});

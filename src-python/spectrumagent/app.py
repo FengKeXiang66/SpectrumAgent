@@ -37,7 +37,8 @@ def create_app(paths, identity):
     app.include_router(make_models_router(app.state.annotation_sessions, app.state.preprocess_runner))
     app.state.agent_tools = build_registry(datasets=registry, runner=app.state.preprocess_runner,
                                           comparison=app.state.preprocess_compare, database=paths.database,
-                                          sessions=app.state.annotation_sessions, diffusion=app.state.diffusion_engine)
+                                          sessions=app.state.annotation_sessions, diffusion=app.state.diffusion_engine,
+                                          catalogue_version=2)
     app.state.agent_llm_factory = lambda session_id: OpenAICompatibleClient(paths.database, session_id=session_id)
     app.include_router(make_agent_router(paths.database, lambda: app.state.agent_tools,
                                         lambda session_id: app.state.agent_llm_factory(session_id)))

@@ -191,6 +191,9 @@ class RegisteredTool:
 class ToolRegistry:
     def __init__(self):
         self._tools = {}
+        # Compatibility handlers can remain executable for frozen old sessions
+        # while absent from every new model-facing catalogue.
+        self.hidden_names = set()
 
     def register(self, name, arguments, description, handler=None, *, human_check=False, gpu=False, estimate_ms=None):
         if name in self._tools:
@@ -207,7 +210,8 @@ class ToolRegistry:
 
     def snapshot(self):
         return [{"type": "function", "function": {"name": tool.name, "description": tool.description,
-                 "parameters": _parameters(tool.adapter)}} for tool in self._tools.values()]
+                 "parameters": _parameters(tool.adapter)}} for tool in self._tools.values()
+                if tool.name not in self.hidden_names]
 
     def validate(self, name, arguments):
         tool = self.resolve(name)
@@ -257,9 +261,12 @@ def _run_summary(row):
     return result
 
 
-def build_registry(*, datasets=None, runner=None, comparison=None, database=None, sessions=None, diffusion=None):
+def build_registry(*, datasets=None, runner=None, comparison=None, database=None, sessions=None, diffusion=None, catalogue_version=1):
     """Bind available services without constructing engines or making requests."""
     registry = ToolRegistry()
+    if catalogue_version not in (1, 2):
+        raise ValueError("unsupported tool catalogue version")
+    registry.catalogue_version = catalogue_version
 
     def list_datasets(arguments):
         with connect_database(datasets.database) as db:
@@ -273,7 +280,12 @@ def build_registry(*, datasets=None, runner=None, comparison=None, database=None
                 "dtype": dataset.dtype, "interleave": dataset.interleave}
 
     def run(arguments):
-        return _run_summary(runner.run(arguments.cube_id, arguments.annotation_version_id, arguments.recipe_version_id))
+        row = runner.run(arguments.cube_id, arguments.annotation_version_id, arguments.recipe_version_id)
+        result = _run_summary(row)
+        if catalogue_version == 2:
+            from .workflows import run_provenance
+            result.update(run_provenance(runner, row))
+        return result
 
     def compare(arguments):
         result = comparison.compare(arguments.cube_id, arguments.annotation_version_id, arguments.recipe_version_ids)
@@ -283,6 +295,12 @@ def build_registry(*, datasets=None, runner=None, comparison=None, database=None
         for row in result["ranking"]:
             for key in ("run_id", "recipe_version_id", "fisher"):
                 summary[f"rank_{row['rank']}_{key}"] = row[key]
+        if catalogue_version == 2:
+            from .workflows import comparison_notes, run_provenance
+            summary.update(comparison_notes(result))
+            if runner is not None:
+                for index, row in enumerate(result["runs"], 1):
+                    summary.update({f"run_{index}_{key}": value for key, value in run_provenance(runner, row).items()})
         return summary
 
     def settings(arguments):
@@ -312,4 +330,9 @@ def build_registry(*, datasets=None, runner=None, comparison=None, database=None
     registry.register("training_mat.export", ExportArguments, "训练 MAT 导出",
                       (lambda arguments: export(sessions, arguments)) if sessions is not None else None, estimate_ms=650)
     registry.register("settings.llm_get", NoArguments, "LLM 设置（无 key）", settings if database is not None else None)
+    if catalogue_version == 2:
+        registry.hidden_names.update({"annotations.draft_add_region", "annotations.draft_select_candidates"})
+        from .workflows import register_workflows
+        register_workflows(registry, datasets=datasets, runner=runner, comparison=comparison,
+                           sessions=sessions, diffusion=diffusion)
     return registry

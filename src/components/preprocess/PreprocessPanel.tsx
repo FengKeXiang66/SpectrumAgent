@@ -20,7 +20,7 @@ function MetricsView({ metrics }: { metrics: Metrics }) {
   </section>;
 }
 
-export default function PreprocessPanel({ record, onClose }: { record: DatasetRecord; onClose: () => void }) {
+export default function PreprocessPanel({ record, onClose, refreshVersion = 0 }: { record: DatasetRecord; onClose: () => void; refreshVersion?: number }) {
   const [recipes, setRecipes] = useState<Recipe[]>([]), [selected, setSelected] = useState<Recipe[]>([]);
   const [project, setProject] = useState<Project | null>(null), [labels, setLabels] = useState<Label[]>([]);
   const [versions, setVersions] = useState<Version[]>([]), [annotationVersion, setAnnotationVersion] = useState('');
@@ -32,16 +32,21 @@ export default function PreprocessPanel({ record, onClose }: { record: DatasetRe
   const [error, setError] = useState(''), [message, setMessage] = useState('');
   const recovery = useRef<{ recipe: string; before: RunSummary[] } | null>(null);
   const live = useRef(true);
+  const seenRefresh = useRef(refreshVersion);
   useEffect(() => {
     live.current = true;
     void Promise.all([preprocessing.listRecipes(), annotations.projects(), annotations.versions(record.id), preprocessing.listRuns(record.id)])
       .then(async ([library, projects, saved, rows]) => {
         if (!live.current) return;
         setRecipes(library); setVersions(saved.versions); setAnnotationVersion(saved.versions.at(-1)?.id ?? ''); setHistory(rows);
-        const current = projects[0] ?? null; setProject(current);
+        const current = projects.find(item => item.id === saved.working.project_id) ?? null; setProject(current);
         if (current) {
           const [chosen, schemas] = await Promise.all([preprocessing.listProjectRecipes(current.id), annotations.labels(current.id)]);
           if (live.current) { setSelected(chosen); setLabels(schemas.flatMap(schema => schema.labels)); }
+        }
+        if (refreshVersion > 0 && live.current && rows.length) {
+          const latest = [...rows].sort((left, right) => right.created_at.localeCompare(left.created_at))[0];
+          await showRun(await preprocessing.getRun(latest.id));
         }
       }).catch(error => { if (live.current) setError(describePreprocessError(error)); });
     return () => { live.current = false; };
@@ -59,6 +64,31 @@ export default function PreprocessPanel({ record, onClose }: { record: DatasetRe
       if (live.current) setReport(data);
     }
   };
+  useEffect(() => {
+    if (seenRefresh.current === refreshVersion || busy) return;
+    let cancelled = false;
+    void Promise.all([preprocessing.listRecipes(), annotations.versions(record.id), preprocessing.listRuns(record.id)])
+      .then(async ([library, saved, rows]) => {
+        if (cancelled || !live.current) return;
+        setRecipes(library); setVersions(saved.versions); setHistory(rows);
+        setAnnotationVersion(current => saved.versions.some(version => version.id === current) ? current : saved.versions.at(-1)?.id ?? '');
+        const latest = [...rows].sort((left, right) => right.created_at.localeCompare(left.created_at))[0];
+        if (latest) {
+          const result = await preprocessing.getRun(latest.id);
+          if (cancelled || !live.current) return;
+          setRun(result); setReport(null);
+          if (result.status === 'succeeded') {
+            const nextReport = await preprocessing.getArtifact(result.id, 'report');
+            if (!cancelled && live.current) setReport(nextReport);
+          }
+        }
+        if (!cancelled && live.current) {
+          seenRefresh.current = refreshVersion;
+          setMessage('已读回助手执行后的配方、标注版本与运行结果。');
+        }
+      }).catch(failure => { if (!cancelled && live.current) setError(describePreprocessError(failure)); });
+    return () => { cancelled = true; };
+  }, [refreshVersion, busy, record.id]);
   const refresh = async () => {
     const rows = await preprocessing.listRuns(record.id);
     if (!live.current) return;

@@ -80,10 +80,58 @@ where
 }
 
 #[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct WorkspaceContext {
+    #[serde(
+        default,
+        deserialize_with = "present_value",
+        skip_serializing_if = "Option::is_none"
+    )]
+    cube_id: Option<String>,
+    #[serde(
+        default,
+        deserialize_with = "present_value",
+        skip_serializing_if = "Option::is_none"
+    )]
+    gesture_ref: Option<String>,
+}
+
+fn gesture_reference(value: &str) -> bool {
+    value.len() == 34
+        && value.starts_with("g-")
+        && value
+            .bytes()
+            .skip(2)
+            .all(|c| c.is_ascii_digit() || (b'a'..=b'f').contains(&c))
+}
+
+impl WorkspaceContext {
+    fn validate(&self) -> Result<(), ForwardError> {
+        if let Some(cube) = &self.cube_id {
+            uuid(cube)?;
+        }
+        if self
+            .gesture_ref
+            .as_ref()
+            .is_some_and(|value| self.cube_id.is_none() || !gesture_reference(value))
+        {
+            return Err(invalid_request());
+        }
+        Ok(())
+    }
+}
+
+#[derive(Deserialize, Serialize)]
 #[serde(untagged, deny_unknown_fields)]
 pub enum MessageBody {
     Content {
         content: String,
+        #[serde(
+            default,
+            deserialize_with = "present_value",
+            skip_serializing_if = "Option::is_none"
+        )]
+        workspace: Option<WorkspaceContext>,
     },
     Answer {
         check_id: String,
@@ -129,9 +177,13 @@ impl AgentRequest {
             Self::SendMessage { id, body } => {
                 uuid(id)?;
                 match body {
-                    MessageBody::Content { content } if content.trim().is_empty() => {
+                    MessageBody::Content { content, .. } if content.trim().is_empty() => {
                         Err(invalid_request())
                     }
+                    MessageBody::Content {
+                        workspace: Some(workspace),
+                        ..
+                    } => workspace.validate(),
                     MessageBody::Answer { check_id, .. } => uuid(check_id),
                     MessageBody::Plan {
                         plan_id,
@@ -221,7 +273,7 @@ pub fn parse_sse(text: &str) -> Result<Value, ForwardError> {
             .ok_or_else(|| ForwardError::new("INVALID_BODY", "SSE 事件缺少类型"))?;
         if !matches!(
             name.as_str(),
-            "step" | "clarify" | "human_check" | "plan" | "done" | "error"
+            "step" | "clarify" | "human_check" | "plan" | "workspace" | "done" | "error"
         ) {
             return Err(ForwardError::new("INVALID_BODY", "SSE 事件类型非法"));
         }
@@ -229,6 +281,39 @@ pub fn parse_sse(text: &str) -> Result<Value, ForwardError> {
             .map_err(|_| ForwardError::new("INVALID_BODY", "SSE 数据不是有效JSON"))?;
         if !value.is_object() {
             return Err(ForwardError::new("INVALID_BODY", "SSE 数据必须为对象"));
+        }
+        if name == "workspace" {
+            let object = value.as_object().ok_or_else(invalid_request)?;
+            if object.keys().any(|key| {
+                ![
+                    "cube_id",
+                    "gesture_ref",
+                    "display_name",
+                    "stage",
+                    "revision",
+                ]
+                .contains(&key.as_str())
+            }) || !value
+                .get("cube_id")
+                .and_then(Value::as_str)
+                .is_some_and(|cube| uuid(cube).is_ok())
+                || value
+                    .get("gesture_ref")
+                    .is_some_and(|gesture| !gesture.as_str().is_some_and(gesture_reference))
+                || value
+                    .get("display_name")
+                    .is_some_and(|name| !name.is_string())
+                || value.get("stage").is_some_and(|stage| {
+                    !stage
+                        .as_str()
+                        .is_some_and(|value| ["annotation", "preprocess"].contains(&value))
+                })
+                || value
+                    .get("revision")
+                    .is_some_and(|revision| revision.as_u64().is_none())
+            {
+                return Err(ForwardError::new("INVALID_BODY", "SSE 工作区引用非法"));
+            }
         }
         events.push(json!({"event":name,"data":value}));
         data.clear();

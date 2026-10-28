@@ -3,6 +3,8 @@ import { describeError, mergeRecords, type DatasetRecord, type DatasetTransport,
 import AnnotationWorkbench from '../annotation/AnnotationWorkbench';
 import PreprocessPanel from '../preprocess/PreprocessPanel';
 import ModelPanel from '../modeling/ModelPanel';
+import type { WorkspaceContext } from '../assistant/api';
+import type { WorkspaceEventData } from '../assistant/sse';
 
 function BandCanvas({ preview, thumbnail = false }: { preview: Preview; thumbnail?: boolean }) {
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -40,7 +42,12 @@ function Thumbnail({ record, api }: { record: DatasetRecord; api: DatasetTranspo
     : error ? <span role="alert">{error}</span> : <span>缩略图读取中…</span>;
 }
 
-export default function DatasetPanel({ api }: { api: DatasetTransport }) {
+export default function DatasetPanel({ api, onRecordsChange, onWorkspaceChange, refreshVersions = {}, navigation, previewCandidates = {} }: {
+  api: DatasetTransport; onRecordsChange?(records: DatasetRecord[]): void;
+  onWorkspaceChange?(context: WorkspaceContext): void; refreshVersions?: Record<string, number>;
+  navigation?: WorkspaceEventData | null;
+  previewCandidates?: Record<string, string>;
+}) {
   const [records, setRecords] = useState<DatasetRecord[]>([]);
   const [annotation, setAnnotation] = useState<DatasetRecord | null>(null);
   const [preprocess, setPreprocess] = useState<DatasetRecord | null>(null);
@@ -56,6 +63,32 @@ export default function DatasetPanel({ api }: { api: DatasetTransport }) {
   const [previewBusy, setPreviewBusy] = useState(false);
   const live = useRef(true);
   const sequence = useRef(0);
+  useEffect(() => { onRecordsChange?.(records); }, [records, onRecordsChange]);
+  useEffect(() => {
+    if (!navigation) return;
+    let cancelled = false;
+    const show = (record: DatasetRecord) => {
+      if (cancelled) return;
+      setSelected(record); setModeling(false);
+      if (navigation.stage === 'annotation') { setAnnotation(record); setPreprocess(null); }
+      else if (navigation.stage === 'preprocess') { setAnnotation(null); setPreprocess(record); }
+      else {
+        setAnnotation(current => current ? record : null);
+        setPreprocess(current => current ? record : null);
+      }
+    };
+    const record = records.find(item => item.id === navigation.cube_id);
+    if (record) show(record);
+    else {
+      setAnnotation(null); setPreprocess(null); setModeling(false); setSelected(null); setPreview(null);
+      void api.get(navigation.cube_id).then(next => {
+        if (cancelled) return;
+        if (next.id !== navigation.cube_id) throw new Error('读取的数据与助手选择不一致，请重试。');
+        setRecords(current => mergeRecords(current, [next])); show(next);
+      }).catch(failure => { if (!cancelled) setError(describeError(failure)); });
+    }
+    return () => { cancelled = true; };
+  }, [navigation, records, api]);
   useEffect(() => {
     live.current = true;
     return () => { live.current = false; sequence.current++; };
@@ -64,6 +97,7 @@ export default function DatasetPanel({ api }: { api: DatasetTransport }) {
   const loadPreview = async (record: DatasetRecord, index: number) => {
     const request = ++sequence.current;
     setSelected(record); setBand(index); setPreview(null); setPreviewBusy(true); setError('');
+    onWorkspaceChange?.({ cube_id: record.id });
     try {
       const result = await api.preview(record.id, index);
       if (live.current && request === sequence.current) setPreview(result);
@@ -99,8 +133,10 @@ export default function DatasetPanel({ api }: { api: DatasetTransport }) {
   };
 
   if (annotation) return <AnnotationWorkbench key={annotation.id} record={annotation} records={records} datasets={api}
-    onNavigate={setAnnotation} onClose={() => setAnnotation(null)} />;
-  if (preprocess) return <PreprocessPanel key={preprocess.id} record={preprocess} onClose={() => setPreprocess(null)} />;
+    onWorkspaceChange={onWorkspaceChange} refreshVersion={refreshVersions[annotation.id] ?? 0}
+    previewCandidateRef={previewCandidates[annotation.id]}
+    onNavigate={next => { setAnnotation(next); onWorkspaceChange?.({ cube_id: next.id }); }} onClose={() => setAnnotation(null)} />;
+  if (preprocess) return <PreprocessPanel key={preprocess.id} record={preprocess} refreshVersion={refreshVersions[preprocess.id] ?? 0} onClose={() => setPreprocess(null)} />;
   if (modeling) return <ModelPanel records={records} onClose={() => setModeling(false)} />;
 
   return <section aria-label="数据集管理">
@@ -120,8 +156,8 @@ export default function DatasetPanel({ api }: { api: DatasetTransport }) {
           <td>{data.wavelengths.length ? `${data.wavelengths[0]}–${data.wavelengths.at(-1)}` : '未提供'}</td>
           <td>{data.metadata.value_mode === 'raw_dn' ? 'DN 原值' : '反射率'}{record.existing ? '（已有）' : ''}</td>
           <td><Thumbnail record={record} api={api} /><button onClick={() => { void loadPreview(record, 0); }}>预览 {data.name}</button>
-            <button disabled={busy} onClick={() => setAnnotation(record)}>标注 {data.name}</button>
-            <button disabled={busy} onClick={() => setPreprocess(record)}>预处理 {data.name}</button></td>
+            <button disabled={busy} onClick={() => { setAnnotation(record); onWorkspaceChange?.({ cube_id: record.id }); }}>标注 {data.name}</button>
+            <button disabled={busy} onClick={() => { setPreprocess(record); onWorkspaceChange?.({ cube_id: record.id }); }}>预处理 {data.name}</button></td>
         </tr>;
       })}</tbody>
     </table>

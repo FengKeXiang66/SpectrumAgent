@@ -117,8 +117,8 @@ class ChatResult(BaseModel):
 
 
 class LLMError(DataError):
-    def __init__(self, code: str, status: str):
-        super().__init__(code, code)
+    def __init__(self, code: str, status: str, detail=None):
+        super().__init__(code, detail or code)
         self.status = status
 
 
@@ -153,7 +153,11 @@ def _egress_blocked(value):
 
 
 def _parse_result(body):
+    if not isinstance(body, dict) or not isinstance(body.get("choices"), list) or not body["choices"]:
+        raise ValueError("invalid choices")
     choice = body["choices"][0]
+    if not isinstance(choice, dict) or not isinstance(choice.get("message"), dict):
+        raise ValueError("invalid message")
     message = choice["message"]
     return ChatResult(
         content=message.get("content"), finish_reason=choice.get("finish_reason"),
@@ -162,6 +166,35 @@ def _parse_result(body):
                     for call in (message.get("tool_calls") or [])],
         usage=Usage(**body["usage"]) if body.get("usage") is not None else None,
     )
+
+
+def validate_tool_response(result):
+    """Never execute tool-looking prose or a truncated tool response."""
+    if result.finish_reason in {"length", "max_tokens"}:
+        raise LLMError("LLM_OUTPUT_TRUNCATED", "http_error", "模型输出达到长度上限，请提高输出上限后重试")
+    if (re.search(r"<[^>]*(?:DSML|tool_calls?|invoke)\b", result.content or "", re.I)
+            or result.finish_reason == "tool_calls" and not result.tool_calls
+            or len({call.id for call in result.tool_calls}) != len(result.tool_calls)):
+        raise LLMError("LLM_TOOL_PROTOCOL", "http_error", "模型未返回有效的原生工具调用，请检查模型的工具调用兼容性")
+
+
+def _workflow_wire(messages, tools):
+    """Use portable function names at the provider boundary, retain domain names locally."""
+    if not any(tool["function"]["name"] == "annotations.prepare" for tool in tools or []):
+        return messages, tools, {}
+    mapping = {tool["function"]["name"]: "sa_" + tool["function"]["name"].replace(".", "__") for tool in tools}
+    if len(set(mapping.values())) != len(mapping):
+        raise LLMError("LLM_TOOL_PROTOCOL", "http_error")
+    wire_tools = [{**tool, "function": {**tool["function"], "name": mapping[tool["function"]["name"]]}} for tool in tools]
+    wire_messages = []
+    for message in messages:
+        item = dict(message)
+        if "tool_calls" in item:
+            item["tool_calls"] = [{**call, "function": {**call["function"],
+                                  "name": mapping.get(call["function"]["name"], call["function"]["name"])}}
+                                 for call in item["tool_calls"]]
+        wire_messages.append(item)
+    return wire_messages, wire_tools, {wire: name for name, wire in mapping.items()}
 
 
 def _parse_stream(response):
@@ -212,6 +245,7 @@ class OpenAICompatibleClient(LLMClient):
         settings = read_settings(self.database)
         names = [tool["function"]["name"] for tool in (tools or [])]
         usage = None
+        http_status, error_stage = None, None
         status, error = "http_error", "LLM_HTTP"
         try:
             if not settings.egress_enabled:
@@ -220,9 +254,10 @@ class OpenAICompatibleClient(LLMClient):
                 raise LLMError("EGRESS_BLOCKED", "blocked")
             if not settings.base_url or not settings.model:
                 raise LLMError("LLM_NOT_CONFIGURED", "http_error")
-            payload = {"model": settings.model, "messages": messages, "stream": stream}
-            if tools:
-                payload["tools"] = tools
+            wire_messages, wire_tools, reverse_names = _workflow_wire(messages, tools)
+            payload = {"model": settings.model, "messages": wire_messages, "stream": stream}
+            if wire_tools:
+                payload["tools"] = wire_tools
             if settings.temperature != "":
                 payload["temperature"] = float(settings.temperature)
             if settings.max_tokens != "":
@@ -236,34 +271,47 @@ class OpenAICompatibleClient(LLMClient):
                               follow_redirects=False) as client:
                 with client.stream("POST", settings.base_url.rstrip("/") + "/chat/completions",
                                    json=payload, headers=headers) as response:
+                    http_status = response.status_code
                     response.raise_for_status()
                     if stream:
                         result = _parse_stream(response)
                     else:
                         response.read()
                         result = _parse_result(response.json())
+            result.tool_calls = [call.model_copy(update={"name": reverse_names.get(call.name, call.name)}) for call in result.tool_calls]
+            validate_tool_response(result)
             usage = result.usage
             status, error = "ok", None
             return result
         except LLMError as exc:
             status, error = exc.status, exc.code
+            error_stage = "protocol" if exc.code in {"LLM_TOOL_PROTOCOL", "LLM_OUTPUT_TRUNCATED"} else "configuration"
             raise
         except httpx.TransportError:
             status, error = "transport_error", "LLM_TRANSPORT"
+            error_stage = "transport"
             raise LLMError(error, status) from None
-        except (httpx.HTTPError, ValueError, KeyError, IndexError, TypeError):
+        except httpx.HTTPStatusError:
+            status, error, error_stage = "http_error", "LLM_HTTP", "http"
+            explanation = ("模型服务鉴权失败，请检查密钥" if http_status in {401, 403} else
+                           "模型服务限流，请稍后重试" if http_status == 429 else
+                           "模型服务暂时不可用" if http_status is not None and http_status >= 500 else
+                           "模型服务拒绝请求，请检查模型与工具调用配置")
+            raise LLMError(error, status, f"{explanation}（HTTP {http_status}）") from None
+        except (httpx.HTTPError, ValueError, KeyError, IndexError, TypeError, AttributeError):
             # Never persist provider bodies, exception text, messages or headers.
             status, error = "http_error", "LLM_HTTP"
-            raise LLMError(error, status) from None
+            error_stage = "response"
+            raise LLMError(error, status, "模型响应格式不符合工具调用接口，请检查服务兼容性") from None
         finally:
             elapsed = (perf_counter_ns() - started) // 1_000_000
             with connect_database(self.database) as db:
                 db.execute("INSERT INTO llm_call "
                            "(id,session_id,model,prompt_sha256,tool_names,prompt_tokens,completion_tokens,"
-                           "total_tokens,latency_ms,status,error,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                           "total_tokens,latency_ms,status,error,created_at,http_status,error_stage) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                            (str(uuid4()), self.session_id, settings.model, digest,
                             _json(names) if names else None,
                             usage.prompt_tokens if usage else None,
                             usage.completion_tokens if usage else None,
                             usage.total_tokens if usage else None,
-                            elapsed, status, error, datetime.now(timezone.utc).isoformat()))
+                            elapsed, status, error, datetime.now(timezone.utc).isoformat(), http_status, error_stage))

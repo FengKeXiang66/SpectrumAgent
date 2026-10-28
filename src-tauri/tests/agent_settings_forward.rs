@@ -122,6 +122,14 @@ fn agent_three_operations_and_two_body_shapes_have_literal_routes()
             Some(json!({"content":"查询"})),
         ),
         (
+            json!({"op":"send_message","id":ID,"body":{"content":"用刚才的提示标注","workspace":{"cube_id":ID,"gesture_ref":"g-0123456789abcdef0123456789abcdef"}}}),
+            format!("/api/v1/agent/sessions/{ID}/messages"),
+            "POST",
+            Some(
+                json!({"content":"用刚才的提示标注","workspace":{"cube_id":ID,"gesture_ref":"g-0123456789abcdef0123456789abcdef"}}),
+            ),
+        ),
+        (
             json!({"op":"send_message","id":ID,"body":{"check_id":ID,"decision":"approve"}}),
             format!("/api/v1/agent/sessions/{ID}/messages"),
             "POST",
@@ -229,6 +237,12 @@ fn whitelist_rejects_paths_methods_and_mixed_message_shapes() {
         json!({"op":"get_steps","id":ID,"url":"https://example.com"}),
         json!({"op":"proxy","path":"/health"}),
         json!({"op":"send_message","id":ID,"body":{"content":""}}),
+        json!({"op":"send_message","id":ID,"body":{"content":"查询","workspace":null}}),
+        json!({"op":"send_message","id":ID,"body":{"content":"查询","workspace":{"cube_id":"../health"}}}),
+        json!({"op":"send_message","id":ID,"body":{"content":"查询","workspace":{"cube_id":ID,"gesture_ref":"bad-reference"}}}),
+        json!({"op":"send_message","id":ID,"body":{"content":"查询","workspace":{"gesture_ref":"g-0123456789abcdef0123456789abcdef"}}}),
+        json!({"op":"send_message","id":ID,"body":{"content":"查询","workspace":{"cube_id":ID,"points":[[1,2]]}}}),
+        json!({"op":"send_message","id":ID,"body":{"check_id":ID,"decision":"approve","workspace":{"cube_id":ID}}}),
         json!({"op":"send_message","id":ID,"body":{"content":"query","check_id":ID,"decision":"approve"}}),
         json!({"op":"send_message","id":ID,"body":{"check_id":ID,"decision":"maybe"}}),
         json!({"op":"send_message","id":ID,"body":{"check_id":"../health","decision":"approve"}}),
@@ -382,6 +396,27 @@ fn sse_empty_done_suspended_human_check_and_error_close() -> Result<(), Box<dyn 
         "event: done\ndata: []\n\n",
     ] {
         assert!(agent::parse_sse(bad).is_err());
+    }
+    Ok(())
+}
+
+#[test]
+fn workspace_events_keep_only_bound_scalar_references() -> Result<(), Box<dyn std::error::Error>> {
+    let selection = json!({"cube_id":ID,"display_name":"样本一","stage":"annotation","revision":0});
+    let text = format!("event: workspace\ndata: {selection}\n\n");
+    assert_eq!(
+        agent::parse_sse(&text)?,
+        json!({"events":[{"event":"workspace","data":selection}]})
+    );
+    for value in [
+        json!({"cube_id":"../health"}),
+        json!({"cube_id":ID,"path":"sensitive"}),
+        json!({"cube_id":ID,"stage":"unknown"}),
+        json!({"cube_id":ID,"revision":-1}),
+        json!({"cube_id":ID,"gesture_ref":null}),
+        json!({"cube_id":ID,"display_name":["sample"]}),
+    ] {
+        assert!(agent::parse_sse(&format!("event: workspace\ndata: {value}\n\n")).is_err());
     }
     Ok(())
 }
