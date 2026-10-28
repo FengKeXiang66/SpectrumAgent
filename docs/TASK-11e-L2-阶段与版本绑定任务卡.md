@@ -33,7 +33,9 @@ rg -n "denied_candidate|denied_save|denied_defaults" src-python/spectrumagent/ag
 | `src-python/spectrumagent/agent/workflow.py` | 改（阶段守卫一条；`need_version` 归入 needs_input 路径） |
 | `src-python/spectrumagent/agent/tools/workflows.py` | 改（**仅 `run_default` 与它的工具描述**） |
 | `src-python/tests/agent/test_stages.py` | 新建 |
-| `src-python/tests/agent/test_conversation_workflows.py` | 改 |
+| `src-python/tests/agent/test_conversation_workflows.py` | 改（两处，见 §5 用例 M/N） |
+| `src-python/tests/agent/test_workflows.py` | 改（**仅 `test_preprocess_defaults_discovery_real_comparison_and_no_paths`**，见 §5 用例 O） |
+| `src-python/tests/agent/test_context_references.py` | 改（**仅 `test_real_ids_and_none_are_never_rewritten_or_injected` 的参数表**，见 §5 用例 P） |
 | `docs/TASK-11-对话标注与预处理实现方案.md` | 改（§11 追加一行进度） |
 
 ## §3 明确不做（越界即停）
@@ -44,6 +46,7 @@ rg -n "denied_candidate|denied_save|denied_defaults" src-python/spectrumagent/ag
 - 不做多候选共存、不做无种子候选、不做前端 choices。
 - 不改 `annotations.*` 任何工具的 schema 或描述。
 - **不改 `DefaultRunArguments` 的字段类型（保持 `Optional`）**——理由见 §4.3，改必填会直接失效。
+- **三个既有测试文件只准改 §5 点名的五处**（用例 M/N/O/P），同文件其它用例一律不动；改测试是为了跟上契约变更，**不是为了让它变绿而放宽断言**。
 
 ## §4 实现要求
 
@@ -124,6 +127,21 @@ def evaluate_task(state, artifacts):
 
 `requested_stages` 为空时行为与 L0 完全一致（不得改变现有 11 条用例的期望）。
 
+### 4.6 `need_version` 必须进 needs_input（易漏，且**不得写进 state**）
+
+`evaluate_task` 现在的 needs_input 三源只认 `need_seed` / `need_annotation`。本卡新增的 `need_version` **必须加进去**，否则"缺版本"会被判成 `working`，前端不会提示用户补信息：
+
+```python
+if (state.get("next_action") in {"need_seed", "need_annotation", "need_version"}
+        or artifacts.get("last_status") in {"need_seed", "need_annotation", "need_version"}
+        or error in {...}):
+    return "needs_input"
+```
+
+**但 `observe` 不得为此写 `state["next_action"]`。** 现有逻辑只在有 `run_id` 时才动 `next_action`，缺版本时没有 `run_id` —— 这个"什么都不记"的行为是**被测试保护的契约**：`test_task_result_uses_local_need_annotation_without_changing_context` 明确断言 context 里不得出现 `next_action` / `last_error` / `last_status`。
+
+判定走 `artifacts["last_status"]` 即可：`workflow.py` 已经会把最后一个执行步骤的 `result_summary["status"]` 传进 `evaluate_task`（L0 建立的机制）。**因此本卡只需改 `task.py` 的一个集合字面量，不碰 `context.py` 的 observe 写入。**
+
 ## §5 验收用例
 
 | 编号 | 用例 | 期望 |
@@ -140,6 +158,18 @@ def evaluate_task(state, artifacts):
 | J | 工具描述变更后启动 | `ensure_workflow_skill` 生成新 skill 版本；存量会话升级后仍能 continue（**这条同时覆盖 L0b 未做项**） |
 | K | `CONTEXT_KEYS` 含两新键；L0 的 H 漂移检查仍绿 | 两条都过 |
 | L | 回归 | `src-python/tests/agent` 全绿（≥415）；`src-python/tests backend/tests --ignore=src-python/tests/agent` 全绿（≥976） |
+
+### 既有用例的四处跟随修改（2026-10-29 补，逐处写死）
+
+| 编号 | 文件与位置 | 现状 | 改为 |
+|---|---|---|---|
+| M | `test_conversation_workflows.py` L170 的 `FakeLLM`：`invoke("preprocess.run_default", cube_id=cube_id)` 后断言 `status == "succeeded"` | 依赖隐式取最新版本 + 内置配方 | 先取 `state["annotation_version_id"]` 与 `state["recipe_version_id"]` 一并传入；若二者缺失则断言 `status == "need_version"` 并结束该分支 |
+| N | 同文件 `test_task_result_uses_local_need_annotation_without_changing_context`（def 在 L577，断言在 L580-585） | 断言 `status == "need_annotation"` | 断言 `status == "need_version"`；函数名里的 `need_annotation` 改为 `need_version`；**末尾三条 `"last_status" / "next_action" / "last_error" 不在 context 中` 的断言原样保留**（§4.6 已保证 observe 不写这些键）；`task_result == "needs_input"` 保持不变 |
+| O | `test_workflows.py` `test_preprocess_defaults_discovery_real_comparison_and_no_paths` L240 | `== "need_annotation"` | `== "need_version"` 且 `missing == "annotation_version"` |
+| O2 | 同用例 L245-247 | 只传 `cube_id` 就期望 `succeeded`，并断言 `step_1_op=="snv"`、`step_2_op=="sg_derivative"` | 先 `recipe = invoke(c, "preprocess.recipe_ensure", profile="snv_sg1")`，再 `invoke(..., annotation_version_id=saved["version_id"], recipe_version_id=recipe["recipe_version_id"])`；**L246-247 两条断言原样保留**（仍应命中 snv + sg_derivative） |
+| P | `test_context_references.py` `test_real_ids_and_none_are_never_rewritten_or_injected` 的参数表 | 含 `("preprocess.run_default", "recipe_version_id", None)`，断言 None **不被注入** | **删除该参数项**（L1 契约"L1 不注入 None"已被 L2 主动取代）；该函数名与其余三项保持不动，注入行为改由本卡 §5 用例 E 覆盖 |
+
+`test_workflows.py` L253 的 `recipe_count == 2` 不需要改：`recipe_ensure("snv_sg1")` 复用内置 `BUILTIN_CODE`，不新增配方。
 
 ## §6 证据与提交
 
