@@ -66,7 +66,10 @@ def generate(machine, *, content=None, workspace=None, continuation=None, decisi
     workspace_sent = None
     try:
         version = store.skill(session_id)
-        tools = json.loads(version["tools_json"])
+        # The tool catalogue comes from the live registry, not the stored skill row:
+        # the two can disagree after an upgrade, and only the live catalogue describes
+        # what the model may actually call. Prompt and examples still come from the skill.
+        tools = machine.tools.snapshot()
         state = store.context(session_id)
         if continuation is None:
             state = memory.remember_user(state, content, workspace)

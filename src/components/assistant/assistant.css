@@ -11,6 +11,8 @@
 .assistant-logs li { margin: 3px 0; white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 .assistant-context { border-left: 3px solid #377495; padding: 6px 10px; background: #edf5f8; }
 .assistant-bar > small { margin-left: 8px; color: #52616a; }
+/* The running orchestration version is stated by the engine, not inferred. */
+.assistant-runtime { margin: 2px 0 6px; font-size: 0.82em; color: #52616a; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 .assistant-datasets { max-height: 20vh; overflow-y: auto; padding: 4px 10px; border: 1px solid #d8e2e8; }
 .assistant-datasets p { margin: 4px 0; }
 .assistant-datasets li { margin: 5px 0; }

@@ -161,6 +161,7 @@ pub enum AgentRequest {
     CreateSession {},
     SendMessage { id: String, body: MessageBody },
     GetSteps { id: String },
+    GetRuntime {},
 }
 
 pub fn parse_request(value: Value) -> Result<AgentRequest, ForwardError> {
@@ -174,6 +175,7 @@ impl AgentRequest {
         match self {
             Self::CreateSession {} => Ok(()),
             Self::GetSteps { id } => uuid(id),
+            Self::GetRuntime {} => Ok(()),
             Self::SendMessage { id, body } => {
                 uuid(id)?;
                 match body {
@@ -225,6 +227,11 @@ impl AgentRequest {
             ),
             Self::GetSteps { id } => (
                 format!("/api/v1/agent/sessions/{id}/steps"),
+                Method::GET,
+                None,
+            ),
+            Self::GetRuntime {} => (
+                "/api/v1/agent/runtime".into(),
                 Method::GET,
                 None,
             ),

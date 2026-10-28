@@ -116,6 +116,12 @@ fn agent_three_operations_and_two_body_shapes_have_literal_routes()
             None,
         ),
         (
+            json!({"op":"get_runtime"}),
+            "/api/v1/agent/runtime".into(),
+            "GET",
+            None,
+        ),
+        (
             json!({"op":"send_message","id":ID,"body":{"content":"查询"}}),
             format!("/api/v1/agent/sessions/{ID}/messages"),
             "POST",

@@ -7,7 +7,7 @@ from starlette.responses import StreamingResponse
 
 from spectrumagent.agent.llm import OpenAICompatibleClient, _json
 from spectrumagent.agent.state import AgentStore, StateMachine
-from spectrumagent.agent.skill import ensure_workflow_skill, _write
+from spectrumagent.agent.skill import active_skill, ensure_workflow_skill, _write
 from backend.database import connect_database
 
 
@@ -55,10 +55,17 @@ class PlanChange(AgentInput):
 PlanMessage = Annotated[PlanApproval | PlanRejection | PlanChange, Field(discriminator="action")]
 
 
-def make_router(database, tools, llm_factory=None):
+def make_router(database, tools, llm_factory=None, runtime_info=None):
     router = APIRouter(prefix="/api/v1/agent", tags=["agent"])
     store = AgentStore(database)
     factory = llm_factory or (lambda session_id: OpenAICompatibleClient(database, session_id=session_id))
+
+    def describe_runtime(registry):
+        """Report which orchestration is actually running, not a guessed version."""
+        info = dict(runtime_info or {})
+        info.setdefault("tool_catalogue_version", getattr(registry, "catalogue_version", 1))
+        info.setdefault("tool_count", len(registry.snapshot()))
+        return info
 
     @router.post("/sessions")
     def create_session(body: CreateSession):
@@ -71,7 +78,13 @@ def make_router(database, tools, llm_factory=None):
                 if getattr(error, "code", None) == "SKILL_NOT_ACTIVE":
                     error.status_code = 409
                 raise
-        return store.create_session()
+        session = store.create_session()
+        with connect_database(database) as db:
+            skill = active_skill(db)
+        session["skill_name"] = skill["name"]
+        session["skill_version_no"] = skill["version_no"]
+        session["runtime"] = describe_runtime(registry)
+        return session
 
     @router.post("/sessions/{session_id}/messages", response_class=StreamingResponse,
                  responses={200: {"content": {"text/event-stream": {"schema": {"type": "string"}}}}})
@@ -85,6 +98,30 @@ def make_router(database, tools, llm_factory=None):
             finally:
                 events.close()
         return StreamingResponse(encode(), media_type="text/event-stream")
+
+    @router.get("/runtime")
+    def runtime():
+        """Observable runtime version of the orchestration actually in use."""
+        registry = tools()
+        with connect_database(database) as db:
+            try:
+                skill = active_skill(db)
+            except Exception:
+                skill = {"name": None, "id": None, "version_no": None}
+            sessions = db.execute(
+                "SELECT s.id, v.name FROM agent_session s JOIN skill_version v ON v.id=s.skill_version_id"
+            ).fetchall()
+        by_skill = {}
+        for _identifier, name in sessions:
+            by_skill[name] = by_skill.get(name, 0) + 1
+        info = describe_runtime(registry)
+        info.update({
+            "skill_name": skill["name"],
+            "skill_version_id": skill["id"],
+            "skill_version_no": skill["version_no"],
+            "sessions_by_skill": by_skill,
+        })
+        return info
 
     @router.get("/sessions/{session_id}/steps")
     def steps(session_id: str):

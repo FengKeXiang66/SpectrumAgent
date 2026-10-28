@@ -11,6 +11,8 @@ from spectrumagent.api.agent import make_router as make_agent_router
 from spectrumagent.api.models import make_router as make_models_router
 from spectrumagent.agent.llm import OpenAICompatibleClient
 from spectrumagent.agent.tools import build_registry
+from spectrumagent.agent.skill import ensure_workflow_skill, upgrade_builtin_sessions, _write
+from backend.database import connect_database
 from spectrumagent.api.registry import DatasetRegistry
 from spectrumagent.annotation.labels import LabelStore
 from spectrumagent.annotation.engines.superpixels import SuperpixelEngine
@@ -19,6 +21,25 @@ from spectrumagent.annotation.session import SessionStore
 from spectrumagent.data import DataError
 from spectrumagent.preprocess.run import RunEngine
 from spectrumagent.preprocess.compare import CompareEngine
+
+
+def publish_agent_workflow(database, registry):
+    """Startup self-check: ensure the built-in v2 skill exists and rebind v1 sessions.
+
+    Returns the observable runtime version so callers can report which orchestration
+    is actually running instead of inferring it from file timestamps.
+    """
+    with connect_database(database) as db, _write(db):
+        skill = ensure_workflow_skill(db, registry)
+        upgrade = upgrade_builtin_sessions(db, registry)
+    return {
+        "skill_name": skill["name"],
+        "skill_version_id": skill["id"],
+        "skill_version_no": skill["version_no"],
+        "tool_catalogue_version": getattr(registry, "catalogue_version", 1),
+        "tool_count": len(registry.snapshot()),
+        "sessions_upgraded": upgrade["upgraded"],
+    }
 
 
 def create_app(paths, identity):
@@ -40,8 +61,13 @@ def create_app(paths, identity):
                                           sessions=app.state.annotation_sessions, diffusion=app.state.diffusion_engine,
                                           catalogue_version=2)
     app.state.agent_llm_factory = lambda session_id: OpenAICompatibleClient(paths.database, session_id=session_id)
+    # Startup self-check: publish the built-in v2 skill and rebind sessions that still
+    # hold the built-in v1 skill. Without this the upgrade only happens when a new
+    # session is created, so an existing installation keeps running v1 forever.
+    app.state.agent_bootstrap = publish_agent_workflow(paths.database, app.state.agent_tools)
     app.include_router(make_agent_router(paths.database, lambda: app.state.agent_tools,
-                                        lambda session_id: app.state.agent_llm_factory(session_id)))
+                                        lambda session_id: app.state.agent_llm_factory(session_id),
+                                        runtime_info=app.state.agent_bootstrap))
     original_validation_handler = app.exception_handlers[RequestValidationError]
 
     @app.exception_handler(DataError)

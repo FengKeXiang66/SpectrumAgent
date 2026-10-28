@@ -75,6 +75,10 @@ CREATE TABLE IF NOT EXISTS agent_step (
   created_at      TEXT NOT NULL,
   tool_call_id    TEXT             -- stable association, never zip by step position
 );
+-- G8：内置 SKILL 升级守卫（agent_session.skill_version_id 的唯一合法改道）
+CREATE TABLE IF NOT EXISTS skill_upgrade_guard (
+  id            INTEGER PRIMARY KEY CHECK (id = 1)  -- 单行守卫，存在期间允许一次内置 v1→v2 重绑
+);
 -- G5：标注草稿（每 cube 一条活草稿）
 CREATE TABLE IF NOT EXISTS annotation_draft (
   cube_id            TEXT PRIMARY KEY REFERENCES dataset_registry(id),

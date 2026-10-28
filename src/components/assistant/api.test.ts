@@ -13,11 +13,13 @@ test('all agent operations invoke only agent_forward with exact projection', asy
   assert.deepEqual(await api.sendMessage('session-1', { content: '查询' }), { events: [] });
   await api.sendMessage('session-1', { check_id: 'check-1', decision: 'approve' });
   await api.getSteps('session-1');
+  await api.getRuntime();
   assert.deepEqual(calls, [
     { command: 'agent_forward', request: { op: 'create_session' } },
     { command: 'agent_forward', request: { op: 'send_message', id: 'session-1', body: { content: '查询' } } },
     { command: 'agent_forward', request: { op: 'send_message', id: 'session-1', body: { check_id: 'check-1', decision: 'approve' } } },
     { command: 'agent_forward', request: { op: 'get_steps', id: 'session-1' } },
+    { command: 'agent_forward', request: { op: 'get_runtime' } },
   ]);
 });
 

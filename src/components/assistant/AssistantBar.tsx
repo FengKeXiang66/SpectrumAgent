@@ -1,5 +1,5 @@
-import { useReducer, useRef, useState } from 'react';
-import { agent, type MessageBody, type WorkspaceContext } from './api.ts';
+import { useEffect, useReducer, useRef, useState } from 'react';
+import { agent, type MessageBody, type RuntimeInfo, type WorkspaceContext } from './api.ts';
 import { initialChat, reduceChat, scalarText, friendlyError, requestError, validateWorkspaceEvent, type ChatEntry, type PendingCheck, type WorkspaceEventData } from './sse.ts';
 import { changedCubes, datasetChoices, proposedCandidates, readableText } from './presentation.ts';
 import type { DatasetRecord } from '../datasets/types.ts';
@@ -28,9 +28,17 @@ export default function AssistantBar({ enabled, workspace = {}, displayName, rec
 }) {
   const [state, dispatch] = useReducer(reduceChat, initialChat);
   const [content, setContent] = useState('');
+  const [runtime, setRuntime] = useState<RuntimeInfo | null>(null);
   const sessionId = useRef<string | null>(null);
   // Ref closes the double-click gap before React commits disabled buttons.
   const inFlight = useRef(false);
+  // The running orchestration version is read from the engine, never guessed from
+  // file timestamps, so the badge always states what is really executing.
+  useEffect(() => {
+    let cancelled = false;
+    void agent.getRuntime().then(value => { if (!cancelled) setRuntime(value); }).catch(() => undefined);
+    return () => { cancelled = true; };
+  }, []);
   const choices = datasetChoices(state.entries, records);
   const selected = records.find(record => record.id === workspace.cube_id);
   const selectedChoice = choices.find(choice => choice.id === workspace.cube_id);
@@ -78,6 +86,9 @@ export default function AssistantBar({ enabled, workspace = {}, displayName, rec
       开始新对话
     </button>
     <small>新对话使用当前编排能力，保留当前数据选择。</small>
+    <p className="assistant-runtime" aria-label="当前编排版本">{runtime?.skill_name
+      ? `当前编排：${runtime.skill_name} · 工具目录 v${runtime.tool_catalogue_version} · ${runtime.tool_count} 个工具`
+      : '当前编排版本读取中…'}</p>
     <p className="assistant-context" aria-label="当前对话对象">{workspace.cube_id
       ? `当前数据：${selected?.dataset.name || selectedChoice?.label || displayName || workspace.cube_id.slice(0, 8)}${workspace.gesture_ref ? ' · 已带入最近的画布提示' : ''}`
       : '可在工作台选择数据，或直接告诉助手要处理哪份数据。'}</p>

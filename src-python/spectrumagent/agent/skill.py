@@ -161,6 +161,39 @@ def ensure_workflow_skill(db, registry):
         return switch(db, created["id"])
 
 
+def upgrade_builtin_sessions(db, registry):
+    """Rebind sessions that still hold the built-in v1 skill onto the active built-in skill.
+
+    Sessions may only move forward along the built-in chain (v1 -> v2). A session that
+    holds a custom or retired skill keeps it. The session row stays append-only for
+    every other column; only skill_version_id changes, and only through this function.
+    """
+    with _write(db):
+        current = active_skill(db)
+        if current["name"] != WORKFLOW_NAME:
+            return {"upgraded": 0, "skill_version_id": current["id"]}
+        # The guard table and trigger are installed by agent.state.install_guards during
+        # startup migration; create them defensively so this function is safe to call
+        # from any bootstrap path.
+        db.execute("""CREATE TABLE IF NOT EXISTS skill_upgrade_guard (
+            id INTEGER PRIMARY KEY CHECK (id = 1))""")
+        rows = db.execute(
+            "SELECT s.id FROM agent_session s JOIN skill_version v ON v.id=s.skill_version_id "
+            "WHERE v.name=? AND s.skill_version_id<>?",
+            (SEED_NAME, current["id"])).fetchall()
+        upgraded = 0
+        db.execute("INSERT OR IGNORE INTO skill_upgrade_guard (id) VALUES (1)")
+        try:
+            for (identifier,) in rows:
+                db.execute("UPDATE agent_session SET skill_version_id=? WHERE id=? AND skill_version_id IN "
+                           "(SELECT id FROM skill_version WHERE name=?)",
+                           (current["id"], identifier, SEED_NAME))
+                upgraded += 1
+        finally:
+            db.execute("DELETE FROM skill_upgrade_guard")
+        return {"upgraded": upgraded, "skill_version_id": current["id"]}
+
+
 def append_draft(db, *, name, system_prompt, tools_json, examples_json, note=None):
     """All new content is supplied explicitly; version/id/time are server rules."""
     from .tools import validate_snapshot

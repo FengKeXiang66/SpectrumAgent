@@ -37,12 +37,28 @@ def stream(case, session_id, body):
 def test_create_session_snapshots_active_skill_and_get_steps(settings_api):
     c = settings_api
     session = configure(c, FakeLLM())
-    assert set(session) == {"id", "title", "skill_version_id", "created_at"} and session["title"] == ""
+    assert set(session) == {"id", "title", "skill_version_id", "created_at",
+                             "skill_name", "skill_version_no", "runtime"} and session["title"] == ""
     with connect_database(c.database) as db:
         assert session["skill_version_id"] == skill.active_skill(db)["id"]
+    # The runtime block reports which orchestration actually runs, so the version is
+    # verifiable instead of inferred from file timestamps.
+    assert session["skill_name"]
+    assert session["runtime"]["tool_catalogue_version"] >= 1
+    assert session["runtime"]["tool_count"] >= 1
     response = c.client.get(f"{BASE}/{session['id']}/steps")
     assert response.json() == {"session_id": session["id"], "steps": []}
     assert response.headers["X-SpectrumAgent-Boot-Id"] == c.identity.boot_id
+
+
+def test_runtime_endpoint_reports_active_skill_and_session_distribution(settings_api):
+    c = settings_api
+    session = configure(c, FakeLLM())
+    runtime = c.client.get("/api/v1/agent/runtime").json()
+    assert runtime["skill_name"] == session["skill_name"]
+    assert runtime["skill_version_id"] == session["skill_version_id"]
+    assert runtime["tool_catalogue_version"] >= 1
+    assert runtime["sessions_by_skill"][runtime["skill_name"]] >= 1
 
 
 def test_sse_step_done_and_get_step_fields(settings_api):

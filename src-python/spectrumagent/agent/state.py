@@ -62,7 +62,7 @@ def _failure(code, detail, status=400):
 
 def install_guards(db):
     for table, columns in (
-        ("agent_session", "id,skill_version_id,created_at"),
+        ("agent_session", "id,created_at"),
         ("agent_round", "id,session_id,seq,user_message,calls_json,created_at,turn_id"),
         ("agent_step", "id,session_id,round_id,seq,tool,arguments_json,created_at,tool_call_id"),
         ("agent_plan_action", "id,session_id,round_id,action,seq_ref,reason,created_at"),
@@ -73,6 +73,21 @@ def install_guards(db):
             BEGIN SELECT RAISE(ABORT,'AGENT_IMMUTABLE'); END""")
         db.execute(f"""CREATE TRIGGER IF NOT EXISTS {table}_no_delete BEFORE DELETE ON {table}
             BEGIN SELECT RAISE(ABORT,'AGENT_IMMUTABLE'); END""")
+    # skill_version_id moves only through the sanctioned built-in v1 -> v2 upgrade.
+    # It is guarded separately: the update is allowed only while the upgrade guard row
+    # exists and only toward the active built-in skill. Every other attempt aborts.
+    db.execute("""CREATE TABLE IF NOT EXISTS skill_upgrade_guard (
+        id INTEGER PRIMARY KEY CHECK (id = 1))""")
+    db.execute("DROP TRIGGER IF EXISTS agent_session_skill_upgrade")
+    db.execute("""CREATE TRIGGER agent_session_skill_upgrade
+        BEFORE UPDATE OF skill_version_id ON agent_session
+        WHEN NOT EXISTS (SELECT 1 FROM skill_upgrade_guard)
+          OR NEW.skill_version_id NOT IN (SELECT id FROM skill_version WHERE status='active')
+        BEGIN SELECT RAISE(ABORT,'AGENT_IMMUTABLE'); END""")
+    db.execute("""CREATE TRIGGER IF NOT EXISTS skill_upgrade_guard_once
+        BEFORE INSERT ON skill_upgrade_guard
+        WHEN (SELECT COUNT(*) FROM skill_upgrade_guard) >= 1
+        BEGIN SELECT RAISE(ABORT,'AGENT_IMMUTABLE'); END""")
     db.execute("""CREATE TRIGGER IF NOT EXISTS agent_title_once BEFORE UPDATE OF title ON agent_session
         WHEN NOT (OLD.title='' AND NEW.title IS NOT NULL AND length(NEW.title)>0)
         BEGIN SELECT RAISE(ABORT,'AGENT_IMMUTABLE'); END""")
@@ -288,8 +303,14 @@ class StateMachine:
         self.state = State.IDLE  # Request-local execution phase, never a recovery source.
 
     def _workflow_enabled(self):
+        """Decide the execution path from the tool catalogue actually in use.
+
+        The catalogue is what the model may call, so it is the only honest source of
+        truth. Reading the stored skill's tools_json instead would let a stale skill
+        row disagree with the live registry and silently pick the wrong state machine.
+        """
         return any(tool["function"]["name"] == "annotations.prepare"
-                   for tool in json.loads(self.store.skill(self.session_id)["tools_json"]))
+                   for tool in self.tools.snapshot())
 
     def message(self, *, content=None, check_id=None, decision=None, plan_id=None, action=None, step_ref=None, reason=None, workspace=None):
         if plan_id is not None and content is None and check_id is None and decision is None:
@@ -415,7 +436,7 @@ class StateMachine:
                 history = self._history_messages(version)
                 parsed = self.llm.chat([{"role": "system", "content": version["system_prompt"]},
                                         *history, {"role": "user", "content": content}],
-                                       json.loads(version["tools_json"]))
+                                       self.tools.snapshot())
                 from .llm import validate_tool_response
                 validate_tool_response(parsed)
                 directive = _auto_confirm_directive(content)

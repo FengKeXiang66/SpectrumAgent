@@ -2691,6 +2691,26 @@
         }
       }
     },
+    "/api/v1/agent/runtime": {
+      "get": {
+        "tags": [
+          "agent"
+        ],
+        "summary": "Runtime",
+        "description": "Observable runtime version of the orchestration actually in use.",
+        "operationId": "runtime_api_v1_agent_runtime_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/agent/sessions/{session_id}/steps": {
       "get": {
         "tags": [

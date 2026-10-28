@@ -110,7 +110,8 @@ test('unrecognized approval dialogue keeps its card while terminal outcomes clea
     assert.deepEqual(waiting.pending, card.data);
     assert.equal(waiting.busy, false);
     assert.equal(reduceChat(waiting, { type: 'send', content: '同意' }).busy, true);
-    for (const terminal of [done, error, { event: 'clarify', data: { question: '请选择数据' } } as AgentEvent]) {
+    const terminals: AgentEvent[] = [done, error, { event: 'clarify', data: { question: '请选择数据' } } as AgentEvent];
+    for (const terminal of terminals) {
       assert.equal(reduceChat(sending, { type: 'events', events: [terminal] }).pending, null);
     }
     assert.deepEqual(parseSse(encode([clarify])), [clarify]);

@@ -31,7 +31,7 @@ def test_only_nine_tables_match_card_ddl_and_comments_are_split_safe():
     with sqlite3.connect(":memory:") as db, sqlite3.connect(":memory:") as expected:
         migrate(db)
         expected.executescript(card_ddl)
-        tables = {"llm_settings", "llm_call", "skill_version", "agent_session", "agent_round", "agent_step", "annotation_draft", "training_mat", "agent_plan_action"}
+        tables = {"llm_settings", "llm_call", "skill_version", "agent_session", "agent_round", "agent_step", "annotation_draft", "training_mat", "agent_plan_action", "skill_upgrade_guard"}
         assert {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")} == tables
         for table in tables:
             assert schema(db, table) == schema(expected, table)
