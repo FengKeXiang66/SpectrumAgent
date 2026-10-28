@@ -6,6 +6,8 @@ results, injects annotations, or advances through a prewritten response queue.
 """
 from copy import deepcopy
 import json
+import os
+from pathlib import Path
 from types import SimpleNamespace
 
 from fastapi.testclient import TestClient
@@ -67,7 +69,7 @@ def conversation_case(gateway_case, tmp_path, monkeypatch):
         cube[:, :8] = pp
         cube[:, 8:] = background
         cube += rng.normal(0, .002, cube.shape).astype(np.float32)
-        header = tmp_path / f"conversation-{index + 1}.hdr"
+        header = tmp_path / f"sample-{81 + index:03d}.hdr"
         header.with_suffix(".img").write_bytes(cube.tobytes())
         header.write_text("ENVI\nsamples=16\nlines=16\nbands=32\ndata type=4\n"
                           "interleave=bip\nbyte order=0\nwavelength={" +
@@ -599,3 +601,169 @@ def test_task_result_reads_the_actual_run_not_the_last_model_reply(conversation_
         db.execute("UPDATE preprocess_run SET status=? WHERE id=?", (stored_status, context["last_run_id"]))
     c.app.state.agent_llm_factory = lambda session_id: FakeLLM(reply("全部处理完成。"))
     assert _successful(_events(c.client, c.session_id, "查看目前的任务结果"))["task_result"] == expected
+
+
+def _reference_fixture(c, *, with_candidate=False):
+    """Prepare real service objects; test providers never invent IDs or results."""
+    store = AgentStore(c.database)
+    row = store.new_round(c.session_id, "引用层测试准备", [], "done")
+    state = task_memory.observe(store.context(c.session_id), "datasets.list", {}, c.tools.invoke("datasets.list", {}), row["id"])
+    for profile in ("raw", "snv"):
+        c.tools.invoke("preprocess.recipe_ensure", {"profile": profile})
+    state = task_memory.observe(state, "preprocess.recipes", {}, c.tools.invoke("preprocess.recipes", {}), row["id"])
+    if with_candidate:
+        cube_id = c.cube_ids[1]
+        c.tools.invoke("annotations.ensure_labels", {"cube_id": cube_id, "class_codes": ["PP"], "include_background": True})
+        c.tools.invoke("annotations.prepare", {"cube_id": cube_id})
+        gesture = c.sessions.store_gesture(cube_id, {"point": [4, 2]})
+        arguments = {"cube_id": cube_id, "class_code": "PP", "gesture_ref": gesture}
+        proposed = c.tools.invoke("annotations.propose", arguments)
+        applied = c.tools.invoke("annotations.apply_candidate", {"cube_id": cube_id,
+            "candidate_ref": proposed["candidate_ref"], "revision": proposed["revision"]})
+        background = c.tools.invoke("annotations.set_background", {"cube_id": cube_id, "revision": applied["revision"]})
+        c.tools.invoke("annotations.draft_confirm", {"cube_id": cube_id, "revision": background["revision"]})
+        state = task_memory.observe(state, "annotations.context", {"cube_id": cube_id},
+                                   c.tools.invoke("annotations.context", {"cube_id": cube_id}), row["id"])
+        state = task_memory.observe(state, "annotations.propose", arguments,
+                                   c.tools.invoke("annotations.propose", arguments), row["id"])
+    store.save_context(c.session_id, state)
+    return store, state
+
+
+def _reference_trace(label, events, state):
+    text = events[-1][1].get("content", events[-1][1].get("question", ""))
+    trace = {"case": label, "events": events, "pending_clarify": state.get("pending_clarify"),
+             "relisted": any(name == "step" and data["tool"] in {"datasets.list", "preprocess.recipes", "annotations.context"}
+                             for name, data in events), "refresh_text_position": text.find("已刷新列表"),
+             "selected_cube_id": state.get("selected_cube_id"), "annotation_version_id": state.get("annotation_version_id")}
+    print("L1_SSE", json.dumps(trace, ensure_ascii=False))
+    if directory := os.environ.get("L1_EVENT_EVIDENCE_DIR"):
+        path = Path(directory)
+        path.mkdir(parents=True, exist_ok=True)
+        (path / f"{label}.json").write_text(json.dumps(trace, ensure_ascii=False, indent=2), encoding="utf-8")
+    return trace
+
+
+def test_l1_f_asks_once_then_holds_without_model_or_relist(conversation_case):
+    c = conversation_case
+    store, initial = _reference_fixture(c, with_candidate=True)
+    def forbidden(*args):
+        raise AssertionError("deterministic clarification must not call a provider")
+    c.app.state.agent_llm_factory = lambda session_id: SimpleNamespace(chat=forbidden)
+    first = _events(c.client, c.session_id, "接受第二个候选")
+    asked = store.context(c.session_id)
+    assert [name for name, _ in first] == ["workspace", "clarify"]
+    assert first[-1][1]["question"] == "当前只有一个候选，是指它吗？"
+    assert asked["pending_clarify"] == {"kind": "candidate", "reason": "only_one", "asked": True}
+    _reference_trace("F-first", first, asked)
+    held = _events(c.client, c.session_id, "第二个")
+    after = store.context(c.session_id)
+    assert [name for name, _ in held] == ["workspace", "done"]
+    assert held[-1][1]["content"] == "仍未确定，保持当前选择"
+    assert "pending_clarify" not in after
+    assert after == {key: value for key, value in asked.items() if key != "pending_clarify"}
+    assert after["annotation_version_id"] == initial["annotation_version_id"]
+    assert not _reference_trace("F-repeat", held, after)["relisted"]
+    assert store.steps(c.session_id) == []
+
+
+def test_l1_e_plain_confirmation_accepts_only_candidate_without_clearing_annotation(conversation_case):
+    c = conversation_case
+    store, initial = _reference_fixture(c, with_candidate=True)
+    _events(c.client, c.session_id, "接受第二个候选")
+    events = _events(c.client, c.session_id, "就是这个")
+    after = store.context(c.session_id)
+    assert after["accepted_candidate_ref"] == initial["candidate_ref"]
+    assert after["annotation_version_id"] == initial["annotation_version_id"]
+    assert "第 1 个候选：PP 候选 1（C1）" in events[-1][1]["content"]
+
+
+def test_l1_i_legacy_session_refreshes_once_with_visible_mapping(conversation_case):
+    c = conversation_case
+    store = AgentStore(c.database)
+    actual = c.tools.invoke("datasets.list", {})
+    # Deliberately reverse legacy indices: refresh must use the current tool output.
+    legacy = [{"index": 1, "id": c.cube_ids[1], "ref": "D1", "name": "旧序号二"},
+              {"index": 2, "id": c.cube_ids[0], "ref": "D2", "name": "旧序号一"}]
+    store.save_context(c.session_id, {"dataset_catalog": legacy, "future_l2_key": "preserved"})
+    def forbidden(*args, **kwargs):
+        raise AssertionError("legacy ordinal refresh must be deterministic")
+    c.app.state.agent_llm_factory = lambda session_id: SimpleNamespace(chat=forbidden)
+    events = _events(c.client, c.session_id, "第二个")
+    after = store.context(c.session_id)
+    assert [name for name, _ in events] == ["step", "workspace", "done"]
+    assert events[0][1]["tool"] == "datasets.list"
+    assert events[0][1]["pending_clarify"] == {"kind": "dataset", "reason": "stale", "asked": False}
+    assert events[0][1]["result_summary"] == actual
+    assert after["selected_cube_id"] == c.cube_ids[1] != legacy[1]["id"]
+    assert after["future_l2_key"] == "preserved"
+    assert after["dataset_catalog"][1]["id"] == actual["dataset_2_id"]
+    assert events[-1][1]["content"] == "已刷新列表，第 2 个现在是 sample-082（D2）"
+    assert _reference_trace("I-refresh", events, after)["refresh_text_position"] == 0
+    step = store.steps(c.session_id)[0]
+    assert step["tool_call_id"] is None  # A controller read must not become L0 native-model evidence.
+    again = _events(c.client, c.session_id, "第二个")
+    assert not _reference_trace("I-repeat", again, store.context(c.session_id))["relisted"]
+    assert len(store.steps(c.session_id)) == 1
+
+
+def test_l1_four_step_demo_keeps_dataset_for_recipe_and_candidate_ordinals(conversation_case):
+    c = conversation_case
+    store, state = _reference_fixture(c)
+    provider = FakeLLM(reply(calls=[call("datasets.list", "{}", "demo-list")]), reply("可选数据：D1 sample-081、D2 sample-082。"))
+    c.app.state.agent_llm_factory = lambda session_id: provider
+    events = _events(c.client, c.session_id, "有哪些数据")
+    _reference_trace("demo-1-list", events, store.context(c.session_id))
+    events = _events(c.client, c.session_id, "选第二份数据")
+    selected = store.context(c.session_id)["selected_cube_id"]
+    assert selected == c.cube_ids[1]
+    assert events[-1][1]["content"] == "已选第 2 份数据：sample-082（D2）"
+    _reference_trace("demo-2-data", events, store.context(c.session_id))
+    events = _events(c.client, c.session_id, "用第二个配方")
+    after = store.context(c.session_id)
+    assert after["selected_cube_id"] == selected
+    assert events[-1][1]["content"] == "第 2 个配方：SNV（P2）"
+    assert after["recipe_version_id"] == after["catalogs"]["recipe"]["items"][1]["id"]
+    selected_recipe = after["recipe_version_id"]
+    _reference_trace("demo-3-recipe", events, after)
+    # A real preview already exists when the fourth demonstration message is sent.
+    _, prepared = _reference_fixture(c, with_candidate=True)
+    events = _events(c.client, c.session_id, "接受第二个候选")
+    after = store.context(c.session_id)
+    assert after["selected_cube_id"] == selected
+    assert after["annotation_version_id"] == prepared["annotation_version_id"]
+    assert after["recipe_version_id"] == selected_recipe
+    assert events[-1][1]["question"] == "当前只有一个候选，是指它吗？"
+    _reference_trace("demo-4-candidate", events, after)
+    assert len(provider.calls) == 2
+
+
+def test_l1_g_need_seed_bare_ordinal_asks_once_without_selecting_data(conversation_case):
+    c = conversation_case
+    store, state = _reference_fixture(c)
+    state["next_action"] = "need_seed"
+    store.save_context(c.session_id, state)
+    def forbidden(*args, **kwargs):
+        raise AssertionError("missing reference scope must not call a model")
+    c.app.state.agent_llm_factory = lambda session_id: SimpleNamespace(chat=forbidden)
+    events = _events(c.client, c.session_id, "第二个")
+    assert [name for name, _ in events] == ["clarify"]
+    assert events[-1][1]["pending_clarify"] == {"kind": None, "reason": "not_found", "asked": True}
+    assert store.context(c.session_id).get("selected_cube_id") is None
+    held = _events(c.client, c.session_id, "第二个")
+    assert [name for name, _ in held] == ["done"]
+    assert "保持当前选择" in held[-1][1]["content"]
+    assert store.context(c.session_id).get("selected_cube_id") is None
+    assert store.steps(c.session_id) == []
+
+
+def test_l1_region_edit_request_continues_to_model_instead_of_only_echoing_a_choice(conversation_case):
+    c = conversation_case
+    store, state = _reference_fixture(c, with_candidate=True)
+    assert len(state["catalogs"]["region"]["items"]) >= 2
+    provider = FakeLLM(reply("编辑请求已进入业务编排。"))
+    c.app.state.agent_llm_factory = lambda session_id: provider
+    events = _events(c.client, c.session_id, "删除第二个区域")
+    assert len(provider.calls) == 1
+    assert "编辑请求已进入业务编排" in events[-1][1]["question"]
+    assert store.context(c.session_id)["selected_cube_id"] == state["selected_cube_id"]

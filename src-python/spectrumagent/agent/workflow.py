@@ -67,6 +67,7 @@ def generate(machine, *, content=None, workspace=None, continuation=None, decisi
     row, turn_id, creation_attempted = None, None, False
     workspace_sent = None
     state, last_status = {}, None
+    mapping = ""
 
     def task_result():
         run_status = None
@@ -76,16 +77,89 @@ def generate(machine, *, content=None, workspace=None, continuation=None, decisi
             run_status = run[0] if run else None
         return evaluate_task(state, {"run_status": run_status, "last_status": last_status})
 
+    def reference_answer(answer, *, clarify=False):
+        nonlocal row, creation_attempted
+        if row is None:
+            creation_attempted = True
+            row = store.new_round(session_id, content, [], "done")
+        else:
+            store.round_status(row["id"], "done")
+        store.save_context(session_id, state)
+        store.save_answer(row["id"], answer)
+        current_workspace = _workspace(state)
+        if current_workspace:
+            yield "workspace", current_workspace
+        machine.state = State.CLARIFY if clarify else State.DONE
+        payload = {"question" if clarify else "content": answer, "task_result": task_result(),
+                   "pending_clarify": state.get("pending_clarify")}
+        if not clarify:
+            payload["step_count"] = len(store.steps(session_id, row["id"]))
+        yield "clarify" if clarify else "done", payload
+
     try:
         version = store.skill(session_id)
         # The tool catalogue comes from the live registry, not the stored skill row:
         # the two can disagree after an upgrade, and only the live catalogue describes
         # what the model may actually call. Prompt and examples still come from the skill.
         tools = machine.tools.snapshot()
-        state = store.context(session_id)
+        state = memory.upgrade_context(store.context(session_id))
+        prior_steps = store.steps(session_id)
+        last_tool = next((step["tool"] for step in reversed(prior_steps) if step["status"] in {"ok", "error"}), None)
+        prior_rounds = store.rounds(session_id)
+        latest_turn = (prior_rounds[-1].get("turn_id") or prior_rounds[-1]["id"]) if prior_rounds else None
+        recent_ids = {r["id"] for r in prior_rounds if (r.get("turn_id") or r["id"]) == latest_turn}
         if continuation is None:
-            state = memory.remember_user(state, content, workspace)
-            reference = memory.user_reference(content)
+            requested = memory.reference_request(state, content)
+            kind, item, _ = memory.resolve_reference(state, content, last_tool, recent_round_ids=recent_ids)
+            state = memory.remember_user(state, content, workspace, last_tool, recent_round_ids=recent_ids)
+            pending = state.get("pending_clarify")
+            if pending and pending["reason"] == "stale" and not pending["asked"]:
+                read_tool = {"dataset": "datasets.list", "recipe": "preprocess.recipes",
+                             "candidate": "annotations.context", "region": "annotations.context"}.get(pending["kind"])
+                arguments = {} if pending["kind"] in {"dataset", "recipe"} else {"cube_id": state.get("selected_cube_id")}
+                if read_tool and (not arguments or arguments["cube_id"]):
+                    creation_attempted = True
+                    row = store.new_round(session_id, content, [], "running")
+                    started = perf_counter_ns()
+                    error = None
+                    try:
+                        result = machine.tools.invoke(read_tool, arguments)
+                    except Exception as exc:
+                        error = exc if isinstance(exc, DataError) else DataError("TOOL_FAILED", "列表刷新失败")
+                        result = {"error": error.code}
+                    # Controller reads are audited but have no model tool_call_id.
+                    # They must never count as native model calls in L0 evidence.
+                    step = store.add_step(row, read_tool, arguments, "error" if error else "ok", result,
+                                          (perf_counter_ns() - started) // 1_000_000)
+                    last_status, last_tool = result.get("status"), read_tool
+                    state = memory.observe(state, read_tool, arguments, result, row["id"])
+                    store.save_context(session_id, state)
+                    event, payload = machine._step_event(step)
+                    yield event, {**payload, "pending_clarify": state.get("pending_clarify")}
+                    if error:
+                        raise error
+                    recent_ids.add(row["id"])
+                    kind, item, _ = memory.resolve_reference(state, content, last_tool, recent_round_ids=recent_ids)
+                    state = memory.remember_user(state, content, workspace, last_tool, recent_round_ids=recent_ids)
+                    mapping = memory.reference_mapping(kind, item, refreshed=True) if item else "已刷新列表。"
+                    pending = state.get("pending_clarify")
+            if pending:
+                if pending["asked"]:
+                    state.pop("pending_clarify", None)
+                    yield from reference_answer("仍未确定，保持当前选择")
+                else:
+                    state["pending_clarify"] = {**pending, "asked": True}
+                    label = {"dataset": "数据", "candidate": "候选", "recipe": "配方", "region": "区域"}.get(pending["kind"], "编号对象")
+                    answer = (f"当前只有一个{label}，是指它吗？" if pending["reason"] == "only_one" else
+                              f"当前没有可确定的{label}，请明确指认或先列出对应列表。")
+                    yield from reference_answer((mapping + "\n" if mapping else "") + answer, clarify=True)
+                return
+            if requested and item:
+                mapping = mapping or memory.reference_mapping(kind, item)
+                if memory.reference_only(content):
+                    yield from reference_answer(mapping)
+                    return
+            reference = memory.user_reference(content, state, last_tool) if kind == "dataset" else None
             selected = state.get("selected_cube_id")
             if reference or selected:
                 # Validate and hydrate a local UI reference; never trust a path
@@ -105,7 +179,7 @@ def generate(machine, *, content=None, workspace=None, continuation=None, decisi
                 state = memory.observe(state, "datasets.resolve", {}, resolved)
                 # Reapply explicit task-local permission AFTER the reference
                 # is hydrated, so resolving a new cube cannot inherit old consent.
-                state = memory.remember_user(state, content)
+                state = memory.remember_user(state, content, last_tool=last_tool, recent_round_ids=recent_ids)
             store.save_context(session_id, state)
             calls, offset = None, 0
         else:
@@ -142,7 +216,8 @@ def generate(machine, *, content=None, workspace=None, continuation=None, decisi
                 step, error = machine._execute(row, call, pending)
                 result = json.loads(step["result_summary"])
                 last_status = result.get("status")
-                state = memory.observe(state, call["name"], call["arguments"], result)
+                last_tool = call["name"]
+                state = memory.observe(state, call["name"], call["arguments"], result, row["id"])
                 store.save_context(session_id, state)
                 yield machine._step_event(step)
                 if error:
@@ -164,6 +239,8 @@ def generate(machine, *, content=None, workspace=None, continuation=None, decisi
                     else:
                         store.round_status(row["id"], "done")
                     answer = _readable(reply.content or "", state)
+                    if mapping:
+                        answer = mapping + "\n" + answer
                     store.save_answer(row["id"], answer)
                     count = sum(len(store.steps(session_id, batch["id"])) for batch in store.turn_rounds(session_id, turn_id))
                     machine.state = State.DONE if count else State.CLARIFY
@@ -205,7 +282,7 @@ def generate(machine, *, content=None, workspace=None, continuation=None, decisi
                          if key in {"cube_id", "revision", "class_code", "overwrite"} and value is not None},
                          "gpu": machine.tools.resolve(call["name"]).gpu,
                          "estimate_ms": machine.tools.resolve(call["name"]).estimate_ms}
-                        for i, call in enumerate(calls, 1)], "reason": "执行计划待确认"}
+                        for i, call in enumerate(calls, 1)], "reason": (mapping + "\n" if mapping else "") + "执行计划待确认"}
                     return
                 offset = 0
             for call in calls[offset:]:
@@ -220,6 +297,8 @@ def generate(machine, *, content=None, workspace=None, continuation=None, decisi
                 if denied_candidate or denied_save or denied_defaults:
                     answer = ("已遵从你的要求：保留当前进度，未接受候选、未保存新版本。" if denied_candidate or denied_save
                               else "已保留当前进度，没有采用默认参数。请指定希望使用的配置。")
+                    if mapping:
+                        answer = mapping + "\n" + answer
                     store.save_answer(row["id"], answer)
                     store.round_status(row["id"], "done")
                     yield "clarify", {"question": answer, "task_result": task_result()}
@@ -227,6 +306,8 @@ def generate(machine, *, content=None, workspace=None, continuation=None, decisi
                 if (call["name"] == "annotations.apply_candidate" and not _authorized(state, call_cube)
                         and state.get("accepted_candidate_ref") != call["arguments"].get("candidate_ref")):
                     answer = "候选预览已生成，尚未写入标注。请查看画布后回复“接受候选”或“不要这个”；已选数据和参数会保留。"
+                    if mapping:
+                        answer = mapping + "\n" + answer
                     store.save_answer(row["id"], answer)
                     store.round_status(row["id"], "done")
                     yield "clarify", {"question": answer, "task_result": task_result()}
@@ -239,7 +320,7 @@ def generate(machine, *, content=None, workspace=None, continuation=None, decisi
                                if key in {"cube_id", "revision", "class_code", "overwrite"} and value is not None}
                     step = store.add_step(row, call["name"], call["arguments"], "human_check_pending", summary, 0, tool_call_id=call["id"])
                     machine.state = State.HUMAN_CHECK
-                    yield "human_check", {"check_id": step["id"], "tool": call["name"], "summary": summary, "reason": "标注版本确认"}
+                    yield "human_check", {"check_id": step["id"], "tool": call["name"], "summary": summary, "reason": (mapping + "\n" if mapping else "") + "标注版本确认"}
                     return
                 previous = [step for batch in store.turn_rounds(session_id, turn_id)
                             for step in store.steps(session_id, batch["id"])
@@ -251,7 +332,8 @@ def generate(machine, *, content=None, workspace=None, continuation=None, decisi
                 step, error = machine._execute(row, call)
                 result = json.loads(step["result_summary"])
                 last_status = result.get("status")
-                state = memory.observe(state, call["name"], call["arguments"], result)
+                last_tool = call["name"]
+                state = memory.observe(state, call["name"], call["arguments"], result, row["id"])
                 if call["name"] == "annotations.draft_confirm" and not error:
                     state.pop("save_requested", None)
                 store.save_context(session_id, state)
