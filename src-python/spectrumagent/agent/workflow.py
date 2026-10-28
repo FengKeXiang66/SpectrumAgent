@@ -60,10 +60,22 @@ def _messages(machine, version, state, content, turn_id):
 
 
 def generate(machine, *, content=None, workspace=None, continuation=None, decision=None, plan=None):
+    from backend.database import connect_database
     from .state import State, MAX_TOOL_CALLS, MAX_WORKFLOW_BATCHES, MAX_WORKFLOW_STEPS, RAW_BYTES
+    from .task import evaluate_task
     store, session_id = machine.store, machine.session_id
     row, turn_id, creation_attempted = None, None, False
     workspace_sent = None
+    state, last_status = {}, None
+
+    def task_result():
+        run_status = None
+        if state.get("last_run_id"):
+            with connect_database(store.database) as db:
+                run = db.execute("SELECT status FROM preprocess_run WHERE id=?", (state["last_run_id"],)).fetchone()
+            run_status = run[0] if run else None
+        return evaluate_task(state, {"run_status": run_status, "last_status": last_status})
+
     try:
         version = store.skill(session_id)
         # The tool catalogue comes from the live registry, not the stored skill row:
@@ -128,7 +140,9 @@ def generate(machine, *, content=None, workspace=None, continuation=None, decisi
                 offset = len(completed)
                 call = calls[offset - 1]
                 step, error = machine._execute(row, call, pending)
-                state = memory.observe(state, call["name"], call["arguments"], json.loads(step["result_summary"]))
+                result = json.loads(step["result_summary"])
+                last_status = result.get("status")
+                state = memory.observe(state, call["name"], call["arguments"], result)
                 store.save_context(session_id, state)
                 yield machine._step_event(step)
                 if error:
@@ -153,7 +167,8 @@ def generate(machine, *, content=None, workspace=None, continuation=None, decisi
                     store.save_answer(row["id"], answer)
                     count = sum(len(store.steps(session_id, batch["id"])) for batch in store.turn_rounds(session_id, turn_id))
                     machine.state = State.DONE if count else State.CLARIFY
-                    yield ("done", {"content": answer, "step_count": count}) if count else ("clarify", {"question": answer})
+                    outcome = task_result()
+                    yield ("done", {"content": answer, "step_count": count, "task_result": outcome}) if count else ("clarify", {"question": answer, "task_result": outcome})
                     return
                 batches = store.turn_rounds(session_id, turn_id) if turn_id else []
                 step_count = sum(len(store.steps(session_id, batch["id"])) for batch in batches)
@@ -207,14 +222,14 @@ def generate(machine, *, content=None, workspace=None, continuation=None, decisi
                               else "已保留当前进度，没有采用默认参数。请指定希望使用的配置。")
                     store.save_answer(row["id"], answer)
                     store.round_status(row["id"], "done")
-                    yield "clarify", {"question": answer}
+                    yield "clarify", {"question": answer, "task_result": task_result()}
                     return
                 if (call["name"] == "annotations.apply_candidate" and not _authorized(state, call_cube)
                         and state.get("accepted_candidate_ref") != call["arguments"].get("candidate_ref")):
                     answer = "候选预览已生成，尚未写入标注。请查看画布后回复“接受候选”或“不要这个”；已选数据和参数会保留。"
                     store.save_answer(row["id"], answer)
                     store.round_status(row["id"], "done")
-                    yield "clarify", {"question": answer}
+                    yield "clarify", {"question": answer, "task_result": task_result()}
                     return
                 tool = machine.tools.resolve(call["name"])
                 save_authorized = (call["name"] == "annotations.draft_confirm" and call_cube
@@ -235,6 +250,7 @@ def generate(machine, *, content=None, workspace=None, continuation=None, decisi
                 machine.state = State.CALL_TOOL
                 step, error = machine._execute(row, call)
                 result = json.loads(step["result_summary"])
+                last_status = result.get("status")
                 state = memory.observe(state, call["name"], call["arguments"], result)
                 if call["name"] == "annotations.draft_confirm" and not error:
                     state.pop("save_requested", None)
@@ -261,6 +277,8 @@ def generate(machine, *, content=None, workspace=None, continuation=None, decisi
                 store.cancel_running(row["id"])
         except (sqlite3.Error, DataError):
             error = DataError("AGENT_STORAGE", "编排留痕存储失败")
-        yield "error", {"code": error.code, "detail": error.payload.detail}
+        yield "error", {"code": error.code, "detail": error.payload.detail,
+                        "task_result": evaluate_task({**state, "last_error": error.code},
+                                                     {"run_status": None, "last_status": last_status})}
     finally:
         machine.state = State.IDLE

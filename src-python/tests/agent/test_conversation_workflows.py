@@ -218,6 +218,7 @@ def test_dialogue_resolves_first_asks_only_for_seed_and_really_saves_then_prepro
     _successful(_events(c.client, c.session_id, "查看可用的数据集"))
     first = _successful(_events(c.client, c.session_id,
         "对第一个数据集标注，类别PP，其余背景，参数默认，自动执行。"))
+    assert first["task_result"] == "needs_input"
     text = first.get("content", first.get("question", ""))
     assert "种子" in text and "请提供数据集" not in text
     task = AgentStore(c.database).context(c.session_id)
@@ -232,8 +233,9 @@ def test_dialogue_resolves_first_asks_only_for_seed_and_really_saves_then_prepro
     response = c.client.post(f"/api/v1/annotations/{selected}/gestures", json={"seed": {"point": [4, 2]}})
     assert response.status_code == 200, response.text
     gesture = response.json()["gesture_ref"]
-    _successful(_events(c.client, c.session_id, "这里是PP，按上述方案继续并保存。",
+    saved_result = _successful(_events(c.client, c.session_id, "这里是PP，按上述方案继续并保存。",
                         workspace={"cube_id": selected, "gesture_ref": gesture}))
+    assert saved_result["task_result"] == "succeeded"
     working = c.sessions.working(selected)
     assert working["statistics"]["blank_pixels"] == 0
     assert working["statistics"]["uncertain_pixels"] == 0
@@ -249,7 +251,8 @@ def test_dialogue_resolves_first_asks_only_for_seed_and_really_saves_then_prepro
     saved = c.sessions.read_version(task["annotation_version_id"])
     np.testing.assert_array_equal(saved["label_map"], working["label_map"])
 
-    _successful(_events(c.client, c.session_id, f"对前缀：{selected[:8]}，用默认预处理"))
+    processed_result = _successful(_events(c.client, c.session_id, f"对前缀：{selected[:8]}，用默认预处理"))
+    assert processed_result["task_result"] == "succeeded"
     task = AgentStore(c.database).context(c.session_id)
     run = c.app.state.preprocess_runner.get(task["last_run_id"])
     assert run["status"] == "succeeded"
@@ -313,6 +316,7 @@ def test_preview_without_auto_authorization_waits_for_a_later_acceptance(convers
     preview = _successful(_events(c.client, c.session_id,
         "对当前数据标注PP，其余背景，参数默认，先预览候选。",
         workspace={"cube_id": cube_id, "gesture_ref": gesture}))
+    assert preview["task_result"] == "needs_review"
     assert "尚未修改" in preview.get("content", preview.get("question", ""))
     assert c.sessions.drafts.get(cube_id) is None
     before = AgentStore(c.database).steps(c.session_id)
@@ -435,6 +439,7 @@ def test_repeating_provider_is_bounded_without_writes(conversation_case, monkeyp
     events = _events(c.client, c.session_id, "查看可用的数据集")
     assert events[-1][0] == "error", events
     assert events[-1][1]["code"] == error_code, events
+    assert events[-1][1]["task_result"] == "failed", events
     assert fake.calls == 3
     steps = AgentStore(c.database).steps(c.session_id)
     assert len(steps) == 2 and all(step["tool"] == "datasets.list" and step["status"] == "ok" for step in steps)
@@ -565,3 +570,32 @@ def test_pending_plan_can_be_approved_by_a_plain_chinese_reply(conversation_case
     assert c.sessions.drafts.get(cube_id) is None
     assert not store.context(c.session_id).get("auto_execute")
     assert store.session(c.session_id)["auto_confirm"] == 0
+
+
+def test_task_result_uses_local_need_annotation_without_changing_context(conversation_case):
+    c = conversation_case
+    cube_id = c.cube_ids[0]
+    fake = FakeLLM(reply(calls=[call("preprocess.run_default", json.dumps({"cube_id": cube_id}), "needs-version")]),
+                   reply("已完成并保存。"))  # Model prose must not manufacture success.
+    c.app.state.agent_llm_factory = lambda session_id: fake
+    events = _events(c.client, c.session_id, "使用默认预处理", workspace={"cube_id": cube_id})
+    step = next(data for kind, data in events if kind == "step")
+    assert step["result_summary"]["status"] == "need_annotation"
+    assert _successful(events)["task_result"] == "needs_input"
+    context = AgentStore(c.database).context(c.session_id)
+    assert "last_status" not in context and "next_action" not in context and "last_error" not in context
+
+
+@pytest.mark.parametrize("stored_status,expected", [("succeeded", "succeeded"), ("failed", "working")])
+def test_task_result_reads_the_actual_run_not_the_last_model_reply(conversation_case, stored_status, expected):
+    c = conversation_case
+    cube_id = c.cube_ids[0]
+    gesture = c.sessions.store_gesture(cube_id, {"point": [4, 2]})
+    _successful(_events(c.client, c.session_id, "对当前数据标注PP，其余背景，参数默认，自动执行并保存。",
+                        workspace={"cube_id": cube_id, "gesture_ref": gesture}))
+    _successful(_events(c.client, c.session_id, "使用默认预处理"))
+    context = AgentStore(c.database).context(c.session_id)
+    with connect_database(c.database) as db:
+        db.execute("UPDATE preprocess_run SET status=? WHERE id=?", (stored_status, context["last_run_id"]))
+    c.app.state.agent_llm_factory = lambda session_id: FakeLLM(reply("全部处理完成。"))
+    assert _successful(_events(c.client, c.session_id, "查看目前的任务结果"))["task_result"] == expected
