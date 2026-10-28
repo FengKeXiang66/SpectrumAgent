@@ -9,7 +9,7 @@ CONTEXT_KEYS = frozenset({
     "candidate_ref", "class_codes", "dataset_catalog", "display_name", "gesture_ref",
     "include_background", "intent", "last_error", "last_run_id", "next_action", "recipe_version_id",
     "rejected_candidate_ref", "revision", "save_denied", "save_requested", "selected_cube_id",
-    "stage", "use_defaults",
+    "stage", "use_defaults", "catalogs", "pending_clarify",
     "cancelled",  # reserved: written by L2 cancellation
 })
 
