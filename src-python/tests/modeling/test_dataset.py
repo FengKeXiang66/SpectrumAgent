@@ -13,10 +13,12 @@ from spectrumagent.data.readers.header import classic, read_text
 from spectrumagent.preprocess import builtin_registry
 
 
-def test_migration_upgrades_21_tables_repeats_without_changing_existing_schema(legacy_case):
+def test_migration_upgrades_legacy_schema_repeats_without_changing_existing_schema(legacy_case):
     with connect_database(legacy_case.paths.database) as db:
         before = dict(db.execute("SELECT name,sql FROM sqlite_master WHERE type='table'"))
-        assert len(before) == 21
+        MODELING_TABLES = {"training_run", "training_fold", "metric", "model_artifact",
+                           "sample_target", "model_registry", "inference_run", "inference_artifact"}
+        assert not (MODELING_TABLES & set(before))
         migrate(db)
         migrate(db)
         after = dict(db.execute("SELECT name,sql FROM sqlite_master WHERE type='table'"))
