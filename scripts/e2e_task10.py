@@ -1,28 +1,33 @@
-"""TASK-10 acceptance: real LLM over HTTP, real tools, multi-turn annotation to preprocessing.
+"""Real-provider acceptance with four ordered, independently sourced evidence levels.
 
-Unlike scripts/e2e_task07.py this script never mocks the provider. It talks to the
-configured OpenAI-compatible endpoint with the platform's own tool catalogue and then
-checks the business end state in the database. A mocked provider can only prove that
-the facilities are wired; this proves the model picks the right next step.
-
-Usage:
-    .venv/Scripts/python.exe scripts/e2e_task10.py --data-root <absolute data root>
-
-The API key is read from the environment and injected through the platform's
-write-only key endpoint. The key is never written to disk by this script.
+Usage: .venv/Scripts/python.exe scripts/e2e_task10.py --data-root <absolute root>
+Credentials are configured in the application settings and stay in engine memory.
 """
 import argparse
+from contextlib import closing
 import json
-import os
+from pathlib import Path
+import re
+import sqlite3
 import sys
 import time
-import urllib.error
 import urllib.request
-from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src-python"))
 sys.path.insert(0, str(ROOT))
+
+from spectrumagent.agent.task import evaluate_task
+
+
+V2_TOOLS = frozenset({
+    "datasets.resolve", "annotations.context", "annotations.prepare", "annotations.ensure_labels",
+    "annotations.propose", "annotations.apply_candidate", "annotations.reject_candidate",
+    "annotations.set_background", "annotations.mark_region", "annotations.edit_region", "annotations.undo",
+    "preprocess.recipes", "preprocess.recipe_ensure", "preprocess.run_default", "preprocess.run_get",
+})
+REPORT_PATH = ROOT / ".runtime" / "e2e_task10_report.json"
+DEFAULT_MESSAGE = "对第一个数据标注 PP，其余背景，参数默认，保存后做预处理"
 
 
 def read_handshake(data_root):
@@ -34,7 +39,7 @@ def read_handshake(data_root):
             except (OSError, json.JSONDecodeError):
                 pass
         time.sleep(1)
-    raise SystemExit("no handshake: start the engine first")
+    raise RuntimeError("no handshake: start the engine first")
 
 
 def call_api(base, token, path, payload=None, method="GET", timeout=180):
@@ -43,88 +48,181 @@ def call_api(base, token, path, payload=None, method="GET", timeout=180):
     request = urllib.request.Request(url, data=data, method=method, headers={
         "Authorization": f"Bearer {token}", "Content-Type": "application/json"})
     with urllib.request.urlopen(request, timeout=timeout) as response:
-        raw = response.read().decode("utf-8", errors="ignore")
+        raw = response.read().decode("utf-8")
         return json.loads(raw) if raw.strip() else None
 
 
 def send_message(base, token, session_id, content, timeout=240):
-    """Send one user message and collect the SSE event stream."""
+    """Collect and print each SSE frame, including follow-up turns."""
     url = f"{base}/api/v1/agent/sessions/{session_id}/messages"
     request = urllib.request.Request(url, data=json.dumps({"content": content}).encode(), method="POST", headers={
         "Authorization": f"Bearer {token}", "Content-Type": "application/json"})
-    events = []
+    events, event, lines = [], None, []
+
+    def frame():
+        if event and lines:
+            data = json.loads("\n".join(lines))
+            events.append((event, data))
+            print("SSE", event, json.dumps(data, ensure_ascii=False), flush=True)
+
     with urllib.request.urlopen(request, timeout=timeout) as response:
         for raw in response:
-            line = raw.decode("utf-8", errors="ignore").strip()
-            if line.startswith("event: "):
-                events.append(["event", line[7:]])
-            elif line.startswith("data: "):
-                if events and events[-1][0] == "event":
-                    events[-1].append(line[6:])
-                    events[-1] = [events[-1][1], json.loads(line[6:])]
+            line = raw.decode("utf-8").rstrip("\r\n")
+            if not line:
+                frame()
+                event, lines = None, []
+            elif line.startswith("event:"):
+                event = line[6:].lstrip()
+            elif line.startswith("data:"):
+                lines.append(line[5:].lstrip())
+        frame()
     return events
 
 
-def steps_of(base, token, session_id):
-    return call_api(base, token, f"/api/v1/agent/sessions/{session_id}/steps")["steps"]
+def read_db(database, sql, parameters=()):
+    """Acceptance only observes the database; it never creates or migrates it."""
+    with closing(sqlite3.connect(database.resolve().as_uri() + "?mode=ro", uri=True)) as db:
+        db.row_factory = sqlite3.Row
+        return [dict(row) for row in db.execute(sql, parameters)]
 
 
-def main():
+def baseline_of(database):
+    cubes = read_db(database, "SELECT id FROM dataset_registry ORDER BY rowid")
+    versions = {cube["id"]: read_db(database,
+        "SELECT COALESCE(MAX(version_no),0) AS n FROM annotation_version WHERE cube_id=?",
+        (cube["id"],))[0]["n"] for cube in cubes}
+    return {"versions": versions,
+            "run_count": read_db(database, "SELECT COUNT(*) AS n FROM preprocess_run")[0]["n"],
+            "run_ids": {row["id"] for row in read_db(database, "SELECT id FROM preprocess_run")}}
+
+
+def session_evidence(database, session_id, baseline):
+    """Separate offered names, native executed calls, and this session's new outputs."""
+    audits = read_db(database, "SELECT tool_names FROM llm_call WHERE session_id=? ORDER BY rowid", (session_id,))
+    offered = sorted({name for row in audits for name in json.loads(row["tool_names"] or "[]")})
+    steps = read_db(database, "SELECT * FROM agent_step WHERE session_id=? ORDER BY seq", (session_id,))
+    executed = [row for row in steps if row["status"] in {"ok", "error"} and row["tool_call_id"]]
+    summaries = [(row, json.loads(row["result_summary"] or "{}")) for row in executed]
+    saved_ids = {data["version_id"] for row, data in summaries
+                 if row["status"] == "ok" and row["tool"] == "annotations.draft_confirm" and data.get("version_id")}
+    run_ids = set()
+    for row, data in summaries:
+        if row["status"] != "ok":
+            continue
+        if row["tool"] in {"preprocess.run", "preprocess.run_default"} and data.get("run_id"):
+            run_ids.add(data["run_id"])
+        elif row["tool"] == "preprocess.compare":
+            run_ids.update(value for key, value in data.items() if re.fullmatch(r"run_\d+_run_id", key))
+    versions = [row for row in read_db(database, "SELECT id,cube_id,version_no FROM annotation_version")
+                if row["id"] in saved_ids and row["version_no"] > baseline["versions"].get(row["cube_id"], 0)]
+    versions_by_id = {row["id"]: row for row in versions}
+    runs = [row for row in read_db(database,
+            "SELECT id,cube_id,annotation_version_id,status FROM preprocess_run")
+            if row["id"] in run_ids - baseline["run_ids"]]
+    paired = [row for row in runs if row["status"] == "succeeded"
+              and row["annotation_version_id"] in versions_by_id
+              and row["cube_id"] == versions_by_id[row["annotation_version_id"]]["cube_id"]]
+    state = json.loads(read_db(database, "SELECT context_json FROM agent_session WHERE id=?", (session_id,))[0]["context_json"] or "{}")
+    last_status = summaries[-1][1].get("status") if summaries else None
+    last_run = read_db(database, "SELECT status FROM preprocess_run WHERE id=?", (state.get("last_run_id"),))
+    return {"catalogue_offered": offered,
+            "native_tool_sequence": [{"seq": row["seq"], "tool": row["tool"], "status": row["status"]} for row in executed],
+            "new_annotation_versions": versions, "new_runs": runs, "paired_succeeded_runs": paired,
+            "run_count_before": baseline["run_count"],
+            "run_count_after": read_db(database, "SELECT COUNT(*) AS n FROM preprocess_run")[0]["n"],
+            "task_result": evaluate_task(state, {"last_status": last_status,
+                "run_status": last_run[0]["status"] if last_run else None})}
+
+
+def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--data-root", type=Path, required=True)
-    parser.add_argument("--key", default=os.environ.get("SPECTRUM_LLM_API_KEY", ""))
-    parser.add_argument("--message", default="对第一个数据标注PP，其余背景，参数默认")
-    args = parser.parse_args()
-    data_root = args.data_root.resolve()
+    parser.add_argument("--message", default=DEFAULT_MESSAGE)
+    parser.add_argument("--follow-up", default="继续")
+    parser.add_argument("--turns", type=int, default=2)
+    args = parser.parse_args(argv)
+    if args.turns < 1:
+        parser.error("--turns must be >= 1")
+    report = {"evidence_levels": {}, "task_result": "working", "stop_reason": None, "session_id": None}
 
-    handshake = read_handshake(data_root)
-    base = f"http://127.0.0.1:{handshake['port']}/api/v1"
-    token = handshake["token"]
+    def finish(level=None, reason=None):
+        if level:
+            report["evidence_levels"][level] = {"passed": False, "reason": reason}
+            report["stop_reason"] = f"FAIL at {level}: {reason}"
+        REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
+        REPORT_PATH.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(report["stop_reason"] or "PASS", flush=True)
+        print("REPORT:", REPORT_PATH, flush=True)
+        return 1 if level else 0
 
-    runtime = call_api(base, token, "/agent/runtime")
-    print("RUNTIME:", json.dumps(runtime, ensure_ascii=False))
-    if runtime["skill_name"] != "conversation-workflows-v2":
-        raise SystemExit(f"not running v2: {runtime['skill_name']}")
+    def passed(level):
+        report["evidence_levels"][level] = {"passed": True}
+        print(level, "PASS", flush=True)
 
-    if args.key:
-        call_api(base, token, "/settings/llm/key", {"key": args.key}, method="PUT")
-    settings = call_api(base, token, "/settings/llm")
-    print("HAS_KEY:", settings.get("has_key"))
-    if not settings.get("has_key"):
-        raise SystemExit("no API key: pass --key or set SPECTRUM_LLM_API_KEY")
-
-    session = call_api(base, token, "/agent/sessions", {}, method="POST")
-    print("SESSION:", session["id"], session.get("skill_name"))
-    before = len(steps_of(base, token, session["id"]))
-
-    events = send_message(base, token, session["id"], args.message)
-    print("EVENTS:")
-    for name, data in events:
-        print("  ", name, json.dumps(data, ensure_ascii=False)[:300])
-
-    after = steps_of(base, token, session["id"])
-    print("STEPS:")
-    for row in after[before:]:
-        print(f"   {row['seq']}. {row['tool']} · {row['status']} · {row['result_summary'][:160]}")
-
-    tools_used = [row["tool"] for row in after[before:]]
-    report = {
-        "runtime": runtime,
-        "session_id": session["id"],
-        "message": args.message,
-        "event_kinds": [name for name, _ in events],
-        "tools_used": tools_used,
-        "step_count": len(after) - before,
-        "v2_tools_used": [t for t in tools_used if t in {
-            "datasets.resolve", "annotations.context", "annotations.prepare",
-            "annotations.ensure_labels", "annotations.propose", "annotations.apply_candidate",
-            "annotations.set_background", "preprocess.recipes", "preprocess.run_default"}],
-    }
-    out = ROOT / ".runtime" / "e2e_task10_report.json"
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
-    print("REPORT:", out)
-    return 0
+    current_level = "L1"
+    try:
+        handshake = read_handshake(args.data_root.resolve())
+        base, token = f"http://127.0.0.1:{handshake['port']}", handshake["token"]
+        runtime_url = f"{base}/api/v1/agent/runtime"
+        print("RUNTIME_URL:", runtime_url, flush=True)
+        try:
+            runtime = call_api(base, token, "/api/v1/agent/runtime")
+        except (OSError, ValueError) as exc:
+            return finish("L1", f"runtime request failed: {runtime_url} ({type(exc).__name__})")
+        print("RUNTIME:", json.dumps(runtime, ensure_ascii=False), flush=True)
+        report["runtime"] = runtime
+        settings = call_api(base, token, "/api/v1/settings/llm")
+        if not settings.get("has_key"):
+            return finish("L1", "has_key=false; configure credentials in application settings")
+        passed("L1")
+        current_level = "L2"
+        session = call_api(base, token, "/api/v1/agent/sessions", {}, method="POST")
+        report["session_id"] = session["id"]
+        database = args.data_root.resolve() / "db" / "spectrum-agent.sqlite3"
+        baseline = baseline_of(database)
+        events, transport_error = [], None
+        for turn in range(args.turns):
+            print("TURN", turn + 1, flush=True)
+            try:
+                events.extend(send_message(base, token, session["id"], args.message if turn == 0 else args.follow_up))
+            except (OSError, ValueError) as exc:
+                transport_error = type(exc).__name__
+                break
+            if events and events[-1][0] == "error":
+                break
+        report["event_kinds"] = [name for name, _ in events]
+        evidence = session_evidence(database, session["id"], baseline)
+        report.update(evidence)
+        for name, data in reversed(events):
+            if name in {"done", "clarify", "error"} and data.get("task_result"):
+                report["task_result"] = data["task_result"]
+                break
+        # Evaluate levels in order; a catalogue is never counted as an execution.
+        if not V2_TOOLS.intersection(evidence["catalogue_offered"]):
+            return finish("L2", "no v2 catalogue offered" + (f"; stream failed ({transport_error})" if transport_error else ""))
+        passed("L2")
+        current_level = "L3"
+        sequence = evidence["native_tool_sequence"]
+        print("NATIVE_TOOL_SEQUENCE:", json.dumps(sequence, ensure_ascii=False), flush=True)
+        if not any(row["tool"] in V2_TOOLS for row in sequence):
+            return finish("L3", "模型未选择 v2 工具; native_tool_sequence=" + json.dumps(sequence, ensure_ascii=False))
+        passed("L3")
+        current_level = "L4"
+        if not evidence["new_annotation_versions"] or not evidence["paired_succeeded_runs"]:
+            reason = "no new saved annotation paired with a new succeeded preprocessing run"
+            if transport_error:
+                reason += f"; stream failed ({transport_error})"
+            errors = [data.get("code") for name, data in events if name == "error"]
+            if errors:
+                reason += "; SSE errors=" + json.dumps(errors)
+            return finish("L4", reason)
+        if transport_error or any(name == "error" for name, _ in events):
+            return finish("L4", "stream failed after producing artifacts")
+        passed("L4")
+        return finish()
+    except (OSError, ValueError, KeyError, sqlite3.Error, RuntimeError) as exc:
+        # Do not print exception bodies: HTTP/provider errors can contain secrets.
+        return finish(current_level, f"evidence collection failed ({type(exc).__name__})")
 
 
 if __name__ == "__main__":
