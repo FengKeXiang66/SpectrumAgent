@@ -13,22 +13,35 @@ rg -n "run_count" src-python/spectrumagent/agent/tools/__init__.py   # 期望 L2
 
 期望看到 `stages_done` 只有 **两处写入**（`annotations.draft_confirm` → `annotation`+`save`；`preprocess.run_default` 成功 → `preprocess`），**没有 `compare`**。
 
-缺陷判据探针（2026-10-29 已实测，codex 复跑确认）：
+缺陷判据探针（**必须走 `observe`，即本卡唯一获准修改的生产路径**；2026-10-29 已实测第一版，codex 复跑确认）：
 
 ```bash
 .venv/Scripts/python.exe -c "
 import sys; sys.path.insert(0,'src-python'); sys.path.insert(0,'.')
+from spectrumagent.agent import context as m
 from spectrumagent.agent.task import evaluate_task
-st={'annotation_version_id':'AV','last_run_id':'R1',
-    'requested_stages':['annotation','save','preprocess','compare'],
-    'stages_done':['annotation','save','preprocess']}
-print('A', evaluate_task(st,{'run_status':'succeeded'}))
-st['stages_done']=['annotation','save','preprocess','compare']
-print('B', evaluate_task(st,{'run_status':'succeeded'}))
+base={'annotation_version_id':'AV','last_run_id':'R1',
+      'requested_stages':['annotation','save','preprocess','compare'],
+      'stages_done':['annotation','save','preprocess']}
+
+# A：生产路径 —— 比较真的跑完，经 observe 进入会话状态
+st = m.observe(dict(base), 'preprocess.compare', {}, {'run_count': 2})
+print('A', evaluate_task(st, {'run_status':'succeeded'}), '| stages_done', st.get('stages_done'))
+
+# B：判据层对照 —— 手工补齐 stages_done，证明 evaluate_task 本身未被改动
+control = dict(base, stages_done=['annotation','save','preprocess','compare'])
+print('B', evaluate_task(control, {'run_status':'succeeded'}))
 "
 ```
 
-期望：`A working`、`B succeeded`。**A 就是缺陷现场**——用户要求了比较、比较也真跑了，任务却永远停在 `working`。
+| 时机 | A（生产路径） | B（判据层对照） |
+|---|---|---|
+| **修复前** | `working`（`stages_done` 无 compare）—— **缺陷现场** | `succeeded` |
+| **修复后** | `succeeded`（`stages_done` 含 compare） | `succeeded` |
+
+**A 必须翻转，B 必须始终不变。** A 不翻 = 修复没生效；B 变了 = 有人动了 `evaluate_task`（越界）。
+
+> 说明：本卡不改 `evaluate_task`，所以任何**绕过 `observe`** 的探针在修复前后输出都一样、无法证明修复有效。第一版探针直接喂手构 state，属设计错误，已按此版取代；原版输出仅作对照留档。
 
 ## §1 本卡解决的问题
 
@@ -79,7 +92,7 @@ assert compared_result["task_result"] == "succeeded"
 
 | 编号 | 用例 | 期望 |
 |---|---|---|
-| A | §0 探针 | 修复后 `A succeeded`、`B succeeded` |
+| A | §0 探针 | **修复前 `A working` / `B succeeded`；修复后 `A succeeded` / `B succeeded`**。A 未翻转或 B 发生变化都算不合格 |
 | B | L278 新断言 | 通过（修复前应红，需在回报里贴修复前那条失败输出） |
 | C | `test_stages.py` 新增两条单测 | 通过 |
 | D | `src-python/tests/agent` | **435 passed**（原 434 + 新增 1 条单测；若拆成两条则 436） |
@@ -88,7 +101,7 @@ assert compared_result["task_result"] == "succeeded"
 ## §6 证据与提交
 
 - 单 commit，`fix(agent): 比较阶段完成后推进任务状态`。
-- 回报附：§0 探针修复前后两版输出、L278 那条断言**修复前的失败输出**、两段测试数与执行模式。
+- 回报附：§0 探针**修复前与修复后两版完整输出**（A/B 两行都要，且 A 必须从 `working` 翻成 `succeeded`）、L278 那条断言**修复前的失败输出**、两段测试数与执行模式。
 - 测试纪律：临时根指 OS 临时目录且先 mkdir；跑前确认 C 盘空闲 > 3 GB。
 
 ## §7 回滚
