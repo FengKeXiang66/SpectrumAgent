@@ -137,6 +137,16 @@ _DENY_TEXT = re.compile(r"[a-z]:|\\|/[^\s/]+|\.(?:img|hdr|mat)\b|\blabel_map\b",
 _NESTED_ARRAY = re.compile(r"\[\s*\[")
 
 
+def _egress_safe_assistant(messages):
+    safe = []
+    for message in messages:
+        message = dict(message)
+        if message.get("role") == "assistant" and isinstance(message.get("content"), str):
+            message["content"] = message["content"].replace("/", "／").replace("\\", "＼")
+        safe.append(message)
+    return safe
+
+
 def _egress_blocked(value):
     # Scan original strings so JSON's escaped newlines aren't mistaken for
     # literal backslashes. Scan serialized context too, including stringified
@@ -241,6 +251,7 @@ class OpenAICompatibleClient(LLMClient):
 
     def chat(self, messages, tools, *, stream=False) -> ChatResult:
         started = perf_counter_ns()
+        messages = _egress_safe_assistant(messages)
         digest = sha256(_json(messages).encode("utf-8")).hexdigest()
         settings = read_settings(self.database)
         names = [tool["function"]["name"] for tool in (tools or [])]

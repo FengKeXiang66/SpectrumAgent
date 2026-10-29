@@ -57,6 +57,64 @@ def test_egress_blocked_before_any_transport_and_audited(gateway_case, content):
     assert all(row[k] is None for k in ("prompt_tokens", "completion_tokens", "total_tokens"))
 
 
+def test_assistant_slash_is_normalized_before_transport_and_digest(gateway_case):
+    client, transport = mock_client(gateway_case)
+    messages = [{"role": "assistant", "content": "避开边缘/阴影"},
+                {"role": "user", "content": "接受候选，其余背景，保存后做预处理"}]
+    client.chat(messages, TOOLS)
+    transport.assert_called_once()
+    sent = json.loads(transport.call_args.args[0].content)["messages"]
+    assert sent[0]["content"] == "避开边缘／阴影"
+    assert sent[1] == messages[1]
+    row, = audit_rows(gateway_case)
+    canonical = json.dumps(sent, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+    assert row["prompt_sha256"] == sha256(canonical.encode()).hexdigest()
+    assert row["status"] == "ok"
+
+
+def test_user_path_remains_egress_blocked(gateway_case):
+    client, transport = mock_client(gateway_case)
+    with pytest.raises(llm.LLMError) as caught:
+        client.chat([{"role": "user", "content": "打开 E:/data/a.hdr"}], TOOLS)
+    assert caught.value.code == "EGRESS_BLOCKED"
+    transport.assert_not_called()
+    row, = audit_rows(gateway_case)
+    assert (row["status"], row["error"]) == ("blocked", "EGRESS_BLOCKED")
+
+
+def test_assistant_multiple_slashes_are_all_normalized(gateway_case):
+    client, transport = mock_client(gateway_case)
+    client.chat([{"role": "assistant", "content": "SNV/SG 与 输入/输出"}], TOOLS)
+    transport.assert_called_once()
+    sent = json.loads(transport.call_args.args[0].content)["messages"]
+    assert sent == [{"role": "assistant", "content": "SNV／SG 与 输入／输出"}]
+
+
+def test_assistant_normalization_does_not_mutate_messages_or_other_fields(gateway_case):
+    client, transport = mock_client(gateway_case)
+    messages = [{"role": "system", "content": "帮助用户标注"},
+                {"role": "user", "content": "继续"},
+                {"role": "assistant", "content": "输入/输出与边缘\\阴影"},
+                {"role": "assistant", "content": None,
+                 "tool_calls": deepcopy(BODY["choices"][0]["message"]["tool_calls"])}]
+    original = deepcopy(messages)
+    safe = llm._egress_safe_assistant(messages)
+    assert safe is not messages
+    assert safe[2]["content"] == "输入／输出与边缘＼阴影"
+    assert safe[:2] == original[:2] and safe[3] == original[3]
+    client.chat(messages, TOOLS)
+    transport.assert_called_once()
+    assert json.loads(transport.call_args.args[0].content)["messages"] == safe
+    assert messages == original
+
+    untouched = [{"role": "user", "content": "打开 E:/data/a.hdr"},
+                 {"role": "system", "content": "输入/输出"},
+                 {"role": "assistant", "content": None, "tool_calls": [
+                     {"function": {"name": "input/output", "arguments": '{"path":"a/b"}'}}]},
+                 {"role": "assistant", "content": [{"type": "text", "text": "输入/输出"}]}]
+    assert llm._egress_safe_assistant(untouched) == untouched
+
+
 def test_tool_schema_scanned_and_multiline_unicode_text_allowed(gateway_case):
     client, transport = mock_client(gateway_case)
     tools = deepcopy(TOOLS)
