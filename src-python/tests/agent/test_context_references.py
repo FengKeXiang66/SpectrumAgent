@@ -161,7 +161,6 @@ def test_arguments_replace_only_the_requested_kind(tool, key, value, expected):
     ("annotations.apply_candidate", "candidate_ref", "c-0123456789abcdef"),
     ("preprocess.run_default", "recipe_version_id", "00000000-1111-2222-3333-444444444444"),
     ("annotations.edit_region", "region_id", "00000000-1111-2222-3333-444444444444"),
-    ("preprocess.run_default", "recipe_version_id", None),
 ])
 def test_real_ids_and_none_are_never_rewritten_or_injected(tool, key, value):
     arguments = {key: value}

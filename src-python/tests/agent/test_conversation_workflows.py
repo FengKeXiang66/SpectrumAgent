@@ -50,6 +50,15 @@ def _successful(events):
     return events[-1][1]
 
 
+def _bind_builtin_recipe(c):
+    """Test preparation: bind the built-in recipe through the real tool and observe it."""
+    store = AgentStore(c.database)
+    arguments = {"profile": "snv_sg1"}
+    result = c.tools.invoke("preprocess.recipe_ensure", arguments)
+    state = task_memory.observe(store.context(c.session_id), "preprocess.recipe_ensure", arguments, result)
+    store.save_context(c.session_id, state)
+
+
 @pytest.fixture
 def conversation_case(gateway_case, tmp_path, monkeypatch):
     """Use the production app wiring; only the remote text model is substituted."""
@@ -167,7 +176,12 @@ class WorkflowProvider(LLMClient):
         if "预处理" in text:
             result = seen("preprocess.run_default")
             if result is None:
-                return invoke("preprocess.run_default", cube_id=cube_id)
+                return invoke("preprocess.run_default", cube_id=cube_id,
+                              annotation_version_id=state.get("annotation_version_id"),
+                              recipe_version_id=state.get("recipe_version_id"))
+            if not state.get("annotation_version_id") or not state.get("recipe_version_id"):
+                assert result["status"] == "need_version", result
+                return finish("请明确标注版本与配方版本后继续预处理。")
             assert result["status"] == "succeeded", result
             return finish("默认预处理已完成，结果来自实际运行。")
 
@@ -253,6 +267,7 @@ def test_dialogue_resolves_first_asks_only_for_seed_and_really_saves_then_prepro
     saved = c.sessions.read_version(task["annotation_version_id"])
     np.testing.assert_array_equal(saved["label_map"], working["label_map"])
 
+    _bind_builtin_recipe(c)
     processed_result = _successful(_events(c.client, c.session_id, f"对前缀：{selected[:8]}，用默认预处理"))
     assert processed_result["task_result"] == "succeeded"
     task = AgentStore(c.database).context(c.session_id)
@@ -574,7 +589,7 @@ def test_pending_plan_can_be_approved_by_a_plain_chinese_reply(conversation_case
     assert store.session(c.session_id)["auto_confirm"] == 0
 
 
-def test_task_result_uses_local_need_annotation_without_changing_context(conversation_case):
+def test_task_result_uses_local_need_version_without_changing_context(conversation_case):
     c = conversation_case
     cube_id = c.cube_ids[0]
     fake = FakeLLM(reply(calls=[call("preprocess.run_default", json.dumps({"cube_id": cube_id}), "needs-version")]),
@@ -582,7 +597,7 @@ def test_task_result_uses_local_need_annotation_without_changing_context(convers
     c.app.state.agent_llm_factory = lambda session_id: fake
     events = _events(c.client, c.session_id, "使用默认预处理", workspace={"cube_id": cube_id})
     step = next(data for kind, data in events if kind == "step")
-    assert step["result_summary"]["status"] == "need_annotation"
+    assert step["result_summary"]["status"] == "need_version"
     assert _successful(events)["task_result"] == "needs_input"
     context = AgentStore(c.database).context(c.session_id)
     assert "last_status" not in context and "next_action" not in context and "last_error" not in context
@@ -595,6 +610,7 @@ def test_task_result_reads_the_actual_run_not_the_last_model_reply(conversation_
     gesture = c.sessions.store_gesture(cube_id, {"point": [4, 2]})
     _successful(_events(c.client, c.session_id, "对当前数据标注PP，其余背景，参数默认，自动执行并保存。",
                         workspace={"cube_id": cube_id, "gesture_ref": gesture}))
+    _bind_builtin_recipe(c)
     _successful(_events(c.client, c.session_id, "使用默认预处理"))
     context = AgentStore(c.database).context(c.session_id)
     with connect_database(c.database) as db:

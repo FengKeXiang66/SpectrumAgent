@@ -237,12 +237,15 @@ def test_mark_rejects_old_gesture_and_material_or_confidence_fields(workflow_cas
 
 def test_preprocess_defaults_discovery_real_comparison_and_no_paths(workflow_case):
     c = workflow_case
-    assert invoke(c, "preprocess.run_default", cube_id=c.cube_id)["status"] == "need_annotation"
+    missing = invoke(c, "preprocess.run_default", cube_id=c.cube_id)
+    assert missing["status"] == "need_version" and missing["missing"] == "annotation_version"
     proposal = preview(c)
     invoke(c, "annotations.apply_candidate", cube_id=c.cube_id, candidate_ref=proposal["candidate_ref"], revision=0)
     invoke(c, "annotations.set_background", cube_id=c.cube_id, revision=1)
     saved = invoke(c, "annotations.draft_confirm", cube_id=c.cube_id, revision=2)
-    default = invoke(c, "preprocess.run_default", cube_id=c.cube_id)
+    recipe = invoke(c, "preprocess.recipe_ensure", profile="snv_sg1")
+    default = invoke(c, "preprocess.run_default", cube_id=c.cube_id,
+                     annotation_version_id=saved["version_id"], recipe_version_id=recipe["recipe_version_id"])
     assert default["status"] == "succeeded" and default["annotation_version_id"] == saved["version_id"]
     assert default["step_1_op"] == "snv" and default["step_2_op"] == "sg_derivative"
     query = invoke(c, "preprocess.run_get", run_id=default["run_id"])
