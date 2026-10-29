@@ -41,7 +41,7 @@ print('B', evaluate_task(st,{'run_status':'succeeded'}))
 | 文件 | 动作 |
 |---|---|
 | `src-python/spectrumagent/agent/context.py` | 改（`observe` 内**新增一个 if 块，3 行**） |
-| `src-python/tests/agent/test_conversation_workflows.py` | 改（**仅 L274 那一条**加 `task_result` 断言） |
+| `src-python/tests/agent/test_conversation_workflows.py` | 改（**仅 L278 那一条**加 `task_result` 断言） |
 | `src-python/tests/agent/test_stages.py` | 改（新增 1–2 条单测） |
 | `docs/TASK-11-对话标注与预处理实现方案.md` | 改（§11 追加一行进度） |
 
@@ -64,7 +64,7 @@ if tool == "preprocess.compare" and result.get("run_count"):
 
 测试两处：
 
-1. `test_conversation_workflows.py` L274 现在只调 `_successful(...)` 不校验结果，改为接收返回值并断言：
+1. `test_conversation_workflows.py` L278 现在只调 `_successful(...)` 不校验结果，改为接收返回值并断言：
 
 ```python
 compared_result = _successful(_events(c.client, c.session_id, "新建仅SNV配方，与默认配方比较"))
@@ -80,7 +80,7 @@ assert compared_result["task_result"] == "succeeded"
 | 编号 | 用例 | 期望 |
 |---|---|---|
 | A | §0 探针 | 修复后 `A succeeded`、`B succeeded` |
-| B | L274 新断言 | 通过（修复前应红，需在回报里贴修复前那条失败输出） |
+| B | L278 新断言 | 通过（修复前应红，需在回报里贴修复前那条失败输出） |
 | C | `test_stages.py` 新增两条单测 | 通过 |
 | D | `src-python/tests/agent` | **435 passed**（原 434 + 新增 1 条单测；若拆成两条则 436） |
 | E | `src-python/tests backend/tests --ignore=src-python/tests/agent` | 仍 **976 passed** |
@@ -88,7 +88,7 @@ assert compared_result["task_result"] == "succeeded"
 ## §6 证据与提交
 
 - 单 commit，`fix(agent): 比较阶段完成后推进任务状态`。
-- 回报附：§0 探针修复前后两版输出、L274 那条断言**修复前的失败输出**、两段测试数与执行模式。
+- 回报附：§0 探针修复前后两版输出、L278 那条断言**修复前的失败输出**、两段测试数与执行模式。
 - 测试纪律：临时根指 OS 临时目录且先 mkdir；跑前确认 C 盘空闲 > 3 GB。
 
 ## §7 回滚
