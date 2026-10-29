@@ -158,6 +158,7 @@ if (state.get("next_action") in {"need_seed", "need_annotation", "need_version"}
 | J | 工具描述变更后启动 | `ensure_workflow_skill` 生成新 skill 版本；存量会话升级后仍能 continue（**这条同时覆盖 L0b 未做项**） |
 | K | `CONTEXT_KEYS` 含两新键；L0 的 H 漂移检查仍绿 | 两条都过 |
 | L | 回归 | `src-python/tests/agent` 全绿（≥415）；`src-python/tests backend/tests --ignore=src-python/tests/agent` 全绿（≥976） |
+| S | 静态核查：`run_default` 内已无任何隐式回落 | `rg -n "ORDER BY version_no DESC\|recipe_ensure" src-python/spectrumagent/agent/tools/workflows.py` 的命中项**不得出现在 `run_default` 函数体内**（`recipe_ensure` 只允许作为独立工具方法存在） |
 
 ### 既有用例的四处跟随修改（2026-10-29 补，逐处写死）
 
@@ -170,6 +171,34 @@ if (state.get("next_action") in {"need_seed", "need_annotation", "need_version"}
 | P | `test_context_references.py` `test_real_ids_and_none_are_never_rewritten_or_injected` 的参数表 | 含 `("preprocess.run_default", "recipe_version_id", None)`，断言 None **不被注入** | **删除该参数项**（L1 契约"L1 不注入 None"已被 L2 主动取代）；该函数名与其余三项保持不动，注入行为改由本卡 §5 用例 E 覆盖 |
 
 `test_workflows.py` L253 的 `recipe_count == 2` 不需要改：`recipe_ensure("snv_sg1")` 复用内置 `BUILTIN_CODE`，不新增配方。
+
+### 追加两处测试准备（2026-10-29 定向回归暴露，授权但严格限形）
+
+`run_default` 去掉隐式回落之后，另有两条用例因为没有绑定配方而失败。**授权为这两条用例补"显式配方准备"，但只能以下面这一种写法**——写在与用例同文件的辅助函数里，不新增文件：
+
+```python
+def _bind_builtin_recipe(c):
+    """Test preparation: bind the built-in recipe through the real tool and observe it."""
+    store = AgentStore(c.database)
+    arguments = {"profile": "snv_sg1"}
+    result = c.tools.invoke("preprocess.recipe_ensure", arguments)
+    state = task_memory.observe(store.context(c.session_id), "preprocess.recipe_ensure", arguments, result)
+    store.save_context(c.session_id, state)
+```
+
+| 编号 | 用例 | 插入位置 | 说明 |
+|---|---|---|---|
+| Q | `test_dialogue_resolves_first_asks_only_for_seed_and_really_saves_then_preprocesses` | `"…用默认预处理"` 那条消息**之前**（L261 前） | 该用例模拟"用户此前已选定内置配方"，不是放宽 `run_default` |
+| R | `test_task_result_reads_the_actual_run_not_the_last_model_reply`（两组参数） | `"使用默认预处理"` 之前 | 参数化与 `stored_status` 覆写逻辑一律不动 |
+
+四条硬约束：
+
+1. **必须走真实工具** `c.tools.invoke("preprocess.recipe_ensure", {"profile": "snv_sg1"})`，**禁止硬编码 `recipe_version_id`**、禁止直接给 `context["recipe_version_id"]` 赋值。
+2. **必须经 `task_memory.observe` + `store.save_context`** 写入，与生产路径同一条代码，不绕过。
+3. **不得改动 `run_default` 的 `need_version` 分支**，不得恢复"查库最新"或"内置 `snv_sg1`"任何一处回落。
+4. 两处用例的**原有断言全部保留**，包括 ② 的 `expected` 参数化、① 的 `run["annotation_version_id"] == task["annotation_version_id"]` 与 `snv.n_pixels > 0`。
+
+辅助函数必须与 `_reference_fixture`（同文件 L613 起）同风格——那里已有"真实 `recipe_ensure` + `observe`"的既有先例，照抄它的做法即可。
 
 ## §6 证据与提交
 
