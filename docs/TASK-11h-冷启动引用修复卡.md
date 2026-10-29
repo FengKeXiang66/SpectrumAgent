@@ -74,17 +74,25 @@ if index is not None:
     ...
 ```
 
-**② 重列条件加上"目录仍为空"**
+**② 重列条件加上"目录**从未建立**"（不是"目录为空"）**
 
 ```python
 catalog = state.get("catalogs", {}).get(pending["kind"]) if pending else None
-needs_list = not catalog or not catalog.get("items")
+needs_list = catalog is None or "items" not in catalog
 if pending and not pending["asked"] and (
         pending["reason"] == "stale" or (pending["reason"] == "not_found" and needs_list)):
     ... 原重列逻辑不动 ...
 ```
 
-这样：新会话首条消息 → 列一次 → 再解析 → 命中 → 继续走模型；用户指了不存在的序号（目录有 3 项、他说第 9 个）→ `not_found` 且 `needs_list` 为假 → 直接澄清，不浪费一次读取。
+**注意这里的判据是"目录键不存在 / 没有 items 字段"，不是 `not catalog.get("items")`。** `items == []` 是**已知为空**（`datasets.list` 返回 0 条，或 `propose` 返回 `need_seed` 后主动清空候选），此时不该重列——再列一次结果还是空，只会多一次无意义的读取。这一点与 §5 用例 B 必须一致；第一版卡写成了 `not catalog.get("items")`，与 B 自相矛盾，已按此修正。
+
+这样三种情形各自归位：
+
+| 情形 | 判据 | 行为 |
+|---|---|---|
+| 新会话从未列过 | `catalog is None` | 重列一次，再解析 |
+| 已知为空（`items == []`） | `needs_list` 为假 | 直接澄清，不重列 |
+| 目录有 N 项、用户说第 N+1 个 | `needs_list` 为假 | 直接澄清，不重列 |
 
 **③ 重列产生的 step 必须仍无 `tool_call_id`**（L0 的四级证据依赖这一点），不得改动。
 
@@ -93,7 +101,7 @@ if pending and not pending["asked"] and (
 | 编号 | 用例 | 期望 |
 |---|---|---|
 | A | 纯函数：空 state + `"第一个数据"` | 返回 `reason == "stale"`，**不是 `not_found`** |
-| B | 纯函数：`catalogs.candidate.items == []` + `"第一个候选"` | 仍返回 `not_found`（已知为空，不重列） |
+| B | 纯函数 + 编排：`catalogs.candidate.items == []` + `"第一个候选"` | 返回 `not_found`；**`needs_list` 为假、不触发重列**，直接澄清一次 |
 | C | 端到端：**新建会话**，第一条消息 `对第一个数据标注 PP，其余背景，参数默认，保存后做预处理` | 事件序列里**出现 `step datasets.list`**（控制器重列），随后**调用模型**（`llm_call` 新增一行），不得只回 clarify |
 | D | 端到端：目录有 3 项、用户说"第 9 个数据" | 澄清一次，**不触发重列** |
 | E | 回归 | `src-python/tests/agent` 全绿（≥436）；`src-python/tests backend/tests --ignore=src-python/tests/agent` 全绿（≥976） |
