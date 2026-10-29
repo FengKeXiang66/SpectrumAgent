@@ -10,6 +10,7 @@ CONTEXT_KEYS = frozenset({
     "include_background", "intent", "last_error", "last_run_id", "next_action", "recipe_version_id",
     "rejected_candidate_ref", "revision", "save_denied", "save_requested", "selected_cube_id",
     "stage", "use_defaults", "catalogs", "pending_clarify",
+    "requested_stages", "stages_done",
     "cancelled",  # reserved: written by L2 cancellation
 })
 
@@ -27,8 +28,8 @@ def evaluate_task(state, artifacts):
     error = state.get("last_error")
     if error and error not in RECOVERABLE:
         return "failed"
-    if (state.get("next_action") in {"need_seed", "need_annotation"}
-            or artifacts.get("last_status") in {"need_seed", "need_annotation"}
+    if (state.get("next_action") in {"need_seed", "need_annotation", "need_version"}
+            or artifacts.get("last_status") in {"need_seed", "need_annotation", "need_version"}
             or error in {"GESTURE_NOT_FOUND", "GESTURE_EXPIRED", "GESTURE_NOT_CURRENT",
                          "LABEL_NOT_FOUND", "ANNOTATION_VERSION_REQUIRED"}):
         return "needs_input"
@@ -36,5 +37,8 @@ def evaluate_task(state, artifacts):
             or (state.get("stage") == "annotation" and not state.get("annotation_version_id"))):
         return "needs_review"
     if state.get("annotation_version_id") and (not state.get("last_run_id") or artifacts.get("run_status") == "succeeded"):
+        requested = set(state.get("requested_stages") or ())
+        if requested and not requested <= set(state.get("stages_done") or ()):
+            return "working"
         return "succeeded"
     return "working"

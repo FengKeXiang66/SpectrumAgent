@@ -174,6 +174,8 @@ def select(state, cube_id, display_name=None):
             state["auto_execute"] = False
         for key in CLEAR_ON_DATASET:
             state.pop(key, None)
+        state.pop("requested_stages", None)
+        state.pop("stages_done", None)
         if state.get("catalogs"):
             state["catalogs"] = {kind: value for kind, value in state["catalogs"].items() if kind not in {"candidate", "region"}}
     state["selected_cube_id"] = cube_id
@@ -231,10 +233,20 @@ def remember_user(state, content, workspace=None, last_tool=None, *, recent_roun
                 set_recipe(state, item)
             else:
                 set_region(state, item)
-    if "标注" in content:
-        state["intent"] = "annotation"
-    if "预处理" in content and "标注" not in content:
-        state["intent"] = "preprocess"
+    stages = (("annotation", r"标注"), ("save", r"保存"),
+              ("preprocess", r"预处理|跑一下"), ("compare", r"比较|对比"))
+    requested = set(state.get("requested_stages") or ())
+    mentioned = False
+    for stage, words in stages:
+        if re.search(words, content):
+            mentioned = True
+            if re.search(r"(?:不要|不用|先不|暂不|别)\s*(?:再|先|进行|做|执行|确认)?\s*(?:" + words + r")", content):
+                requested.discard(stage)
+            else:
+                requested.add(stage)
+    if mentioned or "requested_stages" in state:
+        state["requested_stages"] = [stage for stage, _ in stages if stage in requested]
+        state["intent"] = "preprocess" if "preprocess" in requested and "annotation" not in requested else "annotation"
     if "默认" in content:
         state["use_defaults"] = not bool(re.search(r"(?:不要|不能|不想|不用|不|别|禁止)\s*(?:使用|用|采用)?\s*默认", content))
     if "背景" in content and any(word in content for word in ("其余", "剩余", "其他")):
@@ -337,6 +349,7 @@ def observe(state, tool, arguments, result, round_id=None):
     if tool == "annotations.draft_confirm" and result.get("version_id"):
         state["annotation_version_id"] = result["version_id"]
         state["next_action"] = "preprocess"
+        state["stages_done"] = sorted(set(state.get("stages_done") or ()) | {"annotation", "save"})
     if result.get("annotation_version_id"):
         state["annotation_version_id"] = result["annotation_version_id"]
     if result.get("recipe_version_id"):
@@ -350,11 +363,17 @@ def observe(state, tool, arguments, result, round_id=None):
         state["last_run_id"] = result["run_id"]
         state["stage"] = "preprocess"
         state["next_action"] = "review_preprocess" if result.get("status") == "succeeded" else "inspect_run"
+    if tool == "preprocess.run_default" and result.get("status") == "succeeded":
+        state["stages_done"] = sorted(set(state.get("stages_done") or ()) | {"preprocess"})
     return state
 
 
 def resolve_arguments(state, name, arguments):
     """Resolve display order against the exact list the user was shown."""
+    if name == "preprocess.run_default":
+        # Validation supplies Optional fields before this runtime boundary.
+        arguments = {**arguments, **{key: state[key] for key in ("annotation_version_id", "recipe_version_id")
+                                    if key in arguments and arguments[key] is None and state.get(key) is not None}}
     targets = {"annotations.apply_candidate": ("candidate", "candidate_ref"),
                "annotations.reject_candidate": ("candidate", "candidate_ref"),
                "preprocess.run_default": ("recipe", "recipe_version_id"),
