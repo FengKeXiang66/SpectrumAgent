@@ -32,9 +32,11 @@
 | `A/B/C` | 命中 `/B/C` → 误拦 |
 | `https://example.com/help` | 盘符分支命中 `s:/` → 误拦 |
 
-**③ 更关键：`SNV/SG` 与 `relative/cube` 在字符串层面同构。** 而 `relative/cube`、`private\cube`、`./cube`、`../cube`、`C:` **是现有测试明确要求拦截的**（`src-python/tests/agent/test_llm.py` L45-46 的 13 条语料）。想放行前者就必须放宽后者——那是**产品/安全取舍**，不该夹在一张修 bug 的卡里顺手做。
+**③ 更关键：`SNV/SG` 与 `relative/cube` 在字符串层面存在通用形态歧义。** 而 `relative/cube` 等 16 条是现有测试明确要求拦截的（`src-python/tests/agent/test_llm.py` L45-47）。想放行 `SNV/SG`，至少要处理与 `relative/cube` 的歧义——那是**产品/安全取舍**，不该夹在一张修 bug 的卡里顺手做。
 
-## §3 本卡的机制（最小、零回归）
+（注：这不等于"必须同时放行 `private\cube`、`./cube`、`../cube`、`C:`"。它们形态各不相同，可以分别制定规则；只是这些决定都属于产品边界讨论，不属本卡。）
+
+## §3 本卡的机制（保留既有检测规则，限定改动范围）
 
 **`_DENY_TEXT` 一个字都不改。**
 
@@ -46,7 +48,13 @@
 | `user` / `system` | **硬拦**（现状不变） | 用户要立刻知道输入被拒、可改写 |
 | `tools` / 工具参数 / `_NESTED_ARRAY` | **硬拦**（现状不变） | 共享规则不动，扫描能力不变 |
 
-**明确代价**：assistant 那条消息里的其他说明会一起丢失。这是保守版本的已知取舍——本轮能继续，比整轮卡死好。
+**明确代价**：assistant 那条消息里的其他说明会一起丢失。例如"默认参数已确认，接下来按 SNV/SG 顺序处理"整条消失，用户下一句说"按刚才的来"时，模型可能需要重新确认。
+
+准确表述（不得写成"零回归"）：
+
+> 可能丢失同条助手说明，影响后续上下文理解；原始会话记录保留（`save_answer` 存原文），模型侧必要时重新确认。
+
+正则不变只证明**检测规则**没被改写，不能证明**行为**没有回归——上面这条上下文丢失就是行为变化。
 
 **11j 的 `_egress_safe_assistant` 整个删除**，不再做任何字符替换。
 
@@ -91,19 +99,26 @@ def _redact_assistant_paths(messages):
 ### 6.2 `chat()` 内的顺序（写死）
 
 ```
+0) if _NESTED_ARRAY.search(_json({"messages": messages, "tools": tools})): raise EGRESS_BLOCKED
 1) messages = _redact_assistant_paths(messages)     ← 只处理 assistant
 2) digest = sha256(_json(messages))                 ← 对实际发送内容取摘要
 3) if _egress_blocked({"messages": messages, "tools": tools}): raise EGRESS_BLOCKED
 4) _workflow_wire(messages, tools)
 ```
 
+**第 0 步不可省（本卡的关键顺序）。** 若先脱敏再扫描，`assistant` 同时含普通斜杠与坐标数组时（如 `a/b [[1,2],[3,4]]`），整条会被替换成 `[路径已隐藏]`，`_NESTED_ARRAY` 就再也看不到那组坐标——**"坐标数组必定硬拦"这条契约被静默改变**。虽然内容已删除、没有外发，但行为契约变了，必须用第 0 步在**原始待发上下文**上先判定。
+
+**第 0 步只查 `_NESTED_ARRAY`，不调完整 `_egress_blocked`**——否则普通斜杠会再次造成自锁。
+
 **第 3 步之后仍可能被拦的来源**（不得在卡或文档里声称"只剩 user/system"）：user 与 system 的 content、`tools` 定义与参数、`_NESTED_ARRAY` 坐标数组。
 
 ## §7 验收
 
-### 7.1 现有语料必须全部仍被拦（回归，13 条不动）
+### 7.1 现有语料必须全部仍被拦（回归，**16 条**不动）
 
-`test_llm.py` L45-46 那 13 条（`C:`、`D:/private/cube`、`\\nas\share\cube`、`private\cube`、`/nas/cube`、`relative/cube`、`./cube`、`../cube`、`cube.img`、`CUBE.HDR`、`training.MAT`、`[[1,2],[3,4]]`、`[ [1,2], [3,4]]`）作为 **user** 内容时全部仍返回 `EGRESS_BLOCKED`。**一条都不许改。**
+`test_llm.py` L45-47 的参数表共 **16 条**：14 个字符串（`C:`、`D:/private/cube`、`\\nas\share\cube`、`private\cube`、`/nas/cube`、`relative/cube`、`./cube`、`../cube`、`cube.img`、`CUBE.HDR`、`training.MAT`、`[[1,2],[3,4]]`、`[ [1,2], [3,4]]`、`label_map`）+ 2 个字典（`{"points": [[1,2],[3,4]]}`、`{"label_map": [0,1]}`）。作为 **user** 内容时全部仍返回 `EGRESS_BLOCKED`。**一条都不许改。**
+
+补充说明：`content` 为**字典**时，`_redact_assistant_paths` 的 `isinstance(..., str)` 判定不成立 → 不脱敏 → 仍由 `_egress_blocked` 硬拦。这是有意保留的。
 
 ### 7.2 整条脱敏（新增，核心）
 
@@ -113,6 +128,8 @@ def _redact_assistant_paths(messages):
 | `读取 \\nas\share\secret` | 不拦；发送内容为 `[路径已隐藏]`，且**不含** `nas`、`share`、`secret` 任何片段 |
 | `E:\data\a.hdr` | 不拦；发送内容为 `[路径已隐藏]` |
 | `数据集 cube-1，类 PP，指标 1.0` | 不拦；**发送内容与原文完全一致**（无命中不得改动） |
+| 调用后传入的 `messages` 对象 | **未被修改**（`==` 原值） |
+| `llm_call.prompt_sha256` | 等于**脱敏后**消息的摘要（审计对应实际发送内容，不是原文） |
 
 ### 7.3 共享护栏回归（新增）
 
@@ -124,6 +141,15 @@ def _redact_assistant_paths(messages):
 | `[[1,2],[3,4]]`（`_NESTED_ARRAY`） | 仍 `EGRESS_BLOCKED` |
 
 这四条证明"扫描范围与扫描能力都没变"。
+
+### 7.3b 组合用例（证明处理顺序正确，比四条独立用例更硬）
+
+| 用例 | 期望 |
+|---|---|
+| assistant `a/b [[1,2],[3,4]]`（普通斜杠 + 坐标数组同时出现） | **仍 `EGRESS_BLOCKED`，transport 未调用**（第 0 步在原文上命中数组） |
+| assistant content 命中路径被脱敏，但**同条消息的 `tool_calls.arguments` 含路径** | **仍 `EGRESS_BLOCKED`，transport 未调用**（脱敏不覆盖参数，第 3 步兜住） |
+
+第二条尤其重要：它证明"整条替换 content"不会顺带放过同一消息里的工具参数。
 
 ### 7.4 确定性多轮（新增，取代"等真实模型碰巧写斜杠"）
 
@@ -154,7 +180,15 @@ def _redact_assistant_paths(messages):
 
 **在这些问题有结论之前，不改正则。**
 
-## §9 发布说明（修正两处表述）
+## §9 完成口径与发布说明
+
+**本卡的完成口径（只到这里，不得扩大）：**
+
+> 助手历史命中既有路径规则时，整条脱敏后继续；**用户技术表达中的斜杠误拦仍待单独处理**。
+
+不得把"整个斜杠误拦问题"标记为完成——用户侧 `用SNV/SG做预处理` 仍会被拒。
+
+**发布说明（修正两处表述）：**
 
 1. **L4**：只能确定"候选 `min_similarity` 低于入队下限 0.8"，**不足以归因于标定问题**——种子代表性、数据特性、算法行为都还需要判断。
 2. **11k**：写"**计划取代** 11j 的全角方案"，不写"已取代"。落地并通过测试后再更新状态。
