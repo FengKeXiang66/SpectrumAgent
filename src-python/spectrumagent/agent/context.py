@@ -104,16 +104,19 @@ def resolve_reference(state, content, last_tool, *, recent_round_ids=None):
     index = _index(content) if match else int(short[2]) if short else _index(content)
     if not reference_request(state, content) and index is None:
         return None, None, {"reason": "not_found"}
-    catalog = state.get("catalogs", {}).get(kind, {})
-    items = catalog.get("items", [])
     if kind is None:
         return None, None, {"reason": "not_found"}
+    catalog = state.get("catalogs", {}).get(kind)          # None = 从未列过
+    items = catalog.get("items", []) if catalog is not None else []
     if index is not None:
-        if not items:
-            return kind, None, {"reason": "not_found"}
-        if catalog.get("round_id") is None or (not noun and not short and recent_round_ids is not None
-                                                and catalog["round_id"] not in recent_round_ids):
+        if catalog is None:                                  # ① 从未列过
             return kind, None, {"reason": "stale"}
+        if catalog.get("round_id") is None or (
+                (not items or (not noun and not short)) and recent_round_ids is not None
+                and catalog["round_id"] not in recent_round_ids):
+            return kind, None, {"reason": "stale"}            # ② 快照过期（空目录也自愈）
+        if not items:                                         # ③ 刚列过且确实为空
+            return kind, None, {"reason": "not_found"}
         item = next((item for item in items if item["ordinal"] == index), None)
         return (kind, item, None) if item else (kind, None, {"reason": "only_one" if len(items) == 1 else "not_found"})
     explicit = _UUID.search(content)

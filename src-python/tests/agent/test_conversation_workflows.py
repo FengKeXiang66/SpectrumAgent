@@ -59,6 +59,60 @@ def _bind_builtin_recipe(c):
     store.save_context(c.session_id, state)
 
 
+def test_cold_first_message_lists_then_calls_model_and_bad_ordinal_does_not_relist(settings_api, tmp_path):
+    import httpx
+    from .conftest import audit_rows, mock_client
+
+    c = settings_api
+    datasets = DatasetRegistry(c.database)
+    for index in range(3):
+        header = tmp_path / f"cold-{index + 1}.hdr"
+        header.with_suffix(".img").write_bytes(np.full((2, 2, 3), index + 1, dtype=np.float32).tobytes())
+        header.write_text("ENVI\nsamples=2\nlines=2\nbands=3\ndata type=4\ninterleave=bip\nbyte order=0\n", encoding="utf-8")
+        datasets.import_path(str(header), raw=True)
+    response = c.client.post(BASE, json={})
+    assert response.status_code == 200, response.text
+    session_id = response.json()["id"]
+    store = AgentStore(c.database)
+    assert store.context(session_id) == {} and store.rounds(session_id) == [] and store.steps(session_id) == []
+    before = len(audit_rows(c))
+
+    def model_response(request):
+        step, = store.steps(session_id)
+        assert step["tool"] == "datasets.list" and step["tool_call_id"] is None
+        state = store.context(session_id)
+        items = state["catalogs"]["dataset"]["items"]
+        assert len(items) == 3 and state["selected_cube_id"] == items[0]["id"]
+        return httpx.Response(200, json={"choices": [{"message": {"content": "已收到请求，请在画布指认一处 PP 种子。"},
+                                                     "finish_reason": "stop"}]})
+
+    provider, transport = mock_client(c, handler=model_response, session_id=session_id)
+    c.app.state.agent_llm_factory = lambda _: provider
+    events = _events(c.client, session_id, "对第一个数据标注 PP，其余背景，参数默认，保存后做预处理")
+    _successful(events)
+    assert [kind for kind, _ in events][:2] == ["step", "workspace"]
+    assert events[0][1]["tool"] == "datasets.list"
+    assert events[0][1]["pending_clarify"] == {"kind": "dataset", "reason": "stale", "asked": False}
+    rows = audit_rows(c)
+    assert len(rows) - before == 1 and transport.call_count == 1
+    assert rows[-1]["session_id"] == session_id and rows[-1]["status"] == "ok" and rows[-1]["http_status"] == 200
+    assert "annotations.prepare" in json.loads(rows[-1]["tool_names"])
+    assert store.steps(session_id)[0]["tool_call_id"] is None
+    print("L1b_C", json.dumps({"events": events, "llm_call_before": before, "llm_call_after": len(rows),
+                               "llm_call_added": len(rows) - before, "controller_tool_call_id": None}, ensure_ascii=False))
+
+    invalid = _events(c.client, session_id, "第 9 个数据")
+    assert [kind for kind, _ in invalid] == ["workspace", "clarify"]
+    assert invalid[-1][1]["pending_clarify"] == {"kind": "dataset", "reason": "not_found", "asked": True}
+    assert invalid[-1][1]["question"] == "当前没有可确定的数据，请明确指认或先列出对应列表。"
+    repeated = _events(c.client, session_id, "第 9 个数据")
+    assert [kind for kind, _ in repeated] == ["workspace", "done"]
+    assert repeated[-1][1]["content"] == "仍未确定，保持当前选择"
+    assert len(store.steps(session_id)) == 1 and len(audit_rows(c)) == len(rows) and transport.call_count == 1
+    print("L1b_D", json.dumps({"events": invalid, "repeat_events": repeated, "relisted": False,
+                               "llm_call_added": len(audit_rows(c)) - len(rows)}, ensure_ascii=False))
+
+
 @pytest.fixture
 def conversation_case(gateway_case, tmp_path, monkeypatch):
     """Use the production app wiring; only the remote text model is substituted."""

@@ -26,6 +26,19 @@ def choices():
                           {"candidate_ref": "c-deadbeef", "status": "preview", "revision": 3}, "round-candidate")
 
 
+def test_cold_ordinal_needs_a_catalog_but_known_empty_candidate_does_not():
+    assert memory.resolve_reference({}, "第一个数据", None) == ("dataset", None, {"reason": "stale"})
+    state = {"catalogs": {"candidate": {"items": [], "round_id": "current"}}}
+    before = deepcopy(state)
+    assert memory.resolve_reference(state, "第一个候选", None, recent_round_ids={"current"}) == ("candidate", None, {"reason": "not_found"})
+    assert state == before
+    expired = {"catalogs": {"candidate": {"items": [], "round_id": "previous"}}}
+    assert memory.resolve_reference(expired, "第一个候选", None, recent_round_ids={"current"}) == ("candidate", None, {"reason": "stale"})
+    items = [{"ordinal": i, "id": f"c-{i}", "ref": f"C{i}", "display": f"候选 {i}", "version": 1} for i in (1, 2)]
+    populated = {"catalogs": {"candidate": {"items": items, "round_id": "previous"}}}
+    assert memory.resolve_reference(populated, "第二个候选", None, recent_round_ids={"current"}) == ("candidate", items[1], None)
+
+
 @pytest.mark.parametrize("content", ["接受第二个候选", "用第二个配方"])
 def test_legacy_probe_never_selects_a_dataset_for_another_kind(content):
     state = {"dataset_catalog": datasets()["dataset_catalog"]}
