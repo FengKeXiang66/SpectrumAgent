@@ -275,7 +275,8 @@ def test_dialogue_resolves_first_asks_only_for_seed_and_really_saves_then_prepro
     assert run["status"] == "succeeded"
     assert run["cube_id"] == selected and run["annotation_version_id"] == task["annotation_version_id"]
     assert run["metrics"]["snr"]["n_pixels"] > 0
-    _successful(_events(c.client, c.session_id, "新建仅SNV配方，与默认配方比较"))
+    compared_result = _successful(_events(c.client, c.session_id, "新建仅SNV配方，与默认配方比较"))
+    assert compared_result["task_result"] == "succeeded"
     with connect_database(c.database) as db:
         comparison_runs = db.execute("SELECT status,recipe_version_id,metrics FROM preprocess_run WHERE cube_id=?",
                                      (selected,)).fetchall()

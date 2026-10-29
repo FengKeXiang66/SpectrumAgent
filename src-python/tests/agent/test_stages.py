@@ -126,6 +126,22 @@ def test_stages_advance_only_for_successful_service_results_and_compound_complet
     assert evaluate_task({"annotation_version_id": "v1"}, {}) == "succeeded"
 
 
+def test_comparison_with_runs_advances_compare_and_preserves_completed_stages():
+    state = {"stages_done": ["annotation", "save", "preprocess"]}
+    before = deepcopy(state)
+    result = memory.observe(state, "preprocess.compare", {}, {"run_count": 2})
+    assert set(result["stages_done"]) == {"annotation", "save", "preprocess", "compare"}
+    assert state == before
+
+
+def test_comparison_without_runs_does_not_advance_compare():
+    state = {"stages_done": ["annotation", "save", "preprocess"]}
+    before = deepcopy(state)
+    result = memory.observe(state, "preprocess.compare", {}, {"run_count": 0})
+    assert "compare" not in result["stages_done"]
+    assert result == before and state == before
+
+
 @pytest.mark.parametrize("state,artifacts", [({"next_action": "need_version"}, {}), ({}, {"last_status": "need_version"})])
 def test_missing_version_needs_input_without_mutating_context(state, artifacts):
     before = deepcopy((state, artifacts))

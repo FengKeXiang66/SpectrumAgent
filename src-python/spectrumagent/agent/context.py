@@ -365,6 +365,8 @@ def observe(state, tool, arguments, result, round_id=None):
         state["next_action"] = "review_preprocess" if result.get("status") == "succeeded" else "inspect_run"
     if tool == "preprocess.run_default" and result.get("status") == "succeeded":
         state["stages_done"] = sorted(set(state.get("stages_done") or ()) | {"preprocess"})
+    if tool == "preprocess.compare" and result.get("run_count"):
+        state["stages_done"] = sorted(set(state.get("stages_done") or ()) | {"compare"})
     return state
 
 
