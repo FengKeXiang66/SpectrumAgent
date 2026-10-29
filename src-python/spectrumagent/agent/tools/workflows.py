@@ -477,9 +477,9 @@ def register_workflows(registry, **services):
         ("annotations.mark_region", MarkArguments, "按当前手势把区域标为不确定或擦除；服务器解析几何，不添加材质类别，支持首笔 revision=0", workflows.mark, sessions is not None),
         ("annotations.edit_region", EditArguments, "按上下文的区域引用改类或删除；不要向用户索要 region_id", workflows.edit, sessions is not None),
         ("annotations.undo", RevisionArguments, "撤销最近一次草稿修改，须当前 revision", workflows.undo, sessions is not None),
-        ("preprocess.recipes", NoArguments, "发现可用配方、最新版本、算子名与版本以及默认配方，不要求用户提供 UUID", workflows.recipes, runner is not None),
-        ("preprocess.recipe_ensure", RecipeArguments, "显式选择固定模板 raw 反射率基线、snv、snv_sg1；登记后返回版本，供 compare 比较", workflows.recipe_ensure, runner is not None),
-        ("preprocess.run_default", DefaultRunArguments, "必须显式指定标注版本与配方版本；省略由控制器注入，仍缺则拒绝，返回真实指标和溯源", workflows.run_default, runner is not None),
+        ("preprocess.recipes", NoArguments, "列出可用配方及其最新版本；返回 recipe_i_version_id 供 run_default 绑定或 compare 使用，不要求用户提供 UUID", workflows.recipes, runner is not None),
+        ("preprocess.recipe_ensure", RecipeArguments, "显式选择固定模板 raw 反射率基线、snv、snv_sg1；登记后返回 recipe_version_id，供 run_default 运行或 compare 比较", workflows.recipe_ensure, runner is not None),
+        ("preprocess.run_default", DefaultRunArguments, "必须显式指定 annotation_version_id 与 recipe_version_id：前者取 annotations.context 的 latest_annotation_version_id，后者取 preprocess.recipes 的 recipe_i_version_id 或 preprocess.recipe_ensure 的返回值；缺一即返回 need_version 拒绝，不采用库中最新或内置默认；返回真实指标和溯源", workflows.run_default, runner is not None),
         ("preprocess.run_get", RunGetArguments, "查询真实预处理状态、指标、算子版本与比较边界；不返回产物路径或谱值", workflows.run_get, runner is not None),
     ]
     for name, arguments, description, handler, ready in tools:
