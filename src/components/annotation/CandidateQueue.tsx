@@ -20,7 +20,7 @@ export default function CandidateQueue({ working, labels, selectedKey, disabled,
         })}
         {!!working && !working.queue.length && <p className="annotation-hint">队列为空。点选或绘制提示以生成候选。</p>}
       </div>
-      <p className="annotation-hint">默认入队下限 0.80（UI 原型 S05），可调；沿链增长的相似度可能低于扩散阈值。</p>
+      <p className="annotation-hint">默认入队下限 0.60（原 0.80 来自 UI 原型 S05，2026-10-29 实测下调），可调；沿链增长的相似度可能低于扩散阈值。</p>
     </section>
     <section className="annotation-card">
       <h3>已标注像素分布</h3>

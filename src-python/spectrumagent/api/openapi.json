@@ -3150,7 +3150,7 @@
             "maximum": 1.0,
             "minimum": -1.0,
             "title": "Queue Min Similarity",
-            "default": 0.8
+            "default": 0.6
           }
         },
         "additionalProperties": false,

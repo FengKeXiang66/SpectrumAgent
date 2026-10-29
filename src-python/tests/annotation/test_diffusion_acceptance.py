@@ -20,7 +20,8 @@ import pytest
 
 from backend.paths import AppPaths
 from spectrumagent.api.registry import DatasetRegistry
-from spectrumagent.annotation.engines.diffusion import DiffusionEngine, adjacency_edges
+from spectrumagent.annotation.engines.diffusion import (DEFAULT_QUEUE_MIN_SIMILARITY, DiffusionEngine,
+                                                       adjacency_edges)
 from spectrumagent.annotation.engines.superpixels import SuperpixelEngine
 from spectrumagent.annotation.session import SessionStore
 
@@ -76,11 +77,12 @@ def run_fixed_seeds(workspace):
     below_growth = sum(item["min_similarity"] < .92 for item in observations)
     assert len(admitted) >= 1 and blocked >= 1
     assert below_growth >= 1
-    assert all(item["min_similarity"] >= .80 for item in admitted)
+    assert all(item["min_similarity"] >= DEFAULT_QUEUE_MIN_SIMILARITY for item in admitted)
     # Explicit defaults reproduce the same result; threshold changes the result
     # on these same fixed seeds, without switching coordinates to manufacture it.
     first = observations[0]
-    repeat = engine.generate(cube_id, {"point": [first["row"], first["col"]]}, threshold=.92, queue_min_similarity=.80)
+    repeat = engine.generate(cube_id, {"point": [first["row"], first["col"]]}, threshold=.92,
+                             queue_min_similarity=DEFAULT_QUEUE_MIN_SIMILARITY)
     assert repeat["candidate"]["min_similarity"] == first["min_similarity"]
     assert len(repeat["candidate"]["superpixels"]) == first["n_superpixels"]
     changed = 0

@@ -24,7 +24,9 @@ from .superpixels import memory_bytes
 DEFAULT_THRESHOLD = 0.92
 # Adjustable UI-level DEFAULT: ui-v2.3 S05 footnote line 1711 (TASK-04 §5.3).
 # This separate guard governs seed-reference minimum similarity, not growth.
-DEFAULT_QUEUE_MIN_SIMILARITY = 0.80
+# 2026-10-29 owner-approved 0.80 -> 0.60: real-material seeds measured 0.6-0.72,
+# every seed was rejected as below_queue_floor at 0.80.
+DEFAULT_QUEUE_MIN_SIMILARITY = 0.60
 
 
 def invalid_prompt(message):

@@ -19,6 +19,7 @@ import pytest
 
 from backend.identity import EngineIdentity
 from backend.paths import AppPaths
+from spectrumagent.annotation.engines.diffusion import DEFAULT_QUEUE_MIN_SIMILARITY
 from spectrumagent.app import create_app
 
 
@@ -48,7 +49,7 @@ def run_http_seeds(workspace):
             assert response.status_code == 200, response.text
             assert response.headers["X-SpectrumAgent-Boot-Id"] == identity.boot_id
             result = response.json()
-            assert result["params"] == {"threshold": .92, "queue_min_similarity": .80}
+            assert result["params"] == {"threshold": .92, "queue_min_similarity": .60}
             assert len(result["candidates"]) == 1
             candidate = result["candidates"][0]
             assert len(candidate["cos_s"]) == divided.json()["n_after"]
@@ -63,7 +64,7 @@ def run_http_seeds(workspace):
         below = sum(item["min_similarity"] < .92 for item in observations)
         assert len(admitted) >= 1 and blocked >= 1
         assert below >= 1
-        assert all(item["min_similarity"] >= .80 for item in admitted)
+        assert all(item["min_similarity"] >= DEFAULT_QUEUE_MIN_SIMILARITY for item in admitted)
         assert len(result["queue"]) == len(admitted)
         working = client.get(base+"/annotations/working")
         assert working.status_code == 200

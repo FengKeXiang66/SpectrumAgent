@@ -110,7 +110,7 @@ def test_diffuse_three_prompts_response_cos_s_queue_effective_defaults(ready_htt
     response = h.client.post(h.base+"/diffuse", json={"seed": seed})
     assert response.status_code == 200, response.text
     result = response.json()
-    assert result["params"] == {"threshold": .92, "queue_min_similarity": .80}
+    assert result["params"] == {"threshold": .92, "queue_min_similarity": .60}
     assert len(result["candidates"]) == 1 and result["candidates"][0] == result["candidate"]
     candidate = result["candidate"]
     assert len(candidate["cos_s"]) == len(h.engine.cache[h.case.identifier][1].mean_spectra)

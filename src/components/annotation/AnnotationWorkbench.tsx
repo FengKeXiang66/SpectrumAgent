@@ -57,7 +57,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
   // Display defaults with provenance: TASK-04 §5.2, calibrated compactness.
   const [parameters, setParameters] = useState({ n_segments: 800, compactness: .5, pca_components: 5 });
   // TASK-04 §5.3: S1 example default / S05 UI guard default, both adjustable.
-  const [threshold, setThreshold] = useState(.92), [queueMinimum, setQueueMinimum] = useState(.80);
+  const [threshold, setThreshold] = useState(.92), [queueMinimum, setQueueMinimum] = useState(.60);
   const [force, setForce] = useState(false), [lastSeed, setLastSeed] = useState<Seed | null>(null);
   const [lastGestureRef, setLastGestureRef] = useState<string | null>(null);
   const [draftRevision, setDraftRevision] = useState<number | null>(null);
@@ -331,7 +331,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
           </div>
           <div className="annotation-parameters">
             <label>扩散阈值（默认 0.92）<input type="number" min={-1} max={1} step="any" value={threshold} disabled={busy} onFocus={() => { thresholdOnFocus.current = threshold; }} onChange={event => setThreshold(Number(event.target.value))} onBlur={() => { if (lastSeed && validThresholds && thresholdOnFocus.current !== threshold) void diffuse(lastSeed); }} /></label>
-            <label>入队下限（默认 0.80）<input type="number" min={-1} max={1} step="any" value={queueMinimum} disabled={busy} onFocus={() => { minimumOnFocus.current = queueMinimum; }} onChange={event => setQueueMinimum(Number(event.target.value))} onBlur={() => { if (lastSeed && validThresholds && minimumOnFocus.current !== queueMinimum) void diffuse(lastSeed); }} /></label>
+            <label>入队下限（默认 0.60）<input type="number" min={-1} max={1} step="any" value={queueMinimum} disabled={busy} onFocus={() => { minimumOnFocus.current = queueMinimum; }} onChange={event => setQueueMinimum(Number(event.target.value))} onBlur={() => { if (lastSeed && validThresholds && minimumOnFocus.current !== queueMinimum) void diffuse(lastSeed); }} /></label>
             <label>提示方式<select disabled={busy} value={prompt} onChange={event => { setPrompt(event.target.value as PromptMode); setTool('diffuse'); setTab('prompt'); }}><option value="point">单击</option><option value="box">框选</option><option value="doodle">涂鸦</option></select></label>
           </div>
           <p className="annotation-hint">已有种子时，阈值输入完成、移出输入框即重新扩散预览；也可点击“扩散到相似区域”。</p>
@@ -339,7 +339,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
           {draftRevision === 0 && <p className="annotation-hint">当前无标注草稿：手势需先建立首个标注（画布多边形或运行扩散）</p>}
           {!validThresholds && <p className="annotation-warning">两项余弦阈值都须为 [-1,1] 内的有限数。</p>}
           {lastDiffusion && <p className={lastDiffusion.enqueued ? 'annotation-hint' : 'annotation-warning'}>本次候选最小种子相似度 {lastDiffusion.min.toFixed(4)} · {lastDiffusion.enqueued ? '已入队' : `被护栏拦下，未入队 ${lastDiffusion.blocked} 项`}。</p>}
-          <details className="annotation-hint"><summary>默认值与相似度口径</summary>SLIC 默认值来自 TASK-04 §5.2（11 cube 标定 compactness=0.5）；扩散默认 0.92 来自需求场景 S1；入队默认 0.80 来自 UI 原型 S05。增长比较邻接对原谱均值；报告比较种子原谱。均为可调默认值。</details>
+          <details className="annotation-hint"><summary>默认值与相似度口径</summary>SLIC 默认值来自 TASK-04 §5.2（11 cube 标定 compactness=0.5）；扩散默认 0.92 来自需求场景 S1；入队默认 0.60（原 0.80 来自 UI 原型 S05，2026-10-29 实测下调）。增长比较邻接对原谱均值；报告比较种子原谱。均为可调默认值。</details>
           {dirty && <p className="annotation-warning">参数已改，先重新生成超像素；已有标注按像素保留。</p>}
           {!busy && !synchronized && <p className="annotation-warning">工作态尚未成功读回，请先刷新；编辑暂不可用。</p>}
           <DisplayToolbar bands={record.dataset.shape[2]} wavelengths={record.dataset.wavelengths} band={displayBand} onBand={setDisplayBand}
