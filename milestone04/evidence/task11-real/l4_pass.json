@@ -1,0 +1,123 @@
+{
+  "evidence_levels": {
+    "L1": {
+      "passed": true
+    },
+    "L2": {
+      "passed": true
+    },
+    "L3": {
+      "passed": true
+    },
+    "L4": {
+      "passed": true
+    }
+  },
+  "task_result": "succeeded",
+  "stop_reason": null,
+  "session_id": "bc1e0fb9-4049-4633-9d74-a933330d436e",
+  "seed": null,
+  "gesture_ref": null,
+  "turns_sent": 3,
+  "seeds_tried": [],
+  "seed_used": null,
+  "runtime": {
+    "skill_name": "conversation-workflows-v2",
+    "skill_version_id": "2233f0d3-588a-4e7d-89fc-3e5efe3876b6",
+    "skill_version_no": 2,
+    "tool_catalogue_version": 2,
+    "tool_count": 23,
+    "sessions_upgraded": 0,
+    "sessions_by_skill": {
+      "conversation-workflows-v2": 3
+    }
+  },
+  "event_kinds": [
+    "step",
+    "workspace",
+    "step",
+    "step",
+    "step",
+    "workspace",
+    "done",
+    "workspace",
+    "step",
+    "step",
+    "workspace",
+    "done",
+    "workspace",
+    "clarify"
+  ],
+  "catalogue_offered": [
+    "annotations.apply_candidate",
+    "annotations.context",
+    "annotations.draft_confirm",
+    "annotations.draft_get",
+    "annotations.edit_region",
+    "annotations.ensure_labels",
+    "annotations.mark_region",
+    "annotations.prepare",
+    "annotations.propose",
+    "annotations.reject_candidate",
+    "annotations.set_background",
+    "annotations.undo",
+    "datasets.describe",
+    "datasets.list",
+    "datasets.resolve",
+    "preprocess.compare",
+    "preprocess.recipe_ensure",
+    "preprocess.recipes",
+    "preprocess.run",
+    "preprocess.run_default",
+    "preprocess.run_get",
+    "settings.llm_get",
+    "training_mat.export"
+  ],
+  "native_tool_sequence": [
+    {
+      "seq": 3,
+      "tool": "preprocess.recipes",
+      "status": "ok"
+    },
+    {
+      "seq": 4,
+      "tool": "annotations.context",
+      "status": "ok"
+    },
+    {
+      "seq": 5,
+      "tool": "annotations.draft_confirm",
+      "status": "ok"
+    },
+    {
+      "seq": 6,
+      "tool": "preprocess.run_default",
+      "status": "ok"
+    }
+  ],
+  "new_annotation_versions": [
+    {
+      "id": "4ccb434a-da0a-4a84-b958-2bccc51d9f8d",
+      "cube_id": "9863ae6f-56d0-449a-a663-e5f76c80d74c",
+      "version_no": 2
+    }
+  ],
+  "new_runs": [
+    {
+      "id": "b49836bf-c93f-488e-b1e7-f8d6c6570a80",
+      "cube_id": "9863ae6f-56d0-449a-a663-e5f76c80d74c",
+      "annotation_version_id": "4ccb434a-da0a-4a84-b958-2bccc51d9f8d",
+      "status": "succeeded"
+    }
+  ],
+  "paired_succeeded_runs": [
+    {
+      "id": "b49836bf-c93f-488e-b1e7-f8d6c6570a80",
+      "cube_id": "9863ae6f-56d0-449a-a663-e5f76c80d74c",
+      "annotation_version_id": "4ccb434a-da0a-4a84-b958-2bccc51d9f8d",
+      "status": "succeeded"
+    }
+  ],
+  "run_count_before": 0,
+  "run_count_after": 1
+}
