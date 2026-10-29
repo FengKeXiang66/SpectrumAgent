@@ -96,21 +96,30 @@ def _redact_assistant_paths(messages):
 
 要求：复制 dict、不改传入对象、不改 `tool_calls` / `arguments` / `name`。
 
-### 6.2 `chat()` 内的顺序（写死）
+### 6.2 `chat()` 内的执行顺序（写死，含抛异常位置）
+
+**"原文检查先于脱敏"必须成立；"抛异常先于一切初始化"没有必要，且有害。**
 
 ```
-0) if _NESTED_ARRAY.search(_json({"messages": messages, "tools": tools})): raise EGRESS_BLOCKED
-1) messages = _redact_assistant_paths(messages)     ← 只处理 assistant
-2) digest = sha256(_json(messages))                 ← 对实际发送内容取摘要
-3) if _egress_blocked({"messages": messages, "tools": tools}): raise EGRESS_BLOCKED
-4) _workflow_wire(messages, tools)
+a) nested = bool(_NESTED_ARRAY.search(_json({"messages": messages, "tools": tools})))   # 原始消息，只算标志，不抛
+b) messages = _redact_assistant_paths(messages)        # 只处理 assistant
+c) digest = sha256(_json(messages))                    # 对实际发送内容取摘要
+d) settings / names / usage / status / error 等初始化（现状不变）
+e) try:                                                # ← 现有 try 块，以下都在 try 内
+     e1) if not settings.egress_enabled: raise LLMError("LLM_EGRESS_DISABLED", "blocked")
+     e2) if nested: raise LLMError("EGRESS_BLOCKED", "blocked")
+     e3) if _egress_blocked({"messages": messages, "tools": tools}): raise LLMError("EGRESS_BLOCKED", "blocked")
+     e4) _workflow_wire(messages, tools) ……
+   except/finally: 现有审计逻辑不动（写 llm_call）
 ```
 
-**第 0 步不可省（本卡的关键顺序）。** 若先脱敏再扫描，`assistant` 同时含普通斜杠与坐标数组时（如 `a/b [[1,2],[3,4]]`），整条会被替换成 `[路径已隐藏]`，`_NESTED_ARRAY` 就再也看不到那组坐标——**"坐标数组必定硬拦"这条契约被静默改变**。虽然内容已删除、没有外发，但行为契约变了，必须用第 0 步在**原始待发上下文**上先判定。
+三条理由，缺一不可：
 
-**第 0 步只查 `_NESTED_ARRAY`，不调完整 `_egress_blocked`**——否则普通斜杠会再次造成自锁。
+1. **不能把数组检查放在 `try` 之前 `raise`**：`llm_call` 审计写在 `except/finally` 里，提前抛会**绕过审计**，出问题查不到记录。
+2. **错误优先级必须保持**：`egress_enabled=False` 时先返回 `LLM_EGRESS_DISABLED`。若数组检查抢先抛 `EGRESS_BLOCKED`，就改变了现有契约。
+3. **数组标志必须在脱敏前算**：脱敏会把整条 assistant 内容换成 `[路径已隐藏]`，`[[` 随之消失。若先脱敏再查，`a/b [[1,2],[3,4]]` 这类混合样例的数组命中就被吃掉了。
 
-**第 3 步之后仍可能被拦的来源**（不得在卡或文档里声称"只剩 user/system"）：user 与 system 的 content、`tools` 定义与参数、`_NESTED_ARRAY` 坐标数组。
+**e3 之后仍可能被拦的来源**（不得在卡或文档里声称"只剩 user/system"）：user 与 system 的 content、`tools` 定义与参数、`_NESTED_ARRAY` 坐标数组。
 
 ## §7 验收
 
@@ -153,13 +162,31 @@ def _redact_assistant_paths(messages):
 
 ### 7.4 确定性多轮（新增，取代"等真实模型碰巧写斜杠"）
 
+**两条都要，不得只留第一条。**
+
 ```
-第 1 轮：assistant 回复固定含 "避开边缘/阴影"（通过第一轮真实返回值构造，不是静态 chat 调用）
-第 2 轮：发一条普通用户消息
-断言：第 2 轮请求确实发出（transport 被调用）；transport 收到的该条 assistant 内容为 [路径已隐藏]
+用例 1（普通斜杠）：
+  第 1 轮：assistant 回复固定含 "避开边缘/阴影"
+  第 2 轮：发一条普通用户消息
+  断言：请求确实发出（transport 被调用）；该条 assistant 内容为 [路径已隐藏]
+
+用例 2（真实路径，保留自上一版）：
+  第 1 轮：assistant 回复固定含 "/mnt/nas/data"
+  第 2 轮：发一条普通用户消息
+  断言：请求确实发出；transport 收到的该条 assistant 内容为 [路径已隐藏]，
+        且不含 "mnt"、"nas"、"data" 任何片段
 ```
 
-必须**真的走两轮**，不能只做一次静态 `chat()` 调用。
+必须**真的走两轮**（用第 1 轮的真实返回值构造第 2 轮历史），不能只做一次静态 `chat()` 调用。
+
+### 7.4b 错误优先级与审计（新增）
+
+| 用例 | 期望 |
+|---|---|
+| 出口**开启** + `a/b [[1,2],[3,4]]` | 拒绝；transport 未调用；`llm_call` 有一行 `status=blocked, error=EGRESS_BLOCKED` |
+| 出口**关闭** + 同一样例 | 返回 `LLM_EGRESS_DISABLED`（**优先于** `EGRESS_BLOCKED`）；transport 未调用；`llm_call` 有一行 `status=blocked, error=LLM_EGRESS_DISABLED` |
+
+这两条钉死"提前 raise 会绕过审计 / 改变优先级"这个坑。
 
 ### 7.5 回归
 
