@@ -137,12 +137,14 @@ _DENY_TEXT = re.compile(r"[a-z]:|\\|/[^\s/]+|\.(?:img|hdr|mat)\b|\blabel_map\b",
 _NESTED_ARRAY = re.compile(r"\[\s*\[")
 
 
-def _egress_safe_assistant(messages):
+def _redact_assistant_paths(messages):
+    """Remove whole assistant text: path markers cannot delimit the full path."""
     safe = []
     for message in messages:
         message = dict(message)
-        if message.get("role") == "assistant" and isinstance(message.get("content"), str):
-            message["content"] = message["content"].replace("/", "／").replace("\\", "＼")
+        if (message.get("role") == "assistant" and isinstance(message.get("content"), str)
+                and _DENY_TEXT.search(message["content"])):
+            message["content"] = "[路径已隐藏]"
         safe.append(message)
     return safe
 
@@ -251,7 +253,9 @@ class OpenAICompatibleClient(LLMClient):
 
     def chat(self, messages, tools, *, stream=False) -> ChatResult:
         started = perf_counter_ns()
-        messages = _egress_safe_assistant(messages)
+        # Preserve raw array rejection even when assistant text is redacted.
+        nested = bool(_NESTED_ARRAY.search(_json({"messages": messages, "tools": tools})))
+        messages = _redact_assistant_paths(messages)
         digest = sha256(_json(messages).encode("utf-8")).hexdigest()
         settings = read_settings(self.database)
         names = [tool["function"]["name"] for tool in (tools or [])]
@@ -261,6 +265,8 @@ class OpenAICompatibleClient(LLMClient):
         try:
             if not settings.egress_enabled:
                 raise LLMError("LLM_EGRESS_DISABLED", "blocked")
+            if nested:
+                raise LLMError("EGRESS_BLOCKED", "blocked")
             if _egress_blocked({"messages": messages, "tools": tools}):
                 raise LLMError("EGRESS_BLOCKED", "blocked")
             if not settings.base_url or not settings.model:

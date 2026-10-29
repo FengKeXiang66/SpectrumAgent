@@ -57,14 +57,14 @@ def test_egress_blocked_before_any_transport_and_audited(gateway_case, content):
     assert all(row[k] is None for k in ("prompt_tokens", "completion_tokens", "total_tokens"))
 
 
-def test_assistant_slash_is_normalized_before_transport_and_digest(gateway_case):
+def test_assistant_slash_is_redacted_before_transport_and_digest(gateway_case):
     client, transport = mock_client(gateway_case)
-    messages = [{"role": "assistant", "content": "避开边缘/阴影"},
+    messages = [{"role": "assistant", "content": "避开边缘/阴影的部分"},
                 {"role": "user", "content": "接受候选，其余背景，保存后做预处理"}]
     client.chat(messages, TOOLS)
     transport.assert_called_once()
     sent = json.loads(transport.call_args.args[0].content)["messages"]
-    assert sent[0]["content"] == "避开边缘／阴影"
+    assert sent[0]["content"] == "[路径已隐藏]"
     assert sent[1] == messages[1]
     row, = audit_rows(gateway_case)
     canonical = json.dumps(sent, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
@@ -82,15 +82,23 @@ def test_user_path_remains_egress_blocked(gateway_case):
     assert (row["status"], row["error"]) == ("blocked", "EGRESS_BLOCKED")
 
 
-def test_assistant_multiple_slashes_are_all_normalized(gateway_case):
+@pytest.mark.parametrize(("content", "expected"), [
+    ("SNV/SG 与 输入/输出", "[路径已隐藏]"),
+    (r"读取 \\nas\share\secret", "[路径已隐藏]"),
+    (r"E:\data\a.hdr", "[路径已隐藏]"),
+    ("数据集 cube-1，类 PP，指标 1.0", "数据集 cube-1，类 PP，指标 1.0"),
+])
+def test_assistant_whole_content_redacted_only_on_match(gateway_case, content, expected):
     client, transport = mock_client(gateway_case)
-    client.chat([{"role": "assistant", "content": "SNV/SG 与 输入/输出"}], TOOLS)
+    client.chat([{"role": "assistant", "content": content}], TOOLS)
     transport.assert_called_once()
     sent = json.loads(transport.call_args.args[0].content)["messages"]
-    assert sent == [{"role": "assistant", "content": "SNV／SG 与 输入／输出"}]
+    assert sent == [{"role": "assistant", "content": expected}]
+    if content.startswith("读取"):
+        assert all(fragment not in sent[0]["content"] for fragment in ("nas", "share", "secret"))
 
 
-def test_assistant_normalization_does_not_mutate_messages_or_other_fields(gateway_case):
+def test_assistant_redaction_does_not_mutate_messages_or_other_fields(gateway_case):
     client, transport = mock_client(gateway_case)
     messages = [{"role": "system", "content": "帮助用户标注"},
                 {"role": "user", "content": "继续"},
@@ -98,9 +106,9 @@ def test_assistant_normalization_does_not_mutate_messages_or_other_fields(gatewa
                 {"role": "assistant", "content": None,
                  "tool_calls": deepcopy(BODY["choices"][0]["message"]["tool_calls"])}]
     original = deepcopy(messages)
-    safe = llm._egress_safe_assistant(messages)
+    safe = llm._redact_assistant_paths(messages)
     assert safe is not messages
-    assert safe[2]["content"] == "输入／输出与边缘＼阴影"
+    assert safe[2]["content"] == "[路径已隐藏]"
     assert safe[:2] == original[:2] and safe[3] == original[3]
     client.chat(messages, TOOLS)
     transport.assert_called_once()
@@ -112,7 +120,91 @@ def test_assistant_normalization_does_not_mutate_messages_or_other_fields(gatewa
                  {"role": "assistant", "content": None, "tool_calls": [
                      {"function": {"name": "input/output", "arguments": '{"path":"a/b"}'}}]},
                  {"role": "assistant", "content": [{"type": "text", "text": "输入/输出"}]}]
-    assert llm._egress_safe_assistant(untouched) == untouched
+    assert llm._redact_assistant_paths(untouched) == untouched
+
+
+@pytest.mark.parametrize("source", ["tool_description", "tool_arguments", "nested_array"])
+def test_shared_egress_guards_still_block_and_audit(gateway_case, source):
+    client, transport = mock_client(gateway_case)
+    messages, tools = deepcopy(MESSAGES), deepcopy(TOOLS)
+    if source == "tool_description":
+        tools[0]["function"]["description"] = r"读取 \\nas\share\cube"
+    elif source == "tool_arguments":
+        calls = deepcopy(BODY["choices"][0]["message"]["tool_calls"])
+        calls[0]["function"]["arguments"] = '{"path":"D:/private/cube"}'
+        messages = [{"role": "assistant", "content": None, "tool_calls": calls}]
+    else:
+        messages = [{"role": "assistant", "content": "[[1,2],[3,4]]"}]
+    with pytest.raises(llm.LLMError) as caught:
+        client.chat(messages, tools)
+    assert (caught.value.code, caught.value.status) == ("EGRESS_BLOCKED", "blocked")
+    transport.assert_not_called()
+    row, = audit_rows(gateway_case)
+    assert (row["status"], row["error"]) == ("blocked", "EGRESS_BLOCKED")
+
+
+def test_redacted_content_does_not_hide_same_message_tool_arguments(gateway_case):
+    client, transport = mock_client(gateway_case)
+    calls = deepcopy(BODY["choices"][0]["message"]["tool_calls"])
+    calls[0]["function"]["arguments"] = '{"path":"D:/private/cube"}'
+    messages = [{"role": "assistant", "content": "避开边缘/阴影", "tool_calls": calls}]
+    original = deepcopy(messages)
+    safe = llm._redact_assistant_paths(messages)
+    assert safe[0]["content"] == "[路径已隐藏]" and safe[0]["tool_calls"] == calls
+    with pytest.raises(llm.LLMError) as caught:
+        client.chat(messages, TOOLS)
+    assert caught.value.code == "EGRESS_BLOCKED"
+    transport.assert_not_called()
+    assert messages == original
+    row, = audit_rows(gateway_case)
+    assert (row["status"], row["error"]) == ("blocked", "EGRESS_BLOCKED")
+    assert row["prompt_sha256"] == sha256(llm._json(safe).encode()).hexdigest()
+
+
+@pytest.mark.parametrize(("egress_enabled", "error"), [
+    (True, "EGRESS_BLOCKED"), (False, "LLM_EGRESS_DISABLED"),
+])
+def test_raw_mixed_array_is_blocked_with_switch_priority_and_audit(gateway_case, egress_enabled, error):
+    llm.write_settings(gateway_case.database, gateway_case.settings.model_copy(
+        update={"egress_enabled": egress_enabled}))
+    client, transport = mock_client(gateway_case)
+    messages = [{"role": "assistant", "content": "a/b [[1,2],[3,4]]"}]
+    original = deepcopy(messages)
+    safe = [{"role": "assistant", "content": "[路径已隐藏]"}]
+    with pytest.raises(llm.LLMError) as caught:
+        client.chat(messages, TOOLS)
+    assert (caught.value.code, caught.value.status) == (error, "blocked")
+    transport.assert_not_called()
+    assert messages == original
+    row, = audit_rows(gateway_case)
+    assert (row["status"], row["error"]) == ("blocked", error)
+    assert row["prompt_sha256"] == sha256(llm._json(safe).encode()).hexdigest()
+    assert all(row[k] is None for k in ("prompt_tokens", "completion_tokens", "total_tokens"))
+
+
+@pytest.mark.parametrize("first_reply", ["避开边缘/阴影", "/mnt/nas/data"])
+def test_two_turn_history_redacted_from_actual_first_result(gateway_case, first_reply):
+    body = {"choices": [{"message": {"content": first_reply}, "finish_reason": "stop"}]}
+    client, transport = mock_client(gateway_case, body)
+    messages = deepcopy(MESSAGES)
+    first_result = client.chat(messages, TOOLS)
+    assert first_result.content == first_reply
+    messages.extend([{"role": "assistant", "content": first_result.content},
+                     {"role": "user", "content": "继续"}])
+    original = deepcopy(messages)
+    client.chat(messages, TOOLS)
+    assert transport.call_count == 2
+    first_sent, second_sent = [
+        json.loads(call.args[0].content)["messages"] for call in transport.call_args_list]
+    assert first_sent == MESSAGES
+    assert second_sent == [*MESSAGES, {"role": "assistant", "content": "[路径已隐藏]"},
+                           {"role": "user", "content": "继续"}]
+    if first_reply.startswith("/"):
+        assert all(fragment not in second_sent[-2]["content"] for fragment in ("mnt", "nas", "data"))
+    assert messages == original
+    rows = audit_rows(gateway_case)
+    assert len(rows) == 2 and all(row["status"] == "ok" for row in rows)
+    assert rows[1]["prompt_sha256"] == sha256(llm._json(second_sent).encode()).hexdigest()
 
 
 def test_tool_schema_scanned_and_multiline_unicode_text_allowed(gateway_case):
