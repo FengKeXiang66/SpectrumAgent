@@ -1,0 +1,760 @@
+[
+  {
+    "name": "need-seed-default",
+    "statuses": [
+      "need_seed"
+    ],
+    "arguments": [
+      "--seed",
+      "115,320"
+    ],
+    "expected": {
+      "exit_code": 1,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/api/v1/agent/runtime",
+          "body": null
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/settings/llm",
+          "body": null
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/agent/sessions",
+          "body": {}
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/agent/sessions/session/messages",
+          "body": {
+            "content": "对第一个数据标注 PP，其余背景，参数默认，保存后做预处理"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/datasets/cube",
+          "body": null
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/annotations/cube/gestures",
+          "body": {
+            "seed": {
+              "point": [
+                115,
+                320
+              ]
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/agent/sessions/session/messages",
+          "body": {
+            "content": "继续",
+            "workspace": {
+              "cube_id": "cube",
+              "gesture_ref": "g-1"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/agent/sessions/session/messages",
+          "body": {
+            "content": "接受候选，其余背景，保存后做预处理",
+            "workspace": {
+              "cube_id": "cube",
+              "gesture_ref": "g-1"
+            }
+          }
+        }
+      ],
+      "events": [
+        [
+          "workspace",
+          {
+            "cube_id": "cube"
+          }
+        ],
+        [
+          "done",
+          {
+            "content": "请继续",
+            "task_result": "working"
+          }
+        ],
+        [
+          "step",
+          {
+            "seq": 1,
+            "tool": "annotations.propose",
+            "status": "ok",
+            "result_summary": {
+              "status": "need_seed"
+            }
+          }
+        ],
+        [
+          "done",
+          {
+            "task_result": "needs_input"
+          }
+        ],
+        [
+          "step",
+          {
+            "seq": 2,
+            "tool": "annotations.propose",
+            "status": "ok",
+            "result_summary": {
+              "status": "need_seed"
+            }
+          }
+        ],
+        [
+          "done",
+          {
+            "task_result": "needs_input"
+          }
+        ]
+      ],
+      "stdout": "RUNTIME_URL: http://127.0.0.1:1234/api/v1/agent/runtime\nRUNTIME: {\"skill_name\": \"conversation-workflows-v2\"}\nL1 PASS\nTURN 1\nSSE workspace {\"cube_id\": \"cube\"}\nSSE done {\"content\": \"请继续\", \"task_result\": \"working\"}\nSEED: {\"seed\": [115, 320], \"cube_id\": \"cube\", \"gesture_ref\": \"g-1\"}\nTURN 2\nSSE step {\"seq\": 1, \"tool\": \"annotations.propose\", \"status\": \"ok\", \"result_summary\": {\"status\": \"need_seed\"}}\nSSE done {\"task_result\": \"needs_input\"}\nTURN 3\nSSE step {\"seq\": 2, \"tool\": \"annotations.propose\", \"status\": \"ok\", \"result_summary\": {\"status\": \"need_seed\"}}\nSSE done {\"task_result\": \"needs_input\"}\nL2 PASS\nNATIVE_TOOL_SEQUENCE: [{\"seq\": 1, \"tool\": \"annotations.propose\", \"status\": \"ok\"}, {\"seq\": 2, \"tool\": \"annotations.propose\", \"status\": \"ok\"}]\nL3 PASS\nFAIL at L4: no new saved annotation paired with a new succeeded preprocessing run\nREPORT: <REPORT>\n",
+      "report": {
+        "evidence_levels": {
+          "L1": {
+            "passed": true
+          },
+          "L2": {
+            "passed": true
+          },
+          "L3": {
+            "passed": true
+          },
+          "L4": {
+            "passed": false,
+            "reason": "no new saved annotation paired with a new succeeded preprocessing run"
+          }
+        },
+        "task_result": "needs_input",
+        "stop_reason": "FAIL at L4: no new saved annotation paired with a new succeeded preprocessing run",
+        "session_id": "session",
+        "seed": [
+          115,
+          320
+        ],
+        "gesture_ref": "g-1",
+        "turns_sent": 3,
+        "runtime": {
+          "skill_name": "conversation-workflows-v2"
+        },
+        "event_kinds": [
+          "workspace",
+          "done",
+          "step",
+          "done",
+          "step",
+          "done"
+        ],
+        "catalogue_offered": [
+          "annotations.propose"
+        ],
+        "native_tool_sequence": [
+          {
+            "seq": 1,
+            "tool": "annotations.propose",
+            "status": "ok"
+          },
+          {
+            "seq": 2,
+            "tool": "annotations.propose",
+            "status": "ok"
+          }
+        ],
+        "new_annotation_versions": [],
+        "new_runs": [],
+        "paired_succeeded_runs": [],
+        "run_count_before": 0,
+        "run_count_after": 0
+      }
+    }
+  },
+  {
+    "name": "preview-default",
+    "statuses": [
+      "preview"
+    ],
+    "arguments": [
+      "--seed",
+      "115,320"
+    ],
+    "expected": {
+      "exit_code": 0,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/api/v1/agent/runtime",
+          "body": null
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/settings/llm",
+          "body": null
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/agent/sessions",
+          "body": {}
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/agent/sessions/session/messages",
+          "body": {
+            "content": "对第一个数据标注 PP，其余背景，参数默认，保存后做预处理"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/datasets/cube",
+          "body": null
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/annotations/cube/gestures",
+          "body": {
+            "seed": {
+              "point": [
+                115,
+                320
+              ]
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/agent/sessions/session/messages",
+          "body": {
+            "content": "继续",
+            "workspace": {
+              "cube_id": "cube",
+              "gesture_ref": "g-1"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/agent/sessions/session/messages",
+          "body": {
+            "content": "接受候选，其余背景，保存后做预处理",
+            "workspace": {
+              "cube_id": "cube",
+              "gesture_ref": "g-1"
+            }
+          }
+        }
+      ],
+      "events": [
+        [
+          "workspace",
+          {
+            "cube_id": "cube"
+          }
+        ],
+        [
+          "done",
+          {
+            "content": "请继续",
+            "task_result": "working"
+          }
+        ],
+        [
+          "step",
+          {
+            "seq": 1,
+            "tool": "annotations.propose",
+            "status": "ok",
+            "result_summary": {
+              "status": "preview"
+            }
+          }
+        ],
+        [
+          "done",
+          {
+            "task_result": "needs_review"
+          }
+        ],
+        [
+          "step",
+          {
+            "seq": 2,
+            "tool": "annotations.draft_confirm",
+            "status": "ok",
+            "result_summary": {
+              "version_id": "new"
+            }
+          }
+        ],
+        [
+          "step",
+          {
+            "seq": 3,
+            "tool": "preprocess.run_default",
+            "status": "ok",
+            "result_summary": {
+              "run_id": "run",
+              "status": "succeeded"
+            }
+          }
+        ],
+        [
+          "done",
+          {
+            "task_result": "succeeded"
+          }
+        ]
+      ],
+      "stdout": "RUNTIME_URL: http://127.0.0.1:1234/api/v1/agent/runtime\nRUNTIME: {\"skill_name\": \"conversation-workflows-v2\"}\nL1 PASS\nTURN 1\nSSE workspace {\"cube_id\": \"cube\"}\nSSE done {\"content\": \"请继续\", \"task_result\": \"working\"}\nSEED: {\"seed\": [115, 320], \"cube_id\": \"cube\", \"gesture_ref\": \"g-1\"}\nTURN 2\nSSE step {\"seq\": 1, \"tool\": \"annotations.propose\", \"status\": \"ok\", \"result_summary\": {\"status\": \"preview\"}}\nSSE done {\"task_result\": \"needs_review\"}\nTURN 3\nSSE step {\"seq\": 2, \"tool\": \"annotations.draft_confirm\", \"status\": \"ok\", \"result_summary\": {\"version_id\": \"new\"}}\nSSE step {\"seq\": 3, \"tool\": \"preprocess.run_default\", \"status\": \"ok\", \"result_summary\": {\"run_id\": \"run\", \"status\": \"succeeded\"}}\nSSE done {\"task_result\": \"succeeded\"}\nL2 PASS\nNATIVE_TOOL_SEQUENCE: [{\"seq\": 1, \"tool\": \"annotations.propose\", \"status\": \"ok\"}, {\"seq\": 2, \"tool\": \"annotations.draft_confirm\", \"status\": \"ok\"}, {\"seq\": 3, \"tool\": \"preprocess.run_default\", \"status\": \"ok\"}]\nL3 PASS\nL4 PASS\nPASS\nREPORT: <REPORT>\n",
+      "report": {
+        "evidence_levels": {
+          "L1": {
+            "passed": true
+          },
+          "L2": {
+            "passed": true
+          },
+          "L3": {
+            "passed": true
+          },
+          "L4": {
+            "passed": true
+          }
+        },
+        "task_result": "succeeded",
+        "stop_reason": null,
+        "session_id": "session",
+        "seed": [
+          115,
+          320
+        ],
+        "gesture_ref": "g-1",
+        "turns_sent": 3,
+        "runtime": {
+          "skill_name": "conversation-workflows-v2"
+        },
+        "event_kinds": [
+          "workspace",
+          "done",
+          "step",
+          "done",
+          "step",
+          "step",
+          "done"
+        ],
+        "catalogue_offered": [
+          "annotations.propose"
+        ],
+        "native_tool_sequence": [
+          {
+            "seq": 1,
+            "tool": "annotations.propose",
+            "status": "ok"
+          },
+          {
+            "seq": 2,
+            "tool": "annotations.draft_confirm",
+            "status": "ok"
+          },
+          {
+            "seq": 3,
+            "tool": "preprocess.run_default",
+            "status": "ok"
+          }
+        ],
+        "new_annotation_versions": [
+          {
+            "id": "new",
+            "cube_id": "cube",
+            "version_no": 2
+          }
+        ],
+        "new_runs": [
+          {
+            "id": "run",
+            "cube_id": "cube",
+            "annotation_version_id": "new",
+            "status": "succeeded"
+          }
+        ],
+        "paired_succeeded_runs": [
+          {
+            "id": "run",
+            "cube_id": "cube",
+            "annotation_version_id": "new",
+            "status": "succeeded"
+          }
+        ],
+        "run_count_before": 0,
+        "run_count_after": 1
+      }
+    }
+  },
+  {
+    "name": "preview-one-turn",
+    "statuses": [
+      "preview"
+    ],
+    "arguments": [
+      "--seed",
+      "115,320",
+      "--turns",
+      "1"
+    ],
+    "expected": {
+      "exit_code": 1,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/api/v1/agent/runtime",
+          "body": null
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/settings/llm",
+          "body": null
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/agent/sessions",
+          "body": {}
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/agent/sessions/session/messages",
+          "body": {
+            "content": "对第一个数据标注 PP，其余背景，参数默认，保存后做预处理"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/datasets/cube",
+          "body": null
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/annotations/cube/gestures",
+          "body": {
+            "seed": {
+              "point": [
+                115,
+                320
+              ]
+            }
+          }
+        }
+      ],
+      "events": [
+        [
+          "workspace",
+          {
+            "cube_id": "cube"
+          }
+        ],
+        [
+          "done",
+          {
+            "content": "请继续",
+            "task_result": "working"
+          }
+        ]
+      ],
+      "stdout": "RUNTIME_URL: http://127.0.0.1:1234/api/v1/agent/runtime\nRUNTIME: {\"skill_name\": \"conversation-workflows-v2\"}\nL1 PASS\nTURN 1\nSSE workspace {\"cube_id\": \"cube\"}\nSSE done {\"content\": \"请继续\", \"task_result\": \"working\"}\nSEED: {\"seed\": [115, 320], \"cube_id\": \"cube\", \"gesture_ref\": \"g-1\"}\nL2 PASS\nNATIVE_TOOL_SEQUENCE: []\nFAIL at L3: 模型未选择 v2 工具; native_tool_sequence=[]\nREPORT: <REPORT>\n",
+      "report": {
+        "evidence_levels": {
+          "L1": {
+            "passed": true
+          },
+          "L2": {
+            "passed": true
+          },
+          "L3": {
+            "passed": false,
+            "reason": "模型未选择 v2 工具; native_tool_sequence=[]"
+          }
+        },
+        "task_result": "working",
+        "stop_reason": "FAIL at L3: 模型未选择 v2 工具; native_tool_sequence=[]",
+        "session_id": "session",
+        "seed": [
+          115,
+          320
+        ],
+        "gesture_ref": "g-1",
+        "turns_sent": 1,
+        "runtime": {
+          "skill_name": "conversation-workflows-v2"
+        },
+        "event_kinds": [
+          "workspace",
+          "done"
+        ],
+        "catalogue_offered": [
+          "annotations.propose"
+        ],
+        "native_tool_sequence": [],
+        "new_annotation_versions": [],
+        "new_runs": [],
+        "paired_succeeded_runs": [],
+        "run_count_before": 0,
+        "run_count_after": 0
+      }
+    }
+  },
+  {
+    "name": "preview-four-turns-custom",
+    "statuses": [
+      "preview"
+    ],
+    "arguments": [
+      "--seed",
+      "115,320",
+      "--turns",
+      "4",
+      "--follow-up",
+      "自定义继续",
+      "--accept-message",
+      "自定义接受"
+    ],
+    "expected": {
+      "exit_code": 0,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/api/v1/agent/runtime",
+          "body": null
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/settings/llm",
+          "body": null
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/agent/sessions",
+          "body": {}
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/agent/sessions/session/messages",
+          "body": {
+            "content": "对第一个数据标注 PP，其余背景，参数默认，保存后做预处理"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/datasets/cube",
+          "body": null
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/annotations/cube/gestures",
+          "body": {
+            "seed": {
+              "point": [
+                115,
+                320
+              ]
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/agent/sessions/session/messages",
+          "body": {
+            "content": "自定义继续",
+            "workspace": {
+              "cube_id": "cube",
+              "gesture_ref": "g-1"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/agent/sessions/session/messages",
+          "body": {
+            "content": "自定义接受",
+            "workspace": {
+              "cube_id": "cube",
+              "gesture_ref": "g-1"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/agent/sessions/session/messages",
+          "body": {
+            "content": "自定义继续",
+            "workspace": {
+              "cube_id": "cube",
+              "gesture_ref": "g-1"
+            }
+          }
+        }
+      ],
+      "events": [
+        [
+          "workspace",
+          {
+            "cube_id": "cube"
+          }
+        ],
+        [
+          "done",
+          {
+            "content": "请继续",
+            "task_result": "working"
+          }
+        ],
+        [
+          "step",
+          {
+            "seq": 1,
+            "tool": "annotations.propose",
+            "status": "ok",
+            "result_summary": {
+              "status": "preview"
+            }
+          }
+        ],
+        [
+          "done",
+          {
+            "task_result": "needs_review"
+          }
+        ],
+        [
+          "step",
+          {
+            "seq": 2,
+            "tool": "annotations.draft_confirm",
+            "status": "ok",
+            "result_summary": {
+              "version_id": "new"
+            }
+          }
+        ],
+        [
+          "step",
+          {
+            "seq": 3,
+            "tool": "preprocess.run_default",
+            "status": "ok",
+            "result_summary": {
+              "run_id": "run",
+              "status": "succeeded"
+            }
+          }
+        ],
+        [
+          "done",
+          {
+            "task_result": "succeeded"
+          }
+        ],
+        [
+          "done",
+          {
+            "task_result": "succeeded"
+          }
+        ]
+      ],
+      "stdout": "RUNTIME_URL: http://127.0.0.1:1234/api/v1/agent/runtime\nRUNTIME: {\"skill_name\": \"conversation-workflows-v2\"}\nL1 PASS\nTURN 1\nSSE workspace {\"cube_id\": \"cube\"}\nSSE done {\"content\": \"请继续\", \"task_result\": \"working\"}\nSEED: {\"seed\": [115, 320], \"cube_id\": \"cube\", \"gesture_ref\": \"g-1\"}\nTURN 2\nSSE step {\"seq\": 1, \"tool\": \"annotations.propose\", \"status\": \"ok\", \"result_summary\": {\"status\": \"preview\"}}\nSSE done {\"task_result\": \"needs_review\"}\nTURN 3\nSSE step {\"seq\": 2, \"tool\": \"annotations.draft_confirm\", \"status\": \"ok\", \"result_summary\": {\"version_id\": \"new\"}}\nSSE step {\"seq\": 3, \"tool\": \"preprocess.run_default\", \"status\": \"ok\", \"result_summary\": {\"run_id\": \"run\", \"status\": \"succeeded\"}}\nSSE done {\"task_result\": \"succeeded\"}\nTURN 4\nSSE done {\"task_result\": \"succeeded\"}\nL2 PASS\nNATIVE_TOOL_SEQUENCE: [{\"seq\": 1, \"tool\": \"annotations.propose\", \"status\": \"ok\"}, {\"seq\": 2, \"tool\": \"annotations.draft_confirm\", \"status\": \"ok\"}, {\"seq\": 3, \"tool\": \"preprocess.run_default\", \"status\": \"ok\"}]\nL3 PASS\nL4 PASS\nPASS\nREPORT: <REPORT>\n",
+      "report": {
+        "evidence_levels": {
+          "L1": {
+            "passed": true
+          },
+          "L2": {
+            "passed": true
+          },
+          "L3": {
+            "passed": true
+          },
+          "L4": {
+            "passed": true
+          }
+        },
+        "task_result": "succeeded",
+        "stop_reason": null,
+        "session_id": "session",
+        "seed": [
+          115,
+          320
+        ],
+        "gesture_ref": "g-1",
+        "turns_sent": 4,
+        "runtime": {
+          "skill_name": "conversation-workflows-v2"
+        },
+        "event_kinds": [
+          "workspace",
+          "done",
+          "step",
+          "done",
+          "step",
+          "step",
+          "done",
+          "done"
+        ],
+        "catalogue_offered": [
+          "annotations.propose"
+        ],
+        "native_tool_sequence": [
+          {
+            "seq": 1,
+            "tool": "annotations.propose",
+            "status": "ok"
+          },
+          {
+            "seq": 2,
+            "tool": "annotations.draft_confirm",
+            "status": "ok"
+          },
+          {
+            "seq": 3,
+            "tool": "preprocess.run_default",
+            "status": "ok"
+          }
+        ],
+        "new_annotation_versions": [
+          {
+            "id": "new",
+            "cube_id": "cube",
+            "version_no": 2
+          }
+        ],
+        "new_runs": [
+          {
+            "id": "run",
+            "cube_id": "cube",
+            "annotation_version_id": "new",
+            "status": "succeeded"
+          }
+        ],
+        "paired_succeeded_runs": [
+          {
+            "id": "run",
+            "cube_id": "cube",
+            "annotation_version_id": "new",
+            "status": "succeeded"
+          }
+        ],
+        "run_count_before": 0,
+        "run_count_after": 1
+      }
+    }
+  }
+]

@@ -151,7 +151,8 @@ def main(argv=None):
     parser.add_argument("--data-root", type=Path, required=True)
     parser.add_argument("--message", default=DEFAULT_MESSAGE)
     parser.add_argument("--follow-up", default="继续")
-    parser.add_argument("--seed", type=parse_seed)
+    parser.add_argument("--seed", type=parse_seed, action="append")
+    parser.add_argument("--retry-message", default="换了个位置，再试一次")
     parser.add_argument("--accept-message", default="接受候选，其余背景，保存后做预处理")
     parser.add_argument("--turns", type=int)
     args = parser.parse_args(argv)
@@ -160,7 +161,8 @@ def main(argv=None):
     if args.turns < 1:
         parser.error("--turns must be >= 1")
     report = {"evidence_levels": {}, "task_result": "working", "stop_reason": None, "session_id": None,
-              "seed": args.seed, "gesture_ref": None, "turns_sent": 0}
+              "seed": args.seed[0] if args.seed else None, "gesture_ref": None, "turns_sent": 0,
+              "seeds_tried": [], "seed_used": None}
 
     def finish(level=None, reason=None):
         if level:
@@ -198,34 +200,72 @@ def main(argv=None):
         database = args.data_root.resolve() / "db" / "spectrum-agent.sqlite3"
         baseline = baseline_of(database)
         events, transport_error, workspace = [], None, None
+        preview_seen = False
+
+        def use_seed(seed, cube_id, shape):
+            if seed[0] >= shape[0] or seed[1] >= shape[1]:
+                parser.error(f"--seed is outside cube bounds: rows [0,{shape[0]}), cols [0,{shape[1]})")
+            gesture = call_api(base, token, f"/api/v1/annotations/{cube_id}/gestures",
+                               {"seed": {"point": seed}}, method="POST")
+            report["gesture_ref"] = gesture["gesture_ref"]
+            report["seeds_tried"].append(seed)
+            current_workspace = {"cube_id": cube_id, "gesture_ref": report["gesture_ref"]}
+            print("SEED:", json.dumps({"seed": seed, **current_workspace}, ensure_ascii=False), flush=True)
+            return current_workspace
+
+        def proposal_status(round_events):
+            nonlocal preview_seen
+            status = None
+            for name, data in round_events:
+                if name == "step" and data.get("tool") == "annotations.propose" and data.get("status") == "ok":
+                    status = data.get("result_summary", {}).get("status")
+                    if status == "preview" and not preview_seen:
+                        preview_seen = True
+                        report["seed_used"] = report["seeds_tried"][-1] if report["seeds_tried"] else None
+            return status
+
         for turn in range(args.turns):
-            print("TURN", turn + 1, flush=True)
+            print("TURN", report["turns_sent"] + 1, flush=True)
             try:
                 content = (args.message if turn == 0 else args.accept_message
                            if args.seed is not None and turn == 2 else args.follow_up)
                 report["turns_sent"] += 1
                 if workspace:
-                    events.extend(send_message(base, token, session["id"], content, workspace=workspace))
+                    round_events = send_message(base, token, session["id"], content, workspace=workspace)
                 else:
-                    events.extend(send_message(base, token, session["id"], content))
+                    round_events = send_message(base, token, session["id"], content)
+                events.extend(round_events)
             except (OSError, ValueError) as exc:
                 transport_error = type(exc).__name__
                 break
             if events and events[-1][0] == "error":
                 break
+            status = proposal_status(round_events)
             if turn == 0 and args.seed is not None:
                 first_workspace = next((data for name, data in reversed(events) if name == "workspace"), None)
                 if not first_workspace or not first_workspace.get("cube_id"):
                     return finish(current_level, "cannot register seed: first turn has no workspace cube_id")
                 cube_id = first_workspace["cube_id"]
                 shape = call_api(base, token, f"/api/v1/datasets/{cube_id}")["dataset"]["shape"]
-                if args.seed[0] >= shape[0] or args.seed[1] >= shape[1]:
-                    parser.error(f"--seed is outside cube bounds: rows [0,{shape[0]}), cols [0,{shape[1]})")
-                gesture = call_api(base, token, f"/api/v1/annotations/{cube_id}/gestures",
-                                   {"seed": {"point": args.seed}}, method="POST")
-                report["gesture_ref"] = gesture["gesture_ref"]
-                workspace = {"cube_id": cube_id, "gesture_ref": report["gesture_ref"]}
-                print("SEED:", json.dumps({"seed": args.seed, **workspace}, ensure_ascii=False), flush=True)
+                workspace = use_seed(args.seed[0], cube_id, shape)
+                continue
+            # Retry messages are extra attempts, not replacements for normal
+            # turns (including the original third-turn accept message).
+            while (args.seed and not preview_seen and status == "need_seed"
+                   and len(report["seeds_tried"]) < len(args.seed)
+                   and not any(name == "error" for name, _ in round_events)):
+                workspace = use_seed(args.seed[len(report["seeds_tried"])], cube_id, shape)
+                print("TURN", report["turns_sent"] + 1, flush=True)
+                try:
+                    report["turns_sent"] += 1
+                    round_events = send_message(base, token, session["id"], args.retry_message, workspace=workspace)
+                    events.extend(round_events)
+                except (OSError, ValueError) as exc:
+                    transport_error = type(exc).__name__
+                    break
+                status = proposal_status(round_events)
+            if transport_error or events and events[-1][0] == "error":
+                break
         report["event_kinds"] = [name for name, _ in events]
         evidence = session_evidence(database, session["id"], baseline)
         report.update(evidence)

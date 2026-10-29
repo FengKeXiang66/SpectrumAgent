@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { displayName, mergeRecords, type DatasetRecord } from '../../../src/components/datasets/types.ts';
-import { datasetChoices, readableText } from '../../../src/components/assistant/presentation.ts';
-import type { ChatEntry } from '../../../src/components/assistant/sse.ts';
+import { displayName, mergeRecords, type DatasetRecord } from './types.ts';
+import { datasetChoices, readableText } from '../assistant/presentation.ts';
+import type { ChatEntry } from '../assistant/sse.ts';
 
 test('G3 shared displayName uses the server name and preserves the legacy fallback', () => {
   const record = { id: 'one', dataset: { name: 'source' }, display_name: 'source（反射率）' } as DatasetRecord;
