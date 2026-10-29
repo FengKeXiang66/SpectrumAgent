@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { annotations } from '../annotation/api.ts';
 import type { LabelSchema, Project } from '../annotation/types.ts';
 import type { DatasetRecord } from '../datasets/types.ts';
+import { displayName } from '../datasets/types.ts';
 import { preprocessing } from '../preprocess/api.ts';
 import { metricLabels, modeling, type ImportResult, type Result, type Sweep, type Target } from './api.ts';
 import { failureMessage, regressionCharts } from './chart.ts';
@@ -82,10 +83,10 @@ export default function ModelPanel({ records, onClose }: { records: DatasetRecor
       <label>项目<select value={project} onChange={e => setProject(e.target.value)}>{projects.map(row => <option key={row.id} value={row.id}>{row.name}</option>)}</select></label>
       <label>连续字段<select value={schema} onChange={e => setSchema(e.target.value)}><option value="">请选择</option>{schemas.map(row => <option key={row.id} value={row.id}>{row.tree_path}{row.unit ? ` (${row.unit})` : ''}</option>)}</select></label>
       {!schemas.length && <p>请先在标注面板定义连续字段，再回到此处填写样品取值。</p>}
-      <label>样品<select value={cube} onChange={e => setCube(e.target.value)}>{records.map(row => <option key={row.id} value={row.id}>{row.dataset.name}</option>)}</select></label>
+      <label>样品<select value={cube} onChange={e => setCube(e.target.value)}>{records.map(row => <option key={row.id} value={row.id}>{displayName(row)}</option>)}</select></label>
       <label>测量值<input type="number" step="any" value={value} onChange={e => setValue(e.target.value)} /></label>
       <button disabled={!schema || !cube || !value.trim()} onClick={() => void work(async () => { await modeling.put(cube, schema, Number(value)); setTargets(await modeling.targets(project)); setMessage('已保存样品测量值。'); })}>保存测量值</button>
-      <details><summary>已保存 {targets.length} 条</summary><ul>{targets.map(row => <li key={row.cube_id + row.schema_id}>{records.find(record => record.id === row.cube_id)?.dataset.name ?? row.cube_id} · {row.tree_path}：{row.value}（{row.source === 'annotation' ? '手填' : '导入'}）</li>)}</ul></details>
+      <details><summary>已保存 {targets.length} 条</summary><ul>{targets.map(row => <li key={row.cube_id + row.schema_id}>{records.filter(record => record.id === row.cube_id).map(displayName)[0] ?? row.cube_id} · {row.tree_path}：{row.value}（{row.source === 'annotation' ? '手填' : '导入'}）</li>)}</ul></details>
       <p>CSV 表头：cube_name,schema,value；字段优先填完整路径，也可填项目内唯一名称。样品名称须唯一关联。</p>
       <input aria-label="选择连续量 CSV" type="file" accept=".csv,text/csv" onChange={e => { const file = e.target.files?.[0]; if (file) void work(async () => { if (file.size > 2 * 1024 * 1024) throw new Error('CSV 须小于 2 MiB'); setCSV(await file.text()); setImported(null); }); }} />
       <button disabled={!csv || !project} onClick={() => void work(() => importCSV(false))}>导入 CSV</button>
@@ -95,7 +96,7 @@ export default function ModelPanel({ records, onClose }: { records: DatasetRecor
     </fieldset>
     <fieldset disabled={busy}><legend>训练配置</legend>
       <p>每个样品选一个已成功的预处理 run；均值谱使用该 run 绑定的标注版本，并排除背景。未填写目标值的样品会自动排除。</p>
-      {records.map(row => <label key={row.id}>{row.dataset.name}<select value={selected[row.id] ?? ''} onChange={e => setSelected({ ...selected, [row.id]: e.target.value })}>
+      {records.map(row => <label key={row.id}>{displayName(row)}<select value={selected[row.id] ?? ''} onChange={e => setSelected({ ...selected, [row.id]: e.target.value })}>
         <option value="">不参与</option>{(choices[row.id] ?? []).map(run => <option key={run.id} value={run.id}>run {run.id} · 标注 {run.version}</option>)}</select></label>)}
       <label>测试集比例<input type="number" step="any" min="0.01" max="0.99" value={ratio} onChange={e => setRatio(Number(e.target.value))} /></label>
       <label>训练集内验证<select value={strategy} onChange={e => setStrategy(e.target.value as 'kfold' | 'loo')}><option value="kfold">KFold</option><option value="loo">留一法 LOO</option></select></label>

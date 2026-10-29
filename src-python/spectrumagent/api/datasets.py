@@ -69,8 +69,7 @@ def make_router(registry: DatasetRegistry):
 
     @router.get("/{identifier}", response_model=DatasetRecord)
     def info(identifier: UUID):
-        ds, _ = registry.get(identifier)
-        return DatasetRecord(id=identifier, dataset=ds, existing=True)
+        return registry.record(identifier)
 
     @router.get("/{identifier}/preview", response_model=PreviewResponse | ColorPreview)
     def preview(identifier: UUID, band: int | None = Query(None, ge=0), size: Literal["preview", "full"] = "preview",

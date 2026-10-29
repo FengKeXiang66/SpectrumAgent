@@ -3106,6 +3106,10 @@
           "existing": {
             "type": "boolean",
             "title": "Existing"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
           }
         },
         "additionalProperties": false,
@@ -3113,7 +3117,8 @@
         "required": [
           "id",
           "dataset",
-          "existing"
+          "existing",
+          "display_name"
         ],
         "title": "DatasetRecord"
       },
@@ -3511,13 +3516,21 @@
           },
           "summary": {
             "$ref": "#/components/schemas/ImportSummary"
+          },
+          "all_datasets": {
+            "items": {
+              "$ref": "#/components/schemas/DatasetRecord"
+            },
+            "type": "array",
+            "title": "All Datasets"
           }
         },
         "additionalProperties": false,
         "type": "object",
         "required": [
           "datasets",
-          "summary"
+          "summary",
+          "all_datasets"
         ],
         "title": "ImportResponse"
       },

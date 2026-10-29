@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { describeError, mergeRecords, type DatasetRecord, type DatasetTransport, type Preview } from './types';
+import { describeError, displayName, mergeRecords, type DatasetRecord, type DatasetTransport, type Preview } from './types';
 import AnnotationWorkbench from '../annotation/AnnotationWorkbench';
 import PreprocessPanel from '../preprocess/PreprocessPanel';
 import ModelPanel from '../modeling/ModelPanel';
@@ -121,7 +121,7 @@ export default function DatasetPanel({ api, onRecordsChange, onWorkspaceChange, 
         const result = await api.importDirectory(paths[i], raw);
         if (!live.current) return;
         imported += result.summary.imported; existing += result.summary.existing;
-        setRecords(previous => mergeRecords(previous, result.datasets));
+        setRecords(previous => mergeRecords(previous, result.all_datasets));
         setProgress({ done: i + 1, total: paths.length });
       }
       setMessage(`完成：新增 ${imported} 个，已有 ${existing} 个。`);
@@ -152,17 +152,17 @@ export default function DatasetPanel({ api, onRecordsChange, onWorkspaceChange, 
       <tbody>{records.map(record => {
         const data = record.dataset;
         return <tr key={record.id}>
-          <td>{data.name}</td><td>{data.shape.join('×')}</td>
+          <td>{displayName(record)}</td><td>{data.shape.join('×')}</td>
           <td>{data.wavelengths.length ? `${data.wavelengths[0]}–${data.wavelengths.at(-1)}` : '未提供'}</td>
           <td>{data.metadata.value_mode === 'raw_dn' ? 'DN 原值' : '反射率'}{record.existing ? '（已有）' : ''}</td>
-          <td><Thumbnail record={record} api={api} /><button onClick={() => { void loadPreview(record, 0); }}>预览 {data.name}</button>
-            <button disabled={busy} onClick={() => { setAnnotation(record); onWorkspaceChange?.({ cube_id: record.id }); }}>标注 {data.name}</button>
-            <button disabled={busy} onClick={() => { setPreprocess(record); onWorkspaceChange?.({ cube_id: record.id }); }}>预处理 {data.name}</button></td>
+          <td><Thumbnail record={record} api={api} /><button onClick={() => { void loadPreview(record, 0); }}>预览 {displayName(record)}</button>
+            <button disabled={busy} onClick={() => { setAnnotation(record); onWorkspaceChange?.({ cube_id: record.id }); }}>标注 {displayName(record)}</button>
+            <button disabled={busy} onClick={() => { setPreprocess(record); onWorkspaceChange?.({ cube_id: record.id }); }}>预处理 {displayName(record)}</button></td>
         </tr>;
       })}</tbody>
     </table>
     {selected && <section aria-label="单波段预览">
-      <h3>{selected.dataset.name}</h3>
+      <h3>{displayName(records.find(record => record.id === selected.id) ?? selected)}</h3>
       <label>波段索引 <input aria-label="波段索引" type="number" min={0} max={selected.dataset.shape[2] - 1} value={band} onChange={event => setBand(Math.max(0, Math.min(selected.dataset.shape[2] - 1, Number(event.target.value) || 0)))} /></label>{' '}
       <button disabled={previewBusy} onClick={() => { void loadPreview(selected, band); }}>读取波段</button>
       {previewBusy && <p role="status">正在读取预览…</p>}

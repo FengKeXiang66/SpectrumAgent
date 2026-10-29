@@ -1,6 +1,7 @@
 import base64
 from concurrent.futures import ThreadPoolExecutor
 import json
+import os
 from pathlib import Path
 import sqlite3
 import struct
@@ -53,10 +54,10 @@ def test_import_idempotency_raw_persistence_and_overrides(api, tmp_path):
     client, paths, _ = api
     header, _, dn = cube(tmp_path / "source")
     first = imported(client, header, raw=True)
-    assert set(first) == {"datasets", "summary"}
+    assert set(first) == {"datasets", "summary", "all_datasets"}
     assert first["summary"] == {"total": 1, "imported": 1, "existing": 0}
     record = first["datasets"][0]
-    assert set(record) == {"id", "dataset", "existing"}
+    assert set(record) == {"id", "dataset", "existing", "display_name"}
     again = imported(client, header.parent / "." / header.name, raw=True)
     assert again["datasets"][0]["id"] == record["id"] and again["datasets"][0]["existing"]
     assert again["summary"] == {"total": 1, "imported": 0, "existing": 1}
@@ -208,3 +209,36 @@ def test_api_schema_snapshot(api):
     client, _, _ = api
     expected = json.loads((Path(__file__).parents[2] / "spectrumagent/api/openapi.json").read_text("utf-8"))
     assert client.app.openapi() == expected
+    assert (Path(__file__).parents[2] / "spectrumagent/api/openapi.json").read_bytes() == (
+        json.dumps(client.app.openapi(), ensure_ascii=False, indent=2) + "\n").replace(
+            "\n", os.linesep).encode("utf-8")
+
+
+def test_import_refreshes_prior_display_names_without_changing_batch_or_payload(api, tmp_path):
+    client, paths, _ = api
+    header, _, _ = cube(tmp_path / "source")
+    first = imported(client, header, raw=False)
+    reflected = first["datasets"][0]
+    assert reflected["display_name"] == "sample"
+    assert first["all_datasets"] == first["datasets"]
+    with sqlite3.connect(paths.database) as db:
+        schema = db.execute("SELECT type,name,sql FROM sqlite_master ORDER BY type,name").fetchall()
+        payload = db.execute("SELECT payload FROM dataset_registry WHERE id=?", (reflected["id"],)).fetchone()[0]
+    second = imported(client, header, raw=True)
+    raw = second["datasets"][0]
+    assert second["summary"] == {"total": 1, "imported": 1, "existing": 0}
+    assert len(second["datasets"]) == 1 and len(second["all_datasets"]) == 2
+    assert raw["display_name"] == "sample（原始 DN）" and raw["existing"] is False
+    records = second["all_datasets"]
+    assert records[0]["id"] == reflected["id"]
+    assert records[0]["display_name"] == "sample（反射率）"
+    for record in records:
+        fetched = client.get(f"/api/v1/datasets/{record['id']}")
+        assert fetched.status_code == 200
+        assert fetched.json()["display_name"] == record["display_name"]
+        assert "display_name" not in fetched.json()["dataset"]
+    assert imported(client, header, raw=True)["summary"] == {"total": 1, "imported": 0, "existing": 1}
+    with sqlite3.connect(paths.database) as db:
+        assert db.execute("SELECT type,name,sql FROM sqlite_master ORDER BY type,name").fetchall() == schema
+        assert db.execute("SELECT payload FROM dataset_registry WHERE id=?", (reflected["id"],)).fetchone()[0] == payload
+    print("D_G2", json.dumps({"first": first, "second": second}, ensure_ascii=False))

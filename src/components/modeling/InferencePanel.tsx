@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { DatasetRecord } from '../datasets/types.ts';
+import { displayName } from '../datasets/types.ts';
 import { preprocessing } from '../preprocess/api.ts';
 import { modeling, stageLabels, inferenceWarning, mapSource, clippingMessage, paletteGradient,
   type RegisteredModel, type InferenceResult, type ConcentrationMap } from './api.ts';
@@ -54,14 +55,14 @@ export default function InferencePanel({ records, onClose }: { records: DatasetR
         <option value="">请选择</option>{models.map(row => <option key={row.id} value={row.id}>{row.name} v{row.version} · {stageLabels[row.stage]}</option>)}</select></label>
       {chosen && <p>固定训练量程 {chosen.applicability.y_min}–{chosen.applicability.y_max}；{chosen.quality_label}</p>}
       <p>每个样品选择一个已成功的预处理记录，标注版本随记录绑定。服务会核验配方版本与模型训练一致。</p>
-      {records.map(row => <label key={row.id}>{row.dataset.name}<select value={selected[row.id] ?? ''} onChange={e => setSelected({ ...selected, [row.id]: e.target.value })}>
+      {records.map(row => <label key={row.id}>{displayName(row)}<select value={selected[row.id] ?? ''} onChange={e => setSelected({ ...selected, [row.id]: e.target.value })}>
         <option value="">不参与</option>{(choices[row.id] ?? []).map(run => <option key={run.id} value={run.id}>run {run.id} · 标注 {run.version} · 配方 {run.recipe}</option>)}</select></label>)}
       <button disabled={!model || !Object.values(selected).some(Boolean)} onClick={() => void batch()}>开始批量推理</button>
     </fieldset>
     <p role="status">{progress}</p>
     <label><input type="checkbox" checked={domain} onChange={e => setDomain(e.target.checked)} />显示适用性图（红＝任一特征越出训练范围；绿＝范围内）</label>
     {items.map(item => <article className="model-inference-item" key={item.cube}>
-      <h3>{records.find(row => row.id === item.cube)?.dataset.name ?? item.cube}</h3>
+      <h3>{records.filter(row => row.id === item.cube).map(displayName)[0] ?? item.cube}</h3>
       {item.error && <p role="alert">{item.error}。若请求超时或中断，请先核对已有记录，避免重复提交。</p>}
       {item.result?.stats && <><strong>{item.result.stats.quality_label}</strong>
         <p className="model-science-warning">{item.result.stats.warning}</p>

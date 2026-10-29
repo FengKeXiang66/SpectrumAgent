@@ -22,6 +22,36 @@ from spectrumagent.data.readers.binary import json_object
 from .schemas import DatasetRecord, ImportResponse, ImportSummary
 
 
+def safe_name(value):
+    """A display label may contain a relative filename; never expose directories."""
+    value = str(value or "").replace("\\", "/").rsplit("/", 1)[-1]
+    value = re.sub(r"[\x00-\x1f\x7f:]", " ", value).strip()
+    value = re.sub(r"\.(?:hdr|img|mat)\b", "", value, flags=re.I)
+    return value[:160] or "未命名数据集"
+
+
+def display_names(rows):
+    """Resolve labels in ledger order without changing persisted dataset names."""
+    rows = [(identifier, safe_name(name), raw) for identifier, name, raw in rows]
+    counts = Counter(name for _, name, _ in rows)
+    # Reserve unique base names so a generated suffix cannot steal one.
+    used = {name for _, name, _ in rows if counts[name] == 1}
+    result = {}
+    for identifier, name, raw in rows:
+        if counts[name] == 1:
+            result[identifier] = name
+            continue
+        mode = "原始 DN" if raw else "反射率"
+        label = f"{name}（{mode}）"
+        index = 2
+        while label in used:
+            label = f"{name}（{mode} #{index}）"
+            index += 1
+        result[identifier] = label
+        used.add(label)
+    return result
+
+
 def absolute(value: str) -> Path:
     try:
         path = Path(value)
@@ -123,13 +153,25 @@ class DatasetRegistry:
                     if stored.name != dataset.name:
                         stored = replace(stored, name=dataset.name)
                         db.execute("UPDATE dataset_registry SET payload=? WHERE id=?", (json.dumps(stored.as_dict(), ensure_ascii=False), row[0]))
-                    records.append(DatasetRecord(id=row[0], dataset=stored, existing=True))
+                    records.append((row[0], stored, True))
                 else:
                     identifier = str(uuid4())
                     db.execute("INSERT INTO dataset_registry (id,header_key,raw,payload,project_id) VALUES (?,?,?,?,?)", (identifier, key, int(raw), json.dumps(dataset.as_dict(), ensure_ascii=False), default_project_id(db)))
-                    records.append(DatasetRecord(id=identifier, dataset=dataset, existing=False))
+                    records.append((identifier, dataset, False))
+            rows = db.execute("SELECT id,payload,raw FROM dataset_registry ORDER BY rowid").fetchall()
+            names = display_names((identifier, json.loads(payload).get("name"), mode)
+                                  for identifier, payload, mode in rows)
+            records = [DatasetRecord(id=identifier, dataset=dataset, existing=existing,
+                                     display_name=names[identifier])
+                       for identifier, dataset, existing in records]
+            batch_records = {str(record.id): record for record in records}
+            all_records = [batch_records.get(identifier) or DatasetRecord(id=identifier,
+                                         dataset=TypeAdapter(SpectrumDataSet).validate_json(payload),
+                                         existing=True, display_name=names[identifier])
+                           for identifier, payload, _ in rows]
         existing = sum(r.existing for r in records)
-        return ImportResponse(datasets=records, summary=ImportSummary(total=len(records), imported=len(records)-existing, existing=existing))
+        return ImportResponse(datasets=records, all_datasets=all_records,
+                              summary=ImportSummary(total=len(records), imported=len(records)-existing, existing=existing))
 
     def get(self, identifier):
         with connect_database(self.database) as db:
@@ -137,6 +179,17 @@ class DatasetRegistry:
         if row is None:
             raise DataError("DATASET_NOT_FOUND", "数据集不存在", id=str(identifier))
         return TypeAdapter(SpectrumDataSet).validate_json(row[0]), bool(row[1])
+
+    def display_names(self):
+        with connect_database(self.database) as db:
+            rows = db.execute("SELECT id,payload,raw FROM dataset_registry ORDER BY rowid").fetchall()
+        return display_names((identifier, json.loads(payload).get("name"), raw)
+                             for identifier, payload, raw in rows)
+
+    def record(self, identifier):
+        dataset, _ = self.get(identifier)
+        return DatasetRecord(id=identifier, dataset=dataset, existing=True,
+                             display_name=self.display_names()[str(identifier)])
 
     def readable(self, identifier, raw=None):
         stored, default = self.get(identifier)

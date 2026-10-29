@@ -9,11 +9,16 @@ export type Dataset = {
   header_path: string;
   metadata: Record<string, unknown>;
 };
-export type DatasetRecord = { id: string; dataset: Dataset; existing: boolean };
+export type DatasetRecord = { id: string; dataset: Dataset; existing: boolean; display_name?: string };
 export type ImportResponse = {
   datasets: DatasetRecord[];
+  all_datasets: DatasetRecord[];
   summary: { total: number; imported: number; existing: number };
 };
+
+export function displayName(record: DatasetRecord): string {
+  return record.display_name ?? record.dataset.name;
+}
 export type Preview = { id: string; band: number; width: number; height: number; mime: 'image/png'; png_base64: string;
   bands?: [number, number, number]; wavelengths?: number[]; fallback?: boolean };
 export type PreviewOptions = { band?: number; bands?: string; stretch?: 'auto' | 'none'; size?: 'preview' | 'full' };

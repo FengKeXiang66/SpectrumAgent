@@ -20,6 +20,7 @@ class DatasetRecord(Envelope):
     id: UUID
     dataset: SpectrumDataSet
     existing: bool
+    display_name: str
 
 
 class ImportSummary(Envelope):
@@ -31,6 +32,7 @@ class ImportSummary(Envelope):
 class ImportResponse(Envelope):
     datasets: list[DatasetRecord]
     summary: ImportSummary
+    all_datasets: list[DatasetRecord]
 
 
 class RegionRequest(Envelope):

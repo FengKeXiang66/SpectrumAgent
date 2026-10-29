@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { annotations } from '../annotation/api.ts';
 import type { Label, Project, Version } from '../annotation/types.ts';
 import type { DatasetRecord } from '../datasets/types.ts';
+import { displayName } from '../datasets/types.ts';
 import { preprocessing, recoverRun, submitRun } from './api.ts';
 import { compilePipeline } from './pipeline.ts';
 import { describePreprocessError, PHASE_TWO, type CompareResult, type Metrics, type PreprocessRun, type Recipe, type Report, type RunSummary, type Step } from './types.ts';
@@ -135,7 +136,7 @@ export default function PreprocessPanel({ record, onClose, refreshVersion = 0 }:
     setRecipes(await preprocessing.listRecipes()); await load(id, versionId); setMessage('已保存不可变配方版本。');
   };
   return <section className="preprocess-panel" aria-label="S06 预处理工作台">
-    <header><button disabled={busy} onClick={onClose}>返回数据集</button><h2>S06 · {record.dataset.name}</h2><span>项目：{project?.name ?? '未获取'}</span></header>
+    <header><button disabled={busy} onClick={onClose}>返回数据集</button><h2>S06 · {displayName(record)}</h2><span>项目：{project?.name ?? '未获取'}</span></header>
     <p role="status">{message}</p>{error && <pre role="alert">{error}{error.startsWith('INVALID_REQUEST') ? '\n请检查 code 是否重复及配方参数。' : ''}</pre>}
     <div className="pp-layout"><aside><h3>配方库（按 code）</h3><button disabled={busy} onClick={() => { setRecipeId(''); setRecipeVersion(''); setSteps([]); setMetadata({ code: '', name: '', description: '', note: '' }); }}>新建草稿</button>
       {recipes.map(recipe => <section key={recipe.id}><strong>{recipe.code}</strong> · {recipe.name}

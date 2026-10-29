@@ -21,6 +21,7 @@ from spectrumagent.annotation.engines.diffusion import DEFAULT_THRESHOLD, DEFAUL
 from spectrumagent.annotation.labels import LabelStore, CatalogRequest, CustomRequest, SchemaRequest, SchemaField
 from spectrumagent.annotation.gestures import region_from_gesture
 from spectrumagent.data import DataError
+from spectrumagent.api.registry import display_names, safe_name
 from spectrumagent.preprocess.migrations import BUILTIN_CODE, BUILTIN_PIPELINE
 from . import ToolInput, Reference, CubeArguments, NoArguments, _run_summary
 
@@ -85,26 +86,20 @@ class RunGetArguments(ToolInput):
     run_id: Reference
 
 
-def safe_name(value):
-    """A display label may contain a relative filename; never expose directories."""
-    value = str(value or "").replace("\\", "/").rsplit("/", 1)[-1]
-    value = re.sub(r"[\x00-\x1f\x7f:]", " ", value).strip()
-    value = re.sub(r"\.(?:hdr|img|mat)\b", "", value, flags=re.I)
-    return value[:160] or "未命名数据集"
-
-
 def _rows(database, query, arguments=()):
     with connect_database(database) as db:
         return db.execute(query, arguments).fetchall()
 
 
 def dataset_catalog(datasets):
-    rows = _rows(datasets.database, "SELECT id,payload FROM dataset_registry ORDER BY rowid")
+    rows = _rows(datasets.database, "SELECT id,payload,raw FROM dataset_registry ORDER BY rowid")
+    names = display_names((identifier, json.loads(payload).get("name"), raw)
+                          for identifier, payload, raw in rows)
     result = {"dataset_count": len(rows), "count": len(rows), "truncated": len(rows) > LIMIT}
-    for index, (identifier, payload) in enumerate(rows[:LIMIT], 1):
+    for index, (identifier, payload, _) in enumerate(rows[:LIMIT], 1):
         data = json.loads(payload)
         result.update({f"dataset_{index}_id": identifier, f"dataset_{index}_ref": f"D{index}",
-                       f"dataset_{index}_name": safe_name(data.get("name"))})
+                       f"dataset_{index}_name": names[identifier]})
         for key, value in zip(("n_lines", "n_samples", "n_bands"), data.get("shape", ())):
             result[f"dataset_{index}_{key}"] = value
     return result
@@ -112,7 +107,7 @@ def dataset_catalog(datasets):
 
 def dataset_description(datasets, identifier):
     dataset, _ = datasets.get(identifier)
-    return {"dataset_id": identifier, "cube_id": identifier, "display_name": safe_name(dataset.name),
+    return {"dataset_id": identifier, "cube_id": identifier, "display_name": datasets.display_names()[str(identifier)],
             "n_lines": dataset.shape[0], "n_samples": dataset.shape[1], "n_bands": dataset.shape[2],
             "dtype": dataset.dtype, "interleave": dataset.interleave}
 
@@ -158,7 +153,8 @@ class Workflows:
         words = {"第一项": 1, "第一个": 1, "第一个数据集": 1, "第二项": 2, "第二个": 2,
                  "第三项": 3, "第三个": 3, "第一": 1, "第二": 2, "第三": 3}
         index = int(ordinal.group(1)) if ordinal else words.get(query)
-        choices = [(i, identifier, safe_name(json.loads(payload).get("name")))
+        names = self.datasets.display_names()
+        choices = [(i, identifier, names[identifier])
                    for i, (identifier, payload) in enumerate(rows, 1)]
         exact = [item for item in choices if query in {item[1].casefold(), item[2].casefold()}]
         by_index = [item for item in choices if item[0] == index] if index is not None else []
@@ -182,7 +178,7 @@ class Workflows:
             dataset, _ = self.datasets.get(cube_id)
             latest = _rows(self.sessions.database,
                 "SELECT id,version_no FROM annotation_version WHERE cube_id=? ORDER BY version_no DESC LIMIT 1", (cube_id,))
-            summary = {"cube_id": cube_id, "display_name": safe_name(dataset.name), "revision": state.revision,
+            summary = {"cube_id": cube_id, "display_name": self.datasets.display_names()[str(cube_id)], "revision": state.revision,
                        "n_regions": len(document["regions"]), "n_classes": len(labels),
                        "segmentation_ready": state.segments is not None,
                        "latest_annotation_version_id": latest[0][0] if latest else None,

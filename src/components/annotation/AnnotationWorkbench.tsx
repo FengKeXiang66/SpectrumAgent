@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { DatasetRecord, DatasetTransport, MeanSpectrum, Preview, SpectrumRegion } from '../datasets/types.ts';
+import { displayName } from '../datasets/types.ts';
 import { annotations } from './api.ts';
 import { describeAnnotationError, type AnnotationApi, type CatalogItem, type Geometry, type LabelBody, type LabelSchema, type Png, type Quality, type Seed, type Version, type Working } from './types.ts';
 import { candidateKey, editThenRead, estimateRemaining, orderedLabels, readWorking, recoverSelection, selectedCandidate, statistics } from './working.ts';
@@ -277,7 +278,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
   };
   return <section className="annotation-workbench" aria-label="S05 标注工作台">
     <header className="annotation-heading">
-      <div><button disabled={busy} onClick={onClose}>← 返回数据集</button><h2>标注工作台 <small>{record.dataset.name}</small></h2><p>{projectName || '读取项目中…'} · L1 辅助标注</p></div>
+      <div><button disabled={busy} onClick={onClose}>← 返回数据集</button><h2>标注工作台 <small>{displayName(record)}</small></h2><p>{projectName || '读取项目中…'} · L1 辅助标注</p></div>
       <ol className="annotation-levels" aria-label="标注层级，当前 L1">{['L0 手工', 'L1 辅助 · 当前', 'L2 半自动', 'L3 自动+抽检', 'L4 自动闭环'].map((level, i) => <li key={level} aria-current={i === 1 ? 'step' : undefined}>{level}</li>)}</ol>
     </header>
     <p className="annotation-note">机器只给候选区域，不赋标签。L2 的簇命名、历史迁移与自动赋标属阶段二；当前先积累人工确认的标注。</p>
@@ -361,7 +362,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
             <button disabled={busy || !ready || !geometry} onClick={() => { void edit('uncertain'); }}>标记“不确定”</button>
             <button disabled={busy} onClick={() => { void undo(); }}>撤销一步</button>
           </div>
-          <nav className="annotation-navigation" aria-label="切换数据集"><button disabled={busy || position <= 0} onClick={() => navigate(-1)}>← 上一张</button><span>{position + 1} / {records.length} · {record.dataset.name}</span><button disabled={busy || position >= records.length - 1} onClick={() => navigate(1)}>下一张 →</button></nav>
+          <nav className="annotation-navigation" aria-label="切换数据集"><button disabled={busy || position <= 0} onClick={() => navigate(-1)}>← 上一张</button><span>{position + 1} / {records.length} · {displayName(record)}</span><button disabled={busy || position >= records.length - 1} onClick={() => navigate(1)}>下一张 →</button></nav>
         </section>
         <section className="annotation-card" aria-label="保存与版本">
           <h3>保存与版本</h3><label>版本备注（可选，≤2000 字符）<textarea value={note} onChange={event => setNote(event.target.value)} /></label>

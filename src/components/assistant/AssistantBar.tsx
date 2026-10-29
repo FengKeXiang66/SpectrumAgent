@@ -3,6 +3,7 @@ import { agent, type MessageBody, type RuntimeInfo, type WorkspaceContext } from
 import { initialChat, reduceChat, scalarText, friendlyError, requestError, validateWorkspaceEvent, type ChatEntry, type PendingCheck, type WorkspaceEventData } from './sse.ts';
 import { changedCubes, datasetChoices, proposedCandidates, readableText } from './presentation.ts';
 import type { DatasetRecord } from '../datasets/types.ts';
+import { displayName as datasetDisplayName } from '../datasets/types.ts';
 import './assistant.css';
 import ConfirmCard from '../annotation/ConfirmCard.ts';
 import PlanCard from './PlanCard.ts';
@@ -90,7 +91,7 @@ export default function AssistantBar({ enabled, workspace = {}, displayName, rec
       ? `当前编排：${runtime.skill_name} · 工具目录 v${runtime.tool_catalogue_version} · ${runtime.tool_count} 个工具`
       : '当前编排版本读取中…'}</p>
     <p className="assistant-context" aria-label="当前对话对象">{workspace.cube_id
-      ? `当前数据：${selected?.dataset.name || selectedChoice?.label || displayName || workspace.cube_id.slice(0, 8)}${workspace.gesture_ref ? ' · 已带入最近的画布提示' : ''}`
+      ? `当前数据：${(selected && datasetDisplayName(selected)) || selectedChoice?.label || displayName || workspace.cube_id.slice(0, 8)}${workspace.gesture_ref ? ' · 已带入最近的画布提示' : ''}`
       : '可在工作台选择数据，或直接告诉助手要处理哪份数据。'}</p>
     {(() => {
       // TASK-07b R2: step/error events leave the conversation flow. Steps fold
