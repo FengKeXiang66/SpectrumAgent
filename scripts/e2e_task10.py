@@ -52,10 +52,13 @@ def call_api(base, token, path, payload=None, method="GET", timeout=180):
         return json.loads(raw) if raw.strip() else None
 
 
-def send_message(base, token, session_id, content, timeout=240):
+def send_message(base, token, session_id, content, workspace=None, timeout=240):
     """Collect and print each SSE frame, including follow-up turns."""
     url = f"{base}/api/v1/agent/sessions/{session_id}/messages"
-    request = urllib.request.Request(url, data=json.dumps({"content": content}).encode(), method="POST", headers={
+    body = {"content": content}
+    if workspace:
+        body["workspace"] = workspace
+    request = urllib.request.Request(url, data=json.dumps(body).encode(), method="POST", headers={
         "Authorization": f"Bearer {token}", "Content-Type": "application/json"})
     events, event, lines = [], None, []
 
@@ -134,16 +137,30 @@ def session_evidence(database, session_id, baseline):
                 "run_status": last_run[0]["status"] if last_run else None})}
 
 
+def parse_seed(value):
+    if not re.fullmatch(r"\s*[+-]?\d+\s*,\s*[+-]?\d+\s*", value):
+        raise argparse.ArgumentTypeError("seed must be row,col with two non-negative integers")
+    row, col = (int(part.strip()) for part in value.split(","))
+    if row < 0 or col < 0:
+        raise argparse.ArgumentTypeError("seed must be row,col with two non-negative integers")
+    return [row, col]
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--data-root", type=Path, required=True)
     parser.add_argument("--message", default=DEFAULT_MESSAGE)
     parser.add_argument("--follow-up", default="继续")
-    parser.add_argument("--turns", type=int, default=2)
+    parser.add_argument("--seed", type=parse_seed)
+    parser.add_argument("--accept-message", default="接受候选，其余背景，保存后做预处理")
+    parser.add_argument("--turns", type=int)
     args = parser.parse_args(argv)
+    if args.turns is None:
+        args.turns = 3 if args.seed is not None else 2
     if args.turns < 1:
         parser.error("--turns must be >= 1")
-    report = {"evidence_levels": {}, "task_result": "working", "stop_reason": None, "session_id": None}
+    report = {"evidence_levels": {}, "task_result": "working", "stop_reason": None, "session_id": None,
+              "seed": args.seed, "gesture_ref": None, "turns_sent": 0}
 
     def finish(level=None, reason=None):
         if level:
@@ -180,16 +197,35 @@ def main(argv=None):
         report["session_id"] = session["id"]
         database = args.data_root.resolve() / "db" / "spectrum-agent.sqlite3"
         baseline = baseline_of(database)
-        events, transport_error = [], None
+        events, transport_error, workspace = [], None, None
         for turn in range(args.turns):
             print("TURN", turn + 1, flush=True)
             try:
-                events.extend(send_message(base, token, session["id"], args.message if turn == 0 else args.follow_up))
+                content = (args.message if turn == 0 else args.accept_message
+                           if args.seed is not None and turn == 2 else args.follow_up)
+                report["turns_sent"] += 1
+                if workspace:
+                    events.extend(send_message(base, token, session["id"], content, workspace=workspace))
+                else:
+                    events.extend(send_message(base, token, session["id"], content))
             except (OSError, ValueError) as exc:
                 transport_error = type(exc).__name__
                 break
             if events and events[-1][0] == "error":
                 break
+            if turn == 0 and args.seed is not None:
+                first_workspace = next((data for name, data in reversed(events) if name == "workspace"), None)
+                if not first_workspace or not first_workspace.get("cube_id"):
+                    return finish(current_level, "cannot register seed: first turn has no workspace cube_id")
+                cube_id = first_workspace["cube_id"]
+                shape = call_api(base, token, f"/api/v1/datasets/{cube_id}")["dataset"]["shape"]
+                if args.seed[0] >= shape[0] or args.seed[1] >= shape[1]:
+                    parser.error(f"--seed is outside cube bounds: rows [0,{shape[0]}), cols [0,{shape[1]})")
+                gesture = call_api(base, token, f"/api/v1/annotations/{cube_id}/gestures",
+                                   {"seed": {"point": args.seed}}, method="POST")
+                report["gesture_ref"] = gesture["gesture_ref"]
+                workspace = {"cube_id": cube_id, "gesture_ref": report["gesture_ref"]}
+                print("SEED:", json.dumps({"seed": args.seed, **workspace}, ensure_ascii=False), flush=True)
         report["event_kinds"] = [name for name, _ in events]
         evidence = session_evidence(database, session["id"], baseline)
         report.update(evidence)
