@@ -42,11 +42,12 @@ if pending and pending["reason"] == "stale" and not pending["asked"]:
 
 | 文件 | 动作 |
 |---|---|
-| `src-python/spectrumagent/agent/context.py` | 改（`resolve_reference` 的空目录判定，**1–3 行**） |
-| `src-python/spectrumagent/agent/workflow.py` | 改（重列触发条件，**1–3 行**） |
-| `src-python/tests/agent/test_context_references.py` | 改（新增冷启动用例） |
+| `src-python/spectrumagent/agent/context.py` | 改（`resolve_reference`：加"从未列过"分支 + 把空判据挪到过期判据之后，**约 5 行**） |
+| `src-python/tests/agent/test_context_references.py` | 改（新增冷启动与空目录用例） |
 | `src-python/tests/agent/test_conversation_workflows.py` | 改（新增端到端冷启动用例） |
 | `docs/TASK-11-对话标注与预处理实现方案.md` | 改（§11 追加一行） |
+
+**`workflow.py` 不在清单内**——按 §4② 的新解法，它的重列逻辑原样可用。
 
 ## §3 明确不做
 
@@ -74,25 +75,33 @@ if index is not None:
     ...
 ```
 
-**② 重列条件加上"目录**从未建立**"（不是"目录为空"）**
+**② 把"空"的判据挪到"过期"之后 —— 这样 `workflow.py` 一行都不用改**
+
+原来 `if not items` 排在 `stale` 判定**之前**，于是"上轮列过、当时为空、之后用户导入了数据"永远停在 `not_found`，自愈不了。把顺序换过来：
 
 ```python
-catalog = state.get("catalogs", {}).get(pending["kind"]) if pending else None
-needs_list = catalog is None or "items" not in catalog
-if pending and not pending["asked"] and (
-        pending["reason"] == "stale" or (pending["reason"] == "not_found" and needs_list)):
-    ... 原重列逻辑不动 ...
+if index is not None:
+    if catalog is None:                                  # ① 从未列过
+        return kind, None, {"reason": "stale"}
+    if catalog.get("round_id") is None or (not noun and not short and recent_round_ids is not None
+                                            and catalog["round_id"] not in recent_round_ids):
+        return kind, None, {"reason": "stale"}            # ② 快照过期（含"上轮列过、当时为空"）
+    if not items:                                        # ③ 刚列过且确实为空
+        return kind, None, {"reason": "not_found"}
+    item = next((item for item in items if item["ordinal"] == index), None)
+    ...
 ```
 
-**注意这里的判据是"目录键不存在 / 没有 items 字段"，不是 `not catalog.get("items")`。** `items == []` 是**已知为空**（`datasets.list` 返回 0 条，或 `propose` 返回 `need_seed` 后主动清空候选），此时不该重列——再列一次结果还是空，只会多一次无意义的读取。这一点与 §5 用例 B 必须一致；第一版卡写成了 `not catalog.get("items")`，与 B 自相矛盾，已按此修正。
+四种情形各自归位：
 
-这样三种情形各自归位：
-
-| 情形 | 判据 | 行为 |
+| 情形 | 命中分支 | 行为 |
 |---|---|---|
-| 新会话从未列过 | `catalog is None` | 重列一次，再解析 |
-| 已知为空（`items == []`） | `needs_list` 为假 | 直接澄清，不重列 |
-| 目录有 N 项、用户说第 N+1 个 | `needs_list` 为假 | 直接澄清，不重列 |
+| 新会话从未列过 | ① `catalog is None` | 重列一次，再解析 |
+| 上轮列过、当时为空，之后导入了数据 | ② round_id 不在最近轮次 | 重列 → 自愈 |
+| **同一轮内**刚列过且为空 | ③ `not items` | 直接澄清，不重列 |
+| 目录有 N 项、用户说第 N+1 个 | ③ 之后的 `item is None` | 直接澄清，不重列 |
+
+**所以 `workflow.py` 不需要改。** 第一版卡在 §4② 写了 `needs_list = not catalog.get("items")`（会把已知空目录也重列），与用例 B 自相矛盾；正确解法不是给 `needs_list` 打补丁，而是**把空判据挪到过期判据之后**——`stale` 本来就重列，自愈能力白拿，改动面反而更小。
 
 **③ 重列产生的 step 必须仍无 `tool_call_id`**（L0 的四级证据依赖这一点），不得改动。
 
@@ -101,7 +110,8 @@ if pending and not pending["asked"] and (
 | 编号 | 用例 | 期望 |
 |---|---|---|
 | A | 纯函数：空 state + `"第一个数据"` | 返回 `reason == "stale"`，**不是 `not_found`** |
-| B | 纯函数 + 编排：`catalogs.candidate.items == []` + `"第一个候选"` | 返回 `not_found`；**`needs_list` 为假、不触发重列**，直接澄清一次 |
+| B | 纯函数：`catalogs.candidate` 存在、`items == []`、`round_id` **属于当前最近轮次** + `"第一个候选"` | 返回 `not_found`，不触发重列，直接澄清一次 |
+| B2 | 纯函数：同上但 `round_id` **不属于**当前最近轮次 | 返回 `stale`（快照过期 → 重列 → 自愈） |
 | C | 端到端：**新建会话**，第一条消息 `对第一个数据标注 PP，其余背景，参数默认，保存后做预处理` | 事件序列里**出现 `step datasets.list`**（控制器重列），随后**调用模型**（`llm_call` 新增一行），不得只回 clarify |
 | D | 端到端：目录有 3 项、用户说"第 9 个数据" | 澄清一次，**不触发重列** |
 | E | 回归 | `src-python/tests/agent` 全绿（≥436）；`src-python/tests backend/tests --ignore=src-python/tests/agent` 全绿（≥976） |
