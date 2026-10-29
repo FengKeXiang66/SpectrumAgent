@@ -9,10 +9,10 @@
 git log --oneline -1
 rg -n "class DatasetRecord" -A 4 src-python/spectrumagent/api/schemas.py          # 期望 L19-22
 rg -n "dataset_i_name|safe_name" src-python/spectrumagent/agent/tools/workflows.py # 期望 L88/107/115/161/185
-rg -n "dataset\.name" src/                                                          # 期望 13 处，见下
+rg -n "dataset\.name|data\.name" src/                                                    # 期望 17 处，见下
 ```
 
-**显示名的消费点（2026-10-29 完整实测，共 13 处，必须全部覆盖；漏一处就"界面与助手不一致"）：**
+**显示名的消费点（2026-10-29 完整实测，共 17 处，必须全部覆盖；漏一处就"界面与助手不一致"）：**
 
 | # | 位置 | 用途 |
 |---|---|---|
@@ -29,8 +29,12 @@ rg -n "dataset\.name" src/                                                      
 | 11 | `src/components/modeling/ModelPanel.tsx` L88 | 已保存目标列表 |
 | 12 | `src/components/modeling/ModelPanel.tsx` L98 | 建模目标下拉 |
 | 13 | `src/components/preprocess/PreprocessPanel.tsx` L138 | 预处理面板标题 |
+| 14 | `src/components/datasets/DatasetPanel.tsx` L155 | 数据集表格单元 |
+| 15 | `src/components/datasets/DatasetPanel.tsx` L158 | "预览 {名字}" 按钮 |
+| 16 | `src/components/datasets/DatasetPanel.tsx` L159 | "标注 {名字}" 按钮 |
+| 17 | `src/components/datasets/DatasetPanel.tsx` L160 | "预处理 {名字}" 按钮 |
 
-> 第一版卡写"8 处"是错的：当时用 `head -8` 截断了 grep 输出就把数字写进了卡。**13 处才是实测值**，已按完整列表更正。
+> 第一版卡写"8 处"是错的（`head -8` 截断了 grep）；第二版写"13 处"也不完整——第 14–17 处用的是解构变量 `data.name`，`dataset\.name` 这个模式搜不到。**17 处才是实测值**：搜名字要同时搜 `dataset.name` 与 `data.name` 两种形态。
 
 助手侧消费点：`tools/workflows.py` L107（`dataset_i_name`）、L115（`describe` 的 `display_name`）、L161（`resolve` 匹配）、L185（`context` 的 `display_name`）。
 
@@ -71,11 +75,12 @@ D15  20260804210509_189  raw=1
 
 | 文件 | 动作 |
 |---|---|
-| `src-python/spectrumagent/api/schemas.py` | 改（`DatasetRecord` 增加 `display_name: str`） |
-| `src-python/spectrumagent/api/registry.py` | 改（新增显示名解析；`get` / 导入回参带上它） |
+| `src-python/spectrumagent/api/schemas.py` | 改（`DatasetRecord` 加 `display_name: str`；`ImportResponse` 加 `all_datasets: list[DatasetRecord]`） |
+| `src-python/spectrumagent/api/registry.py` | 改（新增显示名解析；`get` / 导入回参带上它；导入回参补全量列表） |
 | `src-python/spectrumagent/agent/tools/workflows.py` | 改（`dataset_catalog` 用同一解析函数，替代现有 `safe_name`） |
 | `src-python/spectrumagent/api/openapi.json` | **重生成**（字节级快照，必须与 schema 一致） |
-| `src/components/datasets/DatasetPanel.tsx` | 改（新增 `displayName()` 帮助函数 + 替换本文件 L165） |
+| `src/components/datasets/types.ts` | 改（**新增共享 `displayName(record)` 帮助函数**；`mergeRecords` 不动） |
+| `src/components/datasets/DatasetPanel.tsx` | 改（替换 L155/158/159/160/165 五处 + 导入后合并全量列表） |
 | `src/components/annotation/AnnotationWorkbench.tsx` | 改（仅替换 L280、L364 两处取值） |
 | `src/components/assistant/AssistantBar.tsx` | 改（仅替换 L93） |
 | `src/components/assistant/presentation.ts` | 改（仅替换 L21、L25、L34） |
@@ -84,7 +89,7 @@ D15  20260804210509_189  raw=1
 | `src/components/preprocess/PreprocessPanel.tsx` | 改（仅替换 L138） |
 | `src-python/tests/**` | 改（新增解析函数单测 + 接口断言） |
 
-**前端只改"显示名取值"这一类**，不改布局、不加控件。13 处替换是机械工作，但必须全覆盖——漏一处就出现界面与助手不一致。**除上述 6 个前端文件外，不得触碰其它前端文件。**
+**前端只改"显示名取值"这一类**，不改布局、不加控件。17 处替换是机械工作，但必须全覆盖——漏一处就出现界面与助手不一致。**除上述 7 个前端文件外，不得触碰其它前端文件。**
 
 ## §4 明确不做
 
@@ -115,13 +120,27 @@ def display_names(rows):  # rows: [(id, name, raw), ...] 按 rowid 顺序
 
 - **接口侧**：`DatasetRecord.display_name` 由 `registry` 填充；`GET /datasets/{id}` 与导入回参都要有。
 - **助手侧**：`tools/workflows.py` 的 `dataset_catalog()` 里 `dataset_i_name` 改用同一函数的结果。
-- **前端**：在 `src/components/datasets/` 下新增
+- **前端**：在 `src/components/datasets/types.ts`（已有 `mergeRecords` 的共享模块）里新增
   ```ts
   export function displayName(record: DatasetRecord): string {
     return record.display_name ?? record.dataset.name;
   }
   ```
-  然后用它替换 §0 表里的 **13 处** `record.dataset.name`。**不许漏**，也不许各处自己拼。
+  然后用它替换 §0 表里的 **17 处**（13 处 `record.dataset.name` + 4 处 `data.name`）。**不许漏**，也不许各处自己拼。
+
+### 5.4 导入后同步全量显示名（必需，否则 G 只在"一次导完"时成立）
+
+**实测结论**：`ImportResponse.datasets` 只含**本批次**记录（`api/registry.py` L132 的 `records` 是在导入循环里攒的），而前端 `mergeRecords` 是"按 id 覆盖"（`types.ts` L31-32）。所以：
+
+> 先导入 `raw=0`（此时名字唯一，`display_name` 无后缀）→ 再导入同一源的 `raw=1` → 服务端会把两条都算成重名，但**第一条的 `display_name` 永远停在旧值**，因为客户端没再拿到它。
+
+修法（最小）：`ImportResponse` 增加 `all_datasets: list[DatasetRecord]`（导入结束后按 rowid 顺序返回**全量**，每条都带最新 `display_name`）；前端 L124 改为
+
+```ts
+setRecords(previous => mergeRecords(previous, result.all_datasets));
+```
+
+`datasets`（本批次）与 `summary`（total/imported/existing 的批次统计）**语义不变**，不要动。
 
 ### 5.3 openapi
 
@@ -137,7 +156,9 @@ def display_names(rows):  # rows: [(id, name, raw), ...] 按 rowid 顺序
 | D | 接口：`GET /datasets/{id}` | 返回 `display_name`；同名对的两条不相同 |
 | E | 助手：`datasets.list` | `dataset_8_name` 与 `dataset_12_name` 不同，且与接口 `display_name` **逐字一致** |
 | F | 端到端：新建会话说"有哪些数据" | 回复里 D8/D12 可区分；说"第 12 个"能选中 D12 |
-| G | 前端 | 数据集面板显示带后缀的名字，与助手列表一致 |
+| G | 前端 | 数据集面板显示带后缀的名字，与助手列表一致（含表格与三个按钮上的名字） |
+| G2 | 分两次导入同一源的 `raw=0` 与 `raw=1` | 第二次导入后，**第一条记录的显示名也变成带后缀**（`all_datasets` 生效）；`summary.imported` 仍只统计本批次 |
+| G3 | 单测：`displayName()` 帮助函数 | `display_name` 存在时用它，缺失时回退 `dataset.name` |
 | H | openapi 快照 | 重生成后字节级相等 |
 | I | 回归 | `src-python/tests/agent` 全绿（≥453）；非 agent 全绿（≥976）；`npm run build` 通过 |
 
