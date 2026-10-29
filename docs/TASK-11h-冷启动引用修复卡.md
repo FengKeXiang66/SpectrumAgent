@@ -80,24 +80,31 @@ if index is not None:
 原来 `if not items` 排在 `stale` 判定**之前**，于是"上轮列过、当时为空、之后用户导入了数据"永远停在 `not_found`，自愈不了。把顺序换过来：
 
 ```python
+if kind is None:
+    return None, None, {"reason": "not_found"}
+catalog = state.get("catalogs", {}).get(kind)          # None = 从未列过
+items = catalog.get("items", []) if catalog is not None else []
 if index is not None:
     if catalog is None:                                  # ① 从未列过
         return kind, None, {"reason": "stale"}
-    if catalog.get("round_id") is None or (not noun and not short and recent_round_ids is not None
-                                            and catalog["round_id"] not in recent_round_ids):
-        return kind, None, {"reason": "stale"}            # ② 快照过期（含"上轮列过、当时为空"）
-    if not items:                                        # ③ 刚列过且确实为空
+    if catalog.get("round_id") is None or (
+            (not items or (not noun and not short)) and recent_round_ids is not None
+            and catalog["round_id"] not in recent_round_ids):
+        return kind, None, {"reason": "stale"}            # ② 快照过期（空目录也自愈）
+    if not items:                                         # ③ 刚列过且确实为空
         return kind, None, {"reason": "not_found"}
     item = next((item for item in items if item["ordinal"] == index), None)
-    ...
+    return (kind, item, None) if item else (kind, None, {"reason": "only_one" if len(items) == 1 else "not_found"})
 ```
+
+**② 里的 `(not items or (not noun and not short))` 是本卡第二个必改点**：原条件只有裸序号（无类型名、无短引用）才检查快照过期，于是"第一个**候选**"这种带类型名的说法会跳过过期检查，空目录永远自愈不了。加上 `not items` 后：**空目录无论带不带类型名都走过期自愈**，有内容的目录仍按原规则（只有裸序号才检查过期）。
 
 四种情形各自归位：
 
 | 情形 | 命中分支 | 行为 |
 |---|---|---|
 | 新会话从未列过 | ① `catalog is None` | 重列一次，再解析 |
-| 上轮列过、当时为空，之后导入了数据 | ② round_id 不在最近轮次 | 重列 → 自愈 |
+| 上轮列过、当时为空，之后导入了数据（无论"第一个"还是"第一个数据"） | ② 空目录 + round_id 过期 | 重列 → 自愈 |
 | **同一轮内**刚列过且为空 | ③ `not items` | 直接澄清，不重列 |
 | 目录有 N 项、用户说第 N+1 个 | ③ 之后的 `item is None` | 直接澄清，不重列 |
 
@@ -111,7 +118,8 @@ if index is not None:
 |---|---|---|
 | A | 纯函数：空 state + `"第一个数据"` | 返回 `reason == "stale"`，**不是 `not_found`** |
 | B | 纯函数：`catalogs.candidate` 存在、`items == []`、`round_id` **属于当前最近轮次** + `"第一个候选"` | 返回 `not_found`，不触发重列，直接澄清一次 |
-| B2 | 纯函数：同上但 `round_id` **不属于**当前最近轮次 | 返回 `stale`（快照过期 → 重列 → 自愈） |
+| B2 | 纯函数：同上但 `round_id` **不属于**当前最近轮次，且内容带类型名（`"第一个候选"`） | 返回 `stale`（带类型名的空目录也必须自愈） |
+| B3 | 纯函数：目录**有 2 项**、`round_id` 过期、内容带类型名（`"第二个候选"`） | **不返回 `stale`**，按现有目录解析出第 2 项（有内容的目录保持原规则，只有裸序号才查过期） |
 | C | 端到端：**新建会话**，第一条消息 `对第一个数据标注 PP，其余背景，参数默认，保存后做预处理` | 事件序列里**出现 `step datasets.list`**（控制器重列），随后**调用模型**（`llm_call` 新增一行），不得只回 clarify |
 | D | 端到端：目录有 3 项、用户说"第 9 个数据" | 澄清一次，**不触发重列** |
 | E | 回归 | `src-python/tests/agent` 全绿（≥436）；`src-python/tests backend/tests --ignore=src-python/tests/agent` 全绿（≥976） |
