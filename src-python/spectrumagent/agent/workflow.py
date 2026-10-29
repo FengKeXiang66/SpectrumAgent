@@ -294,8 +294,11 @@ def generate(machine, *, content=None, workspace=None, continuation=None, decisi
                 denied_save = (call["name"] == "annotations.draft_confirm" and call_cube
                                and state.get("save_denied") == call_cube)
                 denied_defaults = (state.get("use_defaults") is False and call["name"] in {"annotations.prepare", "preprocess.run_default"})
-                if denied_candidate or denied_save or denied_defaults:
-                    answer = ("已遵从你的要求：保留当前进度，未接受候选、未保存新版本。" if denied_candidate or denied_save
+                denied_stage = (call["name"] == "preprocess.run_default" and state.get("requested_stages")
+                                and "preprocess" not in state["requested_stages"])
+                if denied_candidate or denied_save or denied_defaults or denied_stage:
+                    answer = ("你只要求了标注，没有要求预处理。需要我继续预处理吗？" if denied_stage else
+                              "已遵从你的要求：保留当前进度，未接受候选、未保存新版本。" if denied_candidate or denied_save
                               else "已保留当前进度，没有采用默认参数。请指定希望使用的配置。")
                     if mapping:
                         answer = mapping + "\n" + answer
