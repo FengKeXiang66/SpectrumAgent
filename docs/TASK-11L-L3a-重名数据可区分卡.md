@@ -9,21 +9,28 @@
 git log --oneline -1
 rg -n "class DatasetRecord" -A 4 src-python/spectrumagent/api/schemas.py          # 期望 L19-22
 rg -n "dataset_i_name|safe_name" src-python/spectrumagent/agent/tools/workflows.py # 期望 L88/107/115/161/185
-rg -n "\.dataset\.name" src/                                                        # 期望 8 处，见下
+rg -n "dataset\.name" src/                                                          # 期望 13 处，见下
 ```
 
-**显示名的消费点（2026-10-29 实测，必须全部覆盖，漏一个就出现"界面与助手不一致"）：**
+**显示名的消费点（2026-10-29 完整实测，共 13 处，必须全部覆盖；漏一处就"界面与助手不一致"）：**
 
-| 位置 | 用途 |
-|---|---|
-| `src/components/datasets/DatasetPanel.tsx` L165 | 数据集面板标题 |
-| `src/components/annotation/AnnotationWorkbench.tsx` L280 | 标注工作台标题 |
-| `src/components/annotation/AnnotationWorkbench.tsx` L364 | 上一张/下一张导航 |
-| `src/components/assistant/AssistantBar.tsx` L93 | 助手条"当前数据" |
-| `src/components/assistant/presentation.ts` L21 | 数据集选项 label |
-| `src/components/assistant/presentation.ts` L25 | 数据集选项 label（回退分支） |
-| `src/components/assistant/presentation.ts` L34 | 回复文本里的可读名 |
-| `src/components/modeling/InferencePanel.tsx` L57 | 推理面板数据下拉 |
+| # | 位置 | 用途 |
+|---|---|---|
+| 1 | `src/components/annotation/AnnotationWorkbench.tsx` L280 | 标注工作台标题 |
+| 2 | `src/components/annotation/AnnotationWorkbench.tsx` L364 | 上一张/下一张导航 |
+| 3 | `src/components/assistant/AssistantBar.tsx` L93 | 助手条"当前数据" |
+| 4 | `src/components/assistant/presentation.ts` L21 | 数据集选项 label |
+| 5 | `src/components/assistant/presentation.ts` L25 | 数据集选项 label（回退分支） |
+| 6 | `src/components/assistant/presentation.ts` L34 | 回复文本里的可读名 |
+| 7 | `src/components/datasets/DatasetPanel.tsx` L165 | 数据集面板标题 |
+| 8 | `src/components/modeling/InferencePanel.tsx` L57 | 推理面板数据下拉 |
+| 9 | `src/components/modeling/InferencePanel.tsx` L64 | 推理结果标题 |
+| 10 | `src/components/modeling/ModelPanel.tsx` L85 | 建模样品下拉 |
+| 11 | `src/components/modeling/ModelPanel.tsx` L88 | 已保存目标列表 |
+| 12 | `src/components/modeling/ModelPanel.tsx` L98 | 建模目标下拉 |
+| 13 | `src/components/preprocess/PreprocessPanel.tsx` L138 | 预处理面板标题 |
+
+> 第一版卡写"8 处"是错的：当时用 `head -8` 截断了 grep 输出就把数字写进了卡。**13 处才是实测值**，已按完整列表更正。
 
 助手侧消费点：`tools/workflows.py` L107（`dataset_i_name`）、L115（`describe` 的 `display_name`）、L161（`resolve` 匹配）、L185（`context` 的 `display_name`）。
 
@@ -68,10 +75,16 @@ D15  20260804210509_189  raw=1
 | `src-python/spectrumagent/api/registry.py` | 改（新增显示名解析；`get` / 导入回参带上它） |
 | `src-python/spectrumagent/agent/tools/workflows.py` | 改（`dataset_catalog` 用同一解析函数，替代现有 `safe_name`） |
 | `src-python/spectrumagent/api/openapi.json` | **重生成**（字节级快照，必须与 schema 一致） |
-| `src/components/datasets/*.tsx` | 改（新增 `displayName(record)` 帮助函数 + 替换 §0 表里 8 处取值） |
+| `src/components/datasets/DatasetPanel.tsx` | 改（新增 `displayName()` 帮助函数 + 替换本文件 L165） |
+| `src/components/annotation/AnnotationWorkbench.tsx` | 改（仅替换 L280、L364 两处取值） |
+| `src/components/assistant/AssistantBar.tsx` | 改（仅替换 L93） |
+| `src/components/assistant/presentation.ts` | 改（仅替换 L21、L25、L34） |
+| `src/components/modeling/InferencePanel.tsx` | 改（仅替换 L57、L64） |
+| `src/components/modeling/ModelPanel.tsx` | 改（仅替换 L85、L88、L98） |
+| `src/components/preprocess/PreprocessPanel.tsx` | 改（仅替换 L138） |
 | `src-python/tests/**` | 改（新增解析函数单测 + 接口断言） |
 
-**前端只改"显示名取值"这一类**，不改布局、不加控件。8 处替换是机械工作，但必须全覆盖——漏一处就出现界面与助手不一致。
+**前端只改"显示名取值"这一类**，不改布局、不加控件。13 处替换是机械工作，但必须全覆盖——漏一处就出现界面与助手不一致。**除上述 6 个前端文件外，不得触碰其它前端文件。**
 
 ## §4 明确不做
 
@@ -108,7 +121,7 @@ def display_names(rows):  # rows: [(id, name, raw), ...] 按 rowid 顺序
     return record.display_name ?? record.dataset.name;
   }
   ```
-  然后用它替换 §0 表里的 **8 处** `record.dataset.name`。**不许漏**，也不许各处自己拼。
+  然后用它替换 §0 表里的 **13 处** `record.dataset.name`。**不许漏**，也不许各处自己拼。
 
 ### 5.3 openapi
 
