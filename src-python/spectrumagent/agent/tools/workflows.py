@@ -439,14 +439,11 @@ class Workflows:
 
     def run_default(self, arguments):
         version = arguments.annotation_version_id
-        if version is None:
-            rows = _rows(self.runner.database, "SELECT id FROM annotation_version WHERE cube_id=? ORDER BY version_no DESC LIMIT 1", (arguments.cube_id,))
-            if not rows:
-                return {"cube_id": arguments.cube_id, "status": "need_annotation", "detail": "请先确认保存标注版本，再运行预处理。"}
-            version = rows[0][0]
         recipe_id = arguments.recipe_version_id
-        if recipe_id is None:
-            recipe_id = self.recipe_ensure(RecipeArguments(profile="snv_sg1"))["recipe_version_id"]
+        if version is None or recipe_id is None:
+            missing = "annotation_version" if version is None else "recipe_version"
+            return {"cube_id": arguments.cube_id, "status": "need_version", "missing": missing,
+                    "detail": "请先明确使用哪个标注版本与哪个配方版本，不采用库中最新或内置默认。"}
         row = self.runner.run(arguments.cube_id, version, recipe_id)
         result = _run_summary(row)
         result.update(run_provenance(self.runner, row))
@@ -482,7 +479,7 @@ def register_workflows(registry, **services):
         ("annotations.undo", RevisionArguments, "撤销最近一次草稿修改，须当前 revision", workflows.undo, sessions is not None),
         ("preprocess.recipes", NoArguments, "发现可用配方、最新版本、算子名与版本以及默认配方，不要求用户提供 UUID", workflows.recipes, runner is not None),
         ("preprocess.recipe_ensure", RecipeArguments, "显式选择固定模板 raw 反射率基线、snv、snv_sg1；登记后返回版本，供 compare 比较", workflows.recipe_ensure, runner is not None),
-        ("preprocess.run_default", DefaultRunArguments, "按显式版本或当前最新标注运行；用户授权默认时取平台默认配方，返回真实指标和溯源", workflows.run_default, runner is not None),
+        ("preprocess.run_default", DefaultRunArguments, "必须显式指定标注版本与配方版本；省略由控制器注入，仍缺则拒绝，返回真实指标和溯源", workflows.run_default, runner is not None),
         ("preprocess.run_get", RunGetArguments, "查询真实预处理状态、指标、算子版本与比较边界；不返回产物路径或谱值", workflows.run_get, runner is not None),
     ]
     for name, arguments, description, handler, ready in tools:
