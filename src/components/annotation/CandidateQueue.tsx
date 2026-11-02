@@ -30,7 +30,7 @@ export default function CandidateQueue({ working, labels, selectedKey, disabled,
         <li><span>留白（-1）</span><b>{stats?.blank_pixels.toLocaleString() ?? '—'} px</b></li>
       </ul>
       <button className="annotation-primary" disabled={disabled || !working?.params} onClick={onSave}>聚合为样本级标签</button>
-      <p className="annotation-hint">保存即聚合；默认创建新版本。</p>
+      <p className="annotation-hint">保存即聚合；取消覆写可另存新版本。</p>
     </section>
   </aside>;
 }

@@ -5,6 +5,7 @@ import { displayName } from '../datasets/types.ts';
 import { annotations } from './api.ts';
 import { describeAnnotationError, type AnnotationApi, type CatalogItem, type ExportResult, type Geometry, type LabelBody, type LabelSchema, type Png, type Quality, type Seed, type SegmentsMap, type SuperpixelReport, type Version, type Working } from './types.ts';
 import { candidateKey, editThenRead, estimateRemaining, orderedLabels, readWorking, recoverSelection, selectedCandidate, statistics } from './working.ts';
+import { overwriteSummary } from './overwrite.ts';
 import { bindingProblem, changeLabelKey, chord, defaultPreferences, labelKey, resolveShortcut, type Command, type Preferences, type Tool } from './shortcuts.ts';
 import AnnotationCanvas, { type PromptMode } from './canvas/AnnotationCanvas.tsx';
 import LabelPanel from './LabelPanel.tsx';
@@ -64,6 +65,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
   const [lastGestureRef, setLastGestureRef] = useState<string | null>(null);
   const [draftRevision, setDraftRevision] = useState<number | null>(null);
   const [note, setNote] = useState(''), [overwrite, setOverwrite] = useState(false), [confirmOverwrite, setConfirmOverwrite] = useState(false);
+  const overwriteTouched = useRef(false);
   const [confirmVersion, setConfirmVersion] = useState(false);
   const [exportResult, setExportResult] = useState<ExportResult | null>(null), [exportStale, setExportStale] = useState(true);
   const [quality, setQuality] = useState<Quality | null>(null), [history, setHistory] = useState<Png | null>(null), [historyId, setHistoryId] = useState('');
@@ -78,6 +80,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
   const thresholdOnFocus = useRef(threshold), minimumOnFocus = useRef(queueMinimum);
   const timing = useRef<{ started: number; labeled: number } | null>(null);
   const labels = orderedLabels(schemas), stats = statistics(working);
+  const overwriteText = versions[0] && stats ? overwriteSummary(versions[0], stats, labels) : null;
   const position = records.findIndex(item => item.id === id);
   const dirty = !!working?.params && (['n_segments', 'compactness', 'pca_components'] as const).some(key => parameters[key] !== working.params![key]);
   const ready = !!working?.params && !dirty && synchronized;
@@ -94,11 +97,16 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
 
   useEffect(() => {
     let cancelled = false;
+    overwriteTouched.current = false;
+    setOverwrite(false); setConfirmOverwrite(false); setVersions([]);
     setDraftRevision(null); setLastGestureRef(null);
     void drafts.get(id).then(result => { if (!cancelled) setDraftRevision(result.revision); })
       .catch(() => { if (!cancelled) setDraftRevision(null); });
     return () => { cancelled = true; };
   }, [id]);
+  useEffect(() => {
+    if (!overwriteTouched.current && versions.length) setOverwrite(true);
+  }, [versions.length]);
   useEffect(() => {
     onWorkspaceChange?.({ cube_id: id, ...(lastGestureRef ? { gesture_ref: lastGestureRef } : {}) });
   }, [id, lastGestureRef, onWorkspaceChange]);
@@ -379,7 +387,8 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
         </section>
         <section className="annotation-card" aria-label="保存与版本">
           <h3>保存与版本</h3><label>版本备注（可选，≤2000 字符）<textarea value={note} onChange={event => setNote(event.target.value)} /></label>
-          <label><input type="checkbox" disabled={!versions.length || busy} checked={overwrite} onChange={event => setOverwrite(event.target.checked)} />覆写最新版本（需再次确认）</label>
+          <label><input type="checkbox" disabled={!versions.length || busy} checked={overwrite} onChange={event => { overwriteTouched.current = true; setOverwrite(event.target.checked); }} />覆写最新版本（有历史版本时默认勾选，需再次确认）</label>
+          <p className="annotation-hint">取消勾选可另存新版本。</p>
           <button disabled={busy || !ready || Array.from(note).length > 2000} onClick={() => { void save(); }}>保存并聚合</button>
           <p role="status">JSON 投影：{exportResult && !exportResult.ok ? '失败' : exportStale ? '过期' : '最新'}</p>
           {exportResult?.path && <div><label>JSON 绝对路径<textarea aria-label="JSON 绝对路径" rows={3} readOnly value={exportResult.path} onFocus={event => event.currentTarget.select()} /></label>
@@ -395,7 +404,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
             }, '标注版本已确认，训练 MAT 已生成。', true);
             if (success) { setConfirmVersion(false); if (matError) setMessage(`标注版本已确认；训练 MAT 生成失败：${matError}`); }
           }} />}
-          {confirmOverwrite && <div role="alertdialog" aria-label="确认覆写最新版本" className="annotation-overwrite"><p>将用当前工作态重写最新版本 v{versions[0]?.version_no}，版本号与首次创建时间保留。</p><button disabled={busy} onClick={() => { void save(true); }}>确认覆写最新版本</button><button onClick={() => setConfirmOverwrite(false)}>取消</button></div>}
+          {confirmOverwrite && <div role="alertdialog" aria-label="确认覆写最新版本" className="annotation-overwrite"><p>{overwriteText ? overwriteText[0] : '将覆写最新版本（信息加载中…）'}</p><p>{overwriteText ? overwriteText[1] : '本次保存将写入当前工作态。'}</p><p>版本号与首次创建时间保留。</p><button disabled={busy} onClick={() => { void save(true); }}>确认覆写最新版本</button><button onClick={() => setConfirmOverwrite(false)}>取消</button></div>}
           <details><summary>版本记录（{versions.length}）</summary><ul>{versions.map(version => <li key={version.id}>v{version.version_no} · {version.labeled_pixels.toLocaleString()} px · {version.created_at}
             <button disabled={busy} onClick={() => { void execute(async () => { const png = await api.versionOverlay(id, version.id); if (alive.current) { setHistory(png); setHistoryId(version.id); } }, '历史叠加图已读取；当前工作态不变。'); }}>查看叠加图</button></li>)}</ul>
             {history && <div className="annotation-history"><p>历史版本 UUID：{historyId} · 只读叠加图</p><img alt="历史版本标注叠加图" src={`data:image/png;base64,${history.png_base64}`} /><button onClick={() => setHistory(null)}>关闭历史图</button></div>}
