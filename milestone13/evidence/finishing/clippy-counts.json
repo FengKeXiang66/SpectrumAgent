@@ -1,0 +1,27 @@
+{
+  "clippy-user": {
+    "primary_errors": 38,
+    "by_file": {
+      "tests\\models_forward.rs": 20,
+      "src\\models.rs": 18
+    },
+    "compile_summary_lines_excluded": 2
+  },
+  "clippy-prior-mode": {
+    "primary_errors": 38,
+    "by_file": {
+      "src\\models.rs": 18,
+      "tests\\models_forward.rs": 20
+    },
+    "compile_summary_lines_excluded": 2
+  },
+  "clippy-serial": {
+    "primary_errors": 20,
+    "by_file": {
+      "tests\\models_forward.rs": 20
+    },
+    "compile_summary_lines_excluded": 1
+  },
+  "counting_method": "Default human format; count ^error: (?!could not compile); exclude compile summaries, warning, note, help and source lines; no --message-format=short.",
+  "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)"
+}

@@ -1,0 +1,150 @@
+{
+  "ui_groups": {
+    "C1": true,
+    "C2": true,
+    "C3": true,
+    "C4": true,
+    "C5": true,
+    "C6": true,
+    "C7": true
+  },
+  "C2_external_overwrite": {
+    "kind": "external_overwrite",
+    "case": "A",
+    "before": {
+      "revision": 3,
+      "versions": [
+        {
+          "id": "b51bedb3-fff7-49ad-b55c-defc728df2ba",
+          "version_no": 1,
+          "created_at": "2026-11-01 17:30",
+          "labeled_pixels": 240
+        }
+      ],
+      "version_count": 1
+    },
+    "after": {
+      "revision": 4,
+      "versions": [
+        {
+          "id": "b51bedb3-fff7-49ad-b55c-defc728df2ba",
+          "version_no": 1,
+          "created_at": "2026-11-01 17:30",
+          "labeled_pixels": 240
+        }
+      ],
+      "version_count": 1
+    }
+  },
+  "C5_actual_save": {
+    "kind": "save",
+    "case": "A",
+    "payload": {
+      "overwrite": true,
+      "confirm": true
+    },
+    "before": {
+      "revision": 3,
+      "versions": [
+        {
+          "id": "b51bedb3-fff7-49ad-b55c-defc728df2ba",
+          "version_no": 1,
+          "created_at": "2026-11-01 17:30",
+          "labeled_pixels": 120
+        }
+      ],
+      "version_count": 1
+    },
+    "after": {
+      "revision": 3,
+      "versions": [
+        {
+          "id": "b51bedb3-fff7-49ad-b55c-defc728df2ba",
+          "version_no": 1,
+          "created_at": "2026-11-01 17:30",
+          "labeled_pixels": 240
+        }
+      ],
+      "version_count": 1
+    }
+  },
+  "C6_snapshots_equal": true,
+  "first_save": {
+    "kind": "save",
+    "case": "C",
+    "payload": {},
+    "before": {
+      "revision": 1,
+      "versions": [],
+      "version_count": 0
+    },
+    "after": {
+      "revision": 1,
+      "versions": [
+        {
+          "id": "65d4a232-4d57-4cfd-83ad-07e9e7f6beca",
+          "version_no": 1,
+          "created_at": "2026-11-02T06:43:55.813228+00:00",
+          "labeled_pixels": 120
+        }
+      ],
+      "version_count": 1
+    }
+  },
+  "multiversion_transition": {
+    "kind": "save",
+    "case": "C",
+    "payload": {},
+    "before": {
+      "revision": 1,
+      "versions": [
+        {
+          "id": "65d4a232-4d57-4cfd-83ad-07e9e7f6beca",
+          "version_no": 1,
+          "created_at": "2026-11-02T06:43:55.813228+00:00",
+          "labeled_pixels": 120
+        }
+      ],
+      "version_count": 1
+    },
+    "after": {
+      "revision": 1,
+      "versions": [
+        {
+          "id": "784dbb90-4028-4ee2-a403-39856e8bb6d7",
+          "version_no": 2,
+          "created_at": "2026-11-02T06:44:50.905149+00:00",
+          "labeled_pixels": 120
+        },
+        {
+          "id": "65d4a232-4d57-4cfd-83ad-07e9e7f6beca",
+          "version_no": 1,
+          "created_at": "2026-11-02T06:43:55.813228+00:00",
+          "labeled_pixels": 120
+        }
+      ],
+      "version_count": 2
+    }
+  },
+  "node_baseline": {
+    "mode": "Node 24.19.0 --test src/**/*.test.ts",
+    "tests": 188,
+    "pass": 187,
+    "fail": 1
+  },
+  "node_final": {
+    "mode": "Node 24.19.0 --test src/**/*.test.ts",
+    "tests": 192,
+    "pass": 191,
+    "fail": 1
+  },
+  "build_baseline": {
+    "mode": "npm run build (tsc --noEmit && vite build)",
+    "pass": true
+  },
+  "build_final": {
+    "mode": "npm run build (tsc --noEmit && vite build)",
+    "pass": true
+  },
+  "final_dialog": "将覆写 v1（2026-11-01 17:30 创建，240 px 已标注）\n\n本次保存将写入：聚丙烯 240 px · 留白 180 px · 不确定 60 px\n\n版本号与首次创建时间保留。\n\n确认覆写最新版本取消"
+}

@@ -1,0 +1,11 @@
+ss....................                                                   [100%]
+============================== warnings summary ===============================
+.venv\Lib\site-packages\fastapi\testclient.py:1
+  E:\AI_Agent\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+SKIPPED [1] src-python\tests\annotation\test_projection.py:41: could not import 'cv2': No module named 'cv2'
+SKIPPED [1] src-python\tests\annotation\test_projection.py:52: could not import 'cv2': No module named 'cv2'
+20 passed, 2 skipped, 1 warning in 2.11s

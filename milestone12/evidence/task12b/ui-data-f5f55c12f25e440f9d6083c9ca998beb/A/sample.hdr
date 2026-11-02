@@ -1,0 +1,8 @@
+ENVI
+samples=12
+lines=40
+bands=200
+data type=12
+interleave=bil
+byte order=0
+reflectance scale factor=65535

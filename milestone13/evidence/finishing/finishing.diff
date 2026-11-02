@@ -1,0 +1,159 @@
+--- before/src-python/spectrumagent/annotation/projection.py
++++ src-python/spectrumagent/annotation/projection.py
+@@ -90,6 +90,7 @@
+     if rule_version != 1 or label_map.ndim != 2 or not np.issubdtype(label_map.dtype, np.integer):
+         raise ProjectionError("投影规则或 label_map 类型无效")
+     shapes = []
++    margins = []
+     meta = {"shape_count": 0, "class_pixels": {}, "uncertain_pixels": int(np.count_nonzero(label_map == -2)),
+             "uncertain_boxes": [], "holes_bridged": 0, "hole_boxes": [], "bridge_pixels": 0,
+             "unmapped": [], "simplified": False, "min_margin_px": 0, "projection_rule_version": rule_version}
+@@ -127,10 +128,12 @@
+             points = [[x + col, y + row] for x, y in local]
+             shapes.append(((row, col, area), {"label": external, "points": points,
+                            "group_id": None, "shape_type": "polygon", "flags": {}}))
++            margins.append(limit - difference)
+             meta["holes_bridged"] += len(boxes)
+             meta["bridge_pixels"] += bridge_pixels
+             meta["hole_boxes"].extend([[r0 + row, c0 + col, r1 + row, c1 + col] for r0, c0, r1, c1 in boxes])
+     meta["shape_count"] = len(shapes)
++    meta["min_margin_px"] = min(margins, default=0)
+     meta["unmapped"].sort()
+     payload = {"version": "5.4.1", "flags": {}, "shapes": [shape for _, shape in sorted(shapes, key=lambda item: item[0])]}
+     return json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")), meta
+--- before/src-python/spectrumagent/annotation/projection_io.py
++++ src-python/spectrumagent/annotation/projection_io.py
+@@ -71,13 +71,13 @@
+     folder = root / cube_id
+     generated = now()
+     meta.update(cube_id=cube_id, version_no=version_no, source_hdr=str(source), generated_at=generated)
++    confidence = []
+     if document is not None:
+         regions = document["regions"]
+         confidence = [region["confidence"] for region in regions if region.get("confidence") is not None]
+         meta["region_statistics"] = {"count": len(regions), "sources": dict(Counter(region["source"] for region in regions)),
+-                                     "confidence_count": len(confidence),
+-                                     "confidence_min": min(confidence) if confidence else None,
+-                                     "confidence_max": max(confidence) if confidence else None}
++                                     "confidence_count": len(confidence)}
++    meta["confidence_counts"] = dict(Counter(confidence))
+     with _EXPORT_LOCK:
+         root.mkdir(parents=True, exist_ok=True)
+         owned = folder / "manifest.json"
+--- before/src-python/spectrumagent/annotation/session.py
++++ src-python/spectrumagent/annotation/session.py
+@@ -432,10 +432,10 @@
+             path, meta = write_projection(self.paths, cube_id, project_id, source_hdr, version_no,
+                                           state.label_map, label_index, document=document)
+             warning = f"有 {len(meta['unmapped'])} 个类未配置对外名称" if meta["unmapped"] else None
+-            return {"ok": True, "path": path, "error": warning}
++            return {"ok": True, "path": path, "error": None, "warning": warning}
+         except Exception as error:
+             logging.getLogger(__name__).exception("JSON 投影失败 cube_id=%s", cube_id)
+-            return {"ok": False, "path": None, "error": str(error)}
++            return {"ok": False, "path": None, "error": str(error), "warning": None}
+ 
+     @staticmethod
+     def _write_snapshot(directory, state, aggregates):
+--- before/src/components/annotation/types.ts
++++ src/components/annotation/types.ts
+@@ -64,7 +64,7 @@
+ export type Version = { id: string; cube_id: string; version_no: number; snapshot_ref: string; n_pixels: number;
+   labeled_pixels: number; auto_ratio: number; params: Parameters; note: VersionNote | null; created_at: string };
+ export type Versions = { versions: Version[]; working: Working };
+-export type ExportResult = { ok: boolean; path: string | null; error: string | null };
++export type ExportResult = { ok: boolean; path: string | null; error: string | null; warning: string | null };
+ export type Saved = { id: string; cube_id: string; snapshot_ref: string; created_at: string; note: string | null; export: ExportResult;
+   quality: Quality; elapsed_seconds: number; transaction_seconds: number };
+ export type Project = { id: string; name: string; created_at: string; note: string | null };
+--- before/src/components/annotation/AnnotationWorkbench.tsx
++++ src/components/annotation/AnnotationWorkbench.tsx
+@@ -384,7 +384,8 @@
+           <p role="status">JSON 投影：{exportResult && !exportResult.ok ? '失败' : exportStale ? '过期' : '最新'}</p>
+           {exportResult?.path && <div><label>JSON 绝对路径<textarea aria-label="JSON 绝对路径" rows={3} readOnly value={exportResult.path} onFocus={event => event.currentTarget.select()} /></label>
+             <button disabled={busy} onClick={() => { void invoke('open_exports_directory', { cubeId: id }).catch(() => setError('无法打开 JSON 所在文件夹。')); }}>打开所在文件夹</button></div>}
+-          {exportResult?.error && <p role="alert">{exportResult.ok ? exportResult.error : `标注已保存；JSON 投影失败：${exportResult.error}。重试须覆写，否则会多出一个版本。请勾选“覆写最新版本”后再次保存并聚合。`}</p>}
++          {exportResult && !exportResult.ok && exportResult.error && <p role="alert" className="annotation-error" style={{ color: '#a12622' }}>标注已保存；JSON 投影失败：{exportResult.error}。重试须覆写，否则会多出一个版本。请勾选“覆写最新版本”后再次保存并聚合。</p>}
++          {exportResult?.ok && exportResult.warning && <p role="status" className="annotation-warning">{exportResult.warning}</p>}
+           <button disabled={busy || !ready || Array.from(note).length > 2000} onClick={() => setConfirmVersion(true)}>确认版本并生成训练 MAT</button>
+           {confirmVersion && <ConfirmCard key={id} cubeId={id} disabled={busy || !ready} onReject={() => setConfirmVersion(false)} onApprove={async view => {
+             let matError: string | undefined;
+--- before/src-python/tests/annotation/test_projection.py
++++ src-python/tests/annotation/test_projection.py
+@@ -67,6 +67,30 @@
+     np.testing.assert_array_equal(labels, before)
+     assert meta["class_pixels"] == {"PE": 270}
+     assert all(type(value) is int for item in json.loads(text)["shapes"] for point in item["points"] for value in point)
++
++
++def test_min_margin_records_smallest_limit_minus_difference():
++    labels = np.full((50, 200), -1, dtype=np.int32)
++    labels[:10] = 0  # 2000 pixels: limit 4, difference 0.
++    labels[20:] = 1  # 6000 pixels: limit 12, difference 0.
++    text, meta = generate(labels)
++    np.testing.assert_array_equal(restore(text, labels.shape), labels >= 0)
++    limit = max(2, int(np.ceil(.002 * 2000)))
++    assert meta["min_margin_px"] == limit == 4
++    assert generate(np.full((2, 3), -1, dtype=np.int32))[1]["min_margin_px"] == 0
++
++
++def test_confidence_histogram_preserves_high_and_low_in_sidecar(annotation_case):
++    c = annotation_case
++    configure_project(c.paths, c.project, {"PE": "PE_W0"})
++    document = {"regions": [{"source": "manual", "confidence": "high"},
++                            {"source": "manual", "confidence": "low"}]}
++    path, meta = write_projection(c.paths, c.identifier, c.project, c.header, 1,
++                                 np.zeros((3, 7), dtype=np.int32), {"0": "PE"}, document=document)
++    assert meta["confidence_counts"] == {"high": 1, "low": 1}
++    persisted = json.loads(Path(path).with_suffix(".meta.json").read_text("utf-8"))
++    assert persisted["confidence_counts"] == {"high": 1, "low": 1}
++    assert "confidence_min" not in json.dumps(persisted) and "confidence_max" not in json.dumps(persisted)
+ 
+ 
+ def test_b3_determinism_and_spatial_sort_independent_of_class_index():
+@@ -155,7 +179,7 @@
+         raise OSError("simulated projection IO error")
+     monkeypatch.setattr(projection_io, "write_projection", failed)
+     saved = c.store.save(c.identifier)
+-    assert saved["export"] == {"ok": False, "path": None, "error": "simulated projection IO error"}
++    assert saved["export"] == {"ok": False, "path": None, "error": "simulated projection IO error", "warning": None}
+     with connect_database(c.paths.database) as db:
+         assert db.execute("SELECT count(*) FROM annotation_version WHERE id=?", (saved["id"],)).fetchone()[0] == 1
+     assert "JSON 投影失败" in caplog.text
+@@ -168,7 +192,7 @@
+     configure_project(c.paths, c.project, {"PE": "PE_W0"})
+     c.store.edit(c.identifier, c.segments == 0, action="confirm", label_id=c.labels["PE"])
+     saved = c.store.save(c.identifier)
+-    assert saved["export"]["ok"] and saved["export"]["error"] is None
++    assert saved["export"]["ok"] and saved["export"]["error"] is None and saved["export"]["warning"] is None
+     path = Path(saved["export"]["path"])
+     assert path == c.paths.exports / c.identifier / "sample.json" and path.is_absolute() and path.exists()
+     assert json.loads(path.read_text("utf-8"))["shapes"][0]["label"] == "PE_W0"
+@@ -224,13 +248,15 @@
+     h.sessions.edit(h.case.identifier, h.sessions._state(h.case.identifier).segments == 0,
+                     action="confirm", label_id=h.case.labels["PE"])
+     saved = h.client.post(h.base + "/annotations/save", json={}).json()
+-    assert set(saved["export"]) == {"ok", "path", "error"}
++    assert set(saved["export"]) == {"ok", "path", "error", "warning"}
+     assert "png_base64" not in json.dumps(saved["export"]) and "segments_png" not in json.dumps(saved["export"])
+-    assert saved["export"]["ok"] and saved["export"]["error"] == "有 1 个类未配置对外名称"
++    assert saved["export"] == {"ok": True, "path": str(h.case.paths.exports / h.case.identifier / "sample.json"),
++                               "error": None, "warning": "有 1 个类未配置对外名称"}
+     original = projection_io.write_projection
+     monkeypatch.setattr(projection_io, "write_projection", lambda *args, **kwargs: (_ for _ in ()).throw(OSError("retry me")))
+     failed = h.client.post(h.base + "/annotations/save", json={"overwrite": True, "confirm": True}).json()
+     assert failed["id"] == saved["id"] and not failed["export"]["ok"]
++    assert failed["export"] == {"ok": False, "path": None, "error": "retry me", "warning": None}
+     monkeypatch.setattr(projection_io, "write_projection", original)
+     configure_project(h.case.paths, h.case.project, {"PE": "PE_W0"})
+     recovered = h.client.post(h.base + "/annotations/save", json={"overwrite": True, "confirm": True}).json()
+--- before/src/components/annotation/projection.test.ts
++++ src/components/annotation/projection.test.ts
+@@ -17,4 +17,7 @@
+   for (const status of ['最新', '失败', '过期']) assert.ok(source.includes(`'${status}'`));
+   assert.match(source, /overwrite: true, confirm: true/);
+   assert.doesNotMatch(source, /disabled=\{[^}]*exportResult/);
++  assert.match(source, /!exportResult\.ok && exportResult\.error && <p role="alert" className="annotation-error"/);
++  assert.match(source, /exportResult\?\.ok && exportResult\.warning && <p role="status" className="annotation-warning"/);
++  assert.doesNotMatch(source, /exportResult\.ok \? exportResult\.error/);
+ });

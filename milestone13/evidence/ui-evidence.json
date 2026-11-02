@@ -1,0 +1,27 @@
+{
+  "cube_id": "2defaabf-7a6e-4fe9-b61c-5d71dd72b90e",
+  "save_calls": [
+    {},
+    {
+      "overwrite": true,
+      "confirm": true
+    },
+    {
+      "overwrite": true,
+      "confirm": true
+    }
+  ],
+  "version_count": 1,
+  "last_save": {
+    "id": "65c9f08f-84d7-4574-a12d-fd6299da4079",
+    "export": {
+      "ok": true,
+      "path": "E:\\AI_Agent\\.runtime\\task13\\ui-data-e5dddfaac5bf44a2911cdc9c1c2d280c\\app\\exports\\2defaabf-7a6e-4fe9-b61c-5d71dd72b90e\\sample.json",
+      "error": null
+    }
+  },
+  "folder_calls": [
+    "E:\\AI_Agent\\.runtime\\task13\\ui-data-e5dddfaac5bf44a2911cdc9c1c2d280c\\app\\exports\\2defaabf-7a6e-4fe9-b61c-5d71dd72b90e"
+  ],
+  "path_exists": true
+}

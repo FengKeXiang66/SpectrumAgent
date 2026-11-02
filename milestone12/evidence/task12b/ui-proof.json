@@ -1,0 +1,39 @@
+{
+  "C1": {
+    "checkbox": {
+      "checked": true,
+      "disabled": false
+    },
+    "dialog": "将覆写 v1（2026-11-01 17:30 创建，120 px 已标注）\n\n本次保存将写入：聚丙烯 240 px · 留白 180 px · 不确定 60 px\n\n版本号与首次创建时间保留。\n\n确认覆写最新版本取消"
+  },
+  "C6": {
+    "dialogVisible": false
+  },
+  "C2": {
+    "before": false,
+    "afterOverwrite": false,
+    "afterUndo": false
+  },
+  "C7": {
+    "B": {
+      "checked": true,
+      "disabled": false
+    }
+  },
+  "C3": {
+    "before": {
+      "checked": false,
+      "disabled": true
+    },
+    "after": {
+      "checked": true,
+      "disabled": false
+    },
+    "dialogVisible": false
+  },
+  "multiversion": {
+    "checked": false,
+    "dialogVisible": false
+  },
+  "finalDialog": "将覆写 v1（2026-11-01 17:30 创建，240 px 已标注）\n\n本次保存将写入：聚丙烯 240 px · 留白 180 px · 不确定 60 px\n\n版本号与首次创建时间保留。\n\n确认覆写最新版本取消"
+}

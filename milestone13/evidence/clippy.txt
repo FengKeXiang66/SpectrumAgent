@@ -1,0 +1,370 @@
+   Compiling spectrum-agent v0.1.0 (E:\AI_Agent\src-tauri)
+error: used `unwrap()` on a `Result` value
+  --> tests\models_forward.rs:17:20
+   |
+17 |     let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: if this value is an `Err`, it will panic
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+   = note: requested on the command line with `-D clippy::unwrap-used`
+
+error: used `unwrap()` on a `Result` value
+  --> tests\models_forward.rs:18:16
+   |
+18 |     let port = listener.local_addr().unwrap().port();
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: if this value is an `Err`, it will panic
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+  --> tests\models_forward.rs:19:18
+   |
+19 |   ...ty=handshake::parse(&serde_json::to_vec(&json!({"boot_id":"1234abcd","pid":123,"port":port,"token":TOKEN,
+   |  _______^
+20 | | ...col":1,"version":"0.1.0","process_created_at":"2026-10-19T00:00:00.000Z","started_at":"2026-10-19T00:00:00.000Z"})).unwrap()).unwrap();
+   | |_________________________________________________________________________________________________________________________________________^
+   |
+   = note: if this value is an `Err`, it will panic
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+  --> tests\models_forward.rs:19:36
+   |
+19 |   ...ake::parse(&serde_json::to_vec(&json!({"boot_id":"1234abcd","pid":123,"port":port,"token":TOKEN,
+   |  ________________^
+20 | | ...ersion":"0.1.0","process_created_at":"2026-10-19T00:00:00.000Z","started_at":"2026-10-19T00:00:00.000Z"})).unwrap()).unwrap();
+   | |______________________________________________________________________________________________________________________^
+   |
+   = note: if this value is an `Err`, it will panic
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+  --> tests\models_forward.rs:26:31
+   |
+26 |         let (mut socket, _) = listener.accept().unwrap();
+   |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: if this value is an `Err`, it will panic
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+  --> tests\models_forward.rs:27:9
+   |
+27 | /         socket
+28 | |             .set_read_timeout(Some(std::time::Duration::from_secs(3)))
+29 | |             .unwrap();
+   | |_____________________^
+   |
+   = note: if this value is an `Err`, it will panic
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+  --> tests\models_forward.rs:33:21
+   |
+33 |             let n = socket.read(&mut buffer).unwrap();
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: if this value is an `Err`, it will panic
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+  --> tests\models_forward.rs:50:20
+   |
+50 |         let text = String::from_utf8(all).unwrap().to_lowercase();
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: if this value is an `Err`, it will panic
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on an `Option` value
+  --> tests\models_forward.rs:53:17
+   |
+53 |                 text.lines().next().unwrap(),
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: if this value is `None`, it will panic
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on an `Option` value
+  --> tests\models_forward.rs:59:17
+   |
+59 |         assert!(text.lines().next().unwrap().contains("/api/v1/models/"));
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: if this value is `None`, it will panic
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+  --> tests\models_forward.rs:63:40
+   |
+63 |     let response = forward(&identity, &parse_request(request).unwrap()).map_err(|error| {
+   |                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: if this value is an `Err`, it will panic
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on an `Option` value
+  --> tests\models_forward.rs:64:9
+   |
+64 | /         serde_json::to_value(error).unwrap()["error"]
+65 | |             .as_str()
+66 | |             .unwrap()
+   | |_____________________^
+   |
+   = note: if this value is `None`, it will panic
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+  --> tests\models_forward.rs:64:9
+   |
+64 |         serde_json::to_value(error).unwrap()["error"]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: if this value is an `Err`, it will panic
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+  --> tests\models_forward.rs:69:5
+   |
+69 |     server.join().unwrap();
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: if this value is an `Err`, it will panic
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+  --> tests\models_forward.rs:89:13
+   |
+89 |             exchange(request, "200 OK", headers, "{\"source\":\"annotation\"}").unwrap()["source"],
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: if this value is an `Err`, it will panic
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+   --> tests\models_forward.rs:101:9
+    |
+101 |         exchange(request, "200 OK", headers, "{\"coefficients\":[1,-2]}").unwrap()["coefficients"],
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: if this value is an `Err`, it will panic
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+   --> tests\models_forward.rs:156:9
+    |
+156 |         serde_json::from_str(include_str!("../capabilities/main.json")).unwrap();
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: if this value is an `Err`, it will panic
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on an `Option` value
+   --> tests\models_forward.rs:158:9
+    |
+158 | /         capability["permissions"]
+159 | |             .as_array()
+160 | |             .unwrap()
+    | |_____________________^
+    |
+    = note: if this value is `None`, it will panic
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on an `Option` value
+   --> tests\models_forward.rs:164:9
+    |
+164 | /         capability["description"]
+165 | |             .as_str()
+166 | |             .unwrap()
+    | |_____________________^
+    |
+    = note: if this value is `None`, it will panic
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+   --> tests\models_forward.rs:193:17
+    |
+193 |     let large = serde_json::to_string(&json!({"data":"x".repeat(8*1024*1024)})).unwrap();
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: if this value is an `Err`, it will panic
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: could not compile `spectrum-agent` (test "models_forward") due to 20 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: used `unwrap()` on a `Result` value
+   --> src\models.rs:320:27
+    |
+320 |             let request = parse_request(value).unwrap();
+    |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: if this value is an `Err`, it will panic
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+    = note: requested on the command line with `-D clippy::unwrap-used`
+
+error: used `unwrap()` on a `Result` value
+   --> src\models.rs:321:36
+    |
+321 |             let (url, actual, _) = request.destination(123).unwrap();
+    |                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: if this value is an `Err`, it will panic
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+   --> src\models.rs:374:39
+    |
+374 |             let (url, actual, body) = parse_request(request).unwrap().destination(123).unwrap();
+    |                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: if this value is an `Err`, it will panic
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+   --> src\models.rs:374:39
+    |
+374 |             let (url, actual, body) = parse_request(request).unwrap().destination(123).unwrap();
+    |                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: if this value is an `Err`, it will panic
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on an `Option` value
+   --> src\models.rs:380:25
+    |
+380 |                 assert!(body.unwrap().is_object());
+    |                         ^^^^^^^^^^^^^
+    |
+    = note: if this value is `None`, it will panic
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+   --> src\models.rs:411:28
+    |
+411 |             let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+    |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: if this value is an `Err`, it will panic
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+   --> src\models.rs:412:24
+    |
+412 |             let port = listener.local_addr().unwrap().port();
+    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: if this value is an `Err`, it will panic
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+   --> src\models.rs:413:28
+    |
+413 |               let identity = crate::handshake::parse(&serde_json::to_vec(&json!({
+    |  ____________________________^
+414 | |                 "boot_id":"1234abcd","pid":123,"port":port,"token":TOKEN,"protocol":1,"version":"0.1.0",
+415 | |                 "process_created_at":"2026-10-27T00:00:00.000Z","started_at":"2026-10-27T00:00:00.000Z"
+416 | |             })).unwrap()).unwrap();
+    | |__________________________________^
+    |
+    = note: if this value is an `Err`, it will panic
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+   --> src\models.rs:413:53
+    |
+413 |               let identity = crate::handshake::parse(&serde_json::to_vec(&json!({
+    |  _____________________________________________________^
+414 | |                 "boot_id":"1234abcd","pid":123,"port":port,"token":TOKEN,"protocol":1,"version":"0.1.0",
+415 | |                 "process_created_at":"2026-10-27T00:00:00.000Z","started_at":"2026-10-27T00:00:00.000Z"
+416 | |             })).unwrap()).unwrap();
+    | |________________________^
+    |
+    = note: if this value is an `Err`, it will panic
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+   --> src\models.rs:417:26
+    |
+417 |             let parsed = parse_request(request).unwrap();
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: if this value is an `Err`, it will panic
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+   --> src\models.rs:418:48
+    |
+418 |             let (url, method, expected_body) = parsed.destination(port).unwrap();
+    |                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: if this value is an `Err`, it will panic
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+   --> src\models.rs:420:39
+    |
+420 |                 let (mut socket, _) = listener.accept().unwrap();
+    |                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: if this value is an `Err`, it will panic
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+   --> src\models.rs:421:17
+    |
+421 | /                 socket
+422 | |                     .set_read_timeout(Some(Duration::from_secs(5)))
+423 | |                     .unwrap();
+    | |_____________________________^
+    |
+    = note: if this value is an `Err`, it will panic
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+   --> src\models.rs:427:29
+    |
+427 |                     let n = socket.read(&mut bytes).unwrap();
+    |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: if this value is an `Err`, it will panic
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+   --> src\models.rs:450:33
+    |
+450 | ...                   serde_json::from_slice::<Value>(&data[end + 4..]).unwrap(),
+    |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: if this value is an `Err`, it will panic
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+   --> src\models.rs:459:17
+    |
+459 | ...   socket.write_all(b"HTTP/1.1 200 OK\r\nConnection: close\r\nX-SpectrumAgent-Boot-Id: 1234abcd\r\nX-SpectrumAgent-Pid: 123\r\nContent-Length: 11\r\n\r\n{\"ok\":true}").unwrap();
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: if this value is an `Err`, it will panic
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+   --> src\models.rs:461:24
+    |
+461 |             assert_eq!(forward(&identity, &parsed).unwrap(), json!({"ok":true}));
+    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: if this value is an `Err`, it will panic
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+   --> src\models.rs:462:13
+    |
+462 |             server.join().unwrap();
+    |             ^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: if this value is an `Err`, it will panic
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unwrap_used
+
+error: could not compile `spectrum-agent` (lib test) due to 18 previous errors

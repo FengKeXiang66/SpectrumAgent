@@ -1,0 +1,79 @@
+{
+  "scope": "TASK-13 finishing: confidence_counts, min_margin_px, export error/warning only",
+  "python_full": {
+    "mode": "pytest backend/tests src-python/tests -q -rs; no xdist; fresh PYTEST_DEBUG_TEMPROOT; no other test suites run concurrently",
+    "passed": 1486,
+    "skipped": 2,
+    "failed": 0,
+    "seconds": 257.84
+  },
+  "python_focused": {
+    "mode": "pytest src-python/tests/annotation/test_projection.py -q -rs",
+    "passed": 20,
+    "skipped": 2
+  },
+  "python_first_full": {
+    "passed": 1485,
+    "failed": 1,
+    "skipped": 2,
+    "failure": "test_segmentation_required_and_mat_download_errors: session.py:383 os.replace temporary snapshot directory PermissionError WinError 5",
+    "isolated_rerun_passed": 1
+  },
+  "node": {
+    "mode": "Node 24.19.0 --test src/**/*.test.ts",
+    "tests": 188,
+    "passed": 187,
+    "failed": 1,
+    "existing_failure": "src/components/preprocess/panel.test.ts:52 projects[0] source assertion"
+  },
+  "cargo": {
+    "mode": "cargo test --locked --offline, cwd src-tauri",
+    "passed": 89,
+    "failed": 0,
+    "includes_doc_test": 1
+  },
+  "build": {
+    "mode": "npm run build: tsc --noEmit && vite build",
+    "passed": true
+  },
+  "B1_B2": "未执行（无 cv2）；pytest importorskip records two skips, not acceptance passes",
+  "clippy": {
+    "clippy-user": {
+      "primary_errors": 38,
+      "by_file": {
+        "tests\\models_forward.rs": 20,
+        "src\\models.rs": 18
+      },
+      "compile_summary_lines_excluded": 2
+    },
+    "clippy-prior-mode": {
+      "primary_errors": 38,
+      "by_file": {
+        "src\\models.rs": 18,
+        "tests\\models_forward.rs": 20
+      },
+      "compile_summary_lines_excluded": 2
+    },
+    "clippy-serial": {
+      "primary_errors": 20,
+      "by_file": {
+        "tests\\models_forward.rs": 20
+      },
+      "compile_summary_lines_excluded": 1
+    },
+    "counting_method": "Default human format; count ^error: (?!could not compile); exclude compile summaries, warning, note, help and source lines; no --message-format=short.",
+    "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)"
+  },
+  "new_rust_unwrap_calls": 0,
+  "changed_files": [
+    "src-python/spectrumagent/annotation/projection.py",
+    "src-python/spectrumagent/annotation/projection_io.py",
+    "src-python/spectrumagent/annotation/session.py",
+    "src/components/annotation/types.ts",
+    "src/components/annotation/AnnotationWorkbench.tsx",
+    "src-python/tests/annotation/test_projection.py",
+    "src/components/annotation/projection.test.ts"
+  ],
+  "geometry_helpers_unchanged": 6,
+  "snapshot_method_unchanged": true
+}

@@ -1,0 +1,60 @@
+{
+  "python_baseline": 1466,
+  "python_final": {
+    "passed": 1484,
+    "skipped": 2,
+    "seconds": 285.18
+  },
+  "node_baseline": {
+    "passed": 185,
+    "failed": 1,
+    "total": 186
+  },
+  "node_final": {
+    "passed": 187,
+    "failed": 1,
+    "total": 188
+  },
+  "cargo_baseline": 87,
+  "cargo_final": 89,
+  "clippy_existing_unwrap_diagnostics": 38,
+  "determinism": {
+    "first": "807c9e1196d898f45b709fdee763bccebd30280e5c152ec9d72f99726fd4b3b5",
+    "second": "807c9e1196d898f45b709fdee763bccebd30280e5c152ec9d72f99726fd4b3b5",
+    "bytes_equal": true
+  },
+  "a1": {
+    "POST /regions": 100,
+    "GET /working": 100,
+    "png_base64": 100,
+    "segments_png": 0
+  },
+  "ui": {
+    "cube_id": "2defaabf-7a6e-4fe9-b61c-5d71dd72b90e",
+    "save_calls": [
+      {},
+      {
+        "overwrite": true,
+        "confirm": true
+      },
+      {
+        "overwrite": true,
+        "confirm": true
+      }
+    ],
+    "version_count": 1,
+    "last_save": {
+      "id": "65c9f08f-84d7-4574-a12d-fd6299da4079",
+      "export": {
+        "ok": true,
+        "path": "E:\\AI_Agent\\.runtime\\task13\\ui-data-e5dddfaac5bf44a2911cdc9c1c2d280c\\app\\exports\\2defaabf-7a6e-4fe9-b61c-5d71dd72b90e\\sample.json",
+        "error": null
+      }
+    },
+    "folder_calls": [
+      "E:\\AI_Agent\\.runtime\\task13\\ui-data-e5dddfaac5bf44a2911cdc9c1c2d280c\\app\\exports\\2defaabf-7a6e-4fe9-b61c-5d71dd72b90e"
+    ],
+    "path_exists": true
+  },
+  "native_explorer_open_verified": false
+}

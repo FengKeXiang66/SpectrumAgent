@@ -1,0 +1,25 @@
+{
+  "cwd_default": "E:\\AI_Agent",
+  "cwd_exceptions": {
+    "cargo-test": "E:\\AI_Agent\\src-tauri",
+    "clippy-prior-mode": "E:\\AI_Agent\\src-tauri"
+  },
+  "python_env": {
+    "PYTEST_DEBUG_TEMPROOT": {
+      "first": "E:/AI_Agent/.runtime/task13/finishing/pytest-temp",
+      "serial_full": "E:/AI_Agent/.runtime/task13/finishing/pytest-serial-temp"
+    }
+  },
+  "build_PATH_prefix": "E:/AI_Agent/.toolchains/node24.19.0-npm10.8.2",
+  "commands": {
+    "python-focused": ".\\.venv\\Scripts\\python.exe -m pytest src-python/tests/annotation/test_projection.py -q -rs",
+    "python-full": ".\\.venv\\Scripts\\python.exe -m pytest backend/tests src-python/tests -q -rs",
+    "python-full-serial": ".\\.venv\\Scripts\\python.exe -m pytest backend/tests src-python/tests -q -rs",
+    "node": ".\\.toolchains\\node24.19.0-npm10.8.2\\node.exe --test \"src/**/*.test.ts\"",
+    "cargo-test": "C:\\Users\\Administrator\\.cargo\\bin\\cargo.exe test --locked --offline",
+    "build": ".\\.toolchains\\node24.19.0-npm10.8.2\\npm.cmd run build",
+    "clippy-user": "C:\\Users\\Administrator\\.cargo\\bin\\cargo.exe clippy --manifest-path src-tauri/Cargo.toml --all-targets",
+    "clippy-prior-mode": "C:\\Users\\Administrator\\.cargo\\bin\\cargo.exe clippy --locked --offline --all-targets -- -D warnings",
+    "clippy-serial": "C:\\Users\\Administrator\\.cargo\\bin\\cargo.exe clippy --manifest-path src-tauri/Cargo.toml --all-targets -j 1"
+  }
+}

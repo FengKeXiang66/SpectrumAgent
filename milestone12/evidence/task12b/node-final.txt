@@ -1,0 +1,370 @@
+✔ block clicks retain the legacy geometry and omit label_id for erase and uncertain (2.6158ms)
+✔ IPC superpixels: exact Rust variant, one command, no arbitrary route (0.4493ms)
+✔ IPC diffuse: exact Rust variant, one command, no arbitrary route (0.3397ms)
+✔ IPC regions: exact Rust variant, one command, no arbitrary route (0.2377ms)
+✔ IPC undo: exact Rust variant, one command, no arbitrary route (0.2847ms)
+✔ IPC working: exact Rust variant, one command, no arbitrary route (0.2416ms)
+✔ IPC validate: exact Rust variant, one command, no arbitrary route (0.2006ms)
+✔ IPC save: exact Rust variant, one command, no arbitrary route (0.2582ms)
+✔ IPC versions: exact Rust variant, one command, no arbitrary route (0.273ms)
+✔ IPC version_overlay: exact Rust variant, one command, no arbitrary route (0.3601ms)
+✔ IPC projects: exact Rust variant, one command, no arbitrary route (0.2963ms)
+✔ IPC labels: exact Rust variant, one command, no arbitrary route (0.1993ms)
+✔ IPC add_label: exact Rust variant, one command, no arbitrary route (0.2479ms)
+✔ IPC catalog: exact Rust variant, one command, no arbitrary route (0.2137ms)
+✔ optional defaults are left to Python; all prompt and geometry forms retain [line,sample] (0.376ms)
+✔ all three structured label bodies match Python and carry the working project id (0.2433ms)
+✔ local estimates and display state cannot enter request projections (0.4596ms)
+✔ structured errors keep code, field messages and context; client never swallows rejection (0.9743ms)
+✔ RGB id decoding retains ids above 255 and verifies every block count (3.5768ms)
+✔ hitTest is local and rejects out-of-image and fractional coordinates (0.4131ms)
+✔ 3px Euclidean boundary is inclusive; drags produce no block action (0.3482ms)
+✔ badges distinguish blank, uncertain, two and three kinds of marking (0.4969ms)
+✔ canvas uses unscaled id loading, the existing contextmenu guard and down-time modifiers (2.1103ms)
+✔ 2GiB boundary and plus one require exactly the shared extra approval (1.3683ms)
+✔ draft client projects only fixed confirm fields into the tenth command (1.947ms)
+✔ mock forward fetches estimate then confirms the fetched revision (4.7857ms)
+✔ fetch failure and invalid summaries block approval instead of assuming zero (2.6364ms)
+✔ confirmation card renders fetched byte count, loading, refusal and second dialog (11.5606ms)
+✔ REST and HUMAN_CHECK use the same card and pending-call revision stays server-owned (1.5289ms)
+✔ old numeric preview call keeps the exact single-band request (2.0998ms)
+✔ extended preview request projects only allowed keys and explicit full resolution (0.2677ms)
+✔ S05 band changes use display state, full resolution, and retain PNG onload hotfix (2.789ms)
+✔ display modes are exclusive, preserve RGB order and reject duplicates (0.5614ms)
+✔ entry defaults to backend automatic selection and displays returned RGB wavelengths (3.1423ms)
+✔ default LUT is identity for all 256 intensities (0.7109ms)
+✔ LUT rejects nonfinite/out of range/gap under 16 and preserves last valid parameters (0.475ms)
+✔ LUT follows clamp and inverse gamma, one table for RGB, alpha unchanged and input untouched (0.4861ms)
+✔ manual LUT values stay local and are independent of image request keys (1.0031ms)
+✔ point coordinates retain [line,sample] and send one-pixel spectra_mean, never region (0.5779ms)
+✔ point inspection returns before any edit tool and leaves null gaps visible (1.0652ms)
+✔ box mean uses existing half-open endpoints, direction independent, no spectral arithmetic (0.3011ms)
+✔ box inspection routes to spectra before edits and has no readiness dependency (0.4223ms)
+✔ storeGesture projects exactly point, box or doodle and strips nested extras (2.4293ms)
+✔ gesture projection adds no absent variant fields or optional defaults (0.5185ms)
+✔ gesture client uses only annotations_draft_forward and preserves server reference (0.4532ms)
+✔ gesture store failure reaches caller without a fabricated reference (0.7635ms)
+✔ C4: previous version total and current label-index counts render as separate summaries (38.1439ms)
+✔ C4: zero classes and uncertainty are omitted while zero blank pixels remain visible (1.9917ms)
+✔ C1/C2/C3/C7: auto-default uses a touched ref, resets per dataset, and follows the version count (0.639ms)
+✔ C1/C3/C6: overwrite retains the confirmation gate and cancelling only dismisses the dialog (0.2481ms)
+✔ projection consumes save response, shows a selectable absolute path and fixed folder command (1.508ms)
+✔ projection failures keep save available and explicitly explain overwrite retry (0.6148ms)
+✔ click binds C; Delete and Shift are not independent commands (2.8896ms)
+✔ 0 is background-only; 1–9 are numeric; unbound or out-of-range labels remain mouse-only (1.0404ms)
+✔ Enter / Z / D / E-B-P / arrows / Ctrl+S / space have the specified actions (0.4659ms)
+✔ typing never changes labels or undo; disabled settings suppress shortcuts; global chat keys pass through (0.271ms)
+✔ local remapping is deterministic and rejects duplicates/reserved keys without altering server labels (0.7033ms)
+✔ each edit reads working again; write-response pixels, queue and statistics are never reconstructed (3.2119ms)
+✔ switching cubes and recovering after confirm use only GET working, never diffuse (0.4904ms)
+✔ a failed edit propagates its envelope and cannot manufacture a successful redraw (0.7401ms)
+✔ R17 label indexes use sort_order plus SQLite BINARY code order, independent of tree grouping (0.3848ms)
+✔ local remaining-time estimate derives only from confirmation speed and handles no progress (0.2237ms)
+✔ catalog color proximity uses backend colors and the task-card <30 rule (1.7396ms)
+✔ viewport transforms preserve [line,sample], bounds, zoom anchors and half-open boxes (0.6143ms)
+✔ component wiring has no local label map or undo history and preserves the outer conversation bar (4.8476ms)
+✔ plan card renders table, scalar metadata, estimates, aria labels and chosen invalidation (22.8801ms)
+✔ all destructive choices require a reason and IPC projects only plan contract fields (45.73ms)
+✔ disabled controls cannot submit and history keeps the plan decision without action buttons (8.0287ms)
+✔ all agent operations invoke only agent_forward with exact projection (8.627ms)
+✔ view state, URL, key and mixed-body extras cannot enter IPC (0.9329ms)
+✔ structured preflight HTTP status and errors pass through unchanged (2.5899ms)
+✔ workspace context projects opaque references and cannot leak display data or geometry (0.4659ms)
+✔ panel keeps a visible minimum and leaves space for the workbench at different window heights (1.9331ms)
+✔ bottom panel grows when dragged upwards, shrinks downwards, and clamps both ends (0.2935ms)
+✔ a smaller window clamps a previously enlarged panel into its new bounds (0.2538ms)
+✔ server-listed ordinals and names are usable without reimporting files in the current UI (4.6299ms)
+✔ legacy lists retain backend order while local names remain local (0.6335ms)
+✔ changing cubes clears an old gesture and same-cube followups retain it (0.348ms)
+✔ only successful annotation or preprocessing steps cause authoritative result refresh (0.8587ms)
+✔ workspace SSE rejects paths, unbound geometry, unknown stage and invalid revisions (2.8873ms)
+✔ request failures and SSE failures share human-readable error messages (0.6502ms)
+✔ curated backend explanations survive both error delivery paths (0.5021ms)
+✔ AI preview focus uses the workflow reference rather than queue order or a diffusion identifier (0.5846ms)
+✔ SSE 正常流 retains order and JSON (3.8156ms)
+✔ SSE 确认后挂起 retains order and JSON (0.3853ms)
+✔ SSE 错误收尾 retains order and JSON (1.5112ms)
+✔ SSE 空流 retains order and JSON (0.1893ms)
+✔ SSE accepts CRLF, multiline data, comments and final frame at EOF (0.2914ms)
+✔ SSE rejects unknown events, missing event, malformed and nonobject data (0.5179ms)
+✔ SSE collector retains every rejected step beyond eight (0.4831ms)
+✔ approve disables both controls and records executing until response (0.2566ms)
+✔ reject immediately closes confirmation card; server result remains ordered (0.2838ms)
+✔ pending check accepts ordinary dialogue and sequential checks replace pending id (0.3639ms)
+✔ clarify and errors release busy state and keep messages in order (0.3011ms)
+✔ summary renderer displays scalars and excludes unexpected objects (0.2686ms)
+✔ plan SSE is accepted, accepts dialogue and cannot use the tool-decision path (0.2558ms)
+✔ unrecognized approval dialogue keeps its card while terminal outcomes clear it (0.3832ms)
+✔ plan actions preserve pending while executing and retain the decision with the original plan (0.3777ms)
+✔ plan approval can suspend again at human check and all terminal events clear pending (0.2203ms)
+✔ chat-selected registered cubes load through the existing fixed get operation (1.8492ms)
+✔ G3 shared displayName uses the server name and preserves the legacy fallback (1.1135ms)
+✔ G2 all_datasets refreshes a previously unique name without duplicating records (1.1106ms)
+✔ G assistant choices and readable references use exactly the API display name (1.0329ms)
+✔ retries and existing imports keep exactly one row per persisted ID (1.8726ms)
+✔ batch errors retain source path and reason for the user (0.3489ms)
+✔ sample value uses fixed native command and preserves annotation response (2.7701ms)
+✔ CSV duplicate confirmation is an explicit second import (0.447ms)
+✔ PLS request retains explicit bound runs and only regression CV; seven result labels (0.5143ms)
+✔ coefficients use one fixed read-only native operation and exact model id body (0.3585ms)
+✔ extents exclude null and non-finite values without changing inputs (2.2772ms)
+✔ coordinate mapping covers endpoints, inverted Y, constants and extreme finite domains (0.2995ms)
+✔ nice ticks are deterministic, rounded and integer-only for counts or LVs (0.7707ms)
+✔ null and non-finite curve points split paths and never interpolate gaps (0.4695ms)
+✔ histogram uses sqrt sample count capped at 20, shared rounded edges and grouped counts (1.1987ms)
+✔ histogram bins are left-closed with rightmost edge included; rounded inner edges agree with membership (0.2714ms)
+✔ one histogram sample becomes a single nonzero-width bin; invalid values produce no bins (0.3389ms)
+✔ four evaluation models include curve, scatter, residual and grouped histogram (2.4515ms)
+✔ LV markers use saved recommendations verbatim rather than recomputing an elbow (0.9079ms)
+✔ empty curve and all non-finite curves show explicit no-data status without axes (0.8367ms)
+✔ curve missing values retain separated finite paths and single-point strokes (0.5654ms)
+✔ one prediction is a square, maps constant axes to midlines and has one populated histogram bar (0.4712ms)
+✔ constant references with varying predictions remain on X midline with an explicit note (0.4235ms)
+✔ null metrics never enter chart coordinates or quality calculations (0.6554ms)
+✔ get_run failure produces four explicit unavailable plots, never blank axes (0.4517ms)
+✔ missing LV artifact preserves the three prediction plots and their quality labels (0.4133ms)
+✔ undefined predictions from classification runs are explicit, empty arrays remain no-data (0.5969ms)
+✔ missing fields and unknown sets are excluded per chart, with an explicit reason when all are unusable (0.3354ms)
+✔ half-quantitative label uses backend flag or label and never derives RPD (1.3843ms)
+✔ loading has visible messages and a result can render while its curve is still loading (0.3299ms)
+✔ error descriptions handle structured native errors and opaque values without secondary throws (0.2474ms)
+✔ coefficient chart preserves signed values, zero reference, backend quality and tick targets (0.718ms)
+✔ coefficient refusal: unknown axis (0.2074ms)
+✔ coefficient refusal: dimension mismatch (0.0754ms)
+✔ coefficient refusal: same dimensions unsafe operator (0.056ms)
+✔ coefficient loading, missing artifact and 404 have visible messages without secondary errors (0.136ms)
+✔ coefficient empty and invalid arrays are distinct and never draw malformed nested coefficients (0.1958ms)
+✔ coefficient zero line remains inside frame for 1,1,1 (0.2411ms)
+✔ coefficient zero line remains inside frame for -3,-3,-3 (0.1443ms)
+✔ coefficient zero line remains inside frame for 0,0,0 (0.1083ms)
+✔ coefficient zero line remains inside frame for 1,2,3 (0.1246ms)
+✔ coefficient zero line remains inside frame for -1,-2,-3 (0.0751ms)
+✔ single coefficient is one square; nonascending wavelengths retain artifact order and disclose it (0.2588ms)
+✔ six new fixed requests preserve exact bodies and strip input extras (1.2643ms)
+✔ map source permits only PNG base64 and positive integer dimensions (0.2496ms)
+✔ fixed palette rejects invalid RGB and preserves ordered endpoints (0.2061ms)
+✔ clipping disclosure includes foreground totals and both directions (0.1164ms)
+✔ stages and required scientific warning are explicit (0.1012ms)
+✔ components use the client, disclose calibration, progress and independent map errors (0.7699ms)
+✔ registered coefficient button is lazy per model and shows pending then success or 404 state (106.2664ms)
+✔ preprocess IPC list_recipes: exact projection and sole command (1.697ms)
+✔ preprocess IPC create_recipe: exact projection and sole command (1.1071ms)
+✔ preprocess IPC get_recipe: exact projection and sole command (0.166ms)
+✔ preprocess IPC add_version: exact projection and sole command (0.2054ms)
+✔ preprocess IPC select_recipe: exact projection and sole command (0.2442ms)
+✔ preprocess IPC deselect_recipe: exact projection and sole command (0.1353ms)
+✔ preprocess IPC list_project_recipes: exact projection and sole command (0.1606ms)
+✔ preprocess IPC create_run: exact projection and sole command (0.1486ms)
+✔ preprocess IPC list_runs: exact projection and sole command (0.1307ms)
+✔ preprocess IPC get_run: exact projection and sole command (0.1753ms)
+✔ preprocess IPC compare: exact projection and sole command (0.1452ms)
+✔ preprocess IPC get_artifact: exact projection and sole command (0.117ms)
+✔ request bodies omit runtime extras, run guard/block_size, and editor state (0.2266ms)
+✔ report is parsed JSON; only sample_spectra uses binary wrapper; 204 stays null (0.2149ms)
+✔ recovery inspects only new succeeded summaries and matches recipe in details (2.3161ms)
+✔ transport and timeout recover, business errors do not; structured details remain visible (0.4624ms)
+✔ submit TRANSPORT automatically restores new matching success; unknown outcome stays pending verification (0.6717ms)
+✔ legend resolves index→id→code with backend colors, missing id prefix, unlabeled title (0.1742ms)
+✖ S06 component wiring: no transport outside API, no numeric engine / fake preview; global chat unchanged (3.2271ms)
+✔ unsupported operations are all marked stage two / not applicable without example metrics (0.2056ms)
+✔ operator directory matches explicit R15 names and excludes run B01 / unresolved reference methods (1.9429ms)
+✔ axisAfter is pure, crop closed, resample replaces, decomposition removes axis (0.5463ms)
+✔ crop→resample→crop supplies EACH current source, never stale saved source (0.4828ms)
+✔ schema-direction validation: odd SG, STRICT polynomial bound, derivative order/mode (0.467ms)
+✔ all exposed methods accept valid schema choices; unknown keys and absent components reject (2.0396ms)
+✔ no wavelengths disables axis operators; lo<hi, nonempty crop, target finite/increasing enforce (0.3589ms)
+✔ move/delete/repeat preserve order and compile legal explicit steps (0.1695ms)
+✔ target creation is axis-only; chart gaps retain separate strokes and values (0.2055ms)
+✔ settings modal starts with five empty text fields, an enabled egress switch, a password input and an unknown key status (16.0364ms)
+✔ rendered field changes and submit save the six-key config then key, and clear the password (9.955ms)
+✔ GET has_key renders both states without pre-filling a key, and blank key preserves existing credentials (3.106ms)
+✔ GET failure disables saving and fields while the rendered cancel button remains usable (3.6411ms)
+✔ nonempty URL and numeric validation blocks invalid saves without inventing provider limits (4.459ms)
+✔ backend 400 code and detail are rendered and a failed config save never submits the key (1.7608ms)
+✔ failed key write reports partial save, clears its input and redacts credentials in errors (2.7981ms)
+✔ saving prevents duplicate submits and disposing ignores an in-flight GET (0.9947ms)
+✔ App settings entry imports and opens SettingsPanel, preserving UI-to-configuration reachability (0.5229ms)
+✔ egress checkbox reflects the false value returned by GET (1.1994ms)
+✔ unchecking egress saves a boolean false and keeps the returned switch state (0.8053ms)
+✔ settings GET and two PUT operations use only settings_forward with exact bodies (1.5993ms)
+✔ settings projections exclude credentials and view or route extras from config and responses (0.2543ms)
+✔ settings forward preserves the backend 400 envelope unchanged (0.5425ms)
+✔ egress false remains boolean through config PUT and GET projections (0.2439ms)
+ℹ tests 192
+ℹ suites 0
+ℹ pass 191
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 800.1413
+
+✖ failing tests:
+
+test at src\components\preprocess\panel.test.ts:48:1
+✖ S06 component wiring: no transport outside API, no numeric engine / fake preview; global chat unchanged (3.2271ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /projects\[0\]/. Input:
+  
+  "import { useEffect, useRef, useState } from 'react';\n" +
+    "import { annotations } from '../annotation/api.ts';\n" +
+    "import type { Label, Project, Version } from '../annotation/types.ts';\n" +
+    "import type { DatasetRecord } from '../datasets/types.ts';\n" +
+    "import { displayName } from '../datasets/types.ts';\n" +
+    "import { preprocessing, recoverRun, submitRun } from './api.ts';\n" +
+    "import { compilePipeline } from './pipeline.ts';\n" +
+    "import { describePreprocessError, PHASE_TWO, type CompareResult, type Metrics, type PreprocessRun, type Recipe, type Report, type RunSummary, type Step } from './types.ts';\n" +
+    "import CompareChart from './CompareChart';\n" +
+    "import PipelineEditor from './PipelineEditor';\n" +
+    "import './preprocess.css';\n" +
+    '\n' +
+    'function MetricsView({ metrics }: { metrics: Metrics }) {\n' +
+    '  return <section aria-label="后端指标"><h3>后端逐像素指标</h3><dl className="pp-metrics">\n' +
+    "    {Object.entries(metrics.snr).map(([key, value]) => <div key={key}><dt>SNR {key}</dt><dd>{value ?? '不适用'}</dd></div>)}\n" +
+    "    {(['snr_nan_count', 'nan_spectra_skipped', 'interclass_distance', 'intraclass_variance', 'fisher'] as const).filter(key => key in metrics).map(key =>\n" +
+    "      <div key={key}><dt>{key}</dt><dd>{metrics[key] ?? '不适用'}</dd></div>)}\n" +
+    '  </dl><p>{metrics.source}</p><p>{metrics.variance_definition}</p>\n' +
+    '    {metrics.excluded_classes.map(item => <p key={item.label_index}>label_index {item.label_index} · {item.pixel_count}：{item.reason}</p>)}\n' +
+    '    {[...metrics.boundaries, ...metrics.limitations].map((text, i) => <p key={i}>{text}</p>)}\n' +
+    '  </section>;\n' +
+    '}\n' +
+    '\n' +
+    'export default function PreprocessPanel({ record, onClose, refreshVersion = 0 }: { record: DatasetRecord; onClose: () => void; refreshVersion?: number }) {\n' +
+    '  const [recipes, setRecipes] = useState<Recipe[]>([]), [selected, setSelected] = useState<Recipe[]>([]);\n' +
+    '  const [project, setProject] = useState<Project | null>(null), [labels, setLabels] = useState<Label[]>([]);\n' +
+    "  const [versions, setVersions] = useState<Version[]>([]), [annotationVersion, setAnnotationVersion] = useState('');\n" +
+    "  const [recipeId, setRecipeId] = useState(''), [recipeVersion, setRecipeVersion] = useState('');\n" +
+    "  const [steps, setSteps] = useState<Step[]>([]), [metadata, setMetadata] = useState({ code: '', name: '', description: '', note: '' });\n" +
+    '  const [run, setRun] = useState<PreprocessRun | null>(null), [report, setReport] = useState<Report | null>(null);\n' +
+    '  const [history, setHistory] = useState<RunSummary[]>([]), [comparison, setComparison] = useState<CompareResult | null>(null);\n' +
+    '  const [compareIds, setCompareIds] = useState<string[]>([]), [busy, setBusy] = useState(false);\n' +
+    "  const [error, setError] = useState(''), [message, setMessage] = useState('');\n" +
+    '  const recovery = useRef<{ recipe: string; before: RunSummary[] } | null>(null);\n' +
+    '  const live = useRef(true);\n' +
+    '  const seenRefresh = useRef(refreshVersion);\n' +
+    '  useEffect(() => {\n' +
+    '    live.current = true;\n' +
+    '    void Promise.all([preprocessing.listRecipes(), annotations.projects(), annotations.versions(record.id), preprocessing.listRuns(record.id)])\n' +
+    '      .then(async ([library, projects, saved, rows]) => {\n' +
+    '        if (!live.current) return;\n' +
+    "        setRecipes(library); setVersions(saved.versions); setAnnotationVersion(saved.versions.at(-1)?.id ?? ''); setHistory(rows);\n" +
+    '        const current = projects.find(item => item.id === saved.working.project_id) ?? null; setProject(current);\n' +
+    '        if (current) {\n' +
+    '          const [chosen, schemas] = await Promise.all([preprocessing.listProjectRecipes(current.id), annotations.labels(current.id)]);\n' +
+    '          if (live.current) { setSelected(chosen); setLabels(schemas.flatMap(schema => schema.labels)); }\n' +
+    '        }\n' +
+    '        if (refreshVersion > 0 && live.current && rows.length) {\n' +
+    '          const latest = [...rows].sort((left, right) => right.created_at.localeCompare(left.created_at))[0];\n' +
+    '          await showRun(await preprocessing.getRun(latest.id));\n' +
+    '        }\n' +
+    '      }).catch(error => { if (live.current) setError(describePreprocessError(error)); });\n' +
+    '    return () => { live.current = false; };\n' +
+    '  }, [record.id]);\n' +
+    '  const task = async (work: () => Promise<void>) => {\n' +
+    "    setBusy(true); setError('');\n" +
+    '    try { await work(); } catch (error) { if (live.current) setError(describePreprocessError(error)); }\n' +
+    '    finally { if (live.current) setBusy(false); }\n' +
+    '  };\n' +
+    '  const showRun = async (row: PreprocessRun) => {\n' +
+    '    if (!live.current) return;\n' +
+    '    setRun(row); setReport(null);\n' +
+    "    if (row.status === 'succeeded') {\n" +
+    "      const data = await preprocessing.getArtifact(row.id, 'report');\n" +
+    '      if (live.current) setReport(data);\n' +
+    '    }\n' +
+    '  };\n' +
+    '  useEffect(() => {\n' +
+    '    if (seenRefresh.current === refreshVersion || busy) return;\n' +
+    '    let cancelled = false;\n' +
+    '    void Promise.all([preprocessing.listRecipes(), annotations.versions(record.id), preprocessing.listRuns(record.id)])\n' +
+    '      .then(async ([library, saved, rows]) => {\n' +
+    '        if (cancelled || !live.current) return;\n' +
+    '        setRecipes(library); setVersions(saved.versions); setHistory(rows);\n' +
+    "        setAnnotationVersion(current => saved.versions.some(version => version.id === current) ? current : saved.versions.at(-1)?.id ?? '');\n" +
+    '        const latest = [...rows].sort((left, right) => right.created_at.localeCompare(left.created_at))[0];\n' +
+    '        if (latest) {\n' +
+    '          const result = await preprocessing.getRun(latest.id);\n' +
+    '          if (cancelled || !live.current) return;\n' +
+    '          setRun(result); setReport(null);\n' +
+    "          if (result.status === 'succeeded') {\n" +
+    "            const nextReport = await preprocessing.getArtifact(result.id, 'report');\n" +
+    '            if (!cancelled && live.current) setReport(nextReport);\n' +
+    '          }\n' +
+    '        }\n' +
+    '        if (!cancelled && live.current) {\n' +
+    '          seenRefresh.current = refreshVersion;\n' +
+    "          setMessage('已读回助手执行后的配方、标注版本与运行结果。');\n" +
+    '        }\n' +
+    '      }).catch(failure => { if (!cancelled && live.current) setError(describePreprocessError(failure)); });\n' +
+    '    return () => { cancelled = true; };\n' +
+    '  }, [refreshVersion, busy, record.id]);\n' +
+    '  const refresh = async () => {\n' +
+    '    const rows = await preprocessing.listRuns(record.id);\n' +
+    '    if (!live.current) return;\n' +
+    '    setHistory(rows);\n' +
+    '    if (recovery.current) {\n' +
+    '      const found = await recoverRun(preprocessing, record.id, recovery.current.recipe, recovery.current.before);\n' +
+    "      if (found) { setMessage('任务可能已完成'); recovery.current = null; await showRun(found); }\n" +
+    '    }\n' +
+    '  };\n' +
+    '  const load = async (id: string, versionId?: string) => {\n' +
+    '    const recipe = await preprocessing.getRecipe(id);\n' +
+    '    if (!live.current) return;\n' +
+    '    const version = recipe.versions.find(v => v.id === versionId) ?? recipe.versions.at(-1);\n' +
+    "    setRecipeId(id); setRecipeVersion(version?.id ?? ''); setSteps(structuredClone(version?.pipeline.steps ?? []));\n" +
+    "    setMetadata({ code: recipe.code, name: recipe.name, description: recipe.description ?? '', note: '' }); setMessage('编辑后须保存为新版本；历史版本不覆写。');\n" +
+    '  };\n' +
+    "  let invalid = '';\n" +
+    '  try { compilePipeline(steps, record.dataset.wavelengths, record.dataset.shape[2]); } catch (error) { invalid = (error as Error).message; }\n' +
+    '  const currentVersion = recipes.find(r => r.id === recipeId)?.versions.find(v => v.id === recipeVersion);\n' +
+    '  let changed = true;\n' +
+    '  try { changed = JSON.stringify(compilePipeline(steps, record.dataset.wavelengths, record.dataset.shape[2])) !== JSON.stringify(currentVersion?.pipeline); } catch { /* Invalid drafts cannot run. */ }\n' +
+    '  const submit = async () => {\n' +
+    '    const before = await preprocessing.listRuns(record.id);\n' +
+    '    recovery.current = { recipe: recipeVersion, before };\n' +
+    "    setMessage('正在同步执行，等待后端终态…');\n" +
+    '    let result;\n' +
+    '    try { result = await submitRun(preprocessing, record.id, { annotation_version_id: annotationVersion, recipe_version_id: recipeVersion }, before); }\n' +
+    '    catch (error) { recovery.current = null; throw error; }\n' +
+    '    if (!result.run) {\n' +
+    "      setMessage('状态暂未恢复，请手动刷新最近 run；尚未判定任务失败。');\n" +
+    '      return;\n' +
+    '    }\n' +
+    "    recovery.current = null; setMessage(result.interrupted ? '任务可能已完成' : `后端状态：${result.run.status}`);\n" +
+    '    await showRun(result.run); await refresh();\n' +
+    '  };\n' +
+    '  const save = async (newVersion: boolean) => {\n' +
+    '    const pipeline = compilePipeline(steps, record.dataset.wavelengths, record.dataset.shape[2]);\n' +
+    "    if (metadata.note.length > 2000) throw new Error('note 最多 2000 字符');\n" +
+    '    let id = recipeId, versionId: string;\n' +
+    '    if (newVersion) { const version = await preprocessing.addVersion(id, { pipeline, note: metadata.note || null }); versionId = version.id; }\n' +
+    '    else {\n' +
+    '      const recipe = await preprocessing.createRecipe({ ...metadata, pipeline }); id = recipe.id; versionId = recipe.versions.at(-1)!.id;\n' +
+    '    }\n' +
+    "    setRecipes(await preprocessing.listRecipes()); await load(id, versionId); setMessage('已保存不可变配方版本。');\n" +
+    '  };\n' +
+    '  return <section className="preprocess-panel" aria-label="S06 预处理工作台">\n' +
+    "    <header><button disabled={busy} onClick={onClose}>返回数据集</button><h2>S06 · {displayName(record)}</h2><span>项目：{project?.name ?? '未获取'}</span></header>\n" +
+    `    <p role="status">{message}</p>{error && <pre role="alert">{error}{error.startsWith('INVALID_REQUEST') ? '\\n请检查 code 是否重复及配方参数。' : ''}</pre>}\n` +
+    `    <div className="pp-layout"><aside><h3>配方库（按 code）</h3><button disabled={busy} onClick={() => { setRecipeId(''); setRecipeVersion(''); setSteps([]); setMetadata({ code: '', name: '', description: '', note: '' }); }}>新建草稿</button>\n` +
+    '      {recipes.map(recipe => <section key={recipe.id}><strong>{recipe.code}</strong> · {recipe.name}\n' +
+    '        <button disabled={busy} onClick={() => { void task(() => load(recipe.id)); }}>载入</button>\n' +
+    '        {recipe.versions.map(version => <label className="pp-compare-choice" key={version.id}><input type="checkbox" checked={compareIds.includes(version.id)} disabled={busy}\n' +
+    '          onChange={e => setCompareIds(e.target.checked ? [...compareIds, version.id] : compareIds.filter(id => id !== version.id))} />对比 v{version.version_no}</label>)}\n' +
+    '        <button disabled={busy || !project} onClick={() => { void task(async () => { if (!project) return;\n' +
+    '          if (selected.some(r => r.id === recipe.id)) await preprocessing.deselectRecipe(project.id, recipe.id);\n' +
+    '          e'... 4366 more characters
+  
+      at TestContext.<anonymous> (file:///E:/AI_Agent/src/components/preprocess/panel.test.ts:52:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'import { useEffect, useRef, useState } from \'react\';\nimport { annotations } from \'../annotation/api.ts\';\nimport type { Label, Project, Version } from \'../annotation/types.ts\';\nimport type { DatasetRecord } from \'../datasets/types.ts\';\nimport { displayName } from \'../datasets/types.ts\';\nimport { preprocessing, recoverRun, submitRun } from \'./api.ts\';\nimport { compilePipeline } from \'./pipeline.ts\';\nimport { describePreprocessError, PHASE_TWO, type CompareResult, type Metrics, type PreprocessRun, type Recipe, type Report, type RunSummary, type Step } from \'./types.ts\';\nimport CompareChart from \'./CompareChart\';\nimport PipelineEditor from \'./PipelineEditor\';\nimport \'./preprocess.css\';\n\nfunction MetricsView({ metrics }: { metrics: Metrics }) {\n  return <section aria-label="后端指标"><h3>后端逐像素指标</h3><dl className="pp-metrics">\n    {Object.entries(metrics.snr).map(([key, value]) => <div key={key}><dt>SNR {key}</dt><dd>{value ?? \'不适用\'}</dd></div>)}\n    {([\'snr_nan_count\', \'nan_spectra_skipped\', \'interclass_distance\', \'intraclass_variance\', \'fisher\'] as const).filter(key => key in metrics).map(key =>\n      <div key={key}><dt>{key}</dt><dd>{metrics[key] ?? \'不适用\'}</dd></div>)}\n  </dl><p>{metrics.source}</p><p>{metrics.variance_definition}</p>\n    {metrics.excluded_classes.map(item => <p key={item.label_index}>label_index {item.label_index} · {item.pixel_count}：{item.reason}</p>)}\n    {[...metrics.boundaries, ...metrics.limitations].map((text, i) => <p key={i}>{text}</p>)}\n  </section>;\n}\n\nexport default function PreprocessPanel({ record, onClose, refreshVersion = 0 }: { record: DatasetRecord; onClose: () => void; refreshVersion?: number }) {\n  const [recipes, setRecipes] = useState<Recipe[]>([]), [selected, setSelected] = useState<Recipe[]>([]);\n  const [project, setProject] = useState<Project | null>(null), [labels, setLabels] = useState<Label[]>([]);\n  const [versions, setVersions] = useState<Version[]>([]), [annotationVersion, setAnnotationVersion] = useState(\'\');\n  const [recipeId, setRecipeId] = useState(\'\'), [recipeVersion, setRecipeVersion] = useState(\'\');\n  const [steps, setSteps] = useState<Step[]>([]), [metadata, setMetadata] = useState({ code: \'\', name: \'\', description: \'\', note: \'\' });\n  const [run, setRun] = useState<PreprocessRun | null>(null), [report, setReport] = useState<Report | null>(null);\n  const [history, setHistory] = useState<RunSummary[]>([]), [comparison, setComparison] = useState<CompareResult | null>(null);\n  const [compareIds, setCompareIds] = useState<string[]>([]), [busy, setBusy] = useState(false);\n  const [error, setError] = useState(\'\'), [message, setMessage] = useState(\'\');\n  const recovery = useRef<{ recipe: string; before: RunSummary[] } | null>(null);\n  const live = useRef(true);\n  const seenRefresh = useRef(refreshVersion);\n  useEffect(() => {\n    live.current = true;\n    void Promise.all([preprocessing.listRecipes(), annotations.projects(), annotations.versions(record.id), preprocessing.listRuns(record.id)])\n      .then(async ([library, projects, saved, rows]) => {\n        if (!live.current) return;\n        setRecipes(library); setVersions(saved.versions); setAnnotationVersion(saved.versions.at(-1)?.id ?? \'\'); setHistory(rows);\n        const current = projects.find(item => item.id === saved.working.project_id) ?? null; setProject(current);\n        if (current) {\n          const [chosen, schemas] = await Promise.all([preprocessing.listProjectRecipes(current.id), annotations.labels(current.id)]);\n          if (live.current) { setSelected(chosen); setLabels(schemas.flatMap(schema => schema.labels)); }\n        }\n        if (refreshVersion > 0 && live.current && rows.length) {\n          const latest = [...rows].sort((left, right) => right.created_at.localeCompare(left.created_at))[0];\n          await showRun(await preprocessing.getRun(latest.id));\n        }\n      }).catch(error => { if (live.current) setError(describePreprocessError(error)); });\n    return () => { live.current = false; };\n  }, [record.id]);\n  const task = async (work: () => Promise<void>) => {\n    setBusy(true); setError(\'\');\n    try { await work(); } catch (error) { if (live.current) setError(describePreprocessError(error)); }\n    finally { if (live.current) setBusy(false); }\n  };\n  const showRun = async (row: PreprocessRun) => {\n    if (!live.current) return;\n    setRun(row); setReport(null);\n    if (row.status === \'succeeded\') {\n      const data = await preprocessing.getArtifact(row.id, \'report\');\n      if (live.current) setReport(data);\n    }\n  };\n  useEffect(() => {\n    if (seenRefresh.current === refreshVersion || busy) return;\n    let cancelled = false;\n    void Promise.all([preprocessing.listRecipes(), annotations.versions(record.id), preprocessing.listRuns(record.id)])\n      .then(async ([library, saved, rows]) => {\n        if (cancelled || !live.current) return;\n        setRecipes(library); setVersions(saved.versions); setHistory(rows);\n        setAnnotationVersion(current => saved.versions.some(version => version.id === current) ? current : saved.versions.at(-1)?.id ?? \'\');\n        const latest = [...rows].sort((left, right) => right.created_at.localeCompare(left.created_at))[0];\n        if (latest) {\n          const result = await preprocessing.getRun(latest.id);\n          if (cancelled || !live.current) return;\n          setRun(result); setReport(null);\n          if (result.status === \'succeeded\') {\n            const nextReport = await preprocessing.getArtifact(result.id, \'report\');\n            if (!cancelled && live.current) setReport(nextReport);\n          }\n        }\n        if (!cancelled && live.current) {\n          seenRefresh.current = refreshVersion;\n          setMessage(\'已读回助手执行后的配方、标注版本与运行结果。\');\n        }\n      }).catch(failure => { if (!cancelled && live.current) setError(describePreprocessError(failure)); });\n    return () => { cancelled = true; };\n  }, [refreshVersion, busy, record.id]);\n  const refresh = async () => {\n    const rows = await preprocessing.listRuns(record.id);\n    if (!live.current) return;\n    setHistory(rows);\n    if (recovery.current) {\n      const found = await recoverRun(preprocessing, record.id, recovery.current.recipe, recovery.current.before);\n      if (found) { setMessage(\'任务可能已完成\'); recovery.current = null; await showRun(found); }\n    }\n  };\n  const load = async (id: string, versionId?: string) => {\n    const recipe = await preprocessing.getRecipe(id);\n    if (!live.current) return;\n    const version = recipe.versions.find(v => v.id === versionId) ?? recipe.versions.at(-1);\n    setRecipeId(id); setRecipeVersion(version?.id ?? \'\'); setSteps(structuredClone(version?.pipeline.steps ?? []));\n    setMetadata({ code: recipe.code, name: recipe.name, description: recipe.description ?? \'\', note: \'\' }); setMessage(\'编辑后须保存为新版本；历史版本不覆写。\');\n  };\n  let invalid = \'\';\n  try { compilePipeline(steps, record.dataset.wavelengths, record.dataset.shape[2]); } catch (error) { invalid = (error as Error).message; }\n  const currentVersion = recipes.find(r => r.id === recipeId)?.versions.find(v => v.id === recipeVersion);\n  let changed = true;\n  try { changed = JSON.stringify(compilePipeline(steps, record.dataset.wavelengths, record.dataset.shape[2])) !== JSON.stringify(currentVersion?.pipeline); } catch { /* Invalid drafts cannot run. */ }\n  const submit = async () => {\n    const before = await preprocessing.listRuns(record.id);\n    recovery.current = { recipe: recipeVersion, before };\n    setMessage(\'正在同步执行，等待后端终态…\');\n    let result;\n    try { result = await submitRun(preprocessing, record.id, { annotation_version_id: annotationVersion, recipe_version_id: recipeVersion }, before); }\n    catch (error) { recovery.current = null; throw error; }\n    if (!result.run) {\n      setMessage(\'状态暂未恢复，请手动刷新最近 run；尚未判定任务失败。\');\n      return;\n    }\n    recovery.current = null; setMessage(result.interrupted ? \'任务可能已完成\' : `后端状态：${result.run.status}`);\n    await showRun(result.run); await refresh();\n  };\n  const save = async (newVersion: boolean) => {\n    const pipeline = compilePipeline(steps, record.dataset.wavelengths, record.dataset.shape[2]);\n    if (metadata.note.length > 2000) throw new Error(\'note 最多 2000 字符\');\n    let id = recipeId, versionId: string;\n    if (newVersion) { const version = await preprocessing.addVersion(id, { pipeline, note: metadata.note || null }); versionId = version.id; }\n    else {\n      const recipe = await preprocessing.createRecipe({ ...metadata, pipeline }); id = recipe.id; versionId = recipe.versions.at(-1)!.id;\n    }\n    setRecipes(await preprocessing.listRecipes()); await load(id, versionId); setMessage(\'已保存不可变配方版本。\');\n  };\n  return <section className="preprocess-panel" aria-label="S06 预处理工作台">\n    <header><button disabled={busy} onClick={onClose}>返回数据集</button><h2>S06 · {displayName(record)}</h2><span>项目：{project?.name ?? \'未获取\'}</span></header>\n    <p role="status">{message}</p>{error && <pre role="alert">{error}{error.startsWith(\'INVALID_REQUEST\') ? \'\\n请检查 code 是否重复及配方参数。\' : \'\'}</pre>}\n    <div className="pp-layout"><aside><h3>配方库（按 code）</h3><button disabled={busy} onClick={() => { setRecipeId(\'\'); setRecipeVersion(\'\'); setSteps([]); setMetadata({ code: \'\', name: \'\', description: \'\', note: \'\' }); }}>新建草稿</button>\n      {recipes.map(recipe => <section key={recipe.id}><strong>{recipe.code}</strong> · {recipe.name}\n        <button disabled={busy} onClick={() => { void task(() => load(recipe.id)); }}>载入</button>\n        {recipe.versions.map(version => <label className="pp-compare-choice" key={version.id}><input type="checkbox" checked={compareIds.includes(version.id)} disabled={busy}\n          onChange={e => setCompareIds(e.target.checked ? [...compareIds, version.id] : compareIds.filter(id => id !== version.id))} />对比 v{version.version_no}</label>)}\n        <button disabled={busy || !project} onClick={() => { void task(async () => { if (!project) return;\n          if (selected.some(r => r.id === recipe.id)) await preprocessing.deselectRecipe(project.id, recipe.id);\n          e'... 4366 more characters,
+    expected: /projects\[0\]/,
+    operator: 'match',
+    diff: 'simple'
+  }

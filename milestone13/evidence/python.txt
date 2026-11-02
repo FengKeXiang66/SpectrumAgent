@@ -1,0 +1,150 @@
+........................................................................ [  4%]
+........................................................................ [  9%]
+........................................................................ [ 14%]
+........................................................................ [ 19%]
+........................................................................ [ 24%]
+........................................................................ [ 29%]
+........................................................................ [ 33%]
+....................F................................................... [ 38%]
+........................................................................ [ 43%]
+..................................................................ss.... [ 48%]
+........................................................................ [ 53%]
+.......................................F................................ [ 58%]
+........................................................................ [ 62%]
+........................................................................ [ 67%]
+........................................................................ [ 72%]
+........................................................................ [ 77%]
+........................................................................ [ 82%]
+........................................................................ [ 87%]
+........................................................................ [ 92%]
+........................................................................ [ 96%]
+..............................................                           [100%]
+================================== FAILURES ===================================
+_ test_legacy_overwrite_invalidates_mat_even_if_file_cleanup_fails_and_rebuild_inserts _
+
+confirm_api = namespace(c=namespace(store=<spectrumagent.annotation.session.SessionStore object at 0x00000270BC716240>, registry=<sp...f38303548e3ea81404c3a99', monotonic_start=180262.281), base='/api/v1/annotations/0552b275-23af-4c54-a747-aaa2e7f6873f')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000270BD61FD40>
+caplog = <_pytest.logging.LogCaptureFixture object at 0x00000270BD61E480>
+
+    def test_legacy_overwrite_invalidates_mat_even_if_file_cleanup_fails_and_rebuild_inserts(confirm_api, monkeypatch, caplog):
+        from pathlib import Path
+        from scipy.io import loadmat
+        from spectrumagent.agent.mat import MatStore
+        h = confirm_api
+        add(h, 0)
+        first_response = h.client.post(h.base + "/draft/confirm", json={"revision": 1})
+        assert first_response.status_code == 200
+        first = first_response.json()
+        mats = MatStore(h.sessions.registry, h.c.paths)
+        old = mats.get(h.c.identifier, first["version_id"])
+        old_file = mats.file(old)
+        assert set(np.unique(loadmat(old_file)["labels"])) == {1}
+        assert h.client.post(h.base + "/draft/regions/r-0001", json={"revision": 1, "class_code": "PP"}).status_code == 200
+        unlink = Path.unlink
+        def blocked_cleanup(path, *args, **kwargs):
+            if path == old_file:
+                raise PermissionError("injected cleanup failure")
+            return unlink(path, *args, **kwargs)
+        with monkeypatch.context() as patch:
+            patch.setattr(Path, "unlink", blocked_cleanup)
+            saved = h.sessions.save(h.c.identifier, overwrite=True, confirm=True)
+        assert saved["id"] == first["version_id"]
+        assert set(np.unique(h.sessions.read_version(saved["id"])["label_map"])) == {-1, 3}
+        assert_mat_missing(h, saved["id"])
+>       assert old_file.exists()  # File deletion is best effort; the DB is authority.
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: assert False
+E        +  where False = exists()
+E        +    where exists = WindowsPath('E:/AI_Agent/.runtime/task13/final-temp/pytest-of-Administrator/pytest-0/test_legacy_overwrite_invalida0/app/exports/0552b275-23af-4c54-a747-aaa2e7f6873f/c1d15f98-b51e-43b4-b803-de07ec760b52/training_mat.mat').exists
+
+src-python\tests\annotation\test_confirm_routes.py:178: AssertionError
+------------------------------ Captured log call ------------------------------
+WARNING  spectrumagent.agent.mat:mat.py:57 MAT_CLEANUP_FAILED version_id=c1d15f98-b51e-43b4-b803-de07ec760b52 reason=PermissionError
+_________ test_save_reads_before_write_transaction_and_publishes_tmp __________
+
+annotation_case = namespace(store=<spectrumagent.annotation.session.SessionStore object at 0x00000270B9E929F0>, registry=<spectrumagent....('E:/AI_Agent/.runtime/task13/final-temp/pytest-of-Administrator/pytest-0/test_save_reads_before_write_t0/sample.hdr'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000270BC368170>
+
+    def test_save_reads_before_write_transaction_and_publishes_tmp(annotation_case, monkeypatch):
+        c = annotation_case
+        manual_state(c)
+        original_read = SpectrumDataSet.read_region
+        reads = []
+        def no_write_lock(dataset, *args):
+            with connect_database(c.paths.database, timeout=0) as db:
+                db.execute("BEGIN IMMEDIATE")  # Would fail if save held its write txn.
+                db.rollback()
+            reads.append(args)
+            return original_read(dataset, *args)
+        monkeypatch.setattr(SpectrumDataSet, "read_region", no_write_lock)
+        from spectrumagent.annotation import session
+        original_replace = session.os.replace
+        publications = []
+        def replace(source, target):
+            publications.append((source.name, target.name))
+            assert source.name.endswith(".tmp") and target.name == "v1"
+            assert {p.name for p in source.iterdir()} == {"label_map.npz", "label_index.json", "spectra.npz", "annotation.json"}
+            return original_replace(source, target)
+        monkeypatch.setattr(session.os, "replace", replace)
+        c.store.save(c.identifier)
+>       assert len(reads) == 4 and len(publications) == 1
+E       AssertionError: assert (4 == 4 and 2 == 1)
+E        +  where 4 = len([(0, 32, 0, 12), (32, 40, 0, 12), (0, 32, 0, 12), (32, 40, 0, 12)])
+E        +  and   2 = len([('v1.df667e4bf24548dba2cadd4c9b456d0a.tmp', 'v1'), ('.2178a715-7688-4231-9c42-8e65bc0e5f70.db5865d5178d4d419c36c7313befc19b.tmp', '2178a715-7688-4231-9c42-8e65bc0e5f70')])
+
+src-python\tests\annotation\test_session.py:390: AssertionError
+------------------------------ Captured log call ------------------------------
+ERROR    spectrumagent.annotation.session:session.py:437 JSON ͶӰʧ�� cube_id=2178a715-7688-4231-9c42-8e65bc0e5f70
+Traceback (most recent call last):
+  File "E:\AI_Agent\src-python\spectrumagent\annotation\session.py", line 432, in _project_saved
+    path, meta = write_projection(self.paths, cube_id, project_id, source_hdr, version_no,
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\AI_Agent\src-python\spectrumagent\annotation\projection_io.py", line 114, in write_projection
+    os.replace(temporary, folder)
+  File "E:\AI_Agent\src-python\tests\annotation\test_session.py", line 385, in replace
+    assert source.name.endswith(".tmp") and target.name == "v1"
+AssertionError: assert (True and '2178a715-768...-8e65bc0e5f70' == 'v1'
+ +  where True = <built-in method endswith of str object at 0x00000270BF094630>('.tmp')
+ +    where <built-in method endswith of str object at 0x00000270BF094630> = '.2178a715-7688-4231-9c42-8e65bc0e5f70.db5865d5178d4d419c36c7313befc19b.tmp'.endswith
+ +      where '.2178a715-7688-4231-9c42-8e65bc0e5f70.db5865d5178d4d419c36c7313befc19b.tmp' = WindowsPath('E:/AI_Agent/.runtime/task13/final-temp/pytest-of-Administrator/pytest-0/test_save_reads_before_write_t0/app/exports/.2178a715-7688-4231-9c42-8e65bc0e5f70.db5865d5178d4d419c36c7313befc19b.tmp').name
+  
+  - v1
+  + 2178a715-7688-4231-9c42-8e65bc0e5f70)
+============================== warnings summary ===============================
+.venv\Lib\site-packages\fastapi\testclient.py:1
+  E:\AI_Agent\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+backend/tests/test_foundation.py::test_http_contract_and_real_envi_snv
+backend/tests/test_foundation.py::test_http_contract_and_real_envi_snv
+backend/tests/test_foundation.py::test_cancel_after_first_running_block_keeps_partial_metrics
+  E:\AI_Agent\.venv\Lib\site-packages\spectral\io\spyfile.py:217: DeprecationWarning: Setting the shape on a NumPy array has been deprecated in NumPy 2.5.
+  As an alternative, you can create a new view using np.reshape (with copy=False if needed).
+    npArray.shape = (self.nrows, self.ncols, self.nbands)
+
+backend/tests/test_foundation.py::test_http_contract_and_real_envi_snv
+backend/tests/test_foundation.py::test_http_contract_and_real_envi_snv
+backend/tests/test_foundation.py::test_http_contract_and_real_envi_snv
+backend/tests/test_foundation.py::test_http_contract_and_real_envi_snv
+backend/tests/test_foundation.py::test_cancel_after_first_running_block_keeps_partial_metrics
+backend/tests/test_foundation.py::test_cancel_after_first_running_block_keeps_partial_metrics
+  E:\AI_Agent\.venv\Lib\site-packages\spectral\image.py:24: DeprecationWarning: Setting the dtype on a NumPy array has been deprecated in NumPy 2.5.
+  Instead of changing the dtype on an array x, create a new array with x.view(new_dtype)
+    self.dtype = params.dtype
+
+src-python/tests/modeling/test_registry.py::test_all_fitted_calibrations_saved_and_block_invariant[ica-params4]
+  E:\AI_Agent\.venv\Lib\site-packages\sklearn\decomposition\_fastica.py:132: ConvergenceWarning: FastICA did not converge. Consider increasing tolerance or the maximum number of iterations.
+    warnings.warn(
+
+src-python/tests/modeling/test_regression.py::test_undefined_scores_persist_null_not_zero
+src-python/tests/modeling/test_regression.py::test_undefined_scores_persist_null_not_zero
+src-python/tests/modeling/test_regression.py::test_undefined_scores_persist_null_not_zero
+src-python/tests/modeling/test_regression.py::test_undefined_scores_persist_null_not_zero
+  E:\AI_Agent\.venv\Lib\site-packages\sklearn\cross_decomposition\_pls.py:308: UserWarning: y residual is constant at iteration 0
+    warnings.warn(f"y residual is constant at iteration {k}")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+SKIPPED [1] src-python\tests\annotation\test_projection.py:41: could not import 'cv2': No module named 'cv2'
+SKIPPED [1] src-python\tests\annotation\test_projection.py:52: could not import 'cv2': No module named 'cv2'
+2 failed, 1482 passed, 2 skipped, 15 warnings in 330.19s (0:05:30)

@@ -1,0 +1,11 @@
+E:\AI_Agent\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+{"cube_id": "2defaabf-7a6e-4fe9-b61c-5d71dd72b90e", "data_root": "E:\\AI_Agent\\.runtime\\task13\\ui-data-e5dddfaac5bf44a2911cdc9c1c2d280c\\app"}
+JSON ͶӰʧ�� cube_id=2defaabf-7a6e-4fe9-b61c-5d71dd72b90e
+Traceback (most recent call last):
+  File "E:\AI_Agent\src-python\spectrumagent\annotation\session.py", line 432, in _project_saved
+    path, meta = write_projection(self.paths, cube_id, project_id, source_hdr, version_no,
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\AI_Agent\.runtime\task13\ui_server.py", line 37, in controlled
+    raise OSError('ģ��ͶӰд��ʧ��')
+OSError: ģ��ͶӰд��ʧ��
