@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
+import { invoke } from '@tauri-apps/api/core';
 import type { DatasetRecord, DatasetTransport, MeanSpectrum, Preview, SpectrumRegion } from '../datasets/types.ts';
 import { displayName } from '../datasets/types.ts';
 import { annotations } from './api.ts';
-import { describeAnnotationError, type AnnotationApi, type CatalogItem, type Geometry, type LabelBody, type LabelSchema, type Png, type Quality, type Seed, type SegmentsMap, type SuperpixelReport, type Version, type Working } from './types.ts';
+import { describeAnnotationError, type AnnotationApi, type CatalogItem, type ExportResult, type Geometry, type LabelBody, type LabelSchema, type Png, type Quality, type Seed, type SegmentsMap, type SuperpixelReport, type Version, type Working } from './types.ts';
 import { candidateKey, editThenRead, estimateRemaining, orderedLabels, readWorking, recoverSelection, selectedCandidate, statistics } from './working.ts';
 import { bindingProblem, changeLabelKey, chord, defaultPreferences, labelKey, resolveShortcut, type Command, type Preferences, type Tool } from './shortcuts.ts';
 import AnnotationCanvas, { type PromptMode } from './canvas/AnnotationCanvas.tsx';
@@ -64,6 +65,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
   const [draftRevision, setDraftRevision] = useState<number | null>(null);
   const [note, setNote] = useState(''), [overwrite, setOverwrite] = useState(false), [confirmOverwrite, setConfirmOverwrite] = useState(false);
   const [confirmVersion, setConfirmVersion] = useState(false);
+  const [exportResult, setExportResult] = useState<ExportResult | null>(null), [exportStale, setExportStale] = useState(true);
   const [quality, setQuality] = useState<Quality | null>(null), [history, setHistory] = useState<Png | null>(null), [historyId, setHistoryId] = useState('');
   const [lastDiffusion, setLastDiffusion] = useState<{ min: number; enqueued: boolean; blocked: number } | null>(null);
   const [preferences, setPreferences] = useState(loadPreferences), [panHeld, setPanHeld] = useState(false);
@@ -122,6 +124,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
     const isLive = () => !disposed && alive.current;
     alive.current = true;
     setSegments(null); setSegmentation(null);
+    setExportResult(null); setExportStale(true);
     void (async () => {
       try {
         let next = await readWorking(api, id);
@@ -197,6 +200,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
   useEffect(() => {
     if (seenRefresh.current === refreshVersion || busy) return;
     seenRefresh.current = refreshVersion;
+    setExportStale(true);
     void execute(async () => {
       const [current, next] = await Promise.all([drafts.get(id), readWorking(api, id)]);
       if (alive.current) setDraftRevision(current.revision);
@@ -213,6 +217,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
   const edit = async (action: 'confirm' | 'uncertain' | 'erase', target = geometry) => {
     if (!ready || !target) { setError('先生成超像素并选中候选，或完成一个多边形。'); return; }
     if (action === 'confirm' && !selectedId) { setError('请先选择一个已登记标签。'); return; }
+    setExportStale(true);
     setQuality(null);
     if (await execute(() => api.regions(id, target, action, action === 'confirm' ? selectedId! : undefined),
       action === 'confirm' ? '区域已确认；工作图与统计已读回。' : action === 'uncertain' ? '区域已记为不确定（-2）。' : '区域已擦除；候选队列由 sidecar 保留。')) { setDraft(null); setQuality(null); }
@@ -245,12 +250,12 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
     setConfirmOverwrite(false);
     await execute(async () => {
       const result = await api.save(id, { ...(note ? { note } : {}), ...(overwrite ? { overwrite: true, confirm: true } : {}) });
-      if (alive.current) setQuality(result.quality);
+      if (alive.current) { setQuality(result.quality); setExportResult(result.export); setExportStale(false); }
     }, overwrite ? '最新版本已覆写并重新聚合。' : '新版本已保存并聚合样本谱。', true);
   };
   const navigate = (delta: number) => { if (!busyRef.current && records[position + delta]) onNavigate(records[position + delta]); };
   const chooseTool = (next: Tool) => { setTool(next); setDraft(null); if (next === 'brush') setPrompt('doodle'); else if (next === 'diffuse') { setTab('diffuse'); setPrompt('point'); } };
-  const undo = async () => { setQuality(null); if (await execute(() => api.undo(id), '已撤销一步；统计与工作图来自恢复后的 sidecar。')) setDraft(null); };
+  const undo = async () => { setQuality(null); setExportStale(true); if (await execute(() => api.undo(id), '已撤销一步；统计与工作图来自恢复后的 sidecar。')) setDraft(null); };
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       const target = event.target;
@@ -376,6 +381,11 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
           <h3>保存与版本</h3><label>版本备注（可选，≤2000 字符）<textarea value={note} onChange={event => setNote(event.target.value)} /></label>
           <label><input type="checkbox" disabled={!versions.length || busy} checked={overwrite} onChange={event => setOverwrite(event.target.checked)} />覆写最新版本（需再次确认）</label>
           <button disabled={busy || !ready || Array.from(note).length > 2000} onClick={() => { void save(); }}>保存并聚合</button>
+          <p role="status">JSON 投影：{exportResult && !exportResult.ok ? '失败' : exportStale ? '过期' : '最新'}</p>
+          {exportResult?.path && <div><label>JSON 绝对路径<textarea aria-label="JSON 绝对路径" rows={3} readOnly value={exportResult.path} onFocus={event => event.currentTarget.select()} /></label>
+            <button disabled={busy} onClick={() => { void invoke('open_exports_directory', { cubeId: id }).catch(() => setError('无法打开 JSON 所在文件夹。')); }}>打开所在文件夹</button></div>}
+          {exportResult && !exportResult.ok && exportResult.error && <p role="alert" className="annotation-error" style={{ color: '#a12622' }}>标注已保存；JSON 投影失败：{exportResult.error}。重试须覆写，否则会多出一个版本。请勾选“覆写最新版本”后再次保存并聚合。</p>}
+          {exportResult?.ok && exportResult.warning && <p role="status" className="annotation-warning">{exportResult.warning}</p>}
           <button disabled={busy || !ready || Array.from(note).length > 2000} onClick={() => setConfirmVersion(true)}>确认版本并生成训练 MAT</button>
           {confirmVersion && <ConfirmCard key={id} cubeId={id} disabled={busy || !ready} onReject={() => setConfirmVersion(false)} onApprove={async view => {
             let matError: string | undefined;

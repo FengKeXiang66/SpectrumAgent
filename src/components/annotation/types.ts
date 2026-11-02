@@ -64,7 +64,8 @@ export type VersionNote = { event: 'save' | 'overwrite'; at: string; text?: stri
 export type Version = { id: string; cube_id: string; version_no: number; snapshot_ref: string; n_pixels: number;
   labeled_pixels: number; auto_ratio: number; params: Parameters; note: VersionNote | null; created_at: string };
 export type Versions = { versions: Version[]; working: Working };
-export type Saved = { id: string; cube_id: string; snapshot_ref: string; created_at: string; note: string | null;
+export type ExportResult = { ok: boolean; path: string | null; error: string | null; warning: string | null };
+export type Saved = { id: string; cube_id: string; snapshot_ref: string; created_at: string; note: string | null; export: ExportResult;
   quality: Quality; elapsed_seconds: number; transaction_seconds: number };
 export type Project = { id: string; name: string; created_at: string; note: string | null };
 export type CatalogItem = { code: string; name: string; color_hex: string };

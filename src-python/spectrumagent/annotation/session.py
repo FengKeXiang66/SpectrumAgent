@@ -7,6 +7,7 @@ from collections import deque
 from dataclasses import dataclass, field, replace
 from copy import deepcopy
 import json
+import logging
 import os
 from pathlib import PurePosixPath
 import shutil
@@ -414,10 +415,27 @@ class SessionStore:
             if overwrite:
                 from spectrumagent.agent.mat import MatStore
                 MatStore(self.registry, self.paths).discard_invalidated(cube_id, version_id)
+            export = self._project_saved(cube_id, version_no, state, dataset.header_path)
             return {"id": version_id, "cube_id": cube_id, "version_no": version_no,
                     "snapshot_ref": relative, "created_at": created, "note": note,
                     "quality": quality, "elapsed_seconds": perf_counter() - started,
-                    "transaction_seconds": transaction_seconds}
+                    "transaction_seconds": transaction_seconds, "export": export}
+
+    def _project_saved(self, cube_id, version_no, state, source_hdr):
+        # The version transaction and four-file snapshot have already succeeded.
+        try:
+            from .projection_io import write_projection
+            with connect_database(self.database) as db:
+                project_id = db.execute("SELECT project_id FROM dataset_registry WHERE id=?", (cube_id,)).fetchone()[0]
+            document = json.loads(state.document_json)
+            label_index = {str(i): item["code"] for i, item in enumerate(document["classes"])}
+            path, meta = write_projection(self.paths, cube_id, project_id, source_hdr, version_no,
+                                          state.label_map, label_index, document=document)
+            warning = f"有 {len(meta['unmapped'])} 个类未配置对外名称" if meta["unmapped"] else None
+            return {"ok": True, "path": path, "error": None, "warning": warning}
+        except Exception as error:
+            logging.getLogger(__name__).exception("JSON 投影失败 cube_id=%s", cube_id)
+            return {"ok": False, "path": None, "error": str(error), "warning": None}
 
     @staticmethod
     def _write_snapshot(directory, state, aggregates):

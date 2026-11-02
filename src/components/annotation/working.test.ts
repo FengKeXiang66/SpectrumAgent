@@ -76,8 +76,12 @@ test('component wiring has no local label map or undo history and preserves the 
   const queue = readFileSync(new URL('./CandidateQueue.tsx', import.meta.url), 'utf8');
   const canvas = readFileSync(new URL('./canvas/AnnotationCanvas.tsx', import.meta.url), 'utf8');
   const labelPanel = readFileSync(new URL('./LabelPanel.tsx', import.meta.url), 'utf8');
-  for (const component of [source, queue, canvas, labelPanel]) {
+  for (const component of [queue, canvas, labelPanel]) {
     assert.doesNotMatch(component, /\binvoke\s*\(/);
+  }
+  assert.equal((source.match(/\binvoke\s*\(/g) ?? []).length, 1);
+  assert.match(source, /invoke\('open_exports_directory', \{ cubeId: id \}\)/);
+  for (const component of [source, queue, canvas, labelPanel]) {
     assert.doesNotMatch(component, /\bsetLabelMap\b|\bsetUndoStack\b|\bsetQueue\b/);
   }
   assert.match(source, /editThenRead\(api, id, operation\)/);

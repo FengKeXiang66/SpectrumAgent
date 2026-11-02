@@ -133,6 +133,65 @@ async fn open_data_directory(
         .map_err(|_| "无法打开数据目录。".to_owned())
 }
 
+fn exports_directory(root: &std::path::Path, cube_id: &str) -> Result<PathBuf, String> {
+    if cube_id.len() != 36
+        || !cube_id.bytes().enumerate().all(|(i, c)| {
+            if matches!(i, 8 | 13 | 18 | 23) {
+                c == b'-'
+            } else {
+                c.is_ascii_hexdigit()
+            }
+        })
+    {
+        return Err("数据集标识必须为规范 UUID。".to_owned());
+    }
+    Ok(root.join("exports").join(cube_id.to_ascii_lowercase()))
+}
+
+#[tauri::command]
+async fn open_exports_directory(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, Desktop>,
+    cube_id: String,
+) -> Result<(), String> {
+    let directory = exports_directory(&state.data_root, &cube_id)?
+        .to_string_lossy()
+        .into_owned();
+    tauri::async_runtime::spawn_blocking(move || app.opener().open_path(directory, None::<&str>))
+        .await
+        .map_err(|_| "打开投影目录的工作线程失败。".to_owned())?
+        .map_err(|_| "无法打开 JSON 所在文件夹。".to_owned())
+}
+
+#[cfg(test)]
+mod exports_tests {
+    use super::exports_directory;
+
+    #[test]
+    fn export_folder_is_scoped_to_a_canonical_cube_uuid() -> Result<(), String> {
+        let root = std::path::Path::new("E:/isolated-app");
+        let id = "ABCDEFAB-CDEF-ABCD-EFAB-CDEFABCDEFAB";
+        assert_eq!(
+            exports_directory(root, id)?,
+            root.join("exports").join(id.to_ascii_lowercase())
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn export_folder_rejects_paths_and_malformed_ids() {
+        for id in [
+            "../other",
+            "E:/other",
+            "",
+            "abcdefab-cdef-abcd-efab-cdefabcdefa/",
+            "../00000000000000000000000000000000",
+        ] {
+            assert!(exports_directory(std::path::Path::new("E:/isolated-app"), id).is_err());
+        }
+    }
+}
+
 // TASK-07 R11/R12: fixed agent operations, collected SSE, same generation gate.
 #[tauri::command]
 async fn agent_forward(
@@ -264,10 +323,10 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init());
     #[cfg(debug_assertions)]
-    let builder = builder.invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, datasets_forward, annotations_forward, preprocess_forward, agent_forward, settings_forward, annotations_draft_forward, models_forward]);
+    let builder = builder.invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, open_exports_directory, datasets_forward, annotations_forward, preprocess_forward, agent_forward, settings_forward, annotations_draft_forward, models_forward]);
     #[cfg(not(debug_assertions))]
     let builder = builder
-        .invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, datasets_forward, annotations_forward, preprocess_forward, agent_forward, settings_forward, annotations_draft_forward, models_forward]);
+        .invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, open_exports_directory, datasets_forward, annotations_forward, preprocess_forward, agent_forward, settings_forward, annotations_draft_forward, models_forward]);
     let app = builder.setup(move |app| {
             setup_log.event("single_instance_lock_acquired", json!({}))?;
             let resource = app.path().resolve("resources/backend/app.exe", tauri::path::BaseDirectory::Resource)?;

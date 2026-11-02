@@ -381,9 +381,10 @@ def test_save_reads_before_write_transaction_and_publishes_tmp(annotation_case, 
     original_replace = session.os.replace
     publications = []
     def replace(source, target):
-        publications.append((source.name, target.name))
-        assert source.name.endswith(".tmp") and target.name == "v1"
-        assert {p.name for p in source.iterdir()} == {"label_map.npz", "label_index.json", "spectra.npz", "annotation.json"}
+        if target.is_relative_to(c.paths.snapshots):
+            publications.append((source.name, target.name))
+            assert source.name.endswith(".tmp") and target.name == "v1"
+            assert {p.name for p in source.iterdir()} == {"label_map.npz", "label_index.json", "spectra.npz", "annotation.json"}
         return original_replace(source, target)
     monkeypatch.setattr(session.os, "replace", replace)
     c.store.save(c.identifier)
