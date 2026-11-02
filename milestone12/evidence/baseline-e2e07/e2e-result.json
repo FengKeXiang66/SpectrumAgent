@@ -1,0 +1,460 @@
+{
+  "source_level": "R24 TestClient / real ASGI stack / synthetic DN / MockTransport",
+  "started_at": "2026-11-01T07:50:19.182310+00:00",
+  "base_commit": "c9795c8",
+  "assertions": [
+    {
+      "name": "HTTP PUT /api/v1/settings/llm = 200",
+      "passed": true
+    },
+    {
+      "name": "identity header PUT /api/v1/settings/llm",
+      "passed": true
+    },
+    {
+      "name": "HTTP GET /api/v1/settings/llm = 200",
+      "passed": true
+    },
+    {
+      "name": "identity header GET /api/v1/settings/llm",
+      "passed": true
+    },
+    {
+      "name": "settings six-key configuration round-trip",
+      "passed": true
+    },
+    {
+      "name": "settings config PUT leaves has_key=false",
+      "passed": true
+    },
+    {
+      "name": "HTTP PUT /api/v1/settings/llm/key = 200",
+      "passed": true
+    },
+    {
+      "name": "identity header PUT /api/v1/settings/llm/key",
+      "passed": true
+    },
+    {
+      "name": "settings key PUT returns only has_key=true",
+      "passed": true
+    },
+    {
+      "name": "HTTP GET /api/v1/settings/llm = 200",
+      "passed": true
+    },
+    {
+      "name": "identity header GET /api/v1/settings/llm",
+      "passed": true
+    },
+    {
+      "name": "settings GET has_key=true after key PUT",
+      "passed": true
+    },
+    {
+      "name": "settings GET excludes key field and credential body",
+      "passed": true
+    },
+    {
+      "name": "settings key PUT preserves six-key configuration",
+      "passed": true
+    },
+    {
+      "name": "HTTP POST /api/v1/datasets/import = 200",
+      "passed": true
+    },
+    {
+      "name": "identity header POST /api/v1/datasets/import",
+      "passed": true
+    },
+    {
+      "name": "HTTP POST /api/v1/datasets/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/superpixels = 200",
+      "passed": true
+    },
+    {
+      "name": "identity header POST /api/v1/datasets/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/superpixels",
+      "passed": true
+    },
+    {
+      "name": "real superpixel engine executed",
+      "passed": true
+    },
+    {
+      "name": "HTTP GET /api/v1/annotations/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/draft = 200",
+      "passed": true
+    },
+    {
+      "name": "identity header GET /api/v1/annotations/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/draft",
+      "passed": true
+    },
+    {
+      "name": "empty draft estimated bytes = 0",
+      "passed": true
+    },
+    {
+      "name": "HTTP POST /api/v1/annotations/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/draft/regions = 200",
+      "passed": true
+    },
+    {
+      "name": "identity header POST /api/v1/annotations/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/draft/regions",
+      "passed": true
+    },
+    {
+      "name": "HTTP GET /api/v1/annotations/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/draft = 200",
+      "passed": true
+    },
+    {
+      "name": "identity header GET /api/v1/annotations/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/draft",
+      "passed": true
+    },
+    {
+      "name": "partial estimated bytes = 512",
+      "passed": true
+    },
+    {
+      "name": "HTTP POST /api/v1/annotations/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/draft/regions/r-0001 = 200",
+      "passed": true
+    },
+    {
+      "name": "identity header POST /api/v1/annotations/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/draft/regions/r-0001",
+      "passed": true
+    },
+    {
+      "name": "HTTP POST /api/v1/annotations/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/draft/regions = 200",
+      "passed": true
+    },
+    {
+      "name": "identity header POST /api/v1/annotations/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/draft/regions",
+      "passed": true
+    },
+    {
+      "name": "HTTP GET /api/v1/annotations/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/draft = 200",
+      "passed": true
+    },
+    {
+      "name": "identity header GET /api/v1/annotations/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/draft",
+      "passed": true
+    },
+    {
+      "name": "full estimated bytes = 15360",
+      "passed": true
+    },
+    {
+      "name": "HTTP POST /api/v1/annotations/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/draft/confirm = 200",
+      "passed": true
+    },
+    {
+      "name": "identity header POST /api/v1/annotations/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/draft/confirm",
+      "passed": true
+    },
+    {
+      "name": "REST confirm produces MAT",
+      "passed": true
+    },
+    {
+      "name": "REST confirmation leaves draft unchanged",
+      "passed": true
+    },
+    {
+      "name": "exact four snapshot files",
+      "passed": true
+    },
+    {
+      "name": "snapshot JSON/map bit-exact",
+      "passed": true
+    },
+    {
+      "name": "HTTP GET /api/v1/annotations/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/versions/b389644b-b5e8-4b5e-a9f3-363fc6d9a240/training-mat = 200",
+      "passed": true
+    },
+    {
+      "name": "identity header GET /api/v1/annotations/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/versions/b389644b-b5e8-4b5e-a9f3-363fc6d9a240/training-mat",
+      "passed": true
+    },
+    {
+      "name": "MAT download MIME",
+      "passed": true
+    },
+    {
+      "name": "MAT attachment name",
+      "passed": true
+    },
+    {
+      "name": "MATLAB magic",
+      "passed": true
+    },
+    {
+      "name": "MAT float32 full spectra shape",
+      "passed": true
+    },
+    {
+      "name": "original indices {0,3}, full four-class table",
+      "passed": true
+    },
+    {
+      "name": "MAT rows/cols reverse-map labels",
+      "passed": true
+    },
+    {
+      "name": "MAT raw DN exact, no B01",
+      "passed": true
+    },
+    {
+      "name": "MAT full frozen label_index",
+      "passed": true
+    },
+    {
+      "name": "MAT file SHA256 matches DB",
+      "passed": true
+    },
+    {
+      "name": "export exact eight keys",
+      "passed": true
+    },
+    {
+      "name": "export all scalars",
+      "passed": true
+    },
+    {
+      "name": "HTTP PUT /api/v1/settings/llm = 200",
+      "passed": true
+    },
+    {
+      "name": "identity header PUT /api/v1/settings/llm",
+      "passed": true
+    },
+    {
+      "name": "HTTP POST /api/v1/agent/sessions = 200",
+      "passed": true
+    },
+    {
+      "name": "identity header POST /api/v1/agent/sessions",
+      "passed": true
+    },
+    {
+      "name": "SSE HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "SSE MIME",
+      "passed": true
+    },
+    {
+      "name": "initial SSE suspends at HUMAN_CHECK",
+      "passed": true
+    },
+    {
+      "name": "HUMAN_CHECK executes zero confirmations",
+      "passed": true
+    },
+    {
+      "name": "INTERPRET sends tools=None",
+      "passed": false
+    },
+    {
+      "name": "SSE HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "SSE MIME",
+      "passed": true
+    },
+    {
+      "name": "approve SSE sequence step/done",
+      "passed": false
+    }
+  ],
+  "http": [
+    {
+      "method": "PUT",
+      "path": "/api/v1/settings/llm",
+      "status": 200,
+      "seconds": 0.025564700001268648
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/settings/llm",
+      "status": 200,
+      "seconds": 0.0031807999912416562
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/settings/llm/key",
+      "status": 200,
+      "seconds": 0.002445799997076392
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/settings/llm",
+      "status": 200,
+      "seconds": 0.002689699991606176
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/datasets/import",
+      "status": 200,
+      "seconds": 0.03755969999474473
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/datasets/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/superpixels",
+      "status": 200,
+      "seconds": 0.06695340000442229
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/annotations/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/draft",
+      "status": 200,
+      "seconds": 0.015199999994365498
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/annotations/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/draft/regions",
+      "status": 200,
+      "seconds": 0.04441440000664443
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/annotations/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/draft",
+      "status": 200,
+      "seconds": 0.01415669999551028
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/annotations/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/draft/regions/r-0001",
+      "status": 200,
+      "seconds": 0.040447599996696226
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/annotations/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/draft/regions",
+      "status": 200,
+      "seconds": 0.03883819999464322
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/annotations/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/draft",
+      "status": 200,
+      "seconds": 0.013383199999225326
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/annotations/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/draft/confirm",
+      "status": 200,
+      "seconds": 0.1294796000001952
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/annotations/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/versions/b389644b-b5e8-4b5e-a9f3-363fc6d9a240/training-mat",
+      "status": 200,
+      "seconds": 0.012477099997340702
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/settings/llm",
+      "status": 200,
+      "seconds": 0.004610699994373135
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/agent/sessions",
+      "status": 200,
+      "seconds": 0.07267030001094099
+    }
+  ],
+  "measurements": [
+    {
+      "cube_id": "d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4",
+      "version_id": "b389644b-b5e8-4b5e-a9f3-363fc6d9a240",
+      "write": {
+        "seconds": 0.00556489999871701,
+        "tracemalloc_peak_increment_bytes": 51907,
+        "do_compression": false
+      },
+      "status": "ok",
+      "db_row": {
+        "id": "40e9df0d-a88e-4cd2-a6a2-c4c88874d3b1",
+        "cube_id": "d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4",
+        "annotation_version_id": "b389644b-b5e8-4b5e-a9f3-363fc6d9a240",
+        "relative_path": "exports/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/b389644b-b5e8-4b5e-a9f3-363fc6d9a240/training_mat.mat",
+        "sha256": "6370729bf2600389d7c3541aa810a3604603deed09c9fa17bc768892362c5f27",
+        "n_spectra": 480,
+        "n_bands": 8,
+        "n_classes": 4,
+        "input_fingerprint": "4414f301166065882fc8f1f863ebdcb492658b6f7ded5aeaf60f97c65bbb1825",
+        "created_at": "2026-11-01T07:50:19.712211+00:00"
+      },
+      "file_bytes": 23016,
+      "seconds": 0.07151570000860374
+    },
+    {
+      "cube_id": "d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4",
+      "version_id": "72b0d313-a7c8-4c82-b97c-23e00544d0c2",
+      "write": {
+        "seconds": 0.0022756999969715253,
+        "tracemalloc_peak_increment_bytes": 26047,
+        "do_compression": false
+      },
+      "status": "ok",
+      "db_row": {
+        "id": "cdda93a0-0f05-4975-a691-ffd66b90f9e4",
+        "cube_id": "d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4",
+        "annotation_version_id": "72b0d313-a7c8-4c82-b97c-23e00544d0c2",
+        "relative_path": "exports/d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/72b0d313-a7c8-4c82-b97c-23e00544d0c2/training_mat.mat",
+        "sha256": "b05f8d46a136fa4872b6de2ba11a00443aaafa1c7a7b2943a50da264ba8e8127",
+        "n_spectra": 480,
+        "n_bands": 8,
+        "n_classes": 4,
+        "input_fingerprint": "3f3261d8fc806c36bac3d7530be9d765276978eb345de54b1a7d6d6062c86dde",
+        "created_at": "2026-11-01T07:50:20.083212+00:00"
+      },
+      "file_bytes": 23016,
+      "seconds": 0.03607259999262169
+    }
+  ],
+  "success": false,
+  "runtime": "E:\\AI_Agent\\.runtime\\task07-12.7\\123e1735ef534556935c5b2b285611dd",
+  "settings_chain": {
+    "sequence": [
+      "PUT config",
+      "GET has_key=false",
+      "PUT key",
+      "GET has_key=true without key body"
+    ],
+    "configuration_preserved": true,
+    "credential_echoed": false
+  },
+  "annotation": {
+    "cube_id": "d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4",
+    "version": {
+      "version_id": "b389644b-b5e8-4b5e-a9f3-363fc6d9a240",
+      "version_no": 1,
+      "snapshot_ref": "d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4/v1",
+      "training_mat_id": "40e9df0d-a88e-4cd2-a6a2-c4c88874d3b1",
+      "overlap_conflicts": 0,
+      "n_spectra": 480
+    },
+    "export": {
+      "cube_id": "d2e7ff8c-9d48-4012-9be8-3d0580d2ccb4",
+      "version_id": "b389644b-b5e8-4b5e-a9f3-363fc6d9a240",
+      "training_mat_id": "40e9df0d-a88e-4cd2-a6a2-c4c88874d3b1",
+      "n_spectra": 480,
+      "n_bands": 8,
+      "n_classes": 4,
+      "sha256": "6370729bf2600389d7c3541aa810a3604603deed09c9fa17bc768892362c5f27",
+      "status": "ready"
+    },
+    "estimated_mat_bytes": [
+      0,
+      512,
+      15360
+    ],
+    "confirm_http_seconds": 0.12950419999833684
+  },
+  "error": {
+    "type": "AssertionError",
+    "detail": "approve SSE sequence step/done"
+  },
+  "assertion_count": 65,
+  "passed_assertions": 63
+}

@@ -11,7 +11,7 @@ import pytest
 from backend.database import connect_database
 from spectrumagent.api.registry import DatasetRegistry
 from spectrumagent.annotation.engines.superpixels import (
-    Parameters, SuperpixelEngine, boundary_ratio, pca_features, refine,
+    Parameters, SuperpixelEngine, boundary_ratio, pca_features, refine, segments_png,
 )
 from spectrumagent.data import DataError, SpectrumDataSet
 
@@ -136,6 +136,43 @@ def test_engine_invalid_parameters(source, kwargs):
     registry, identifier, _, _ = source
     with pytest.raises(DataError):
         SuperpixelEngine(registry).generate(identifier, Parameters(**kwargs))
+
+
+def test_segments_png_rgb_roundtrip_full_size_counts_and_maximum_id():
+    segments = (np.arange(513 * 640, dtype=np.int32) % 65536).reshape(513, 640)
+    encoded = segments_png(segments)
+    image = Image.open(BytesIO(base64.b64decode(encoded["png_base64"])))
+    assert image.mode == "RGB" and image.size == (640, 513)
+    rgb = np.asarray(image).astype(np.int32)
+    np.testing.assert_array_equal(rgb[:, :, 0] + 256 * rgb[:, :, 1], segments)
+    assert not rgb[:, :, 2].any()
+    assert encoded["shape"] == [513, 640]
+    assert encoded["counts"] == np.bincount(segments.ravel()).tolist()
+
+
+@pytest.mark.parametrize("n_segments", [65536, 70000])
+def test_segment_parameter_capacity_rejects_before_generation(source, n_segments):
+    registry, identifier, _, _ = source
+    with pytest.raises(DataError) as error:
+        SuperpixelEngine(registry).generate(identifier, Parameters(n_segments=n_segments))
+    assert error.value.code == "INVALID_SUPERPIXEL_PARAMETERS"
+
+
+def test_segment_parameter_upper_boundary_is_allowed(source):
+    registry, identifier, _, _ = source
+    result = SuperpixelEngine(registry).generate(identifier, Parameters(n_segments=65535))
+    assert result.report["params"]["n_segments"] == 65535
+
+
+def test_refinement_actual_capacity_rejects_before_statistics_and_cache(source, monkeypatch):
+    import spectrumagent.annotation.engines.superpixels as module
+    registry, identifier, _, _ = source
+    monkeypatch.setattr(module, "refine", lambda *_: (np.arange(65537, dtype=np.int32).reshape(1, -1), [], {}))
+    engine = SuperpixelEngine(registry)
+    with pytest.raises(DataError) as error:
+        engine.generate(identifier, Parameters(n_segments=64))
+    assert error.value.code == "INVALID_SUPERPIXEL_PARAMETERS"
+    assert engine.cache == {}
 
 
 def test_superpixel_http_report_and_no_scene(label_api, source):

@@ -4,6 +4,16 @@ import { annotationClient, requests } from './api.ts';
 import { describeAnnotationError, type AnnotationApi, type AnnotationRequest, type LabelBody } from './types.ts';
 
 const id = 'ABCDEFAB-CDEF-ABCD-EFAB-CDEFABCDEFAB', version = '00000000-0000-0000-0000-000000000002';
+test('block clicks retain the legacy geometry and omit label_id for erase and uncertain', () => {
+  for (const action of ['erase', 'uncertain'] as const) {
+    const geometry = { superpixels: [137], extra: 'dropped' };
+    const request = requests.regions(id, geometry, action);
+    assert.ok('geometry' in request);
+    assert.deepEqual(request, { op: 'regions', id, geometry: { superpixels: [137] }, action });
+    geometry.superpixels[0] = 999;
+    assert.deepEqual(request.geometry, { superpixels: [137] });
+  }
+});
 const cases: [string, (api: AnnotationApi) => Promise<unknown>, AnnotationRequest][] = [
   ['superpixels', api => api.superpixels(id, { n_segments: 800, compactness: .5, pca_components: 3, force: true }), { op: 'superpixels', id, n_segments: 800, compactness: .5, pca_components: 3, force: true }],
   ['diffuse', api => api.diffuse(id, { point: [2, 3] }, { threshold: .92, queue_min_similarity: .8 }), { op: 'diffuse', id, seed: { point: [2, 3] }, threshold: .92, queue_min_similarity: .8 }],

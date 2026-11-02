@@ -8,7 +8,7 @@ import pytest
 
 from backend.database import connect_database
 from spectrumagent.annotation.labels import CatalogRequest, CustomRequest, LabelStore
-from spectrumagent.annotation.session import AnnotationConflict, SessionStore, aggregate_spectra
+from spectrumagent.annotation.session import UNDO_DEPTH, AnnotationConflict, SessionStore, aggregate_spectra
 from spectrumagent.data import DataError, SpectrumDataSet
 
 
@@ -185,10 +185,10 @@ def test_spectra_cross_row_blocks_mean_std_match_pixels_1e10(annotation_case, bl
     np.testing.assert_allclose(moment.std, pixels.std(axis=0), rtol=0, atol=1e-10)
 
 
-def test_five_undos_deep_copy_statistics_and_edit_after_restore(annotation_case):
+def test_thirty_undo_limit_deep_copy_statistics_and_edit_after_restore(annotation_case):
     c = annotation_case
     expected = []
-    for i in range(6):
+    for i in range(UNDO_DEPTH + 1):
         expected.append(c.store.working(c.identifier)["label_map"])
         mask = np.zeros(c.segments.shape, dtype=bool)
         mask.flat[i] = True
@@ -207,6 +207,23 @@ def test_five_undos_deep_copy_statistics_and_edit_after_restore(annotation_case)
     c.store.edit(c.identifier, mask, action="confirm", label_id=c.labels["PP"])
     np.testing.assert_array_equal(c.store.working(c.identifier)["label_map"][~mask], restored[~mask])
     np.testing.assert_array_equal(c.store.undo(c.identifier)["label_map"], restored)
+
+
+@pytest.mark.parametrize("remap", [False, True])
+def test_thirty_block_clicks_undo_to_initial_even_after_label_remap(annotation_case, remap):
+    c = annotation_case
+    assert UNDO_DEPTH == 30
+    initial = c.store.working(c.identifier)["label_map"]
+    for index in range(30):
+        block = index % 6
+        c.store.edit(c.identifier, c.segments == block, action="confirm", label_id=c.labels["PET"],
+                     geometry={"superpixels": [block]})
+    if remap:
+        LabelStore(c.paths.database).add(CatalogRequest(project_id=c.project, from_catalog="plastic", codes=["PS"]))
+    assert c.store._state(c.identifier).undo_stack.maxlen == 30
+    for _ in range(30):
+        result = c.store.undo(c.identifier)
+    np.testing.assert_array_equal(result["label_map"], initial)
 
 
 @pytest.mark.parametrize("key,value", [("n_segments", 400), ("compactness", 1), ("pca_components", 3)])

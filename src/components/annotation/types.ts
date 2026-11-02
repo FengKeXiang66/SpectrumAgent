@@ -25,6 +25,8 @@ export type AnnotationRequest =
   | { op: 'add_label'; body: LabelBody };
 
 export type Png = { width: number; height: number; mime?: 'image/png'; png_base64: string };
+export type SegmentsMap = { png: string; shape: [number, number]; counts: number[] };
+export type Blocks = { label: number[]; purity: number[]; label_count: number[] };
 export type Parameters = { n_segments: number; compactness: number; pca_components: number; k: number; block_size: number; feature_version: string; pca_batch_size: number };
 export type Candidate = { candidate_ref?: string; superpixels: number[]; pixel_count: number; seed_superpixels: number[]; min_similarity: number; avg_similarity: number; cos_s: number[]; overlay: Png };
 export type Statistics = {
@@ -34,9 +36,10 @@ export type Statistics = {
 };
 export type Working = {
   project_id: string; queue: Candidate[]; superpixel_count: number; params: Parameters | null;
-  statistics: Statistics | Record<string, never>; overlay: Png | null;
+  statistics: Statistics | Record<string, never>; overlay: Png | null; blocks: Blocks;
 };
 export type SuperpixelReport = {
+  segments_png: string; segments_shape: [number, number]; block_counts: number[];
   cube_id: string; shape: [number, number, number]; params: Parameters; superpixel_count: number;
   n_before: number; n_after: number; area_cv: number; R: number | null;
   boundary_sum: number; internal_sum: number; boundary_pairs: number; internal_pairs: number; sum_ratio_diagnostic: number | null;
@@ -73,7 +76,7 @@ export type LabelSchema = LabelSchemaRow & { labels: Label[] };
 export type AnnotationApi = {
   superpixels(id: string, options?: SuperpixelOptions): Promise<SuperpixelReport>;
   diffuse(id: string, seed: Seed, options?: DiffuseOptions): Promise<DiffuseReport>;
-  regions(id: string, geometry: Geometry, action: EditAction, labelId?: string): Promise<Working>;
+  regions(id: string, geometry: Geometry, action: EditAction, labelId?: string): Promise<Omit<Working, 'overlay'>>;
   undo(id: string): Promise<Working>; working(id: string): Promise<Working>; validate(id: string): Promise<Quality>;
   save(id: string, options?: SaveOptions): Promise<Saved>; versions(id: string): Promise<Versions>;
   versionOverlay(id: string, version: string): Promise<Png>; projects(): Promise<Project[]>;

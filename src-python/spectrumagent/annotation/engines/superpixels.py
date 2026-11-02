@@ -202,6 +202,17 @@ def refine(feature, original, counts, d_s, tau, params):
     return segments, triggers.tolist(), children
 
 
+def segments_png(segments):
+    """Lossless full-resolution 16-bit ids packed into two RGB byte channels."""
+    pixels = np.zeros((*segments.shape, 3), dtype=np.uint8)
+    pixels[:, :, 0] = segments & 0xFF
+    pixels[:, :, 1] = (segments >> 8) & 0xFF
+    output = BytesIO()
+    Image.fromarray(pixels).save(output, format="PNG")
+    return {"png_base64": base64.b64encode(output.getvalue()).decode("ascii"),
+            "shape": list(segments.shape), "counts": np.bincount(segments.ravel()).tolist()}
+
+
 def overlay_png(feature, segments):
     stride = max(1, math.ceil(max(segments.shape) / 512))  # §5.2 output side limit.
     reduced = segments[::stride, ::stride]
@@ -247,7 +258,7 @@ class SuperpixelEngine:
             key = str(cube_id)
             if not force and key in self.cache and self.cache[key][0] == params:
                 return self.cache[key][1]
-            if (type(params.n_segments) is not int or params.n_segments < 1
+            if (type(params.n_segments) is not int or not 1 <= params.n_segments <= 65535
                     or type(params.block_size) is not int or params.block_size < 1
                     or type(params.pca_components) is not int or params.pca_components < 1
                     or not np.isfinite(params.compactness) or params.compactness <= 0
@@ -270,6 +281,8 @@ class SuperpixelEngine:
             d_s = std.mean(axis=1)
             tau = float(params.k * np.median(d_s))
             segments, triggers, children = refine(features.normalized, initial, counts, d_s, tau, params)
+            if len(np.unique(segments)) > 65536:
+                raise DataError("INVALID_SUPERPIXEL_PARAMETERS", "细分后超像素块数不得超过 65536")
             _, means, std = spectral_statistics(dataset, segments, params.block_size)
             metrics = boundary_ratio(reference, initial)
             overlay = overlay_png(features.normalized, segments)

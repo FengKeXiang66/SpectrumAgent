@@ -1,10 +1,10 @@
 import type { Label } from './types.ts';
-export type Tool = 'diffuse' | 'brush' | 'polygon' | 'erase';
+export type Tool = 'diffuse' | 'brush' | 'polygon' | 'erase' | 'click';
 export type Command = 'confirm' | 'undo' | 'previous' | 'next' | 'save' | 'pan' | Tool;
 export type Preferences = { enabled: boolean; bindings: Record<Command, string>; labelKeys: Record<string, number | null> };
 // TASK-04 §5.8 / S05: local, editable, switchable. No DB label mutations.
 export function defaultPreferences(): Preferences {
-  return { enabled: true, bindings: { confirm: 'Enter', undo: 'z', diffuse: 'd', brush: 'b', polygon: 'p', erase: 'e',
+  return { enabled: true, bindings: { confirm: 'Enter', undo: 'z', diffuse: 'd', brush: 'b', polygon: 'p', erase: 'e', click: 'c',
     previous: 'ArrowLeft', next: 'ArrowRight', save: 'Ctrl+s', pan: ' ' }, labelKeys: {} };
 }
 export function labelKey(label: Label, preferences: Preferences): number | null {

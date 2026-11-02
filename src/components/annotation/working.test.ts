@@ -9,7 +9,8 @@ const png = { width: 1, height: 1, png_base64: 'fixture' };
 const candidate = (id: number): Candidate => ({ superpixels: [id], pixel_count: 1, seed_superpixels: [id], min_similarity: .9, avg_similarity: .95, cos_s: [1], overlay: png });
 const stats: Statistics = { n_pixels: 100, labeled_pixels: 20, uncertain_pixels: 10, blank_pixels: 70,
   labeled_percent: 20, uncertain_percent: 10, blank_percent: 70, label_counts: { '0': 20 }, pending_pixels: 2, dominant_label_id: 'a' };
-const working = (queue: Candidate[] = []): Working => ({ project_id: 'from-server', params: null, superpixel_count: 2, queue, statistics: stats, overlay: png });
+const working = (queue: Candidate[] = []): Working => ({ project_id: 'from-server', params: null, superpixel_count: 2, queue, statistics: stats, overlay: png,
+  blocks: { label: [-1, 0], purity: [100, 92], label_count: [0, 2] } });
 
 test('each edit reads working again; write-response pixels, queue and statistics are never reconstructed', async () => {
   const authoritative = working([candidate(2)]), calls: string[] = [];
@@ -17,6 +18,7 @@ test('each edit reads working again; write-response pixels, queue and statistics
   const view = await editThenRead(api, 'cube', async () => { calls.push('regions'); return { queue: [], statistics: { labeled_pixels: 999 } }; });
   assert.deepEqual(calls, ['regions', 'working:cube']);
   assert.equal(view.queue, authoritative.queue);
+  assert.deepEqual(view.blocks, authoritative.blocks);
   assert.equal(view.statistics.labeled_pixels, 20);
   const runtime = { ...authoritative, label_map: new Int32Array([0, -2]), undo_stack: [1] };
   const projection = workingView(runtime);
@@ -86,5 +88,7 @@ test('component wiring has no local label map or undo history and preserves the 
   assert.match(source, /api\.versionOverlay\(id, version\.id\)/);
   assert.doesNotMatch(readFileSync(new URL('./annotation.css', import.meta.url), 'utf8'), /position:\s*fixed/);
   const app = readFileSync(new URL('../../App.tsx', import.meta.url), 'utf8');
-  assert.match(app, /<footer aria-label="常驻对话条">/);
+  assert.match(app, /<AssistantPanel>/);
+  const panel = readFileSync(new URL('../assistant/AssistantPanel.tsx', import.meta.url), 'utf8');
+  assert.match(panel, /<footer\b[^>]*aria-label="常驻对话条"/);
 });

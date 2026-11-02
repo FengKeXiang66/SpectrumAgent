@@ -1,0 +1,12 @@
+E:\AI_Agent\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+{"success": false, "assertion_count": 65, "passed_assertions": 63, "runtime": "E:\\AI_Agent\\.runtime\\task07-12.7\\07de4f5f40b54688aab5257907059071"}
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "E:\AI_Agent\scripts/e2e_task07.py", line 519, in main
+    dialogue_chain(e, client, app, cube)
+  File "E:\AI_Agent\scripts/e2e_task07.py", line 257, in dialogue_chain
+    e.check([v["event"] for v in resumed] == ["step", "done"], "approve SSE sequence step/done")
+  File "E:\AI_Agent\scripts/e2e_task07.py", line 60, in check
+    raise AssertionError(label)
+AssertionError: approve SSE sequence step/done

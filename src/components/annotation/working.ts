@@ -2,9 +2,10 @@ import type { AnnotationApi, Candidate, Label, LabelSchema, Statistics, Working 
 
 // This is a display projection, not a label map, edit log or undo stack.
 // Drop unknown runtime fields too, so a future response cannot introduce a map.
+// blocks 是块级摘要不是像素图。
 export function workingView(value: Working): Working {
   return { project_id: value.project_id, superpixel_count: value.superpixel_count, params: value.params,
-    statistics: value.statistics, overlay: value.overlay, queue: value.queue };
+    statistics: value.statistics, overlay: value.overlay, queue: value.queue, blocks: value.blocks };
 }
 export async function readWorking(api: Pick<AnnotationApi, 'working'>, id: string): Promise<Working> {
   return workingView(await api.working(id));

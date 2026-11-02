@@ -1,0 +1,6 @@
+{
+  "POST /regions": 100,
+  "GET /working": 100,
+  "png_base64": 200,
+  "segments_png": 0
+}

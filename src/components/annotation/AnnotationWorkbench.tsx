@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { DatasetRecord, DatasetTransport, MeanSpectrum, Preview, SpectrumRegion } from '../datasets/types.ts';
 import { displayName } from '../datasets/types.ts';
 import { annotations } from './api.ts';
-import { describeAnnotationError, type AnnotationApi, type CatalogItem, type Geometry, type LabelBody, type LabelSchema, type Png, type Quality, type Seed, type Version, type Working } from './types.ts';
+import { describeAnnotationError, type AnnotationApi, type CatalogItem, type Geometry, type LabelBody, type LabelSchema, type Png, type Quality, type Seed, type SegmentsMap, type SuperpixelReport, type Version, type Working } from './types.ts';
 import { candidateKey, editThenRead, estimateRemaining, orderedLabels, readWorking, recoverSelection, selectedCandidate, statistics } from './working.ts';
 import { bindingProblem, changeLabelKey, chord, defaultPreferences, labelKey, resolveShortcut, type Command, type Preferences, type Tool } from './shortcuts.ts';
 import AnnotationCanvas, { type PromptMode } from './canvas/AnnotationCanvas.tsx';
@@ -22,7 +22,7 @@ type Props = { record: DatasetRecord; records: DatasetRecord[]; datasets: Datase
 const preferenceKey = 'spectrum.annotation.shortcuts.v1';
 const seenKey = 'spectrum.annotation.shortcuts.seen.v1';
 const commandNames: Record<Command, string> = { confirm: '确认候选', undo: '撤销', diffuse: '扩散工具', brush: '画笔/涂鸦提示',
-  polygon: '多边形', erase: '橡皮', previous: '上一张', next: '下一张', save: '保存', pan: '平移' };
+  polygon: '多边形', erase: '橡皮', click: '点选', previous: '上一张', next: '下一张', save: '保存', pan: '平移' };
 function loadPreferences(): Preferences {
   try {
     const stored = JSON.parse(localStorage.getItem(preferenceKey) ?? 'null') as Preferences | null;
@@ -41,6 +41,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
   const [schemas, setSchemas] = useState<LabelSchema[]>([]), [catalog, setCatalog] = useState<CatalogItem[]>([]);
   const [versions, setVersions] = useState<Version[]>([]), [projectName, setProjectName] = useState('');
   const [base, setBase] = useState<Preview | null>(null), [segmentation, setSegmentation] = useState<Png | null>(null);
+  const [segments, setSegments] = useState<SegmentsMap | null>(null);
   const [displayMode, setDisplayMode] = useState<DisplayMode>('auto');
   const [displayRgb, setDisplayRgb] = useState<[number, number, number]>([0, 1, 2]);
   const [displayBand, setDisplayBand] = useState(0);
@@ -105,6 +106,10 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
     if (next.params) setParameters({ n_segments: next.params.n_segments, compactness: next.params.compactness, pca_components: next.params.pca_components });
     if (!timing.current) timing.current = { started: performance.now(), labeled: statistics(next)?.labeled_pixels ?? 0 };
   };
+  const applySegmentation = (report: SuperpixelReport) => {
+    setSegmentation(report.overlay);
+    setSegments({ png: report.segments_png, shape: report.segments_shape, counts: report.block_counts });
+  };
   const loadMetadata = async (next: Working, isLive = () => alive.current) => {
     const [tree, items, listing, projects] = await Promise.all([api.labels(next.project_id), api.catalog(), api.versions(id), api.projects()]);
     if (!isLive()) return;
@@ -116,6 +121,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
     let disposed = false;
     const isLive = () => !disposed && alive.current;
     alive.current = true;
+    setSegments(null); setSegmentation(null);
     void (async () => {
       try {
         let next = await readWorking(api, id);
@@ -130,7 +136,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
             compactness: next.params.compactness, pca_components: next.params.pca_components });
           next = await readWorking(api, id);
           if (!isLive()) return;
-          setSegmentation(report.overlay); applyWorking(next);
+          applySegmentation(report); applyWorking(next);
         }
         if (isLive()) setMessage(next.params ? '已恢复 sidecar 工作态与候选队列。' : '先生成超像素，再在图上给出提示。');
         if (isLive()) setSynchronized(true);
@@ -199,7 +205,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
         // just as initial recovery does; no force/re-diffuse or label guesses.
         const report = await api.superpixels(id, { n_segments: next.params.n_segments,
           compactness: next.params.compactness, pca_components: next.params.pca_components });
-        if (alive.current) setSegmentation(report.overlay);
+        if (alive.current) applySegmentation(report);
       }
       if (alive.current) setQuality(null);
     }, '已同步助手执行后的标注状态。', true);
@@ -215,7 +221,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
     setQuality(null);
     if (await execute(async () => {
       const report = await api.superpixels(id, { ...parameters, force });
-      if (alive.current) setSegmentation(report.overlay);
+      if (alive.current) applySegmentation(report);
     }, '超像素已生成；已标注与不确定像素保留，候选按参数变化处理。')) { setDraft(null); setQuality(null); setLastSeed(null); setLastDiffusion(null); }
   };
   const diffuse = async (seed: Seed) => {
@@ -307,7 +313,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
       <aside className="annotation-left">
         {working && <LabelPanel projectId={working.project_id} schemas={schemas} labels={labels} catalog={catalog} selectedId={selectedId}
           preferences={preferences} disabled={busy} onSelect={setSelectedId} onAdd={addLabel} />}
-        <section className="annotation-card"><h3>工具</h3><div className="annotation-tools">{(['diffuse', 'brush', 'polygon', 'erase'] as const).map(next =>
+        <section className="annotation-card"><h3>工具</h3><div className="annotation-tools">{(['diffuse', 'click', 'brush', 'polygon', 'erase'] as const).map(next =>
           <button key={next} disabled={busy} className={tool === next ? 'selected' : ''} aria-pressed={tool === next} onClick={() => chooseTool(next)}>{commandNames[next]} <kbd>{preferences.bindings[next]}</kbd></button>)}</div></section>
         <section className="annotation-card"><h3>本图统计</h3><dl className="annotation-statistics">
           <dt>超像素数</dt><dd>{working?.superpixel_count ?? '—'}</dd><dt>已确认</dt><dd>{stats ? `${stats.labeled_percent.toFixed(2)}%` : '—'}</dd>
@@ -348,12 +354,14 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
             inspection={inspection} onInspection={setInspection} />
           {displayError && <p role="alert">{displayError}</p>}
           {base?.bands && <p>伪彩 {(['R', 'G', 'B'] as const).map((channel, i) => `${channel}${base.wavelengths?.[i] === undefined ? `#${base.bands![i]}` : `${base.wavelengths[i]} nm`}`).join(' / ')}{base.fallback ? '（自动退化）' : ''}</p>}
-          <AnnotationCanvas shape={record.dataset.shape} base={base} segmentation={segmentation} working={working} selectedKey={selectedKey}
+          <AnnotationCanvas shape={record.dataset.shape} base={base} segmentation={segmentation} segments={segments} labels={labels} working={working} selectedKey={selectedKey}
             manualStretch={displayStretch === 'manual'} lut={displayLut}
             inspection={inspection} onSpectrum={region => { void readSpectrum(region); }}
             tool={tool} prompt={prompt} disabled={busy || !ready} panHeld={panHeld} draft={draft} brushPrompt={tab === 'prompt'}
             onSeed={seed => { void diffuse(seed); }} onGeometry={value => { setDraft(value); setSelectedKey(null); setMessage('多边形已选；选择标签后确认，或标记为不确定。'); }}
-            onErase={value => { void edit('erase', value); }} />
+            onErase={value => { void edit('erase', value); }}
+            onBlockClick={(blockId, uncertain) => { void edit(uncertain ? 'uncertain' : 'confirm', { superpixels: [blockId] }); }}
+            onBlockErase={blockId => { void edit('erase', { superpixels: [blockId] }); }} />
           {spectrumBusy && <p role="status">正在读取光谱…</p>}{spectrumError && <p role="alert">{spectrumError}</p>}
           {spectrum && <SpectrumReadout spectrum={spectrum} wavelengths={record.dataset.wavelengths} />}
           <div className="annotation-actions">

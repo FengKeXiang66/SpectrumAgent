@@ -11,6 +11,15 @@ const labels = [
   { id: 'bad-zero', shortcut_key: 0, is_background: 0 },
   { id: 'bad-ten', shortcut_key: 10, is_background: 0 },
 ] as Label[];
+
+test('click binds C; Delete and Shift are not independent commands', () => {
+  const preferences = defaultPreferences();
+  assert.equal(preferences.bindings.click, 'c');
+  assert.equal(bindingProblem(preferences.bindings), null);
+  assert.deepEqual(resolveShortcut({ key: 'c' }, labels, preferences), { command: 'click' });
+  assert.equal(resolveShortcut({ key: 'Delete' }, labels, preferences), null);
+  assert.equal(resolveShortcut({ key: 'Shift', shiftKey: true }, labels, preferences), null);
+});
 test('0 is background-only; 1–9 are numeric; unbound or out-of-range labels remain mouse-only', () => {
   const preferences = defaultPreferences();
   assert.deepEqual(resolveShortcut({ key: '0' }, labels, preferences), { labelId: 'BG' });

@@ -70,7 +70,8 @@ def test_working_empty_versions_empty_and_single_registry_assembly(http_annotati
     response = h.client.get(h.base+"/annotations/working")
     assert response.status_code == 200
     assert response.json() == {"superpixel_count": 0, "params": None, "statistics": {}, "overlay": None,
-                               "project_id": h.case.project, "queue": []}
+                               "project_id": h.case.project, "queue": [],
+                               "blocks": {"label": [], "purity": [], "label_count": []}}
     listing = h.client.get(h.base+"/annotations").json()
     assert listing == {"versions": [], "working": response.json()}
     assert h.app.state.diffusion_engine.superpixels is h.engine
@@ -98,9 +99,15 @@ def test_superpixels_generate_then_sync_before_response_initializes_state(http_a
     report = segment(h)
     assert events == ["generated", "synced"]
     assert state(h).params == report["params"]
+    assert report["segments_shape"] == list(state(h).segments.shape)
+    rgb = np.asarray(Image.open(BytesIO(base64.b64decode(report["segments_png"]))))
+    np.testing.assert_array_equal(rgb[:, :, 0].astype(np.int32) + 256 * rgb[:, :, 1].astype(np.int32), state(h).segments)
+    assert report["block_counts"] == np.bincount(state(h).segments.ravel()).tolist()
     np.testing.assert_array_equal(state(h).segments, h.engine.cache[h.case.identifier][1].segments)
     working = h.client.get(h.base+"/annotations/working").json()
     assert working["superpixel_count"] == report["superpixel_count"]
+    assert set(working["blocks"]) == {"label", "purity", "label_count"}
+    assert all(len(values) == working["superpixel_count"] for values in working["blocks"].values())
     decode_png(working["overlay"])
 
 
@@ -135,7 +142,10 @@ def test_regions_superpixel_actions_working_statistics_registered_colors(ready_h
     assert working["statistics"]["labeled_pixels"] == (int(mask.sum()) if expected >= 0 else 0)
     assert working["statistics"]["uncertain_pixels"] == (int(mask.sum()) if expected == -2 else 0)
     assert sum(working["statistics"][key] for key in ("labeled_percent", "uncertain_percent", "blank_percent")) == pytest.approx(100)
-    image = decode_png(working["overlay"])
+    assert "overlay" not in working
+    readback = h.client.get(h.base+"/annotations/working").json()
+    assert readback["blocks"] == working["blocks"]
+    image = decode_png(readback["overlay"])
     if expected >= 0:
         with connect_database(h.case.paths.database) as db:
             color = db.execute("SELECT color_hex FROM label WHERE id=?", (h.case.labels[label],)).fetchone()[0]
@@ -170,10 +180,10 @@ def test_polygon_after_superpixels_overwrites_only_selected_centres(ready_http):
     np.testing.assert_array_equal(pixels(h), expected)
 
 
-def test_five_http_undos_empty_409_then_edit_stays_aligned(ready_http):
+def test_thirty_http_undo_limit_empty_409_then_edit_stays_aligned(ready_http):
     h = ready_http
     history = []
-    for index in range(6):
+    for index in range(31):
         history.append(pixels(h))
         polygon = [[index, 0], [index, 1], [index+1, 1], [index+1, 0]]
         assert region(h, action="uncertain" if index % 2 else "confirm", geometry={"polygon": polygon}).status_code == 200
@@ -430,7 +440,70 @@ def test_r21_switch_cube_recovers_isolated_queue_without_regenerating_candidates
     empty = h.client.get(other_base+"/annotations/working")
     assert empty.status_code == 200
     assert empty.json() == {"superpixel_count": 0, "params": None, "statistics": {}, "overlay": None,
-                            "project_id": h.case.project, "queue": []}
+                            "project_id": h.case.project, "queue": [],
+                            "blocks": {"label": [], "purity": [], "label_count": []}}
     assert h.client.post(other_base+"/superpixels", json={"n_segments": 24}).status_code == 200
     assert h.client.get(other_base+"/annotations/working").json()["queue"] == []
     assert h.client.get(h.base+"/annotations/working").json()["queue"] == produced["queue"]
+
+
+@pytest.mark.parametrize("parts,expected", [
+    ([(-1, 288), (2, 192)], (2, 40, 1)),  # Blank never competes; denominator is all 480 pixels.
+    ([(2, 240), (1, 240)], (1, 50, 2)),
+    ([(-2, 240), (2, 240)], (2, 50, 2)),
+    ([(2, 288), (3, 192)], (2, 60, 2)),
+    ([(2, 288), (1, 96), (3, 96)], (2, 60, 3)),
+    ([(-2, 480)], (-2, 100, 1)),
+    ([(-1, 480)], (-1, 100, 0)),
+])
+def test_block_summary_rules_readback_then_whole_block_erase(ready_http, parts, expected):
+    h = ready_http
+    segments = np.zeros((40, 12), dtype=np.int32)
+    h.sessions.set_segmentation(h.case.identifier, SimpleNamespace(segments=segments, report={"params": state(h).params}))
+    offset = 0
+    for label, count in parts:
+        mask = np.zeros(segments.shape, dtype=bool)
+        mask.ravel()[offset:offset+count] = True
+        if label != -1:
+            h.sessions.edit(h.case.identifier, mask, action="uncertain" if label == -2 else "confirm",
+                            label_id=state(h).label_ids[label] if label >= 0 else None)
+        offset += count
+    blocks = h.client.get(h.base+"/annotations/working").json()["blocks"]
+    assert blocks == {"label": [expected[0]], "purity": [expected[1]], "label_count": [expected[2]]}
+    assert region(h, action="erase", label=None, geometry={"superpixels": [0]}).status_code == 200
+    assert np.all(pixels(h) == -1)
+
+
+def test_block_purity_799_of_800_is_99_not_100():
+    from spectrumagent.api.annotations import block_summary
+    labels = np.full((1, 800), 2, dtype=np.int32)
+    labels[0, -1] = -1
+    assert block_summary(np.zeros_like(labels), labels) == {"label": [2], "purity": [99], "label_count": [1]}
+
+
+def test_hundred_click_response_window_has_one_overlay_per_get_only(ready_http, monkeypatch):
+    import spectrumagent.api.annotations as module
+    h = ready_http
+    rendered = []
+    original = module.label_overlay
+    def overlay(*args):
+        rendered.append(1)
+        return original(*args)
+    monkeypatch.setattr(module, "label_overlay", overlay)
+    counts = {"png_base64": 0, "segments_png": 0}
+    def collect(value):
+        if isinstance(value, dict):
+            for key, item in value.items():
+                if key in counts:
+                    counts[key] += 1
+                collect(item)
+        elif isinstance(value, list):
+            for item in value:
+                collect(item)
+    for index in range(100):
+        response = region(h, geometry={"superpixels": [index % (int(state(h).segments.max())+1)]})
+        assert response.status_code == 200 and "overlay" not in response.json()
+        collect(response.json())
+        collect(h.client.get(h.base+"/annotations/working").json())
+    assert counts == {"png_base64": 100, "segments_png": 0}
+    assert len(rendered) == 100

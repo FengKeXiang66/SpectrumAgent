@@ -24,6 +24,9 @@ from .draft import DraftStore, remap_document, conflict
 from .raster import encode_rle, rasterize, rasterize_with_conflicts_v1
 
 
+UNDO_DEPTH = 30
+
+
 class AnnotationConflict(DataError):
     """Transport adapters can preserve the mandated HTTP 409 in §5.4."""
     status_code = 409
@@ -134,8 +137,8 @@ class WorkingState:
     params: dict | None = None
     candidates: list = field(default_factory=list)
     gestures: dict = field(default_factory=dict)
-    # §5.4 requires >=5; no operation history is persisted.
-    undo_stack: deque = field(default_factory=lambda: deque(maxlen=5))
+    # §5.4 requires >=5; TASK-12 raises to 30. No operation history is persisted.
+    undo_stack: deque = field(default_factory=lambda: deque(maxlen=UNDO_DEPTH))
     document_json: str | None = None
     revision: int = 0
 
@@ -178,7 +181,7 @@ class SessionStore:
             # Prepare both halves before writing; CAS failures change neither.
             labels = self.drafts.labels(cube_id)
             undo = deque(((json.dumps(remap_document(json.loads(doc), labels, state.label_ids)), remap(old))
-                          for doc, old in state.undo_stack), maxlen=5)
+                          for doc, old in state.undo_stack), maxlen=UNDO_DEPTH)
             remap(state.label_map)  # Preserve LABEL_REMOVED even for unused labels.
         else:
             undo = state.undo_stack

@@ -18,7 +18,7 @@ from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, model_
 
 from backend.database import connect_database
 from spectrumagent.annotation.labels import LabelRequest, LabelStore, plastic_catalog
-from spectrumagent.annotation.engines.superpixels import DEFAULT_COMPACTNESS, Parameters, SuperpixelEngine
+from spectrumagent.annotation.engines.superpixels import DEFAULT_COMPACTNESS, Parameters, SuperpixelEngine, segments_png
 from spectrumagent.annotation.engines.diffusion import DEFAULT_THRESHOLD, DEFAULT_QUEUE_MIN_SIMILARITY, DiffusionEngine
 from spectrumagent.annotation.session import AnnotationConflict, SessionStore
 from spectrumagent.annotation.raster import polygon_mask
@@ -29,6 +29,25 @@ from spectrumagent.data import DataError
 
 
 LABEL_PATHS = {"/api/v1/projects", "/api/v1/labels", "/api/v1/catalog/plastic"}
+
+
+def block_summary(segments, label_map):
+    """One joint bincount; blanks never compete and confirmed ties win."""
+    n_blocks = int(segments.max()) + 1
+    n_labels = max(2, int(label_map.max()) + 3)  # -2, -1, then registered indices.
+    histogram = np.bincount(segments.ravel().astype(np.int64) * n_labels + label_map.ravel() + 2,
+                            minlength=n_blocks * n_labels).reshape(n_blocks, n_labels)
+    sizes = histogram.sum(axis=1)
+    # argmax chooses the first tie: confirmed ascending, then uncertain.
+    order = np.r_[np.arange(2, n_labels), 0]
+    marked = histogram[:, order]
+    label_count = np.count_nonzero(marked, axis=1)
+    winner = marked.argmax(axis=1)
+    count = marked[np.arange(n_blocks), winner]
+    blank = label_count == 0
+    label = np.where(blank, -1, order[winner] - 2)
+    purity = np.where(blank, 100, (100 * count) // np.maximum(sizes, 1))
+    return {"label": label.tolist(), "purity": purity.tolist(), "label_count": label_count.tolist()}
 
 
 class SuperpixelRequest(BaseModel):
@@ -259,7 +278,7 @@ def make_router(store: LabelStore, engine: SuperpixelEngine, sessions: SessionSt
         with connect_database(store.database) as db:
             return dict(db.execute("SELECT id,color_hex FROM label"))
 
-    def working_view(identifier):
+    def working_view(identifier, *, with_overlay=True):
         with sessions._lock:
             engine.registry.get(identifier)  # Existing not-found boundary, no independent source opening.
             with connect_database(store.database) as db:
@@ -267,11 +286,14 @@ def make_router(store: LabelStore, engine: SuperpixelEngine, sessions: SessionSt
             state = sessions._state(identifier)
             context = {"project_id": project_id, "queue": deepcopy(state.candidates)}
             if state.segments is None:
-                return {"superpixel_count": 0, "params": None, "statistics": {}, "overlay": None, **context}
+                return {"superpixel_count": 0, "params": None, "statistics": {}, "overlay": None,
+                        "blocks": {"label": [], "purity": [], "label_count": []}, **context}
             working = sessions.working(identifier)
             return {"superpixel_count": len(np.unique(state.segments)), "params": working["params"],
                     "statistics": working["statistics"],
-                    "overlay": label_overlay(working["label_map"], working["label_index"], colors()), **context}
+                    "blocks": block_summary(state.segments, working["label_map"]),
+                    **({"overlay": label_overlay(working["label_map"], working["label_index"], colors())}
+                       if with_overlay else {}), **context}
 
     async def no_body(request: Request):
         if await request.body():
@@ -299,7 +321,9 @@ def make_router(store: LabelStore, engine: SuperpixelEngine, sessions: SessionSt
                             pca_components=request.pca_components)
         segmentation = engine.generate(identifier, params, force=request.force)
         sessions.set_segmentation(identifier, segmentation)
-        return segmentation.report
+        encoded = segments_png(segmentation.segments)
+        return {**segmentation.report, "segments_png": encoded["png_base64"],
+                "segments_shape": encoded["shape"], "block_counts": encoded["counts"]}
 
     @router.post("/datasets/{identifier}/diffuse")
     def diffuse(identifier: UUID, request: DiffuseRequest):
@@ -313,7 +337,7 @@ def make_router(store: LabelStore, engine: SuperpixelEngine, sessions: SessionSt
         with current_segmentation(identifier) as state:
             sessions.edit(identifier, geometry_mask(state, request.geometry),
                           action=request.action, label_id=request.label_id, geometry=request.geometry.model_dump())
-            return working_view(identifier)
+            return working_view(identifier, with_overlay=False)
 
     @router.post("/datasets/{identifier}/annotations/undo")
     def undo(identifier: UUID):
