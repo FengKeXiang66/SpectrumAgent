@@ -1,0 +1,236 @@
+[
+  {
+    "selector": ".annotation-workbench",
+    "prefixed": true,
+    "line": 1,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-heading",
+    "prefixed": true,
+    "line": 12,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-columns",
+    "prefixed": true,
+    "line": 13,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-card",
+    "prefixed": true,
+    "line": 14,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-left .annotation-card",
+    "prefixed": true,
+    "line": 15,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-center > .annotation-card",
+    "prefixed": true,
+    "line": 16,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-right",
+    "prefixed": true,
+    "line": 17,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench h3",
+    "prefixed": true,
+    "line": 18,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench button",
+    "prefixed": true,
+    "line": 20,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench button:hover:not(:disabled)",
+    "prefixed": true,
+    "line": 21,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-primary",
+    "prefixed": true,
+    "line": 22,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-primary:hover:not(:disabled)",
+    "prefixed": true,
+    "line": 23,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .selected",
+    "prefixed": true,
+    "line": 24,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench [aria-selected=\"true\"]",
+    "prefixed": true,
+    "line": 25,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench input",
+    "prefixed": true,
+    "line": 26,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench select",
+    "prefixed": true,
+    "line": 27,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench textarea",
+    "prefixed": true,
+    "line": 28,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench kbd",
+    "prefixed": true,
+    "line": 29,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-labels",
+    "prefixed": true,
+    "line": 31,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-tools",
+    "prefixed": true,
+    "line": 32,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-label",
+    "prefixed": true,
+    "line": 33,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-levels",
+    "prefixed": true,
+    "line": 34,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-levels li",
+    "prefixed": true,
+    "line": 35,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-levels li:last-child",
+    "prefixed": true,
+    "line": 36,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-levels [aria-current]",
+    "prefixed": true,
+    "line": 37,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-note",
+    "prefixed": true,
+    "line": 38,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-tabs",
+    "prefixed": true,
+    "line": 39,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-parameters",
+    "prefixed": true,
+    "line": 40,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-statistics",
+    "prefixed": true,
+    "line": 41,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-queue",
+    "prefixed": true,
+    "line": 42,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-queue button",
+    "prefixed": true,
+    "line": 43,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-distribution li",
+    "prefixed": true,
+    "line": 44,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-warning",
+    "prefixed": true,
+    "line": 45,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-color-warning",
+    "prefixed": true,
+    "line": 46,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-error",
+    "prefixed": true,
+    "line": 47,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-overwrite",
+    "prefixed": true,
+    "line": 48,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-shortcut-help",
+    "prefixed": true,
+    "line": 49,
+    "media": null
+  },
+  {
+    "selector": ".annotation-workbench .annotation-columns",
+    "prefixed": true,
+    "line": 52,
+    "media": "(max-width: 720px)"
+  },
+  {
+    "selector": ".annotation-workbench .annotation-levels li",
+    "prefixed": true,
+    "line": 53,
+    "media": "(max-width: 720px)"
+  }
+]

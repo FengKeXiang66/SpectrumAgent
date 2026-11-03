@@ -1,0 +1,42 @@
+warning: unable to access 'C:\Users\Administrator/.config/git/ignore': Permission denied
+warning: unable to access 'C:\Users\Administrator/.config/git/ignore': Permission denied
+ ...217\267\347\212\266\346\200\201\346\234\272.md" |   4 +-
+ "TASK-21-S05\346\215\242\347\232\256.md"           | 164 +++++++++++++++++++++
+ ...250\200\347\233\230\347\202\271\350\241\250.md" |   6 +-
+ 3 files changed, 171 insertions(+), 3 deletions(-)
+4808169 docs(task17): 更正三栏宽度（原型实测 178/236，非目测的 260/300）
+ed8d08c docs(task21): 修 §2.3 覆盖策略（前缀选择器 + 变量优先）
+f9e3cd9 docs(task21): P3 卡（S05 换皮）+ 修盘点表两处口径
+9e26a27 docs(p3): S05 换皮断言盘点表（65 处四列）+ 修 run.py 行号 111→112
+6a153e1 docs(evidence): 归档 TASK-20 P5 验收证据
+b2deede feat(ui): P5 轻量屏与空态（S02 / S09 / S10 / S11）
+82a2976 docs(task20): 修 S03 调试行锚点 168→183
+src/components/annotation/annotation.css:1:.annotation-workbench { --ann-brand:#24638b; --ann-line:#dce3e8; --ann-muted:#61717e; position:relative; isolation:isolate; margin:22px 0; color:#263743; font-size:13px; }
+src/components/annotation/annotation.css:2:.annotation-workbench * { box-sizing:border-box; }
+src/components/annotation/annotation.css:3:.annotation-workbench h2 { margin:0 0 6px; font-size:22px; } .annotation-workbench h3 { margin:0 0 12px; font-size:14px; } .annotation-workbench h4 { margin:12px 0 6px; }
+src/components/annotation/annotation.css:4:.annotation-workbench small,.annotation-hint { color:var(--ann-muted); font-size:11px; line-height:1.65; }
+src/components/annotation/annotation.css:5:.annotation-workbench h3 small { float:right; font-weight:400; }
+src/components/annotation/annotation.css:6:.annotation-workbench p { line-height:1.6; margin:8px 0; }
+src/components/annotation/annotation.css:19:.annotation-workbench button { font:inherit; color:inherit; border:1px solid #ccd6dd; background:white; border-radius:6px; padding:7px 9px; margin:0; }
+src/components/annotation/annotation.css:20:.annotation-workbench button:hover:not(:disabled) { border-color:var(--ann-brand); background:#f1f7fa; }
+src/components/annotation/annotation.css:21:.annotation-workbench button:disabled { opacity:.48; cursor:default; }
+src/components/annotation/annotation.css:22:.annotation-workbench .annotation-primary { color:white; background:var(--ann-brand); border-color:var(--ann-brand); }
+src/components/annotation/annotation.css:23:.annotation-workbench .annotation-primary:hover:not(:disabled) { background:#194e70; }
+src/components/annotation/annotation.css:24:.annotation-workbench .selected,.annotation-workbench [aria-selected="true"] { border-color:#7fa8c3; color:#1e5b83; background:#edf6fb; }
+src/components/annotation/annotation.css:25:.annotation-workbench button:focus-visible,.annotation-workbench input:focus-visible,.annotation-workbench select:focus-visible { outline:2px solid var(--ann-brand); outline-offset:2px; }
+src/components/annotation/annotation.css:26:.annotation-workbench input,.annotation-workbench select,.annotation-workbench textarea { min-width:0; max-width:100%; font:inherit; padding:6px; border:1px solid #ccd6dd; border-radius:4px; flex:initial; color:inherit; background:white; }
+src/components/annotation/annotation.css:27:.annotation-workbench input[type="checkbox"] { width:auto; margin:0 5px 0 0; vertical-align:middle; }
+src/components/annotation/annotation.css:28:.annotation-workbench textarea { width:100%; min-height:56px; resize:vertical; }
+src/components/annotation/annotation.css:29:.annotation-workbench label { line-height:1.7; }
+src/components/annotation/annotation.css:30:.annotation-workbench kbd { background:#f1f4f6; border:1px solid #dce3e8; border-bottom-width:2px; border-radius:3px; padding:1px 5px; font-size:10px; color:#596a76; }
+src/components/annotation/annotation.css:58:.annotation-right .annotation-primary { width:100%; }
+src/components/annotation/annotation.css:59:.annotation-shortcut-help { position:absolute; top:70px; right:10px; width:min(480px,calc(100% - 20px)); max-height:65vh; overflow:auto; z-index:4; border:1px solid #a8bdca; padding:18px; border-radius:9px; background:white; box-shadow:0 10px 40px #17242c33; }
+src/components/annotation/annotation.css:60:.annotation-shortcut-help > button { margin:12px 8px 0 0; }
+src/components/annotation/annotation.css:63:.annotation-shortcut-help details label { display:flex; justify-content:space-between; margin:6px 0; }
+src/components/annotation/AnnotationWorkbench.tsx:17:import './annotation.css';
+src/components/annotation/AnnotationWorkbench.tsx:327:  return <section className="annotation-workbench" aria-label="S05 标注工作台">
+src/components/annotation/AnnotationWorkbench.tsx:341:    {help && <div className="annotation-shortcut-help" role="dialog" aria-label="标注快捷键，可查可改可关闭" aria-modal="false">
+src/components/annotation/AnnotationWorkbench.tsx:358:      <button onClick={() => setPreferences(defaultPreferences())}>恢复默认键位</button><button className="annotation-primary" onClick={closeHelp}>知道了，关闭提示</button>
+src/components/annotation/AnnotationWorkbench.tsx:384:            <button className="annotation-primary" disabled={busy || !working || !parametersValid} onClick={() => { void generate(); }}>生成超像素</button>
+src/components/annotation/AnnotationWorkbench.tsx:416:            <button className="annotation-primary" disabled={busy || !ready || !geometry || !selectedId} onClick={() => { void edit('confirm'); }}>确认选中候选 / 区域</button>
+7:  return <aside className="annotation-right" aria-label="候选与分布">

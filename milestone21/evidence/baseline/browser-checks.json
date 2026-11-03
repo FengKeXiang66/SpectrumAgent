@@ -1,0 +1,33 @@
+[
+  {
+    "step": "click",
+    "stats": "超像素数\n64\n已确认\n1.44%\n不确定\n0.00%\n留白\n98.56%\n待确认（并集）\n0 px",
+    "badge": "像素 [行 115, 列 319]\n块 26 · 2127 px · 聚乙烯 100%\n滚轮缩放 · 空格/中键平移\n点选：左键标注 · 右键擦除 · Shift+左键不确定 · 拖拽平移"
+  },
+  {
+    "step": "right erase",
+    "stats": "超像素数\n64\n已确认\n0.00%\n不确定\n0.00%\n留白\n100.00%\n待确认（并集）\n0 px"
+  },
+  {
+    "step": "shift uncertain",
+    "stats": "超像素数\n64\n已确认\n0.00%\n不确定\n1.44%\n留白\n98.56%\n待确认（并集）\n0 px"
+  },
+  {
+    "step": "diffuse",
+    "queue": "候选 1 · 140,566 px\n最小 0.8622 · 平均 0.9740\n60 个超像素 · #1 / 2 / 3 …",
+    "stats": "超像素数\n64\n已确认\n1.44%\n不确定\n0.00%\n留白\n98.56%\n待确认（并集）\n140,566 px"
+  },
+  {
+    "step": "enter confirm",
+    "stats": "超像素数\n64\n已确认\n95.08%\n不确定\n0.00%\n留白\n4.92%\n待确认（并集）\n0 px"
+  },
+  {
+    "step": "undo candidate confirmation",
+    "stats": "超像素数\n64\n已确认\n1.44%\n不确定\n0.00%\n留白\n98.56%\n待确认（并集）\n0 px"
+  },
+  {
+    "step": "save",
+    "path": "E:\\AI_Agent\\.runtime\\task21\\acceptance\\exports\\ab26b266-94da-49e3-8be3-f08cdf7103ed\\20260804205214_64.json",
+    "stats": "超像素数\n64\n已确认\n1.44%\n不确定\n0.00%\n留白\n98.56%\n待确认（并集）\n0 px"
+  }
+]

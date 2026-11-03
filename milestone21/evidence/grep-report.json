@@ -1,0 +1,14 @@
+[
+  {
+    "pattern": "position:\\s*fixed|100vh|z-index",
+    "stdout": "0\n",
+    "exit_code": 1,
+    "count": 0
+  },
+  {
+    "pattern": "!important",
+    "stdout": "0\n",
+    "exit_code": 1,
+    "count": 0
+  }
+]

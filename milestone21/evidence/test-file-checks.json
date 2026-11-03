@@ -1,0 +1,32 @@
+[
+  {
+    "file": "src/components/annotation/confirm.test.ts",
+    "working_bytes_sha256": "979ea856797ea5dbee7a3066d7133a300bdb6fb599bf62bfabf6f04cac0084a9",
+    "diff": "",
+    "assertions": 17
+  },
+  {
+    "file": "src/components/annotation/display/display.test.ts",
+    "working_bytes_sha256": "8264d8f8b6da825747cd836fd6687c5b2e779e57bb23a5b0c89da3c6fa1e640f",
+    "diff": "",
+    "assertions": 14
+  },
+  {
+    "file": "src/components/annotation/projection.test.ts",
+    "working_bytes_sha256": "81ad32ce5ac06250b50aa995801ecd614a7a83ac5c9ee3c67ffa8c04cfe5f597",
+    "diff": "",
+    "assertions": 13
+  },
+  {
+    "file": "src/components/annotation/working.test.ts",
+    "working_bytes_sha256": "77f1671ed3adc2a918e63b6f065469e7d2eaa29a8ee6fac5bf3115ddc4829161",
+    "diff": "",
+    "assertions": 12
+  },
+  {
+    "file": "src/components/annotation/overwrite.test.ts",
+    "working_bytes_sha256": "b6f42665c1c12157bccefd9092d95314d8a49e47cd1ace735bb88cd7161bbdf9",
+    "diff": "",
+    "assertions": 9
+  }
+]

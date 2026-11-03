@@ -1,0 +1,11 @@
+{
+  "brand": "#0e6e8c",
+  "canvasBackground": "rgb(23, 36, 44)",
+  "canvasHeight": 479,
+  "cardRadius": "10px",
+  "left": 178,
+  "primaryBackground": "rgb(14, 110, 140)",
+  "primaryColor": "rgb(255, 255, 255)",
+  "right": 236,
+  "secondaryBackground": "rgb(255, 255, 255)"
+}

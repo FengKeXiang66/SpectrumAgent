@@ -1,0 +1,12 @@
+diff --git a/src/components/annotation/AnnotationWorkbench.tsx b/src/components/annotation/AnnotationWorkbench.tsx
+index 967e3cd..3812265 100644
+--- a/src/components/annotation/AnnotationWorkbench.tsx
++++ b/src/components/annotation/AnnotationWorkbench.tsx
+@@ -15,6 +15,7 @@ import { drafts } from './draft-api.ts';
+ import DisplayToolbar, { SpectrumReadout } from './display/DisplayToolbar.tsx';
+ import { DEFAULT_LUT, changeLut, displayRequest, type DisplayMode, type InspectionMode, type LutParameters } from './display/display.ts';
+ import './annotation.css';
++import './annotation-skin.css';
+ import type { WorkspaceContext } from '../assistant/api.ts';
+ import { candidatePreviewKey } from '../assistant/presentation.ts';
+ 
