@@ -1,0 +1,22 @@
+{
+  "execution_mode": "Windows / Node native TS tests + production build + IAB 1280x820 / isolated real FastAPI",
+  "baseline": {
+    "tests": 205,
+    "pass": 205,
+    "fail": 0
+  },
+  "new_tests": 4,
+  "total": 209,
+  "run_id": "20cf5937-9d94-47e9-b3c9-86ec17919297",
+  "run_get_count": 3,
+  "sweep_get_count": 3,
+  "api_response_count": 144,
+  "api_errors": 0,
+  "console_errors": 0,
+  "annotation_diff_stat": "",
+  "existing_tests_modified": 0,
+  "BandCanvas_body_unchanged": true,
+  "Thumbnail_body_unchanged": true,
+  "AppShell_styles_engine_states_unchanged": true,
+  "line_drift": []
+}

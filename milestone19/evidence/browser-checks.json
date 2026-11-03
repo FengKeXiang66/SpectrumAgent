@@ -1,0 +1,157 @@
+[
+  {
+    "check": "empty regression list",
+    "text": "暂无回归运行记录。请先在建模屏完成训练。"
+  },
+  {
+    "check": "S03 shared thumbnails",
+    "canvases": [
+      {
+        "clientHeight": 53,
+        "clientWidth": 80,
+        "height": "2",
+        "label": "首波段缩略图，宽3高2",
+        "width": "3"
+      },
+      {
+        "clientHeight": 53,
+        "clientWidth": 80,
+        "height": "2",
+        "label": "首波段缩略图，宽3高2",
+        "width": "3"
+      },
+      {
+        "clientHeight": 53,
+        "clientWidth": 80,
+        "height": "2",
+        "label": "首波段缩略图，宽3高2",
+        "width": "3"
+      },
+      {
+        "clientHeight": 53,
+        "clientWidth": 80,
+        "height": "2",
+        "label": "首波段缩略图，宽3高2",
+        "width": "3"
+      },
+      {
+        "clientHeight": 53,
+        "clientWidth": 80,
+        "height": "2",
+        "label": "首波段缩略图，宽3高2",
+        "width": "3"
+      },
+      {
+        "clientHeight": 53,
+        "clientWidth": 80,
+        "height": "2",
+        "label": "首波段缩略图，宽3高2",
+        "width": "3"
+      },
+      {
+        "clientHeight": 53,
+        "clientWidth": 80,
+        "height": "2",
+        "label": "首波段缩略图，宽3高2",
+        "width": "3"
+      },
+      {
+        "clientHeight": 53,
+        "clientWidth": 80,
+        "height": "2",
+        "label": "首波段缩略图，宽3高2",
+        "width": "3"
+      },
+      {
+        "clientHeight": 53,
+        "clientWidth": 80,
+        "height": "2",
+        "label": "首波段缩略图，宽3高2",
+        "width": "3"
+      },
+      {
+        "clientHeight": 53,
+        "clientWidth": 80,
+        "height": "2",
+        "label": "首波段缩略图，宽3高2",
+        "width": "3"
+      },
+      {
+        "clientHeight": 53,
+        "clientWidth": 80,
+        "height": "2",
+        "label": "首波段缩略图，宽3高2",
+        "width": "3"
+      },
+      {
+        "clientHeight": 53,
+        "clientWidth": 80,
+        "height": "2",
+        "label": "首波段缩略图，宽3高2",
+        "width": "3"
+      },
+      {
+        "clientHeight": 29,
+        "clientWidth": 80,
+        "height": "116",
+        "label": "首波段缩略图，宽320高116",
+        "width": "320"
+      },
+      {
+        "clientHeight": 29,
+        "clientWidth": 80,
+        "height": "116",
+        "label": "首波段缩略图，宽320高116",
+        "width": "320"
+      }
+    ]
+  },
+  {
+    "check": "S04 band 17 preview and workspace context",
+    "text": "返回数据屏\n数据查看器\n20260804205214_64\n波段索引  读取波段\n\n波段 17 · 宽 320 × 高 116",
+    "context": "当前数据：20260804205214_64 · 视图「数据查看器」\n对话\n展开助手页\n发送"
+  },
+  {
+    "check": "S07 registry retained",
+    "visible": true
+  },
+  {
+    "check": "S07 inference retained",
+    "visible": true
+  },
+  {
+    "check": "S07 result boundary before training",
+    "resultSections": 0,
+    "selectedSamples": 12
+  },
+  {
+    "check": "S07 real training automatically opens S08",
+    "text": "回归结果 · succeeded\n\n样品 12 个；实际使用前景像素 48 个。\n\n交叉验证最小建议 LV：1；使用 LV：3；拐点法建议 LV：1\n\n仅可做半定量\nRMSEC\n0.38772787497210287\nR²C\n0.7694713651545908\nRMSEP\n1.0795540124203802\nR²P\n-4.491804366727278\nRPD\n0.4927332153923215\nRER\n1.1258352856982585\n偏差\n0.8342341846204919\n划分与泄漏预检"
+  },
+  {
+    "check": "A3 S08 unmounted at s03",
+    "resultScreenCount": 0
+  },
+  {
+    "check": "A3 navigation remount reproduces result",
+    "same": true,
+    "text": "回归结果 · succeeded\n\n样品 12 个；实际使用前景像素 48 个。\n\n交叉验证最小建议 LV：1；使用 LV：3；拐点法建议 LV：1\n\n仅可做半定量\nRMSEC\n0.38772787497210287\nR²C\n0.7694713651545908\nRMSEP\n1.0795540124203802\nR²P\n-4.491804366727278\nRPD\n0.4927332153923215\nRER\n1.1258352856982585\n偏差\n0.8342341846204919\n划分与泄漏预检"
+  },
+  {
+    "check": "S08 back to list clears runId and loads actual runs",
+    "text": "运行 ID\t状态\t操作\n20cf5937-9d94-47e9-b3c9-86ec17919297\tsucceeded\t查看结果 20cf5937-9d94-47e9-b3c9-86ec17919297",
+    "resultSections": 0
+  },
+  {
+    "check": "S08 list row opens its run",
+    "same": true
+  },
+  {
+    "check": "S08 close returns S07",
+    "visible": true
+  },
+  {
+    "check": "browser console",
+    "entries": []
+  }
+]

@@ -1,0 +1,20 @@
+{
+  "head": "1920716",
+  "git_status_before": "",
+  "base": "be28705",
+  "commits": [
+    "1920716 docs(task19): 补 A3 往返路径（导航不清 runId，S08 内返回列表）",
+    "25ca23d docs(task19): 拍板回归记录下拉随 load 搬 S08（S07 删除）",
+    "e861493 docs(task19): 修三处空隙（A3 改重挂载判据 / 预览按钮处置 / selectedRecord 死代码）",
+    "8daec1b docs(task19): P2 卡（拆屏 S04 与 S08）",
+    "be28705 docs(evidence): 归档 TASK-18 P1 验收证据",
+    "c01d25f feat(assistant): P1 对话双形态（单行 composer + S01 三栏，同一条会话）"
+  ],
+  "diff_from_base": " TASK-19-拆屏S04与S08.md | 181 ++++++++++++++++++++++++++++++++++++++++++++++++\n 1 file changed, 181 insertions(+)\n",
+  "line_drift": [],
+  "baseline": {
+    "tests": 205,
+    "pass": 205,
+    "fail": 0
+  }
+}

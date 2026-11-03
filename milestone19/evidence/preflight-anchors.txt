@@ -1,0 +1,123 @@
+Frozen pre-edit HEAD 1920716; original grep review matched TASK-19 §0.
+
+src/components/modeling/api.ts
+51:     runs: () => forward<{ id: string; task: string; status: string }[]>({ op: 'list_runs' }),
+52:     run: (id: string) => forward<Result>({ op: 'get_run', id }),
+53:     sweep: (id: string) => forward<Sweep>({ op: 'lv_sweep', id }),
+
+src/components/modeling/ModelPanel.tsx
+22:   const [result, setResult] = useState<Result | null>(null), [sweep, setSweep] = useState<Sweep | null>(null);
+23:   const [chartsRequested, setChartsRequested] = useState(false), [chartLoading, setChartLoading] = useState(false);
+24:   const [runError, setRunError] = useState(''), [sweepError, setSweepError] = useState('');
+51:   const beginCharts = () => {
+52:     setResult(null); setSweep(null);
+53:     setChartsRequested(true); setChartLoading(true); setRunError(''); setSweepError('');
+54:   };
+55:   const rejectResult = (failure: unknown): never => {
+56:     setRunError(failureMessage(failure)); setChartLoading(false);
+57:     throw failure;
+58:   };
+59:   const acceptResult = async (row: Result) => {
+60:     setResult(row);
+61:     try {
+62:       if (row.status === 'succeeded') setSweep(await modeling.sweep(row.run_id));
+63:       else setSweepError('该记录尚未成功，暂无曲线产物。');
+64:     } catch (failure) {
+65:       // A missing LV artifact must not hide the run's metrics or prediction plots.
+66:       setSweepError(failureMessage(failure));
+67:     } finally { setChartLoading(false); }
+68:   };
+69:   const load = async (id: string) => {
+70:     beginCharts();
+71:     const row = await modeling.run(id).catch(rejectResult);
+72:     await acceptResult(row);
+73:   };
+74:   const importCSV = async (overwrite: boolean) => { setImported(await modeling.importCSV(project, csv, overwrite)); setTargets(await modeling.targets(project)); };
+75:   const runIds = Object.values(selected).filter(Boolean);
+76:   if (view === 'registry') return <RegistryPanel onClose={() => setView('training')} />;
+77:   if (view === 'inference') return <InferencePanel records={records} onClose={() => setView('training')} />;
+112:     <label>回归记录<select value={result?.run_id ?? ''} disabled={busy} onChange={e => { if (e.target.value) void work(() => load(e.target.value)); }}><option value="">请选择</option>{history.filter(row => row.task === 'regression').map(row => <option key={row.id} value={row.id}>{row.id} · {row.status}</option>)}</select></label>
+113:     {result && <section aria-label="回归结果"><h3>回归结果 · {result.status}</h3><p>样品 {result.n_samples} 个；实际使用前景像素 {result.n_pixels_used} 个。</p>
+114:       <p>交叉验证最小建议 LV：{result.best_lv ?? '不适用'}；使用 LV：{result.selected_lv ?? '不适用'}{sweep ? `；拐点法建议 LV：${sweep.elbow_lv}` : ''}</p>
+115:       {result.quality_label && <strong role="status">{result.quality_label}</strong>}
+116:       <dl>{Object.entries(metricLabels).map(([key, label]) => <div key={key}><dt>{label}</dt><dd>{result.metrics?.[key] ?? '不适用'}</dd></div>)}</dl>
+117:       <details><summary>划分与泄漏预检</summary><pre>{JSON.stringify(result.leak_report, null, 2)}</pre></details>
+118:       {result.error != null && <pre role="alert">{JSON.stringify(result.error, null, 2)}</pre>}
+119:     </section>}
+120:     {chartsRequested && <RegressionCharts charts={regressionCharts({ result, sweep, runError, sweepError, loading: chartLoading })} />}
+121:   </section>;
+
+src/components/datasets/DatasetPanel.tsx
+5: function BandCanvas({ preview, thumbnail = false }: { preview: Preview; thumbnail?: boolean }) {
+37:   return preview ? <BandCanvas preview={preview} thumbnail />
+52:   const [selected, setSelected] = useState<DatasetRecord | null>(selectedRecord);
+53:   const [band, setBand] = useState(0);
+54:   const [preview, setPreview] = useState<Preview | null>(null);
+55:   const [previewBusy, setPreviewBusy] = useState(false);
+56:   const live = useRef(true);
+57:   const sequence = useRef(0);
+58:   useEffect(() => { setSelected(selectedRecord); }, [selectedRecord]);
+64:   const loadPreview = async (record: DatasetRecord, index: number) => {
+65:     const request = ++sequence.current;
+66:     setSelected(record); setBand(index); setPreview(null); setPreviewBusy(true); setError('');
+67:     onWorkspaceChange?.({ cube_id: record.id });
+68:     try {
+69:       const result = await api.preview(record.id, index);
+70:       if (live.current && request === sequence.current) setPreview(result);
+71:     } catch (failure) {
+72:       if (live.current && request === sequence.current) setError(describeError(failure));
+73:     } finally {
+74:       if (live.current && request === sequence.current) setPreviewBusy(false);
+75:     }
+76:   };
+77: 
+78:   const choose = async () => {
+79:     setBusy(true); setError(''); setProgress({ done: 0, total: 0 });
+80:     try {
+118:           <td><Thumbnail record={record} api={api} /><button onClick={() => { void loadPreview(record, 0); }}>预览 {displayName(record)}</button>
+119:             <button disabled={busy} onClick={() => { onOpen('s05', record); onWorkspaceChange?.({ cube_id: record.id }); }}>标注 {displayName(record)}</button>
+120:             <button disabled={busy} onClick={() => { onOpen('s06', record); onWorkspaceChange?.({ cube_id: record.id }); }}>预处理 {displayName(record)}</button></td>
+121:         </tr>;
+122:       })}</tbody>
+123:     </table>
+124:     {selected && <section aria-label="单波段预览">
+
+src/App.tsx
+122:       const result = await invoke<Metrics>('run_smoke');
+123:       if (statusRef.current.generation_id === generation && statusRef.current.phase === 'Ready') {
+124:         setMetrics(result); setMessage('冒烟测试完成。'); setText('');
+125:       }
+126:     } catch {
+127:       if (statusRef.current.generation_id === generation) setMessage('冒烟测试未完成，请检查引擎状态与日志。');
+128:     } finally {
+129:       if (statusRef.current.generation_id === generation) setBusy(false);
+130:     }
+131:   };
+165:   const openScreen = (next: Screen, record?: DatasetRecord) => {
+166:     setNavigation(null); setNavigationError('');
+167:     if (record) setSelected(record);
+168:     else if (next === 's05' || next === 's06') {
+169:       setSelected(records.find(item => item.id === workspace.cube_id) ?? selected ?? records[0] ?? null);
+170:     }
+171:     setScreen(next);
+172:   };
+10: import SettingsPanel from './components/settings/SettingsPanel';
+188:       case 's06': return selected ? <PreprocessPanel key={selected.id} record={selected} refreshVersion={refreshVersions[selected.id] ?? 0} onClose={() => setScreen('s03')} />
+200:       <button onClick={() => setSettingsOpen(true)}>设置</button>
+201:     </>} assistant={screen === 's01' ? null : <Composer session={session} screen={screen} inputRef={composerInput} onExpand={() => setScreen('s01')} />}>
+205:     {settingsOpen && status.phase === 'Ready' && <SettingsPanel key={status.generation_id} onClose={() => setSettingsOpen(false)} />}
+
+src/components/preprocess/panel.test.ts
+61:   assert.match(read('../../App.tsx'), /<PreprocessPanel/);
+62:   assert.match(read('../datasets/DatasetPanel.tsx'), /onOpen\('s06', record\)/);
+
+src/components/annotation/working.test.ts
+94:   const app = readFileSync(new URL('../../App.tsx', import.meta.url), 'utf8');
+95:   assert.match(app, /<Composer/);
+96:   const panel = readFileSync(new URL('../assistant/Composer.tsx', import.meta.url), 'utf8');
+97:   assert.match(panel, /<footer\b[^>]*aria-label="常驻对话条"/);
+
+src/components/settings/SettingsPanel.test.ts
+185:   assert.match(source, /import SettingsPanel from '\.\/components\/settings\/SettingsPanel'/);
+186:   assert.match(source, /onClick=\{\(\) => setSettingsOpen\(true\)\}>设置<\/button>/);
+187:   assert.match(source, /settingsOpen && status.phase === 'Ready' && <SettingsPanel/);

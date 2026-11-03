@@ -1,0 +1,2496 @@
+{
+  "records": [
+    {
+      "id": "82652f9f-07eb-4ae1-beb6-512085c16854",
+      "dataset": {
+        "name": "20260804205214_64",
+        "shape": [
+          231,
+          640,
+          200
+        ],
+        "dtype": "uint16",
+        "interleave": "bil",
+        "wavelengths": [
+          881.85,
+          886.03,
+          890.21,
+          894.4,
+          898.58,
+          902.76,
+          906.94,
+          911.12,
+          915.31,
+          919.49,
+          923.67,
+          927.85,
+          932.04,
+          936.22,
+          940.4,
+          944.58,
+          948.77,
+          952.95,
+          957.13,
+          961.31,
+          965.49,
+          969.68,
+          973.86,
+          978.04,
+          982.22,
+          986.41,
+          990.59,
+          994.77,
+          998.95,
+          1003.14,
+          1007.32,
+          1011.5,
+          1015.68,
+          1019.87,
+          1024.05,
+          1028.23,
+          1032.41,
+          1036.59,
+          1040.78,
+          1044.96,
+          1049.14,
+          1053.32,
+          1057.51,
+          1061.69,
+          1065.87,
+          1070.05,
+          1074.24,
+          1078.42,
+          1082.6,
+          1086.78,
+          1090.97,
+          1095.15,
+          1099.33,
+          1103.51,
+          1107.69,
+          1111.88,
+          1116.06,
+          1120.24,
+          1124.42,
+          1128.61,
+          1132.79,
+          1136.97,
+          1141.15,
+          1145.34,
+          1149.52,
+          1153.7,
+          1157.88,
+          1162.06,
+          1166.25,
+          1170.43,
+          1174.61,
+          1178.79,
+          1182.98,
+          1187.16,
+          1191.34,
+          1195.52,
+          1199.71,
+          1203.89,
+          1208.07,
+          1212.25,
+          1216.44,
+          1220.62,
+          1224.8,
+          1228.98,
+          1233.16,
+          1237.35,
+          1241.53,
+          1245.71,
+          1249.89,
+          1254.08,
+          1258.26,
+          1262.44,
+          1266.62,
+          1270.81,
+          1274.99,
+          1279.17,
+          1283.35,
+          1287.54,
+          1291.72,
+          1295.9,
+          1300.08,
+          1304.26,
+          1308.45,
+          1312.63,
+          1316.81,
+          1320.99,
+          1325.18,
+          1329.36,
+          1333.54,
+          1337.72,
+          1341.91,
+          1346.09,
+          1350.27,
+          1354.45,
+          1358.63,
+          1362.82,
+          1367.0,
+          1371.18,
+          1375.36,
+          1379.55,
+          1383.73,
+          1387.91,
+          1392.09,
+          1396.28,
+          1400.46,
+          1404.64,
+          1408.82,
+          1413.01,
+          1417.19,
+          1421.37,
+          1425.55,
+          1429.73,
+          1433.92,
+          1438.1,
+          1442.28,
+          1446.46,
+          1450.65,
+          1454.83,
+          1459.01,
+          1463.19,
+          1467.38,
+          1471.56,
+          1475.74,
+          1479.92,
+          1484.11,
+          1488.29,
+          1492.47,
+          1496.65,
+          1500.83,
+          1505.02,
+          1509.2,
+          1513.38,
+          1517.56,
+          1521.75,
+          1525.93,
+          1530.11,
+          1534.29,
+          1538.48,
+          1542.66,
+          1546.84,
+          1551.02,
+          1555.2,
+          1559.39,
+          1563.57,
+          1567.75,
+          1571.93,
+          1576.12,
+          1580.3,
+          1584.48,
+          1588.66,
+          1592.85,
+          1597.03,
+          1601.21,
+          1605.39,
+          1609.58,
+          1613.76,
+          1617.94,
+          1622.12,
+          1626.3,
+          1630.49,
+          1634.67,
+          1638.85,
+          1643.03,
+          1647.22,
+          1651.4,
+          1655.58,
+          1659.76,
+          1663.95,
+          1668.13,
+          1672.31,
+          1676.49,
+          1680.68,
+          1684.86,
+          1689.04,
+          1693.22,
+          1697.4,
+          1701.59,
+          1705.77,
+          1709.95,
+          1714.13
+        ],
+        "data_path": "E:\\高光谱数据集\\plastic\\pe\\20260804205214_64.img",
+        "header_path": "E:\\高光谱数据集\\plastic\\pe\\20260804205214_64.hdr",
+        "fwhm": null,
+        "metadata": {
+          "file type": "ENVI Standard",
+          "sensor type": "Landsat TM",
+          "wavelength units": "Nanometers",
+          "default stretch": "2.0% linear",
+          "band names": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "20",
+            "21",
+            "22",
+            "23",
+            "24",
+            "25",
+            "26",
+            "27",
+            "28",
+            "29",
+            "30",
+            "31",
+            "32",
+            "33",
+            "34",
+            "35",
+            "36",
+            "37",
+            "38",
+            "39",
+            "40",
+            "41",
+            "42",
+            "43",
+            "44",
+            "45",
+            "46",
+            "47",
+            "48",
+            "49",
+            "50",
+            "51",
+            "52",
+            "53",
+            "54",
+            "55",
+            "56",
+            "57",
+            "58",
+            "59",
+            "60",
+            "61",
+            "62",
+            "63",
+            "64",
+            "65",
+            "66",
+            "67",
+            "68",
+            "69",
+            "70",
+            "71",
+            "72",
+            "73",
+            "74",
+            "75",
+            "76",
+            "77",
+            "78",
+            "79",
+            "80",
+            "81",
+            "82",
+            "83",
+            "84",
+            "85",
+            "86",
+            "87",
+            "88",
+            "89",
+            "90",
+            "91",
+            "92",
+            "93",
+            "94",
+            "95",
+            "96",
+            "97",
+            "98",
+            "99",
+            "100",
+            "101",
+            "102",
+            "103",
+            "104",
+            "105",
+            "106",
+            "107",
+            "108",
+            "109",
+            "110",
+            "111",
+            "112",
+            "113",
+            "114",
+            "115",
+            "116",
+            "117",
+            "118",
+            "119",
+            "120",
+            "121",
+            "122",
+            "123",
+            "124",
+            "125",
+            "126",
+            "127",
+            "128",
+            "129",
+            "130",
+            "131",
+            "132",
+            "133",
+            "134",
+            "135",
+            "136",
+            "137",
+            "138",
+            "139",
+            "140",
+            "141",
+            "142",
+            "143",
+            "144",
+            "145",
+            "146",
+            "147",
+            "148",
+            "149",
+            "150",
+            "151",
+            "152",
+            "153",
+            "154",
+            "155",
+            "156",
+            "157",
+            "158",
+            "159",
+            "160",
+            "161",
+            "162",
+            "163",
+            "164",
+            "165",
+            "166",
+            "167",
+            "168",
+            "169",
+            "170",
+            "171",
+            "172",
+            "173",
+            "174",
+            "175",
+            "176",
+            "177",
+            "178",
+            "179",
+            "180",
+            "181",
+            "182",
+            "183",
+            "184",
+            "185",
+            "186",
+            "187",
+            "188",
+            "189",
+            "190",
+            "191",
+            "192",
+            "193",
+            "194",
+            "195",
+            "196",
+            "197",
+            "198",
+            "199",
+            "200"
+          ],
+          "relative": "0",
+          "scale_factor": 65535.0,
+          "scale_applied": true,
+          "value_mode": "reflectance",
+          "value_description": "float64，DN / 65535",
+          "byte_order": 0,
+          "header_offset": 0,
+          "reader": "spectral"
+        }
+      },
+      "existing": false,
+      "display_name": "20260804205214_64"
+    },
+    {
+      "id": "f4baad67-e446-427d-8a37-fc11a23cf81b",
+      "dataset": {
+        "name": "20260804205217_70",
+        "shape": [
+          231,
+          640,
+          200
+        ],
+        "dtype": "uint16",
+        "interleave": "bil",
+        "wavelengths": [
+          881.85,
+          886.03,
+          890.21,
+          894.4,
+          898.58,
+          902.76,
+          906.94,
+          911.12,
+          915.31,
+          919.49,
+          923.67,
+          927.85,
+          932.04,
+          936.22,
+          940.4,
+          944.58,
+          948.77,
+          952.95,
+          957.13,
+          961.31,
+          965.49,
+          969.68,
+          973.86,
+          978.04,
+          982.22,
+          986.41,
+          990.59,
+          994.77,
+          998.95,
+          1003.14,
+          1007.32,
+          1011.5,
+          1015.68,
+          1019.87,
+          1024.05,
+          1028.23,
+          1032.41,
+          1036.59,
+          1040.78,
+          1044.96,
+          1049.14,
+          1053.32,
+          1057.51,
+          1061.69,
+          1065.87,
+          1070.05,
+          1074.24,
+          1078.42,
+          1082.6,
+          1086.78,
+          1090.97,
+          1095.15,
+          1099.33,
+          1103.51,
+          1107.69,
+          1111.88,
+          1116.06,
+          1120.24,
+          1124.42,
+          1128.61,
+          1132.79,
+          1136.97,
+          1141.15,
+          1145.34,
+          1149.52,
+          1153.7,
+          1157.88,
+          1162.06,
+          1166.25,
+          1170.43,
+          1174.61,
+          1178.79,
+          1182.98,
+          1187.16,
+          1191.34,
+          1195.52,
+          1199.71,
+          1203.89,
+          1208.07,
+          1212.25,
+          1216.44,
+          1220.62,
+          1224.8,
+          1228.98,
+          1233.16,
+          1237.35,
+          1241.53,
+          1245.71,
+          1249.89,
+          1254.08,
+          1258.26,
+          1262.44,
+          1266.62,
+          1270.81,
+          1274.99,
+          1279.17,
+          1283.35,
+          1287.54,
+          1291.72,
+          1295.9,
+          1300.08,
+          1304.26,
+          1308.45,
+          1312.63,
+          1316.81,
+          1320.99,
+          1325.18,
+          1329.36,
+          1333.54,
+          1337.72,
+          1341.91,
+          1346.09,
+          1350.27,
+          1354.45,
+          1358.63,
+          1362.82,
+          1367.0,
+          1371.18,
+          1375.36,
+          1379.55,
+          1383.73,
+          1387.91,
+          1392.09,
+          1396.28,
+          1400.46,
+          1404.64,
+          1408.82,
+          1413.01,
+          1417.19,
+          1421.37,
+          1425.55,
+          1429.73,
+          1433.92,
+          1438.1,
+          1442.28,
+          1446.46,
+          1450.65,
+          1454.83,
+          1459.01,
+          1463.19,
+          1467.38,
+          1471.56,
+          1475.74,
+          1479.92,
+          1484.11,
+          1488.29,
+          1492.47,
+          1496.65,
+          1500.83,
+          1505.02,
+          1509.2,
+          1513.38,
+          1517.56,
+          1521.75,
+          1525.93,
+          1530.11,
+          1534.29,
+          1538.48,
+          1542.66,
+          1546.84,
+          1551.02,
+          1555.2,
+          1559.39,
+          1563.57,
+          1567.75,
+          1571.93,
+          1576.12,
+          1580.3,
+          1584.48,
+          1588.66,
+          1592.85,
+          1597.03,
+          1601.21,
+          1605.39,
+          1609.58,
+          1613.76,
+          1617.94,
+          1622.12,
+          1626.3,
+          1630.49,
+          1634.67,
+          1638.85,
+          1643.03,
+          1647.22,
+          1651.4,
+          1655.58,
+          1659.76,
+          1663.95,
+          1668.13,
+          1672.31,
+          1676.49,
+          1680.68,
+          1684.86,
+          1689.04,
+          1693.22,
+          1697.4,
+          1701.59,
+          1705.77,
+          1709.95,
+          1714.13
+        ],
+        "data_path": "E:\\高光谱数据集\\plastic\\pe\\20260804205217_70.img",
+        "header_path": "E:\\高光谱数据集\\plastic\\pe\\20260804205217_70.hdr",
+        "fwhm": null,
+        "metadata": {
+          "file type": "ENVI Standard",
+          "sensor type": "Landsat TM",
+          "wavelength units": "Nanometers",
+          "default stretch": "2.0% linear",
+          "band names": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "20",
+            "21",
+            "22",
+            "23",
+            "24",
+            "25",
+            "26",
+            "27",
+            "28",
+            "29",
+            "30",
+            "31",
+            "32",
+            "33",
+            "34",
+            "35",
+            "36",
+            "37",
+            "38",
+            "39",
+            "40",
+            "41",
+            "42",
+            "43",
+            "44",
+            "45",
+            "46",
+            "47",
+            "48",
+            "49",
+            "50",
+            "51",
+            "52",
+            "53",
+            "54",
+            "55",
+            "56",
+            "57",
+            "58",
+            "59",
+            "60",
+            "61",
+            "62",
+            "63",
+            "64",
+            "65",
+            "66",
+            "67",
+            "68",
+            "69",
+            "70",
+            "71",
+            "72",
+            "73",
+            "74",
+            "75",
+            "76",
+            "77",
+            "78",
+            "79",
+            "80",
+            "81",
+            "82",
+            "83",
+            "84",
+            "85",
+            "86",
+            "87",
+            "88",
+            "89",
+            "90",
+            "91",
+            "92",
+            "93",
+            "94",
+            "95",
+            "96",
+            "97",
+            "98",
+            "99",
+            "100",
+            "101",
+            "102",
+            "103",
+            "104",
+            "105",
+            "106",
+            "107",
+            "108",
+            "109",
+            "110",
+            "111",
+            "112",
+            "113",
+            "114",
+            "115",
+            "116",
+            "117",
+            "118",
+            "119",
+            "120",
+            "121",
+            "122",
+            "123",
+            "124",
+            "125",
+            "126",
+            "127",
+            "128",
+            "129",
+            "130",
+            "131",
+            "132",
+            "133",
+            "134",
+            "135",
+            "136",
+            "137",
+            "138",
+            "139",
+            "140",
+            "141",
+            "142",
+            "143",
+            "144",
+            "145",
+            "146",
+            "147",
+            "148",
+            "149",
+            "150",
+            "151",
+            "152",
+            "153",
+            "154",
+            "155",
+            "156",
+            "157",
+            "158",
+            "159",
+            "160",
+            "161",
+            "162",
+            "163",
+            "164",
+            "165",
+            "166",
+            "167",
+            "168",
+            "169",
+            "170",
+            "171",
+            "172",
+            "173",
+            "174",
+            "175",
+            "176",
+            "177",
+            "178",
+            "179",
+            "180",
+            "181",
+            "182",
+            "183",
+            "184",
+            "185",
+            "186",
+            "187",
+            "188",
+            "189",
+            "190",
+            "191",
+            "192",
+            "193",
+            "194",
+            "195",
+            "196",
+            "197",
+            "198",
+            "199",
+            "200"
+          ],
+          "relative": "0",
+          "scale_factor": 65535.0,
+          "scale_applied": true,
+          "value_mode": "reflectance",
+          "value_description": "float64，DN / 65535",
+          "byte_order": 0,
+          "header_offset": 0,
+          "reader": "spectral"
+        }
+      },
+      "existing": false,
+      "display_name": "20260804205217_70"
+    }
+  ],
+  "runtime": "E:\\AI_Agent\\.runtime\\task19\\browser-a104a2c256dd4f328818cd97507747c0\\857a0f50-e565-4cc2-aa92-6b7929026bda",
+  "requests": [
+    {
+      "command": "agent_forward",
+      "op": "get_runtime",
+      "id": null
+    },
+    {
+      "command": "datasets_forward",
+      "op": "import",
+      "id": null
+    },
+    {
+      "command": "datasets_forward",
+      "op": "import",
+      "id": null
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "72144fc4-6e3a-44e1-ab89-e4f12eb51bc3"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "890e9c9a-c8e6-425e-a51a-64809637555f"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "d4605a89-504d-46a0-8cb9-6a1842139f66"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "52aa1527-0887-4ceb-ba51-c29e4d155a58"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "aa3bd7b3-2a22-44a2-81af-c5a635e44bd4"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "7921968a-60e7-4363-99b3-1009ce5d413d"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "11138c0b-420e-4a73-8f6b-3886a0171356"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "5eb8e642-0da2-4ba6-90e6-905dc9dddc69"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "6baa0d93-ff78-4bb6-be65-5a465724cb3b"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "301f28e0-9678-4d6d-8da7-6b8a14c6561b"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "38e4d180-4997-430b-a65e-762047c6436a"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "3316bf0b-2e21-466e-9fdc-7cfb3e98c7a3"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "82652f9f-07eb-4ae1-beb6-512085c16854"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "f4baad67-e446-427d-8a37-fc11a23cf81b"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "82652f9f-07eb-4ae1-beb6-512085c16854"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "82652f9f-07eb-4ae1-beb6-512085c16854"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "72144fc4-6e3a-44e1-ab89-e4f12eb51bc3"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "890e9c9a-c8e6-425e-a51a-64809637555f"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "d4605a89-504d-46a0-8cb9-6a1842139f66"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "52aa1527-0887-4ceb-ba51-c29e4d155a58"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "aa3bd7b3-2a22-44a2-81af-c5a635e44bd4"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "7921968a-60e7-4363-99b3-1009ce5d413d"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "11138c0b-420e-4a73-8f6b-3886a0171356"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "5eb8e642-0da2-4ba6-90e6-905dc9dddc69"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "301f28e0-9678-4d6d-8da7-6b8a14c6561b"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "6baa0d93-ff78-4bb6-be65-5a465724cb3b"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "38e4d180-4997-430b-a65e-762047c6436a"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "3316bf0b-2e21-466e-9fdc-7cfb3e98c7a3"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "82652f9f-07eb-4ae1-beb6-512085c16854"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "f4baad67-e446-427d-8a37-fc11a23cf81b"
+    },
+    {
+      "command": "annotations_forward",
+      "op": "projects",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "977a9b53-71da-4885-aec3-cd73f30f9625"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "771bb6de-4c73-45c2-a697-fe257698387f"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "e7723492-a018-4106-bfdd-5b613496a701"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "eb6e01a4-abba-4885-87e2-b8f7650ced52"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "35e6eb48-136c-46b8-a6f3-fe1d53cc0546"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "5b65042f-e082-4b53-8df5-c4ce0f9f1969"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "5ab0c1e3-4dff-4f9c-8111-57e75e956714"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "cae5306b-a661-486d-baf0-edff2ba38b29"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "1776fd81-4b8e-464d-9da9-362856a570e5"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "f4fe8cb0-6502-4e50-892f-c2c6b8a1cbf0"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "d8b74675-9bbd-4308-86a5-768b6c383327"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "95292378-138e-45bd-b3f4-0ee6a7776ead"
+    },
+    {
+      "command": "annotations_forward",
+      "op": "labels",
+      "id": null
+    },
+    {
+      "command": "models_forward",
+      "op": "list_targets",
+      "id": null
+    },
+    {
+      "command": "models_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "models_forward",
+      "op": "list_models",
+      "id": null
+    },
+    {
+      "command": "models_forward",
+      "op": "list_models",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "eb6e01a4-abba-4885-87e2-b8f7650ced52"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "771bb6de-4c73-45c2-a697-fe257698387f"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "e7723492-a018-4106-bfdd-5b613496a701"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "1776fd81-4b8e-464d-9da9-362856a570e5"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "cae5306b-a661-486d-baf0-edff2ba38b29"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "977a9b53-71da-4885-aec3-cd73f30f9625"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "5ab0c1e3-4dff-4f9c-8111-57e75e956714"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "95292378-138e-45bd-b3f4-0ee6a7776ead"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "d8b74675-9bbd-4308-86a5-768b6c383327"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "35e6eb48-136c-46b8-a6f3-fe1d53cc0546"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "5b65042f-e082-4b53-8df5-c4ce0f9f1969"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "f4fe8cb0-6502-4e50-892f-c2c6b8a1cbf0"
+    },
+    {
+      "command": "models_forward",
+      "op": "create_run",
+      "id": null
+    },
+    {
+      "command": "models_forward",
+      "op": "get_run",
+      "id": "20cf5937-9d94-47e9-b3c9-86ec17919297"
+    },
+    {
+      "command": "models_forward",
+      "op": "lv_sweep",
+      "id": "20cf5937-9d94-47e9-b3c9-86ec17919297"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "72144fc4-6e3a-44e1-ab89-e4f12eb51bc3"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "890e9c9a-c8e6-425e-a51a-64809637555f"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "d4605a89-504d-46a0-8cb9-6a1842139f66"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "52aa1527-0887-4ceb-ba51-c29e4d155a58"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "aa3bd7b3-2a22-44a2-81af-c5a635e44bd4"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "7921968a-60e7-4363-99b3-1009ce5d413d"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "11138c0b-420e-4a73-8f6b-3886a0171356"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "5eb8e642-0da2-4ba6-90e6-905dc9dddc69"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "301f28e0-9678-4d6d-8da7-6b8a14c6561b"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "6baa0d93-ff78-4bb6-be65-5a465724cb3b"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "38e4d180-4997-430b-a65e-762047c6436a"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "3316bf0b-2e21-466e-9fdc-7cfb3e98c7a3"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "82652f9f-07eb-4ae1-beb6-512085c16854"
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "id": "f4baad67-e446-427d-8a37-fc11a23cf81b"
+    },
+    {
+      "command": "models_forward",
+      "op": "get_run",
+      "id": "20cf5937-9d94-47e9-b3c9-86ec17919297"
+    },
+    {
+      "command": "models_forward",
+      "op": "lv_sweep",
+      "id": "20cf5937-9d94-47e9-b3c9-86ec17919297"
+    },
+    {
+      "command": "models_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "models_forward",
+      "op": "get_run",
+      "id": "20cf5937-9d94-47e9-b3c9-86ec17919297"
+    },
+    {
+      "command": "models_forward",
+      "op": "lv_sweep",
+      "id": "20cf5937-9d94-47e9-b3c9-86ec17919297"
+    },
+    {
+      "command": "annotations_forward",
+      "op": "projects",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "id": null
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "eb6e01a4-abba-4885-87e2-b8f7650ced52"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "771bb6de-4c73-45c2-a697-fe257698387f"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "e7723492-a018-4106-bfdd-5b613496a701"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "1776fd81-4b8e-464d-9da9-362856a570e5"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "cae5306b-a661-486d-baf0-edff2ba38b29"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "977a9b53-71da-4885-aec3-cd73f30f9625"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "5ab0c1e3-4dff-4f9c-8111-57e75e956714"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "35e6eb48-136c-46b8-a6f3-fe1d53cc0546"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "5b65042f-e082-4b53-8df5-c4ce0f9f1969"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "d8b74675-9bbd-4308-86a5-768b6c383327"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "f4fe8cb0-6502-4e50-892f-c2c6b8a1cbf0"
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "id": "95292378-138e-45bd-b3f4-0ee6a7776ead"
+    },
+    {
+      "command": "annotations_forward",
+      "op": "labels",
+      "id": null
+    },
+    {
+      "command": "models_forward",
+      "op": "list_targets",
+      "id": null
+    }
+  ],
+  "responses": [
+    {
+      "command": "engine_status",
+      "op": null,
+      "status": 200
+    },
+    {
+      "command": "agent_forward",
+      "op": "get_runtime",
+      "status": 200
+    },
+    {
+      "command": "plugin:dialog|open",
+      "op": null,
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "import",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "import",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "annotations_forward",
+      "op": "projects",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "models_forward",
+      "op": "list_targets",
+      "status": 200
+    },
+    {
+      "command": "annotations_forward",
+      "op": "labels",
+      "status": 200
+    },
+    {
+      "command": "models_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "models_forward",
+      "op": "list_models",
+      "status": 200
+    },
+    {
+      "command": "models_forward",
+      "op": "list_models",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "models_forward",
+      "op": "create_run",
+      "status": 200
+    },
+    {
+      "command": "models_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "models_forward",
+      "op": "lv_sweep",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "datasets_forward",
+      "op": "preview",
+      "status": 200
+    },
+    {
+      "command": "models_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "models_forward",
+      "op": "lv_sweep",
+      "status": 200
+    },
+    {
+      "command": "models_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "models_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "models_forward",
+      "op": "lv_sweep",
+      "status": 200
+    },
+    {
+      "command": "annotations_forward",
+      "op": "projects",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "list_runs",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "preprocess_forward",
+      "op": "get_run",
+      "status": 200
+    },
+    {
+      "command": "annotations_forward",
+      "op": "labels",
+      "status": 200
+    },
+    {
+      "command": "models_forward",
+      "op": "list_targets",
+      "status": 200
+    }
+  ],
+  "sessions": [],
+  "messages": [],
+  "smoke_results": [],
+  "training_results": [
+    {
+      "request": {
+        "task": "regression",
+        "preprocess_run_ids": [
+          "eb6e01a4-abba-4885-87e2-b8f7650ced52",
+          "cae5306b-a661-486d-baf0-edff2ba38b29",
+          "977a9b53-71da-4885-aec3-cd73f30f9625",
+          "e7723492-a018-4106-bfdd-5b613496a701",
+          "771bb6de-4c73-45c2-a697-fe257698387f",
+          "1776fd81-4b8e-464d-9da9-362856a570e5",
+          "5ab0c1e3-4dff-4f9c-8111-57e75e956714",
+          "35e6eb48-136c-46b8-a6f3-fe1d53cc0546",
+          "5b65042f-e082-4b53-8df5-c4ce0f9f1969",
+          "f4fe8cb0-6502-4e50-892f-c2c6b8a1cbf0",
+          "95292378-138e-45bd-b3f4-0ee6a7776ead",
+          "d8b74675-9bbd-4308-86a5-768b6c383327"
+        ],
+        "target_schema_id": "b6122997-eb13-4784-9434-acf98d62dc29",
+        "split_strategy": "ks",
+        "test_ratio": 0.3333333333333333,
+        "cv_strategy": "kfold",
+        "cv_folds": 3,
+        "seed": 17,
+        "n_components": 3
+      },
+      "response": {
+        "run_id": "20cf5937-9d94-47e9-b3c9-86ec17919297",
+        "status": "succeeded",
+        "task": "regression",
+        "target": "含量",
+        "target_schema_id": "b6122997-eb13-4784-9434-acf98d62dc29",
+        "split_strategy": "ks",
+        "cv_strategy": "kfold",
+        "cv_folds": 3,
+        "n_samples": 12,
+        "n_pixels_used": 48,
+        "selected_lv": 3,
+        "best_lv": 1,
+        "by_cv_min": 1,
+        "by_elbow": 1,
+        "metrics": {
+          "bias": 0.8342341846204919,
+          "r2": 0.7694713651545908,
+          "r2p": -4.491804366727278,
+          "rer": 1.1258352856982585,
+          "rmse": 0.38772787497210287,
+          "rmsep": 1.0795540124203802,
+          "rpd": 0.4927332153923215
+        },
+        "semi_quantitative": true,
+        "quality_label": "仅可做半定量",
+        "leak_report": {
+          "group_cross_fold": {
+            "violation_count": 0,
+            "folds": [
+              {
+                "fold_index": 0,
+                "overlap_groups": []
+              },
+              {
+                "fold_index": 1,
+                "overlap_groups": []
+              },
+              {
+                "fold_index": 2,
+                "overlap_groups": []
+              }
+            ]
+          },
+          "duplicate_content": {
+            "duplicate_count": 0,
+            "pairs": []
+          },
+          "preprocess_full_fit": {
+            "acknowledged": true,
+            "reason": "现有算子 fit-on-apply 合一（preprocess/operators/standardize.py L1）；阶段一接受全数据拟合",
+            "affected_steps": [
+              "standardize"
+            ]
+          },
+          "random_split_requested": false,
+          "random_split_warning": null,
+          "passed": true,
+          "near_duplicate_spectra": {
+            "threshold": 0.999,
+            "pairs": [],
+            "pair_count": 0
+          },
+          "coverage_repaired": true
+        },
+        "error": null,
+        "predictions": [
+          {
+            "cube_id": "72144fc4-6e3a-44e1-ab89-e4f12eb51bc3",
+            "set": "calibration",
+            "y_true": 0.2747,
+            "y_pred": 0.687649773965059,
+            "residual": 0.412949773965059
+          },
+          {
+            "cube_id": "890e9c9a-c8e6-425e-a51a-64809637555f",
+            "set": "calibration",
+            "y_true": 0.8713,
+            "y_pred": 1.0514650766796176,
+            "residual": 0.18016507667961768
+          },
+          {
+            "cube_id": "d4605a89-504d-46a0-8cb9-6a1842139f66",
+            "set": "prediction",
+            "y_true": 1.0925,
+            "y_pred": 0.9459938171006526,
+            "residual": -0.14650618289934747
+          },
+          {
+            "cube_id": "52aa1527-0887-4ceb-ba51-c29e4d155a58",
+            "set": "calibration",
+            "y_true": 1.2354,
+            "y_pred": 1.4511920466358919,
+            "residual": 0.2157920466358918
+          },
+          {
+            "cube_id": "aa3bd7b3-2a22-44a2-81af-c5a635e44bd4",
+            "set": "calibration",
+            "y_true": 0.9373,
+            "y_pred": 1.1802847895079718,
+            "residual": 0.24298478950797175
+          },
+          {
+            "cube_id": "7921968a-60e7-4363-99b3-1009ce5d413d",
+            "set": "calibration",
+            "y_true": 1.1637,
+            "y_pred": 0.4540879960588018,
+            "residual": -0.7096120039411982
+          },
+          {
+            "cube_id": "11138c0b-420e-4a73-8f6b-3886a0171356",
+            "set": "prediction",
+            "y_true": 2.0598,
+            "y_pred": 3.6954902381873165,
+            "residual": 1.6356902381873164
+          },
+          {
+            "cube_id": "5eb8e642-0da2-4ba6-90e6-905dc9dddc69",
+            "set": "prediction",
+            "y_true": 1.641,
+            "y_pred": 2.205915440608159,
+            "residual": 0.5649154406081589
+          },
+          {
+            "cube_id": "301f28e0-9678-4d6d-8da7-6b8a14c6561b",
+            "set": "calibration",
+            "y_true": 2.0662000000000003,
+            "y_pred": 2.3527378067841713,
+            "residual": 0.28653780678417107
+          },
+          {
+            "cube_id": "6baa0d93-ff78-4bb6-be65-5a465724cb3b",
+            "set": "prediction",
+            "y_true": 2.3079,
+            "y_pred": 3.59073724258584,
+            "residual": 1.28283724258584
+          },
+          {
+            "cube_id": "38e4d180-4997-430b-a65e-762047c6436a",
+            "set": "calibration",
+            "y_true": 2.39,
+            "y_pred": 2.3108672906823253,
+            "residual": -0.0791327093176748
+          },
+          {
+            "cube_id": "3316bf0b-2e21-466e-9fdc-7cfb3e98c7a3",
+            "set": "calibration",
+            "y_true": 2.8099000000000003,
+            "y_pred": 2.2602152196861613,
+            "residual": -0.5496847803138389
+          }
+        ]
+      },
+      "status": 200
+    }
+  ]
+}
