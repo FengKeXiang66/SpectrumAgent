@@ -12,7 +12,10 @@
 | 事实 | 位置 |
 |---|---|
 | S05 组件 449 行；样式入口 **`import './annotation.css'`** | `AnnotationWorkbench.tsx:17` |
-| 主要类名：`annotation-columns` / `-left` / `-center` / `-card` / `-primary` / `-hint` / `-tools` / `-parameters` / `-quality` / `-history` / `-overwrite` / `-error` / `-warning` / `-navigation` / `-levels` | 同上 |
+| 主要类名：`annotation-columns` / `-left` / `-center` / **`-right`** / `-card` / `-primary` / `-hint` / `-tools` / `-parameters` / `-quality` / `-history` / `-overwrite` / `-error` / `-warning` / `-navigation` / `-levels` | 同上 |
+| **`annotation-right` 的宿主是 `CandidateQueue.tsx:7`**（右栏容器），不在 Workbench 里；skin 用 `.annotation-workbench .annotation-right` 覆盖即可，**不改该文件** | `CandidateQueue.tsx:7` |
+| 变量体系已存在：`--ann-brand` / `--ann-line` / `--ann-muted` | `annotation.css:1` |
+| 既有浮层层级：`.annotation-shortcut-help` 带 `z-index:4` + `position:absolute` | `annotation.css:59` |
 | 65 处源码断言分布在 5 个测试文件（confirm 17 / display 14 / projection 13 / working 12 / overwrite 9） | `docs/P3-断言盘点表.md` |
 | 其中**锁 `annotation-*` 类名的只有 2 处**：`projection.test.ts:20`（`annotation-error`）、`:21`（`annotation-warning`） | 同上 |
 | `working.test.ts:93` 读的是 **`annotation.css` 这个具体文件**，断言其中无 `position: fixed` | — |
@@ -29,6 +32,7 @@
 - 新增 `src/components/annotation/annotation-skin.css`
 - `AnnotationWorkbench.tsx` 加**一行** `import './annotation-skin.css';`（放在 `:17` 之后，保证后加载）
 - 用现有类名选择器覆盖视觉：卡片圆角/阴影/间距、按钮层级（`annotation-primary`）、提示与徽标配色、三栏栅格间距、层级指示器
+- **优先改 `--ann-*` 变量值**（主色、描边、弱化色），只有变量表达不了的才写单条规则
 
 ### 1.2 不做（红线）
 
@@ -61,11 +65,37 @@
 
 **除此之外对 `annotation/` 的任何改动即停上报**——包括"顺手把某个 div 包一层"。
 
-### 2.3 覆盖策略
+### 2.3 覆盖策略（前缀选择器 + 变量优先）
 
-- **后加载**：`import './annotation-skin.css'` 放在 `import './annotation.css'` 之后
-- **同/高特异性**：用 `.annotation-card` 这种同权重选择器即可（后加载胜出）；必要时用 `.annotation-columns .annotation-card` 提升，**不得用 `!important`**
-- 若发现必须 `!important` 才能覆盖，**停手回报**——那说明原规则的选择器权重有问题，应改在皮肤里重写整条规则，而不是加 `!important` 军备
+**先查变量，能调变量就不写规则。** `annotation.css:1` 已经建好变量体系：
+
+```css
+.annotation-workbench { --ann-brand:#24638b; --ann-line:#dce3e8; --ann-muted:#61717e; }
+```
+
+skin 里一条 `.annotation-workbench { --ann-brand: … }` 就能换掉全局主色，实现量最小，且天然绕开特异性问题。**换色/换描边/换弱化色优先走这条路。**
+
+**规则一律带 `.annotation-workbench` 前缀，禁止裸类选择器。** 原因是 `annotation.css` 是混合特异性：
+
+| 原规则 | 特异性 |
+|---|---|
+| `.annotation-workbench .annotation-primary`（`:22`） | 0-2-0 |
+| `.annotation-workbench .annotation-primary:hover:not(:disabled)`（`:23`） | 0-4-0 |
+| `.annotation-right .annotation-primary`（`:58`） | 0-2-0 |
+
+CSS 的裁决是**特异性先于源顺序**：skin 里写裸 `.annotation-primary`（0-1-0），加载再晚也盖不过 0-2-0。**裸类只对一部分原规则有效**，会逼出 `!important`。
+
+带前缀后：
+
+- 对原**裸类**规则（0-1-0）→ skin 的 0-2-0 直接胜出
+- 对原**前缀**规则（0-2-0）→ 同特异性，后加载胜出
+- `@media (max-width:720px)` 里的覆盖**同样带前缀**
+
+**后加载**：`import './annotation-skin.css'` 放在 `import './annotation.css'` 之后。
+
+**`!important` 一律停手回报**——那说明该重写整条规则，而不是加军备。
+
+**存量 `z-index` 不属于禁令范围**：`annotation.css:59` 的 `.annotation-shortcut-help` 自带 `z-index:4` + `position:absolute`，是快捷键浮层的既有层级。A5 只扫 **新文件**，这条既有规则**不迁移、不改、不动**——看到它不要以为禁令自相矛盾。
 
 ### 2.4 画布不动
 
@@ -130,4 +160,5 @@
 
 | 日期 | 变更 |
 |---|---|
+| 2026-11-03 | **修 §2.3 技术错误（必改）**：原文写「同权重选择器即可（后加载胜出）」，但 `annotation.css` 是混合特异性——`:22` 与 `:58` 是 0-2-0、`:23` 是 0-4-0，skin 里的裸类（0-1-0）加载再晚也盖不过。改为**一律带 `.annotation-workbench` 前缀**，并给出「对裸类高特异性胜出、对前缀同特异性后加载胜出」的判定。另补三处注记：①`annotation.css:59` 存量 `z-index:4` 不属禁令范围；②`annotation-right` 宿主是 `CandidateQueue.tsx:7`，补进 §0 类名清单；③**变量优先**——`--ann-*` 已存在，能调变量不写规则 |
 | 2026-11-03 | 初版。P3 范围：S05 换皮，唯一授权 = 新增 `annotation-skin.css` + 一行 import。验收从"零 diff"换成功能回归 + A5 皮肤禁则 grep。基线 215/215/0 |
