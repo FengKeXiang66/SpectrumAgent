@@ -1,0 +1,12 @@
+✔ P1 A1 App owns one session shared by Composer and S01; renderers have no reducer (1.3452ms)
+✔ P1 A2 A3 composer hiding and global shortcuts leave S01 input independent (0.5052ms)
+✔ P1 A4 A5 smoke stays in S01 and the three columns use current session context (0.4693ms)
+✔ P1 A6 A8 retired panel files and rules are absent with only six new layout classes (0.9471ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 112.1076

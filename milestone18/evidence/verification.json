@@ -1,0 +1,77 @@
+{
+  "head": "a5e82a9",
+  "mode": "single agent; native Node tests; production browser build; isolated real FastAPI with controlled agent batches",
+  "preflight": [
+    204,
+    204,
+    0
+  ],
+  "retired_test_count": 3,
+  "baseline": [
+    201,
+    201,
+    0
+  ],
+  "new_static": [
+    4,
+    4,
+    0
+  ],
+  "full": [
+    205,
+    205,
+    0
+  ],
+  "new_test_names": [
+    "P1 A1 App owns one session shared by Composer and S01; renderers have no reducer",
+    "P1 A2 A3 composer hiding and global shortcuts leave S01 input independent",
+    "P1 A4 A5 smoke stays in S01 and the three columns use current session context",
+    "P1 A6 A8 retired panel files and rules are absent with only six new layout classes"
+  ],
+  "retired_files": [
+    "src/components/assistant/AssistantPanel.tsx",
+    "src/components/assistant/panel-height.ts",
+    "src/components/assistant/panel-height.test.ts"
+  ],
+  "layout_classes": [
+    "assistant-s01",
+    "assistant-s01-left",
+    "assistant-s01-mid",
+    "assistant-s01-right",
+    "composer",
+    "composer-context"
+  ],
+  "composer_height": 57,
+  "s01_left_width": 172,
+  "s01_right_width": 236,
+  "s01_mid_width": 616,
+  "canvas_clientHeight": 305,
+  "annotation_changed": [
+    "src/components/annotation/working.test.ts"
+  ],
+  "unchanged_files": [
+    "src/components/annotation/confirm.test.ts",
+    "src/components/settings/SettingsPanel.test.ts",
+    "src/components/preprocess/panel.test.ts",
+    "src/components/annotation/shortcuts.test.ts",
+    "src/shell/AppShell.tsx",
+    "src/style.css",
+    "src/shell/theme.css",
+    "src-tauri/tauri.conf.json",
+    "package.json",
+    "package-lock.json"
+  ],
+  "s01_chat_form_byte_content_unchanged": true,
+  "confirm_render_block_unchanged": true,
+  "ipc_response_count": 50,
+  "ipc_failures": 0,
+  "screenshots": [
+    "s01-three-columns.jpg",
+    "composer-s03.jpg",
+    "s01-composer-hidden.jpg",
+    "ctrl-k-focus.jpg",
+    "s01-smoke-result.jpg",
+    "s05-canvas.jpg"
+  ],
+  "line_drift": []
+}

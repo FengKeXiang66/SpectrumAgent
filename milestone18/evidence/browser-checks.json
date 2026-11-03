@@ -1,0 +1,139 @@
+{
+  "composer": {
+    "context": "当前数据：20260804205214_64 · 视图「数据」",
+    "formHeight": 37,
+    "height": 57,
+    "inputHeight": 31,
+    "screen": "s03"
+  },
+  "ctrlK": {
+    "activeId": "composer-message",
+    "inside": {
+      "activeId": "composer-message",
+      "value": "P1 composer 首条"
+    }
+  },
+  "s01": {
+    "composerCount": 0,
+    "conversation": "P1 composer 首条验收回显：P1 composer 首条",
+    "inputValue": "跨形态草稿",
+    "inputVisible": true,
+    "leftItems": 2,
+    "leftWidth": 172,
+    "midWidth": 616,
+    "rightWidth": 236,
+    "runtime": "当前编排：conversation-workflows-v2 · 工具目录 v2 · 23 个工具"
+  },
+  "s01Keys": {
+    "afterCtrlK": {
+      "activeId": "assistant-message",
+      "value": "跨形态草稿"
+    },
+    "afterCtrlEnter": {
+      "activeId": "assistant-message",
+      "conversation": "P1 composer 首条验收回显：P1 composer 首条",
+      "value": "跨形态草稿"
+    }
+  },
+  "shared": {
+    "backToComposer": "返回 composer 草稿",
+    "conversation": "P1 composer 首条\n验收回显：P1 composer 首条\n跨形态草稿\n验收回显：跨形态草稿\n返回 composer 草稿\n验收回显：返回 composer 草稿"
+  },
+  "smoke": {
+    "placeholder": "运行冒烟测试",
+    "metrics": "{\n  \"nan_ratio\": 0,\n  \"reflectance_range\": [\n    -1.5275289241381491,\n    1.5275289241381491\n  ],\n  \"bands\": 8,\n  \"shape\": [\n    8,\n    8,\n    8\n  ],\n  \"elapsed_ms\": 255.405\n}"
+  },
+  "plan": {
+    "newDisabled": true,
+    "table": true,
+    "logs": 1
+  },
+  "confirm": {
+    "visible": true,
+    "newDisabled": true,
+    "composerPlaceholder": "可输入批准、确认保存或拒绝",
+    "survivedSwitch": true,
+    "completed": true
+  },
+  "error": "请先在设置中配置模型服务",
+  "newSession": {
+    "alerts": 0,
+    "context": "当前数据：20260804205214_64",
+    "entries": 0,
+    "input": ""
+  },
+  "inFlightSwitch": {
+    "s01InputPresent": 1,
+    "conversation": "P1 新会话\n验收回显：P1 新会话\nP1 跨屏请求\n验收回显：P1 跨屏请求",
+    "inputEnabled": true
+  },
+  "nonS01": [
+    {
+      "context": "当前数据：20260804205214_64 · 视图「工作台」",
+      "focus": "composer-message",
+      "height": 57,
+      "screen": "s02"
+    },
+    {
+      "context": "当前数据：20260804205214_64 · 视图「数据」",
+      "focus": "composer-message",
+      "height": 57,
+      "screen": "s03"
+    },
+    {
+      "context": "当前数据：20260804205214_64 · 视图「标注」",
+      "focus": "composer-message",
+      "height": 57,
+      "screen": "s05"
+    },
+    {
+      "context": "当前数据：20260804205214_64 · 视图「预处理」",
+      "focus": "composer-message",
+      "height": 57,
+      "screen": "s06"
+    },
+    {
+      "context": "当前数据：20260804205214_64 · 视图「建模」",
+      "focus": "composer-message",
+      "height": 57,
+      "screen": "s07"
+    },
+    {
+      "context": "当前数据：20260804205214_64 · 视图「结果」",
+      "focus": "composer-message",
+      "height": 57,
+      "screen": "s08"
+    },
+    {
+      "context": "当前数据：20260804205214_64 · 视图「实验台账」",
+      "focus": "composer-message",
+      "height": 57,
+      "screen": "s09"
+    },
+    {
+      "context": "当前数据：20260804205214_64 · 视图「检索」",
+      "focus": "composer-message",
+      "height": 57,
+      "screen": "s10"
+    },
+    {
+      "context": "当前数据：20260804205214_64 · 视图「设置与出域记录」",
+      "focus": "composer-message",
+      "height": 57,
+      "screen": "s11"
+    }
+  ],
+  "canvas": {
+    "bodyContentHeight": 662,
+    "bodyHeight": 698,
+    "clientHeight": 305,
+    "computedHeight": "304.51px",
+    "containerType": "size",
+    "minHeight": "0px",
+    "viewport": {
+      "height": 820,
+      "width": 1280
+    }
+  },
+  "console": []
+}
