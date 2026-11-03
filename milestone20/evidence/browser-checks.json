@@ -1,0 +1,132 @@
+[
+  {
+    "check": "A2 regression table",
+    "headers": [
+      "运行 ID",
+      "task",
+      "status"
+    ],
+    "rows": 4,
+    "ids": [
+      "082497de",
+      "88796cf6",
+      "ae1af300",
+      "ad9923b8"
+    ]
+  },
+  {
+    "check": "S09 no registered datasets",
+    "text": "预处理运行\n数据集\n请选择数据集\n\n暂无已登记数据集。请先在数据屏登记数据。"
+  },
+  {
+    "check": "S09 all client filter",
+    "rows": 4
+  },
+  {
+    "check": "A3 run detail",
+    "text": "运行详情 · 082497de\n\n样品 12 个；实际使用前景像素 48 个。\n\n使用 LV：4；交叉验证最小建议 LV：1\n\n仅可做半定量\n偏差\n1.4255441961569693\nR²C\n0.958906623340846\nR²P\n-14.834283545118206\nRER\n0.6630299954894225\nRMSEC\n0.16370068629092788\nRMSEP\n1.833099570559911\nRPD\n0.29018179278013806\n泄漏预检",
+    "leakCollapsed": true
+  },
+  {
+    "check": "registered dataset count",
+    "count": 15
+  },
+  {
+    "check": "A4 no dataset selected",
+    "text": "预处理运行\n数据集\n请选择数据集\n58927ada-c1a8-43f0-bcee-d9a6b0263a4e-sample-0\n58927ada-c1a8-43f0-bcee-d9a6b0263a4e-sample-1\n58927ada-c1a8-43f0-bcee-d9a6b0263a4e-sample-2\n58927ada-c1a8-43f0-bcee-d9a6b0263a4e-sample-3\n58927ada-c1a8-43f0-bcee-d9a6b0263a4e-sample-4\n58927ada-c1a8-43f0-bcee-d9a6b0263a4e-sample-5\n58927ada-c1a8-43f0-bcee-d9a6b0263a4e-sample-6\n58927ada-c1a8-43f0-bcee-d9a6b0263a4e-sample-7\n58927ada-c1a8-43f0-bcee-d9a6b0263a4e-sample-8\n58927ada-c1a8-43f0-bcee-d9a6b0263a4e-sample-9\n58927ada-c1a8-43f0-bcee-d9a6b0263a4e-sample-10\n58927ada-c1a8-43f0-bcee-d9a6b0263a4e-sample-11\n20260804205214_64\n20260804205217_70\nledger-sample\n\n选择一个数据集查看其预处理运行"
+  },
+  {
+    "check": "A4 selected dataset real timestamps",
+    "text": "created_at\tfinished_at\tstatus\tb01_branch\n2026-11-03T14:53:47.821208+00:00\t2026-11-03T14:53:47.862471+00:00\tsucceeded\tscale",
+    "cells": [
+      "2026-11-03T14:53:47.821208+00:00",
+      "2026-11-03T14:53:47.862471+00:00",
+      "succeeded",
+      "scale"
+    ]
+  },
+  {
+    "check": "A1 dashboard real counts and recent rows",
+    "text": "工作台\n数据集\n\n已登记 15 个数据集。\n\n查看全部\n回归运行\n\n共 4 条回归运行。\n\n082497de · succeeded\n88796cf6 · succeeded\nae1af300 · succeeded\n引擎\n\n相位：已就绪；代次：1\n\n快捷入口\n继续标注",
+    "recent": [
+      "082497de · succeeded",
+      "88796cf6 · succeeded",
+      "ae1af300 · succeeded"
+    ],
+    "engine": "引擎\n\n相位：已就绪；代次：1"
+  },
+  {
+    "check": "S02 recent opens S08",
+    "text": "回归结果 · succeeded\n\n样品 12 个；实际使用前景像素 48 个。\n\n交叉验证最小建议 LV：1；使用 LV：4；拐点法建议 LV：1\n\n仅可做半定量\nRMSEC\n0.16370068629092788\nR²C\n0.958906623340846\nRMSEP\n1.833099570559911\nR²P\n-14.834283545118206\nRPD\n0.29018179278013806\nRER\n0.6630299954894225\n偏差\n1.4255441961569693\n划分与泄漏预检"
+  },
+  {
+    "check": "S02 all datasets opens S03",
+    "visible": true
+  },
+  {
+    "check": "S02 continue annotation uses existing fallback",
+    "visible": true,
+    "canvasHostHeight": 305
+  },
+  {
+    "check": "A5 search empty state",
+    "text": "检索\n\n检索在阶段二提供。\n\n返回数据屏",
+    "inputs": 0
+  },
+  {
+    "check": "A5 primary action returns data",
+    "visible": true
+  },
+  {
+    "check": "S11 egress explanation",
+    "text": "出域记录\n\n出域记录在阶段二提供",
+    "tables": 0,
+    "buttons": 0
+  },
+  {
+    "check": "A6 original settings modal",
+    "visible": true
+  },
+  {
+    "check": "A6 modal closes back to S11",
+    "visible": true
+  },
+  {
+    "check": "main browser console",
+    "entries": []
+  },
+  {
+    "check": "S09 real empty database",
+    "regression": "回归运行\n\n回归运行不含时间信息；预处理运行按数据集展示创建与结束时间。\n\n任务筛选\n全部\n回归\n\n暂无回归运行记录。请先在建模屏完成训练。",
+    "preprocess": "预处理运行\n数据集\n请选择数据集\n\n暂无已登记数据集。请先在数据屏登记数据。",
+    "regressionTables": 0
+  },
+  {
+    "check": "S02 real empty database",
+    "text": "工作台\n数据集\n\n已登记 0 个数据集。\n\n查看全部\n回归运行\n\n共 0 条回归运行。\n\n暂无回归运行记录。\n\n引擎\n\n相位：已就绪；代次：1\n\n快捷入口\n继续标注"
+  },
+  {
+    "check": "empty browser console",
+    "entries": []
+  },
+  {
+    "check": "final build mixed task filter and pending detail",
+    "allCount": 5,
+    "pendingDetail": "运行详情 · p5-pendi\n\n样品 0 个；实际使用前景像素 不适用 个。\n\n使用 LV：不适用；交叉验证最小建议 LV：不适用\n\n泄漏预检",
+    "asset": "/assets/index-BYZT8cuQ.js"
+  },
+  {
+    "check": "final build regression detail",
+    "rows": 4,
+    "text": "运行详情 · 082497de\n\n样品 12 个；实际使用前景像素 48 个。\n\n使用 LV：4；交叉验证最小建议 LV：1\n\n仅可做半定量\n偏差\n1.4255441961569693\nR²C\n0.958906623340846\nR²P\n-14.834283545118206\nRER\n0.6630299954894225\nRMSEC\n0.16370068629092788\nRMSEP\n1.833099570559911\nRPD\n0.29018179278013806\n泄漏预检"
+  },
+  {
+    "check": "final dashboard excludes non-regression task",
+    "text": "回归运行\n\n共 4 条回归运行。\n\n082497de · succeeded\n88796cf6 · succeeded\nae1af300 · succeeded"
+  },
+  {
+    "check": "final browser console",
+    "main": [],
+    "empty": []
+  }
+]

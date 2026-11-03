@@ -1,0 +1,39 @@
+{
+  "head": "82a2976",
+  "baseline": {
+    "tests": 209,
+    "pass": 209,
+    "fail": 0
+  },
+  "new_tests": [
+    "P5 S02 uses props for four cards, recent regression runs and phase plus generation only",
+    "P5 S09 regression table has only id task status and a client task filter without invented timestamps",
+    "P5 S09 fetches selected run details and retains backend metrics quality and collapsed leak report",
+    "P5 S09 preprocess reads only the selected dataset and preserves real time fields and empty states",
+    "P5 S10 has a data-screen action and S11 opens the existing settings modal without fake controls",
+    "P5 inserts four screen cases while preserving source anchors S03 debug text and theme boundary"
+  ],
+  "total": 215,
+  "fail": 0,
+  "existing_tests_modified": 0,
+  "S03_entire_case_unchanged": true,
+  "AppShell_engine_states_settings_modal_unchanged": true,
+  "regression_headers": [
+    "运行 ID",
+    "task",
+    "status"
+  ],
+  "regression_rows": 4,
+  "all_task_rows": 5,
+  "dataset_count": 15,
+  "preprocess_created_at": "2026-11-03T14:53:47.821208+00:00",
+  "preprocess_finished_at": "2026-11-03T14:53:47.862471+00:00",
+  "preprocess_selected_dataset_calls": 2,
+  "api_response_count": 100,
+  "api_errors": 0,
+  "console_errors": 0,
+  "annotation_diff_stat": "",
+  "new_layout_classes": 1,
+  "theme_brand_references": 0,
+  "line_drift": []
+}

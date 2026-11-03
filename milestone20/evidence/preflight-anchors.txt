@@ -1,0 +1,40 @@
+Verified pre-edit HEAD 82a2976; all TASK-20 line anchors matched.
+
+src/App.tsx
+183:         <p>进程 {status.pid} · 端口 {status.port} · 启动代次 {status.generation_id}</p>
+194:       case 's06': return selected ? <PreprocessPanel key={selected.id} record={selected} refreshVersion={refreshVersions[selected.id] ?? 0} onClose={() => setScreen('s03')} />
+195:         : <section aria-label="S06 预处理工作台"><p>请先在数据屏选择数据集。</p><button onClick={() => setScreen('s03')}>返回数据屏</button></section>;
+196:       case 's07': return <ModelPanel records={records} onOpenResults={run => openScreen('s08', undefined, run)} onClose={() => setScreen('s03')} />;
+197:       case 's08': return <S08 runId={runId} onOpen={id => openScreen('s08', undefined, id)} onBackToList={() => setRunId(null)} onClose={() => setScreen('s07')} />;
+198:       default: return <section className="screen-placeholder" data-screen={screen} aria-label={`${SCREEN_TITLE[screen]}（后续批次启用）`}>
+207:       <button onClick={() => setSettingsOpen(true)}>设置</button>
+208:     </>} assistant={screen === 's01' ? null : <Composer session={session} screen={screen} inputRef={composerInput} onExpand={() => setScreen('s01')} />}>
+209:       {navigationError && <pre role="alert">{navigationError}</pre>}
+210:       {renderScreen()}
+211:     </AppShell>
+212:     {settingsOpen && status.phase === 'Ready' && <SettingsPanel key={status.generation_id} onClose={() => setSettingsOpen(false)} />}
+
+src/components/modeling/api.ts
+8: export type Result = { run_id: string; status: string; n_samples: number; n_pixels_used: number; selected_lv: number | null;
+9:   best_lv: number | null; metrics: Record<string, number | null>; quality_label: string | null; leak_report: unknown; error: unknown;
+10:   predictions?: Prediction[]; semi_quantitative?: boolean };
+51:     runs: () => forward<{ id: string; task: string; status: string }[]>({ op: 'list_runs' }),
+
+src/components/preprocess/types.ts
+22: export type RunSummary = Pick<PreprocessRun, 'id' | 'status' | 'b01_branch' | 'input_fingerprint' | 'created_at' | 'finished_at'> & { error_code: string | null };
+50:   createRun(dataset: string, body: RunBody): Promise<PreprocessRun>; listRuns(dataset: string): Promise<RunSummary[]>;
+
+src/components/preprocess/panel.test.ts
+61:   assert.match(read('../../App.tsx'), /<PreprocessPanel/);
+62:   assert.match(read('../datasets/DatasetPanel.tsx'), /onOpen\('s06', record\)/);
+
+src/components/annotation/working.test.ts
+94:   const app = readFileSync(new URL('../../App.tsx', import.meta.url), 'utf8');
+95:   assert.match(app, /<Composer/);
+96:   const panel = readFileSync(new URL('../assistant/Composer.tsx', import.meta.url), 'utf8');
+97:   assert.match(panel, /<footer\b[^>]*aria-label="常驻对话条"/);
+
+src/components/settings/SettingsPanel.test.ts
+185:   assert.match(source, /import SettingsPanel from '\.\/components\/settings\/SettingsPanel'/);
+186:   assert.match(source, /onClick=\{\(\) => setSettingsOpen\(true\)\}>设置<\/button>/);
+187:   assert.match(source, /settingsOpen && status.phase === 'Ready' && <SettingsPanel/);
