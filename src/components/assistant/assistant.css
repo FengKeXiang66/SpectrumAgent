@@ -1,6 +1,18 @@
-.assistant-bar { border-top: 1px solid #ddd; margin-top: 12px; padding-top: 8px; overflow-wrap: anywhere; }
-.assistant-bar h2 { margin: 4px 0; }
-.assistant-events { max-height: 28vh; overflow-y: auto; padding-left: 24px; }
+.assistant-panel { box-sizing: border-box; flex: none; min-height: 0; display: flex; flex-direction: column; }
+.assistant-panel-content { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow-y: auto; }
+.assistant-panel-content > p { margin: 4px 0 8px; flex: none; }
+.assistant-panel-content > form { flex: none; }
+.assistant-resize-handle { flex: none; height: 16px; margin: 0 -24px; display: flex; align-items: center; justify-content: center; cursor: ns-resize; touch-action: none; user-select: none; }
+.assistant-resize-handle span { width: 48px; height: 4px; border-radius: 4px; background: #b4c4ce; }
+.assistant-resize-handle:hover, .assistant-resize-handle:focus-visible, .assistant-panel[data-resizing] .assistant-resize-handle { background: #edf5f8; }
+.assistant-resize-handle:focus-visible { outline: 2px solid #377495; outline-offset: -2px; }
+.assistant-panel[data-resizing] { user-select: none; cursor: ns-resize; }
+body:has(.assistant-panel[data-resizing]), body:has(.assistant-panel[data-resizing]) * { cursor: ns-resize !important; user-select: none !important; }
+.assistant-bar { border-top: 1px solid #ddd; margin-top: 8px; padding-top: 6px; overflow-wrap: anywhere; display: flex; flex-direction: column; flex: 1; min-height: 100px; overflow: hidden; }
+.assistant-bar h2 { margin: 4px 0; flex: none; }
+.assistant-content { flex: 1; min-height: 0; overflow-y: auto; scrollbar-gutter: stable; }
+.assistant-bar > form { flex: none; padding-top: 8px; }
+.assistant-events { padding-left: 24px; }
 .assistant-events li { margin: 6px 0; white-space: pre-wrap; }
 .assistant-events [data-event="user"] { color: #24557a; }
 .assistant-events [data-event="error"] { color: #a32323; }
@@ -10,7 +22,7 @@
 .assistant-logs ol { margin: 6px 0 0; padding-left: 20px; }
 .assistant-logs li { margin: 3px 0; white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 .assistant-context { border-left: 3px solid #377495; padding: 6px 10px; background: #edf5f8; }
-.assistant-bar > small { margin-left: 8px; color: #52616a; }
+.assistant-content > small { margin-left: 8px; color: #52616a; }
 /* The running orchestration version is stated by the engine, not inferred. */
 .assistant-runtime { margin: 2px 0 6px; font-size: 0.82em; color: #52616a; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 .assistant-datasets { max-height: 20vh; overflow-y: auto; padding: 4px 10px; border: 1px solid #d8e2e8; }

@@ -44,7 +44,7 @@
 .annotation-canvas-panel { margin:12px -4px 8px; border:1px solid var(--ann-line); border-radius:7px; overflow:hidden; }
 .annotation-layers { background:#f4f7f9; padding:8px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; font-size:10px; }
 .annotation-layers button { padding:3px 6px; }
-.annotation-canvas-host { position:relative; height:clamp(300px,46vh,520px); width:100%; background:#17242c; overflow:hidden; }
+.annotation-canvas-host { position:relative; height:clamp(160px,46cqh,520px); width:100%; background:#17242c; overflow:hidden; }
 .annotation-canvas-host canvas { width:100%; height:100%; display:block; touch-action:none; }
 .annotation-canvas-empty { position:absolute; color:white; top:12px; left:12px; pointer-events:none; }
 .annotation-canvas-foot { padding:9px; background:#f4f7f9; font-size:10px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }

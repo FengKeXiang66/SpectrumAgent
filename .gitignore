@@ -41,6 +41,7 @@ artifacts/step2/revision-01/**/pytest-tmp*/
 .workbuddy-ai/
 .workbuddy/
 .runtime/
+.temp/
 build/
 dist/
 node_modules/

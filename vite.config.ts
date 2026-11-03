@@ -10,7 +10,9 @@ export default defineConfig({
   optimizeDeps: { entries: ['index.html'] },
   server: {
     host: '127.0.0.1', port: 1420, strictPort: true,
-    watch: { ignored: [/[\\/](?:\.venv|\.cargo-home|\.npm-cache|\.toolchains|artifacts|src-tauri|build)[\\/]/] },
+    // .temp / .runtime hold agent scratch trees (multi-GB pytest temp dirs). Watching them
+    // costs thousands of chokidar handles and has hung the dev server's optimizer outright.
+    watch: { ignored: [/[\\/](?:\.venv|\.cargo-home|\.npm-cache|\.toolchains|\.temp|\.runtime|artifacts|src-tauri|build)[\\/]/] },
   },
   clearScreen: false,
 });

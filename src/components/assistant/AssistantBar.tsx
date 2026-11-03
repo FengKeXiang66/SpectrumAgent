@@ -83,6 +83,7 @@ export default function AssistantBar({ enabled, workspace = {}, displayName, rec
   </section>;
   return <section className="assistant-bar" aria-label="S01 助手">
     <h2>编排助手</h2>
+    <div className="assistant-content">
     <button disabled={!enabled || state.busy || !!state.pending} onClick={() => { sessionId.current = null; dispatch({ type: 'reset' }); setContent(''); }}>
       开始新对话
     </button>
@@ -132,6 +133,7 @@ export default function AssistantBar({ enabled, workspace = {}, displayName, rec
     {state.pending && <p className="assistant-hint">也可以直接回复“批准执行”“确认保存”或“拒绝”，继续用对话操作。</p>}
     {state.busy && <p role="status">{state.executing ? '执行中…' : '请求中…'}</p>}
     {state.error && <p role="alert">{state.error}</p>}
+    </div>
     <form onSubmit={event => { event.preventDefault(); void request({ content }); }}>
       <label htmlFor="assistant-message">对话</label>
       <input id="assistant-message" value={content} onChange={event => setContent(event.target.value)}

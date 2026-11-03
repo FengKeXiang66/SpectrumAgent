@@ -5,6 +5,7 @@ import { acceptSnapshot, type ExitReason, type Snapshot } from './status';
 import DatasetPanel from './components/datasets/DatasetPanel';
 import { datasets } from './components/datasets/api';
 import AssistantBar from './components/assistant/AssistantBar';
+import AssistantPanel from './components/assistant/AssistantPanel';
 import SettingsPanel from './components/settings/SettingsPanel';
 import type { DatasetRecord } from './components/datasets/types';
 import type { WorkspaceContext } from './components/assistant/api';
@@ -126,7 +127,7 @@ export default function App() {
       </section>}
       {status.phase === 'Stopping' && <p role="status">正在关闭</p>}
     </main>
-    <footer aria-label="常驻对话条">
+    <AssistantPanel>
       <p role="status">{status.phase === 'Stopping' ? '正在关闭' : status.phase === 'Failed' ? '引擎不可用，请查看失败原因与诊断入口。' : message}</p>
       <form onSubmit={event => { event.preventDefault(); void send(); }}>
         <label htmlFor="agent-input">hello 对话条</label>
@@ -142,7 +143,7 @@ export default function App() {
           for (const cubeId of cubeIds) next[cubeId] = (next[cubeId] ?? 0) + 1;
           return next;
         })} />
-    </footer>
+    </AssistantPanel>
   </div>;
 }
 
