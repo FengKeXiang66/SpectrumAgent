@@ -12,7 +12,7 @@
 | 事实 | 位置 |
 |---|---|
 | 屏 switch 里 **s02 / s09 / s10 / s11 没有 case**，全部落到 `default` 占位屏 | `App.tsx:198` |
-| `modeling.runs()` 前端类型只声明 `{id, task, status}`；**但后端实际返回 `created_at`**——`run.py:111` 的 `SELECT id,status,task,created_at FROM training_run ORDER BY created_at DESC`。类型未声明，故本批不消费、不渲染 | `modeling/api.ts:51` + `modeling/run.py:111` |
+| `modeling.runs()` 前端类型只声明 `{id, task, status}`；**但后端实际返回 `created_at`**——`run.py:112` 的 `SELECT id,status,task,created_at FROM training_run ORDER BY created_at DESC`。类型未声明，故本批不消费、不渲染 | `modeling/api.ts:51` + `modeling/run.py:112` |
 | `modeling.run(id)` → `Result`：`run_id` / `status` / `n_samples` / `n_pixels_used` / `selected_lv` / `best_lv` / `metrics` / `quality_label` / `leak_report` / `error`——**同样无 `created_at`** | `modeling/api.ts:8-10` |
 | `preprocess.listRuns(dataset_id)` → `RunSummary[]`，**有 `created_at` / `finished_at`**，但**按 dataset 查询** | `preprocess/types.ts:22`、`types.ts:50` |
 | `records`（已登记数据集）与 `status`（引擎快照）都在 App 层 | P0 已提升 |
@@ -154,7 +154,7 @@ DatasetPanel 的 onOpen('s06', record)              ← panel.test.ts:62
 | # | 决策 | 理由 |
 |---|---|---|
 | R1 | S09 只做回归全局 + 预处理按数据集 | `listRuns` 按 dataset 查询，全局聚合要 N 次调用；且预处理运行天然属于某个数据集 |
-| R2 | 回归台账**本批不设时间列** | 事实：**后端有 `created_at`**（`run.py:111`），是**前端类型没声明**、本批不扩类型。属「轻量屏不做加法」的取舍，**不是「没有数据」**。要加时间列只需扩 `api.ts:51` 的类型（一行），留作后续可选 |
+| R2 | 回归台账**本批不设时间列** | 事实：**后端有 `created_at`**（`run.py:112`），是**前端类型没声明**、本批不扩类型。属「轻量屏不做加法」的取舍，**不是「没有数据」**。要加时间列只需扩 `api.ts:51` 的类型（一行），留作后续可选 |
 | R3 | S09 筛选器只做 `task` | 项目/配方/Kappa 后端无字段 |
 | R4 | S02 不做统计类卡片 | 无 API；四个卡全部来自 `records` / `runs()` / `status` |
 | R5 | S11 复用现有 modal，不重写 | modal→全屏是 P6 的事，P5 只补入口 |
@@ -168,5 +168,5 @@ DatasetPanel 的 onOpen('s06', record)              ← panel.test.ts:62
 |---|---|
 | 2026-11-03 | **裁定 S02 引擎卡与 S03 调试行的分工**：S02 只显示相位 + `generation_id`，`pid`/`port` 不重复；S03 调试行保持原样（本卡不动 S03，属 P3 范围）。补记：S05 相关断言实测 **65 处**（confirm 17 / display 14 / projection 13 / working 12 / overwrite 9，行=次），`display` 是 11 个 `match` + 3 个 `doesNotMatch` |
 | 2026-11-03 | 修 S03 调试行锚点：卡写 `App.tsx:168 一带`（实际是 `openScreen` 定义），实为 **`:183`** 的 `<p>进程 {status.pid} · 端口 {status.port} · 启动代次 …</p>`。执行方按即停条款报出，已改 |
-| 2026-11-03 | **事实修正（重要）**：原文写「回归侧无时间戳」，实测 **后端 `list_runs` 返回 `created_at`**（`modeling/run.py:111`），只是前端类型 `api.ts:51` 只声明了 `{id,task,status}`。R2 理由随之改写：不是「没有数据」，是「类型未声明、本批不扩」；补一行「要加时间列只需扩类型」，留给后续 |
+| 2026-11-03 | **事实修正（重要）**：原文写「回归侧无时间戳」，实测 **后端 `list_runs` 返回 `created_at`**（`modeling/run.py:112`），只是前端类型 `api.ts:51` 只声明了 `{id,task,status}`。R2 理由随之改写：不是「没有数据」，是「类型未声明、本批不扩」；补一行「要加时间列只需扩类型」，留给后续 |
 | 2026-11-03 | 初版。P5 范围：S02 / S09 / S10 空态 / S11 入口。基线 209/209/0（无退场文件）。核心约束：回归侧无时间戳（R2），不编字段 |
