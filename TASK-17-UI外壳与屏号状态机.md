@@ -162,7 +162,7 @@ if (status.phase === 'Failed')   return <FailurePage .../>;  // 独立错误页�
 
 **注意 `records` 的传递**：S05 的 `onNavigate` 要换下一个 cube，S07 要整个 `records`——这两个都在 App 层，直接传，不要经 DatasetPanel 中转。
 
-**已知可接受差（不要为此停手）**：屏号上移后，`screen !== 's03'` 时 `DatasetPanel` 会卸载（现在提前 return 的写法里它一直挂着）。差别只在便利态——从 S05 返回 S03 后，"单波段预览"的已选波段与已加载图会重置，点一次「读取波段」即恢复。`records` 在 App 层不受影响。这属 P2 拆 S03/S04 时本就要重构的部分，P0 接受。
+**已知可接受差：`DatasetPanel` 卸载导致的预览便利态重置。** 现状是 `annotation`/`preprocess`/`modeling` 三个提前 return 时，`DatasetPanel` 组件本身仍挂载，内部 `selected` / `band` / `preview` 保持；屏号上移后 `screen !== 's03'` 会让它卸载，从 S05 返回 S03 时"单波段预览"的已选波段与已加载图会重置，点一次「读取波段」即恢复。`records` 在 App 层不受影响。**属 P2 拆 S03/S04 时本来就要重构的部分，P0 不处理、不因此停手。**
 
 ### 2.8 App.tsx 的三段字面量必须保留
 
@@ -264,5 +264,5 @@ assert.match(source, /settingsOpen && status.phase === 'Ready' && <SettingsPanel
 |---|---|
 | 2026-11-03 | 初版。P0 范围：外壳 + 屏号状态机 + 窗口尺寸 + container 搬家；R4 写死"S05 零改动"，R8 说明为何不引 jsdom。前置闸门：存档提交落地 + 标图 9 张 + 基线 201/201/0 |
 | 2026-11-03 | 复核轮补三处空隙：①新增 **§2.9 占位屏**（11 个 `Screen` 值里 P0 只接通 4 个，其余 7 个统一占位；`s04` 在 P0 不可达）；②**A2 修正**——原文写"由 S03 进入 S04"与 §1.2「不拆 S03/S04」自相矛盾，改为"10 屏可切换 + s04 由 A1 静态覆盖"；③§2.7 补**默认屏 `'s03'`**（原只写在提示词里，卡未覆盖）。另 §2.5 补 AssistantPanel 搬家的配套微调（`.assistant-resize-handle` 的 `margin: 0 -24px` 在 `.p-main` 里会压进导航 24px，允许改 `margin: 0`） |
+| 2026-11-03 | 补 §2.7 末「已知可接受差」：屏号上移后 `DatasetPanel` 在 `screen !== 's03'` 时卸载，单波段预览的已选波段/已加载图会重置（原行为保留）；属 P2 拆屏时重构，P0 不处理、不因此停手 |
 | 2026-11-03 | 发送前修正：§2.7 补 **`navigation` 消费的归属**——它由 `DatasetPanel:67-91` 的 effect 消费（内部调 `setAnnotation`/`setPreprocess`/`setModeling`），三个提前 return 删掉后必须**整段上移到 App**，按 stage 映射 s05/s06，且**不得作为 prop 传入 S05/S07**（两者今天都不接收，加 prop 就撞 A5 零改动）。另闸门 2 的"9 张"更正为"10 个有效 cube（PE3/PET3/PP4）" |
-| 2026-11-03 | §2.7 末补**已知可接受差**：屏号上移后 `screen !== 's03'` 时 `DatasetPanel` 卸载，单波段预览的已选波段与已加载图会重置（原行为保留）；`records` 在 App 层不受影响。属 P2 拆屏时本就要重构的部分，P0 接受，执行方不得为此停手 |
