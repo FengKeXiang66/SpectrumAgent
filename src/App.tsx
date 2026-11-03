@@ -7,6 +7,8 @@ import { datasets } from './components/datasets/api';
 import Composer from './components/assistant/Composer';
 import useSession from './components/assistant/useSession';
 import S01 from './screens/S01';
+import S04 from './screens/S04';
+import S08 from './screens/S08';
 import SettingsPanel from './components/settings/SettingsPanel';
 import type { DatasetRecord } from './components/datasets/types';
 import { describeError, mergeRecords } from './components/datasets/types';
@@ -52,6 +54,7 @@ export default function App() {
   const [previewCandidates, setPreviewCandidates] = useState<Record<string, string>>({});
   const [screen, setScreen] = useState<Screen>('s03');
   const [selected, setSelected] = useState<DatasetRecord | null>(null);
+  const [runId, setRunId] = useState<string | null>(null);
   const [navigationError, setNavigationError] = useState('');
   const changeWorkspace = useCallback((next: WorkspaceContext) => {
     setWorkspace(current => selectWorkspace(current, next)); setNavigation(null); setWorkspaceName('');
@@ -162,8 +165,9 @@ export default function App() {
   </div>;
   if (status.phase === 'Stopping') return <p role="status">正在关闭</p>;
 
-  const openScreen = (next: Screen, record?: DatasetRecord) => {
+  const openScreen = (next: Screen, record?: DatasetRecord, run?: string) => {
     setNavigation(null); setNavigationError('');
+    if (run !== undefined) setRunId(run);
     if (record) setSelected(record);
     else if (next === 's05' || next === 's06') {
       setSelected(records.find(item => item.id === workspace.cube_id) ?? selected ?? records[0] ?? null);
@@ -178,8 +182,10 @@ export default function App() {
         <p>选择数据目录，查看数据集与单波段预览。</p>
         <p>进程 {status.pid} · 端口 {status.port} · 启动代次 {status.generation_id}</p>
         <DatasetPanel key={status.generation_id} api={datasets} records={records} onRecordsChange={setRecords}
-          selectedRecord={selected} onWorkspaceChange={changeWorkspace} onOpen={openScreen} />
+          onWorkspaceChange={changeWorkspace} onOpen={openScreen} />
       </>;
+      case 's04': return selected ? <S04 key={selected.id} record={selected} api={datasets} onClose={() => setScreen('s03')} />
+        : <section aria-label="S04 数据查看器"><p>请先在数据屏选择数据集。</p><button onClick={() => setScreen('s03')}>返回数据屏</button></section>;
       case 's05': return selected ? <AnnotationWorkbench key={selected.id} record={selected} records={records} datasets={datasets}
         onWorkspaceChange={changeWorkspace} refreshVersion={refreshVersions[selected.id] ?? 0}
         previewCandidateRef={previewCandidates[selected.id]}
@@ -187,7 +193,8 @@ export default function App() {
         : <section aria-label="S05 标注工作台"><p>请先在数据屏选择数据集。</p><button onClick={() => setScreen('s03')}>返回数据屏</button></section>;
       case 's06': return selected ? <PreprocessPanel key={selected.id} record={selected} refreshVersion={refreshVersions[selected.id] ?? 0} onClose={() => setScreen('s03')} />
         : <section aria-label="S06 预处理工作台"><p>请先在数据屏选择数据集。</p><button onClick={() => setScreen('s03')}>返回数据屏</button></section>;
-      case 's07': return <ModelPanel records={records} onClose={() => setScreen('s03')} />;
+      case 's07': return <ModelPanel records={records} onOpenResults={run => openScreen('s08', undefined, run)} onClose={() => setScreen('s03')} />;
+      case 's08': return <S08 runId={runId} onOpen={id => openScreen('s08', undefined, id)} onBackToList={() => setRunId(null)} onClose={() => setScreen('s07')} />;
       default: return <section className="screen-placeholder" data-screen={screen} aria-label={`${SCREEN_TITLE[screen]}（后续批次启用）`}>
         <p>本屏在后续批次启用。</p>
         <button onClick={() => setScreen('s03')}>返回数据屏</button>

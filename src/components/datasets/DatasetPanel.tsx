@@ -1,29 +1,7 @@
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import { describeError, displayName, mergeRecords, type DatasetRecord, type DatasetTransport, type Preview } from './types';
+import BandCanvas from './BandCanvas';
 import type { WorkspaceContext } from '../assistant/api';
-
-function BandCanvas({ preview, thumbnail = false }: { preview: Preview; thumbnail?: boolean }) {
-  const canvas = useRef<HTMLCanvasElement>(null);
-  const [error, setError] = useState('');
-  useEffect(() => {
-    let cancelled = false;
-    setError('');
-    const bytes = Uint8Array.from(atob(preview.png_base64), char => char.charCodeAt(0));
-    void createImageBitmap(new Blob([bytes], { type: 'image/png' })).then(image => {
-      if (cancelled) { image.close(); return; }
-      const context = canvas.current?.getContext('2d');
-      if (!context) { image.close(); setError('无法创建灰度预览画布。'); return; }
-      context.clearRect(0, 0, preview.width, preview.height);
-      context.drawImage(image, 0, 0);
-      image.close();
-    }).catch(() => { if (!cancelled) setError('灰度预览图加载失败。'); });
-    return () => { cancelled = true; };
-  }, [preview]);
-  return <>
-    <canvas ref={canvas} className={thumbnail ? 'dataset-thumbnail' : 'dataset-canvas'} width={preview.width} height={preview.height} aria-label={`${thumbnail ? '首波段缩略图' : '单波段灰度图'}，宽${preview.width}高${preview.height}`} />
-    {error && <p role="alert">{error}</p>}
-  </>;
-}
 
 function Thumbnail({ record, api }: { record: DatasetRecord; api: DatasetTransport }) {
   const [preview, setPreview] = useState<Preview | null>(null);
@@ -38,42 +16,21 @@ function Thumbnail({ record, api }: { record: DatasetRecord; api: DatasetTranspo
     : error ? <span role="alert">{error}</span> : <span>缩略图读取中…</span>;
 }
 
-export default function DatasetPanel({ api, records, onRecordsChange: setRecords, onWorkspaceChange, onOpen, selectedRecord }: {
+export default function DatasetPanel({ api, records, onRecordsChange: setRecords, onWorkspaceChange, onOpen }: {
   api: DatasetTransport; records: DatasetRecord[]; onRecordsChange: Dispatch<SetStateAction<DatasetRecord[]>>;
   onWorkspaceChange?(context: WorkspaceContext): void;
-  onOpen(screen: 's05'|'s06'|'s07', record?: DatasetRecord): void;
-  selectedRecord: DatasetRecord | null;
+  onOpen(screen: 's04'|'s05'|'s06'|'s07', record?: DatasetRecord): void;
 }) {
   const [raw, setRaw] = useState(false);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [message, setMessage] = useState('选择数据目录，登记数据引用；源文件保持只读。');
   const [error, setError] = useState('');
-  const [selected, setSelected] = useState<DatasetRecord | null>(selectedRecord);
-  const [band, setBand] = useState(0);
-  const [preview, setPreview] = useState<Preview | null>(null);
-  const [previewBusy, setPreviewBusy] = useState(false);
   const live = useRef(true);
-  const sequence = useRef(0);
-  useEffect(() => { setSelected(selectedRecord); }, [selectedRecord]);
   useEffect(() => {
     live.current = true;
-    return () => { live.current = false; sequence.current++; };
+    return () => { live.current = false; };
   }, []);
-
-  const loadPreview = async (record: DatasetRecord, index: number) => {
-    const request = ++sequence.current;
-    setSelected(record); setBand(index); setPreview(null); setPreviewBusy(true); setError('');
-    onWorkspaceChange?.({ cube_id: record.id });
-    try {
-      const result = await api.preview(record.id, index);
-      if (live.current && request === sequence.current) setPreview(result);
-    } catch (failure) {
-      if (live.current && request === sequence.current) setError(describeError(failure));
-    } finally {
-      if (live.current && request === sequence.current) setPreviewBusy(false);
-    }
-  };
 
   const choose = async () => {
     setBusy(true); setError(''); setProgress({ done: 0, total: 0 });
@@ -115,18 +72,11 @@ export default function DatasetPanel({ api, records, onRecordsChange: setRecords
           <td>{displayName(record)}</td><td>{data.shape.join('×')}</td>
           <td>{data.wavelengths.length ? `${data.wavelengths[0]}–${data.wavelengths.at(-1)}` : '未提供'}</td>
           <td>{data.metadata.value_mode === 'raw_dn' ? 'DN 原值' : '反射率'}{record.existing ? '（已有）' : ''}</td>
-          <td><Thumbnail record={record} api={api} /><button onClick={() => { void loadPreview(record, 0); }}>预览 {displayName(record)}</button>
+          <td><Thumbnail record={record} api={api} /><button onClick={() => { onOpen('s04', record); onWorkspaceChange?.({ cube_id: record.id }); }}>查看 {displayName(record)}</button>
             <button disabled={busy} onClick={() => { onOpen('s05', record); onWorkspaceChange?.({ cube_id: record.id }); }}>标注 {displayName(record)}</button>
             <button disabled={busy} onClick={() => { onOpen('s06', record); onWorkspaceChange?.({ cube_id: record.id }); }}>预处理 {displayName(record)}</button></td>
         </tr>;
       })}</tbody>
     </table>
-    {selected && <section aria-label="单波段预览">
-      <h3>{displayName(records.find(record => record.id === selected.id) ?? selected)}</h3>
-      <label>波段索引 <input aria-label="波段索引" type="number" min={0} max={selected.dataset.shape[2] - 1} value={band} onChange={event => setBand(Math.max(0, Math.min(selected.dataset.shape[2] - 1, Number(event.target.value) || 0)))} /></label>{' '}
-      <button disabled={previewBusy} onClick={() => { void loadPreview(selected, band); }}>读取波段</button>
-      {previewBusy && <p role="status">正在读取预览…</p>}
-      {preview && <><p>波段 {preview.band} · 宽 {preview.width} × 高 {preview.height}</p><BandCanvas preview={preview} /></>}
-    </section>}
   </section>;
 }
