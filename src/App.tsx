@@ -9,6 +9,12 @@ import useSession from './components/assistant/useSession';
 import S01 from './screens/S01';
 import S04 from './screens/S04';
 import S08 from './screens/S08';
+import S02 from './screens/S02';
+import S09 from './screens/S09';
+import S10 from './screens/S10';
+import S11 from './screens/S11';
+import { modeling } from './components/modeling/api';
+import { failureMessage } from './components/modeling/chart';
 import SettingsPanel from './components/settings/SettingsPanel';
 import type { DatasetRecord } from './components/datasets/types';
 import { describeError, mergeRecords } from './components/datasets/types';
@@ -55,6 +61,9 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>('s03');
   const [selected, setSelected] = useState<DatasetRecord | null>(null);
   const [runId, setRunId] = useState<string | null>(null);
+  const [dashboardRuns, setDashboardRuns] = useState<Awaited<ReturnType<typeof modeling.runs>>>([]);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
+  const [dashboardError, setDashboardError] = useState('');
   const [navigationError, setNavigationError] = useState('');
   const changeWorkspace = useCallback((next: WorkspaceContext) => {
     setWorkspace(current => selectWorkspace(current, next)); setNavigation(null); setWorkspaceName('');
@@ -113,6 +122,15 @@ export default function App() {
     }
     return () => { cancelled = true; };
   }, [navigation, records]);
+  useEffect(() => {
+    if (screen !== 's02' || status.phase !== 'Ready') return;
+    let live = true;
+    setDashboardLoading(true); setDashboardError(''); setDashboardRuns([]);
+    void modeling.runs().then(rows => { if (live) setDashboardRuns(rows.filter(row => row.task === 'regression')); })
+      .catch(failure => { if (live) setDashboardError(failureMessage(failure)); })
+      .finally(() => { if (live) setDashboardLoading(false); });
+    return () => { live = false; };
+  }, [screen, status.phase, status.generation_id]);
   const send = async () => {
     if (status.phase !== 'Ready' || busy) return;
     if (text.trim() && text.trim() !== '运行冒烟测试') {
@@ -195,6 +213,11 @@ export default function App() {
         : <section aria-label="S06 预处理工作台"><p>请先在数据屏选择数据集。</p><button onClick={() => setScreen('s03')}>返回数据屏</button></section>;
       case 's07': return <ModelPanel records={records} onOpenResults={run => openScreen('s08', undefined, run)} onClose={() => setScreen('s03')} />;
       case 's08': return <S08 runId={runId} onOpen={id => openScreen('s08', undefined, id)} onBackToList={() => setRunId(null)} onClose={() => setScreen('s07')} />;
+      case 's02': return <S02 records={records} runs={dashboardRuns} loading={dashboardLoading} error={dashboardError} status={status}
+        onOpenData={() => openScreen('s03')} onOpenRun={id => openScreen('s08', undefined, id)} onContinueAnnotation={() => openScreen('s05')} />;
+      case 's09': return <S09 records={records} />;
+      case 's10': return <S10 onOpenData={() => openScreen('s03')} />;
+      case 's11': return <S11 onOpenSettings={() => setSettingsOpen(true)} />;
       default: return <section className="screen-placeholder" data-screen={screen} aria-label={`${SCREEN_TITLE[screen]}（后续批次启用）`}>
         <p>本屏在后续批次启用。</p>
         <button onClick={() => setScreen('s03')}>返回数据屏</button>
