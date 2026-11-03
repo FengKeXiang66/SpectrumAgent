@@ -10,7 +10,7 @@ import pytest
 from backend.database import connect_database
 from spectrumagent.annotation import projection, projection_io
 from spectrumagent.annotation.projection import ProjectionError, project
-from spectrumagent.annotation.projection_io import configure_project, write_projection
+from spectrumagent.annotation.projection_io import configure_project, project_config_path, write_projection
 from test_routes import http_annotation, ready_http
 
 
@@ -201,6 +201,17 @@ def test_b11_export_layout_metadata_and_configurable_project_mapping(annotation_
     assert meta["version_no"] == 1 and meta["shape_count"] == 1
     assert set(path.parent.iterdir()) == {path, path.with_name("sample.meta.json"), path.with_name("manifest.json")}
     assert not c.header.with_suffix(".json").exists() and not list(c.paths.exports.glob(".*.tmp"))
+
+
+def test_projection_config_with_utf8_bom_is_accepted(annotation_case):
+    """Notepad / PowerShell `Out-File -Encoding utf8` prepend a BOM; a valid config must not fail on it."""
+    c = annotation_case
+    configure_project(c.paths, c.project, {"PE": "PE_W0"})
+    config = project_config_path(c.paths, c.project)
+    config.write_bytes(b"\xef\xbb\xbf" + config.read_bytes())
+    labels = np.zeros((3, 7), dtype=np.int32)
+    path, _ = write_projection(c.paths, c.identifier, c.project, c.header, 1, labels, {"0": "PE"})
+    assert json.loads(Path(path).read_text("utf-8"))["shapes"][0]["label"] == "PE_W0"
 
 
 def test_filename_conflicts_custom_name_and_manifest_are_stable(annotation_case):

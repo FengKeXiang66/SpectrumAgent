@@ -61,7 +61,10 @@ def write_projection(paths, cube_id, project_id, source_hdr, version_no, label_m
     """Return JSON path and metadata; publish all three files only after validation."""
     cube_id = str(UUID(str(cube_id)))
     config_path = project_config_path(paths, project_id)
-    config = _validate_config(json.loads(config_path.read_text("utf-8"))) if config_path.exists() else {}
+    # utf-8-sig: projection.json is the one hand-edited file here. Notepad / PowerShell
+    # `Out-File -Encoding utf8` both prepend a BOM, and plain "utf-8" rejects it outright
+    # ("Unexpected UTF-8 BOM"), turning a perfectly valid config into a save-time failure.
+    config = _validate_config(json.loads(config_path.read_text("utf-8-sig"))) if config_path.exists() else {}
     text, meta = project(label_map, label_index, config.get("mapping", {}), rule_version=1)
     source = Path(source_hdr)
     if not source.is_absolute():
