@@ -77,11 +77,14 @@ test('confirmation card renders fetched byte count, loading, refusal and second 
   assert.match(large, /继续生成训练 MAT/);
 });
 
-test('REST and HUMAN_CHECK use the same card and pending-call revision stays server-owned', () => {
+test('only HUMAN_CHECK uses the confirm card and pending-call revision stays server-owned', () => {
   const rest = readFileSync(new URL('./AnnotationWorkbench.tsx', import.meta.url), 'utf8');
   const agent = readFileSync(new URL('../assistant/AssistantBar.tsx', import.meta.url), 'utf8');
-  for (const source of [rest, agent]) assert.match(source, /import ConfirmCard from/);
-  assert.match(rest, /drafts.confirm\(id, \{ revision: view.revision/);
+  assert.doesNotMatch(rest, /import ConfirmCard from/);
+  assert.doesNotMatch(rest, /drafts\.confirm/);
+  assert.doesNotMatch(rest, /confirmVersion/);
+  assert.doesNotMatch(rest, /确认版本并生成训练 MAT/);
+  assert.match(agent, /import ConfirmCard from/);
   assert.match(agent, /key=\{state.pending.check_id\}/);
   assert.match(agent, /check_id: state.pending!.check_id, decision: 'approve'/);
   assert.doesNotMatch(agent, /drafts.confirm/);

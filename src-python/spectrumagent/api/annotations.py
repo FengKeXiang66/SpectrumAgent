@@ -204,6 +204,7 @@ def label_overlay(label_map, label_index, colors):
 def make_router(store: LabelStore, engine: SuperpixelEngine, sessions: SessionStore, diffusion: DiffusionEngine):
     router = APIRouter(prefix="/api/v1", tags=["annotation labels"])
 
+    # TASK-16：UI 入口已移除，保留供审计与未来复用；TASK-15 不走此路径（它读 exports/ 下的 JSON）。
     @router.post("/annotations/{cube_id}/draft/confirm")
     def confirm_draft(cube_id: UUID, request: DraftConfirmRequest):
         return sessions.confirm(cube_id, **request.model_dump())

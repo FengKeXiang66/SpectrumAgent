@@ -6,11 +6,11 @@ import { annotations } from './api.ts';
 import { describeAnnotationError, type AnnotationApi, type CatalogItem, type ExportResult, type Geometry, type LabelBody, type LabelSchema, type Png, type Quality, type Seed, type SegmentsMap, type SuperpixelReport, type Version, type Working } from './types.ts';
 import { candidateKey, editThenRead, estimateRemaining, orderedLabels, readWorking, recoverSelection, selectedCandidate, statistics } from './working.ts';
 import { overwriteSummary } from './overwrite.ts';
+import { catalogCode, folderName, matchLabel } from './folder-label.ts';
 import { bindingProblem, changeLabelKey, chord, defaultPreferences, labelKey, resolveShortcut, type Command, type Preferences, type Tool } from './shortcuts.ts';
 import AnnotationCanvas, { type PromptMode } from './canvas/AnnotationCanvas.tsx';
 import LabelPanel from './LabelPanel.tsx';
 import CandidateQueue from './CandidateQueue.tsx';
-import ConfirmCard from './ConfirmCard.ts';
 import { drafts } from './draft-api.ts';
 import DisplayToolbar, { SpectrumReadout } from './display/DisplayToolbar.tsx';
 import { DEFAULT_LUT, changeLut, displayRequest, type DisplayMode, type InspectionMode, type LutParameters } from './display/display.ts';
@@ -55,6 +55,9 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
   const [spectrumBusy, setSpectrumBusy] = useState(false), [spectrumError, setSpectrumError] = useState('');
   const spectrumTicket = useRef(0);
   const [selectedId, setSelectedId] = useState<string | null>(null), [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const labelTouched = useRef(false), askedFolders = useRef(new Set<string>());
+  const labelsCube = useRef<string | null>(null), folderCreation = useRef<string | null>(null);
+  const [missingFolder, setMissingFolder] = useState<string | null>(null);
   const [tool, setTool] = useState<Tool>('diffuse'), [tab, setTab] = useState<'superpixels' | 'diffuse' | 'prompt'>('superpixels');
   const [prompt, setPrompt] = useState<PromptMode>('point'), [draft, setDraft] = useState<Geometry | null>(null);
   // Display defaults with provenance: TASK-04 §5.2, calibrated compactness.
@@ -66,7 +69,6 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
   const [draftRevision, setDraftRevision] = useState<number | null>(null);
   const [note, setNote] = useState(''), [overwrite, setOverwrite] = useState(false), [confirmOverwrite, setConfirmOverwrite] = useState(false);
   const overwriteTouched = useRef(false);
-  const [confirmVersion, setConfirmVersion] = useState(false);
   const [exportResult, setExportResult] = useState<ExportResult | null>(null), [exportStale, setExportStale] = useState(true);
   const [quality, setQuality] = useState<Quality | null>(null), [history, setHistory] = useState<Png | null>(null), [historyId, setHistoryId] = useState('');
   const [lastDiffusion, setLastDiffusion] = useState<{ min: number; enqueued: boolean; blocked: number } | null>(null);
@@ -108,6 +110,23 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
     if (!overwriteTouched.current && versions.length) setOverwrite(true);
   }, [versions.length]);
   useEffect(() => {
+    labelTouched.current = false; labelsCube.current = null; folderCreation.current = null;
+    setMissingFolder(null);
+  }, [id]);
+  useEffect(() => {
+    if (labelsCube.current !== id || labels.length === 0 || labelTouched.current) return;
+    const folder = folderName(record.dataset.header_path);
+    if (!folder) return;
+    const matched = matchLabel(labels, folder);
+    if (matched) {
+      setSelectedId(matched.id); setMissingFolder(null);
+      // addLabel reloads schemas; this second effect run selects the new label.
+      if (folderCreation.current === id) { labelTouched.current = true; folderCreation.current = null; }
+    } else if (!askedFolders.current.has(id)) {
+      askedFolders.current.add(id); setMissingFolder(folder);
+    }
+  }, [id, schemas]);
+  useEffect(() => {
     onWorkspaceChange?.({ cube_id: id, ...(lastGestureRef ? { gesture_ref: lastGestureRef } : {}) });
   }, [id, lastGestureRef, onWorkspaceChange]);
 
@@ -123,6 +142,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
   const loadMetadata = async (next: Working, isLive = () => alive.current) => {
     const [tree, items, listing, projects] = await Promise.all([api.labels(next.project_id), api.catalog(), api.versions(id), api.projects()]);
     if (!isLive()) return;
+    labelsCube.current = id;
     setSchemas(tree); setCatalog(items); setVersions(listing.versions);
     setProjectName(projects.find(project => project.id === next.project_id)?.name ?? next.project_id);
     // listing.working is intentionally not a second source for rendering.
@@ -270,7 +290,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
       const editing = target instanceof HTMLElement && !!target.closest('input,textarea,select,[contenteditable="true"]');
       const action = resolveShortcut(event, labels, preferences, editing);
       if (!action || busyRef.current) return;
-      if ('labelId' in action) { event.preventDefault(); setSelectedId(action.labelId); return; }
+      if ('labelId' in action) { event.preventDefault(); labelTouched.current = true; setSelectedId(action.labelId); setMissingFolder(null); return; }
       if (event.repeat && action.command !== 'pan') return;
       event.preventDefault();
       switch (action.command) {
@@ -295,6 +315,15 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
     if (!await execute(() => api.addLabel(body), '标签 / schema 已登记；已从后端重新读取标签与工作态。', true)) throw new Error('登记未完成，请查看工作台错误详情。');
     setQuality(null);
   };
+  const missingCode = missingFolder === null ? null : catalogCode(catalog, missingFolder);
+  const createFolderLabel = async () => {
+    if (!working || !missingCode || busyRef.current) return;
+    folderCreation.current = id;
+    try {
+      await addLabel({ project_id: working.project_id, from_catalog: 'plastic', codes: [missingCode] });
+      setMissingFolder(null);
+    } catch { folderCreation.current = null; /* execute already displays the backend error. */ }
+  };
   return <section className="annotation-workbench" aria-label="S05 标注工作台">
     <header className="annotation-heading">
       <div><button disabled={busy} onClick={onClose}>← 返回数据集</button><h2>标注工作台 <small>{displayName(record)}</small></h2><p>{projectName || '读取项目中…'} · L1 辅助标注</p></div>
@@ -303,6 +332,12 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
     <p className="annotation-note">机器只给候选区域，不赋标签。L2 的簇命名、历史迁移与自动赋标属阶段二；当前先积累人工确认的标注。</p>
     <div className="annotation-status"><p role="status">{message}</p><button disabled={busy} onClick={() => { void execute(async () => {}, '工作态已只读刷新。', true); }}>刷新工作态</button><button onClick={() => setHelp(!help)}>快捷键 / 设置</button></div>
     {error && <pre className="annotation-error" role="alert">{error}</pre>}
+    {missingFolder !== null && <div className="annotation-warning" role="dialog" aria-label="文件夹标签提示" aria-modal="false">
+      <p>检测到文件夹「{missingFolder}」尚无对应标签，是否新建？</p>
+      {!missingCode && <p>该名称不在塑料目录中，请到左侧面板手动新建</p>}
+      {missingCode && <button disabled={busy} onClick={() => { void createFolderLabel(); }}>新建 {missingCode}</button>}
+      <button disabled={busy} onClick={() => setMissingFolder(null)}>取消</button>
+    </div>}
     {help && <div className="annotation-shortcut-help" role="dialog" aria-label="标注快捷键，可查可改可关闭" aria-modal="false">
       <h3>快捷键与操作提示</h3><p>数字键选标签；画笔手绘区域，提示分段中提供涂鸦提示；多边形完成后确认，橡皮拖框擦除。键位仅保存在本机。</p>
       <label><input type="checkbox" checked={preferences.enabled} onChange={event => setPreferences({ ...preferences, enabled: event.target.checked })} />启用快捷键</label>
@@ -325,7 +360,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
     <div className="annotation-columns">
       <aside className="annotation-left">
         {working && <LabelPanel projectId={working.project_id} schemas={schemas} labels={labels} catalog={catalog} selectedId={selectedId}
-          preferences={preferences} disabled={busy} onSelect={setSelectedId} onAdd={addLabel} />}
+          preferences={preferences} disabled={busy} onSelect={labelId => { labelTouched.current = true; setSelectedId(labelId); setMissingFolder(null); }} onAdd={addLabel} />}
         <section className="annotation-card"><h3>工具</h3><div className="annotation-tools">{(['diffuse', 'click', 'brush', 'polygon', 'erase'] as const).map(next =>
           <button key={next} disabled={busy} className={tool === next ? 'selected' : ''} aria-pressed={tool === next} onClick={() => chooseTool(next)}>{commandNames[next]} <kbd>{preferences.bindings[next]}</kbd></button>)}</div></section>
         <section className="annotation-card"><h3>本图统计</h3><dl className="annotation-statistics">
@@ -395,15 +430,6 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
             <button disabled={busy} onClick={() => { void invoke('open_exports_directory', { cubeId: id }).catch(() => setError('无法打开 JSON 所在文件夹。')); }}>打开所在文件夹</button></div>}
           {exportResult && !exportResult.ok && exportResult.error && <p role="alert" className="annotation-error" style={{ color: '#a12622' }}>标注已保存；JSON 投影失败：{exportResult.error}。重试须覆写，否则会多出一个版本。请勾选“覆写最新版本”后再次保存并聚合。</p>}
           {exportResult?.ok && exportResult.warning && <p role="status" className="annotation-warning">{exportResult.warning}</p>}
-          <button disabled={busy || !ready || Array.from(note).length > 2000} onClick={() => setConfirmVersion(true)}>确认版本并生成训练 MAT</button>
-          {confirmVersion && <ConfirmCard key={id} cubeId={id} disabled={busy || !ready} onReject={() => setConfirmVersion(false)} onApprove={async view => {
-            let matError: string | undefined;
-            const success = await execute(async () => {
-              const result = await drafts.confirm(id, { revision: view.revision, overwrite, ...(note ? { note } : {}) });
-              matError = result.mat_error;
-            }, '标注版本已确认，训练 MAT 已生成。', true);
-            if (success) { setConfirmVersion(false); if (matError) setMessage(`标注版本已确认；训练 MAT 生成失败：${matError}`); }
-          }} />}
           {confirmOverwrite && <div role="alertdialog" aria-label="确认覆写最新版本" className="annotation-overwrite"><p>{overwriteText ? overwriteText[0] : '将覆写最新版本（信息加载中…）'}</p><p>{overwriteText ? overwriteText[1] : '本次保存将写入当前工作态。'}</p><p>版本号与首次创建时间保留。</p><button disabled={busy} onClick={() => { void save(true); }}>确认覆写最新版本</button><button onClick={() => setConfirmOverwrite(false)}>取消</button></div>}
           <details><summary>版本记录（{versions.length}）</summary><ul>{versions.map(version => <li key={version.id}>v{version.version_no} · {version.labeled_pixels.toLocaleString()} px · {version.created_at}
             <button disabled={busy} onClick={() => { void execute(async () => { const png = await api.versionOverlay(id, version.id); if (alive.current) { setHistory(png); setHistoryId(version.id); } }, '历史叠加图已读取；当前工作态不变。'); }}>查看叠加图</button></li>)}</ul>

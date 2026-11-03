@@ -27,6 +27,7 @@ export function draftClient(send: InvokeDraft = invoke) {
   const forward = <T>(request: DraftRequest) => send<T>('annotations_draft_forward', { request });
   return { get: (cube: string) => forward<DraftView>(requests.get(cube)),
     storeGesture: (cube: string, seed: Seed) => forward<GestureResult>(requests.storeGesture(cube, seed)),
+    // TASK-16 后前端已无调用方；保留以对应后端 deprecated 路由。
     confirm: (cube: string, options: ConfirmOptions) => forward<ConfirmResult>(requests.confirm(cube, options)) };
 }
 export const drafts = draftClient();
