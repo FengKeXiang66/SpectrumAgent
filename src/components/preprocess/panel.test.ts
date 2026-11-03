@@ -49,7 +49,7 @@ test('S06 component wiring: no transport outside API, no numeric engine / fake p
   const read = (path: string) => readFileSync(new URL(path, import.meta.url), 'utf8');
   const panel = read('./PreprocessPanel.tsx'), editor = read('./PipelineEditor.tsx'), chart = read('./CompareChart.tsx');
   for (const source of [panel, editor, chart]) assert.doesNotMatch(source, /\bfetch\s*\(|\binvoke\s*\(|http:\/\//);
-  assert.match(panel, /projects\[0\]/); assert.match(panel, /annotations\.versions\(record\.id\)/);
+  assert.match(panel, /projects\.find\(/); assert.match(panel, /annotations\.versions\(record\.id\)/);
   assert.match(panel, /先在 S05 标注并保存/); assert.match(panel, /disabled=\{!annotationVersion/);
   assert.match(panel, /任务可能已完成/); assert.match(panel, /submitRun\(preprocessing/); assert.match(panel, /refresh最近|刷新最近/);
   assert.match(panel, /preprocessing\.addVersion/); assert.doesNotMatch(panel, /\.updateRecipe|\.deleteRecipe/);
