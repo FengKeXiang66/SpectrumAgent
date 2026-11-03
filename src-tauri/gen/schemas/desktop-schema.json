@@ -363,6 +363,12 @@
           "markdownDescription": "Enables the annotations_forward command without any pre-configured scope."
         },
         {
+          "description": "Enables the boot_probe command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-boot-probe",
+          "markdownDescription": "Enables the boot_probe command without any pre-configured scope."
+        },
+        {
           "description": "Enables the datasets_forward command without any pre-configured scope.",
           "type": "string",
           "const": "allow-datasets-forward",
@@ -433,6 +439,12 @@
           "type": "string",
           "const": "deny-annotations-forward",
           "markdownDescription": "Denies the annotations_forward command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the boot_probe command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-boot-probe",
+          "markdownDescription": "Denies the boot_probe command without any pre-configured scope."
         },
         {
           "description": "Denies the datasets_forward command without any pre-configured scope.",
