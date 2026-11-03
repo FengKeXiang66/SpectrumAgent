@@ -1,8 +1,8 @@
-.assistant-panel { box-sizing: border-box; flex: none; min-height: 0; display: flex; flex-direction: column; }
+.assistant-panel { box-sizing: border-box; flex: none; min-height: 0; display: flex; flex-direction: column; padding: 0 18px 12px; }
 .assistant-panel-content { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow-y: auto; }
 .assistant-panel-content > p { margin: 4px 0 8px; flex: none; }
 .assistant-panel-content > form { flex: none; }
-.assistant-resize-handle { flex: none; height: 16px; margin: 0 -24px; display: flex; align-items: center; justify-content: center; cursor: ns-resize; touch-action: none; user-select: none; }
+.assistant-resize-handle { flex: none; height: 16px; margin: 0; display: flex; align-items: center; justify-content: center; cursor: ns-resize; touch-action: none; user-select: none; }
 .assistant-resize-handle span { width: 48px; height: 4px; border-radius: 4px; background: #b4c4ce; }
 .assistant-resize-handle:hover, .assistant-resize-handle:focus-visible, .assistant-panel[data-resizing] .assistant-resize-handle { background: #edf5f8; }
 .assistant-resize-handle:focus-visible { outline: 2px solid #377495; outline-offset: -2px; }

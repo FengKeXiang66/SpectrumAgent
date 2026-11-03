@@ -58,7 +58,8 @@ test('S06 component wiring: no transport outside API, no numeric engine / fake p
   assert.match(panel, /step\.meta\.variance_definition/); assert.match(panel, /分量重构能量占比/);
   assert.match(chart, /未标注：整体均值/); assert.match(chart, /curveRuns\(values\)/); assert.match(chart, /band index/);
   assert.match(editor, /无波长轴，crop\/resample 禁用/); assert.match(editor, /生成目标轴/);
-  assert.match(read('../datasets/DatasetPanel.tsx'), /<PreprocessPanel/);
+  assert.match(read('../../App.tsx'), /<PreprocessPanel/);
+  assert.match(read('../datasets/DatasetPanel.tsx'), /onOpen\('s06', record\)/);
   assert.doesNotMatch(read('./preprocess.css'), /position:\s*fixed|100vh|z-index/);
 });
 test('unsupported operations are all marked stage two / not applicable without example metrics', () => {

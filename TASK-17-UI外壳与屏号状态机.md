@@ -212,6 +212,8 @@ assert.match(source, /settingsOpen && status.phase === 'Ready' && <SettingsPanel
 
 **S05 零改动**：`git diff --stat src/components/annotation/` 必须为空。
 
+**`panel.test.ts:61` 的授权同步（非弱化）**：该用例原本断言 `DatasetPanel.tsx` 里有 `<PreprocessPanel`——S06 的挂载点从 DatasetPanel 搬到 App 后这条必然红。允许把断言目标改为 `App.tsx`，并**补一条** `DatasetPanel.tsx` 含 `onOpen('s06', record)` 的连线断言。断言条数由 1 增到 2，强度不降、用例总数不变。这是"搬挂载点"的必然连带，不是新增设计。
+
 ---
 
 ## 4. 验收
@@ -266,5 +268,6 @@ assert.match(source, /settingsOpen && status.phase === 'Ready' && <SettingsPanel
 | 2026-11-03 | 初版。P0 范围：外壳 + 屏号状态机 + 窗口尺寸 + container 搬家；R4 写死"S05 零改动"，R8 说明为何不引 jsdom。前置闸门：存档提交落地 + 标图 9 张 + 基线 201/201/0 |
 | 2026-11-03 | 复核轮补三处空隙：①新增 **§2.9 占位屏**（11 个 `Screen` 值里 P0 只接通 4 个，其余 7 个统一占位；`s04` 在 P0 不可达）；②**A2 修正**——原文写"由 S03 进入 S04"与 §1.2「不拆 S03/S04」自相矛盾，改为"10 屏可切换 + s04 由 A1 静态覆盖"；③§2.7 补**默认屏 `'s03'`**（原只写在提示词里，卡未覆盖）。另 §2.5 补 AssistantPanel 搬家的配套微调（`.assistant-resize-handle` 的 `margin: 0 -24px` 在 `.p-main` 里会压进导航 24px，允许改 `margin: 0`） |
 | 2026-11-03 | 补 §2.7 末「已知可接受差」：屏号上移后 `DatasetPanel` 在 `screen !== 's03'` 时卸载，单波段预览的已选波段/已加载图会重置（原行为保留）；属 P2 拆屏时重构，P0 不处理、不因此停手 |
+| 2026-11-03 | **实现落地**。补 §3 一条授权同步：`panel.test.ts:61` 的 `<PreprocessPanel` 断言随挂载点上移到 `App.tsx`，并补 `onClose`/`onOpen` 连线断言（1 条→2 条，非弱化，用例总数不变）。实现结果：A4 clientHeight 166px（1180×720 下 160px）、A5 零 diff、A6 204/204/0、A7 构建通过 |
 | 2026-11-03 | **执行方即停后补两处卡内冲突**：①§2.3 的注释「Ready / Stopping 才进 AppShell」与 A3 自相矛盾——改为**四相位里只有 Ready 进壳**（Starting 空白 / Stopping 一行字 / Failed 独立错误页），并给出代码形态；②**A6 与 A1 冲突**——A1 要求新增 `screens.test.ts`，A6 却写死总数 201。改为「原有 201 项全过，新增用例另计（201+N，N≥1），fail=0」，并明写**禁止为凑总数删改现有测试** |
 | 2026-11-03 | 发送前修正：§2.7 补 **`navigation` 消费的归属**——它由 `DatasetPanel:67-91` 的 effect 消费（内部调 `setAnnotation`/`setPreprocess`/`setModeling`），三个提前 return 删掉后必须**整段上移到 App**，按 stage 映射 s05/s06，且**不得作为 prop 传入 S05/S07**（两者今天都不接收，加 prop 就撞 A5 零改动）。另闸门 2 的"9 张"更正为"10 个有效 cube（PE3/PET3/PP4）" |

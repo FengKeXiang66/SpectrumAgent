@@ -1,10 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import { describeError, displayName, mergeRecords, type DatasetRecord, type DatasetTransport, type Preview } from './types';
-import AnnotationWorkbench from '../annotation/AnnotationWorkbench';
-import PreprocessPanel from '../preprocess/PreprocessPanel';
-import ModelPanel from '../modeling/ModelPanel';
 import type { WorkspaceContext } from '../assistant/api';
-import type { WorkspaceEventData } from '../assistant/sse';
 
 function BandCanvas({ preview, thumbnail = false }: { preview: Preview; thumbnail?: boolean }) {
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -42,53 +38,24 @@ function Thumbnail({ record, api }: { record: DatasetRecord; api: DatasetTranspo
     : error ? <span role="alert">{error}</span> : <span>缩略图读取中…</span>;
 }
 
-export default function DatasetPanel({ api, onRecordsChange, onWorkspaceChange, refreshVersions = {}, navigation, previewCandidates = {} }: {
-  api: DatasetTransport; onRecordsChange?(records: DatasetRecord[]): void;
-  onWorkspaceChange?(context: WorkspaceContext): void; refreshVersions?: Record<string, number>;
-  navigation?: WorkspaceEventData | null;
-  previewCandidates?: Record<string, string>;
+export default function DatasetPanel({ api, records, onRecordsChange: setRecords, onWorkspaceChange, onOpen, selectedRecord }: {
+  api: DatasetTransport; records: DatasetRecord[]; onRecordsChange: Dispatch<SetStateAction<DatasetRecord[]>>;
+  onWorkspaceChange?(context: WorkspaceContext): void;
+  onOpen(screen: 's05'|'s06'|'s07', record?: DatasetRecord): void;
+  selectedRecord: DatasetRecord | null;
 }) {
-  const [records, setRecords] = useState<DatasetRecord[]>([]);
-  const [annotation, setAnnotation] = useState<DatasetRecord | null>(null);
-  const [preprocess, setPreprocess] = useState<DatasetRecord | null>(null);
   const [raw, setRaw] = useState(false);
-  const [modeling, setModeling] = useState(false);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [message, setMessage] = useState('选择数据目录，登记数据引用；源文件保持只读。');
   const [error, setError] = useState('');
-  const [selected, setSelected] = useState<DatasetRecord | null>(null);
+  const [selected, setSelected] = useState<DatasetRecord | null>(selectedRecord);
   const [band, setBand] = useState(0);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [previewBusy, setPreviewBusy] = useState(false);
   const live = useRef(true);
   const sequence = useRef(0);
-  useEffect(() => { onRecordsChange?.(records); }, [records, onRecordsChange]);
-  useEffect(() => {
-    if (!navigation) return;
-    let cancelled = false;
-    const show = (record: DatasetRecord) => {
-      if (cancelled) return;
-      setSelected(record); setModeling(false);
-      if (navigation.stage === 'annotation') { setAnnotation(record); setPreprocess(null); }
-      else if (navigation.stage === 'preprocess') { setAnnotation(null); setPreprocess(record); }
-      else {
-        setAnnotation(current => current ? record : null);
-        setPreprocess(current => current ? record : null);
-      }
-    };
-    const record = records.find(item => item.id === navigation.cube_id);
-    if (record) show(record);
-    else {
-      setAnnotation(null); setPreprocess(null); setModeling(false); setSelected(null); setPreview(null);
-      void api.get(navigation.cube_id).then(next => {
-        if (cancelled) return;
-        if (next.id !== navigation.cube_id) throw new Error('读取的数据与助手选择不一致，请重试。');
-        setRecords(current => mergeRecords(current, [next])); show(next);
-      }).catch(failure => { if (!cancelled) setError(describeError(failure)); });
-    }
-    return () => { cancelled = true; };
-  }, [navigation, records, api]);
+  useEffect(() => { setSelected(selectedRecord); }, [selectedRecord]);
   useEffect(() => {
     live.current = true;
     return () => { live.current = false; sequence.current++; };
@@ -132,16 +99,9 @@ export default function DatasetPanel({ api, onRecordsChange, onWorkspaceChange, 
     }
   };
 
-  if (annotation) return <AnnotationWorkbench key={annotation.id} record={annotation} records={records} datasets={api}
-    onWorkspaceChange={onWorkspaceChange} refreshVersion={refreshVersions[annotation.id] ?? 0}
-    previewCandidateRef={previewCandidates[annotation.id]}
-    onNavigate={next => { setAnnotation(next); onWorkspaceChange?.({ cube_id: next.id }); }} onClose={() => setAnnotation(null)} />;
-  if (preprocess) return <PreprocessPanel key={preprocess.id} record={preprocess} refreshVersion={refreshVersions[preprocess.id] ?? 0} onClose={() => setPreprocess(null)} />;
-  if (modeling) return <ModelPanel records={records} onClose={() => setModeling(false)} />;
-
   return <section aria-label="数据集管理">
     <h2>数据接入</h2>
-    <button disabled={busy || !records.length} onClick={() => setModeling(true)}>PLS 回归与样品取值</button>
+    <button disabled={busy || !records.length} onClick={() => onOpen('s07')}>PLS 回归与样品取值</button>
     <label><input type="checkbox" checked={raw} disabled={busy} onChange={event => setRaw(event.target.checked)} /> 原始 DN 模式（未除 scale factor）</label>{' '}
     <button disabled={busy} onClick={() => { void choose(); }}>{busy ? '正在导入…' : '选择数据目录'}</button>
     <p role="status">{message}</p>
@@ -156,8 +116,8 @@ export default function DatasetPanel({ api, onRecordsChange, onWorkspaceChange, 
           <td>{data.wavelengths.length ? `${data.wavelengths[0]}–${data.wavelengths.at(-1)}` : '未提供'}</td>
           <td>{data.metadata.value_mode === 'raw_dn' ? 'DN 原值' : '反射率'}{record.existing ? '（已有）' : ''}</td>
           <td><Thumbnail record={record} api={api} /><button onClick={() => { void loadPreview(record, 0); }}>预览 {displayName(record)}</button>
-            <button disabled={busy} onClick={() => { setAnnotation(record); onWorkspaceChange?.({ cube_id: record.id }); }}>标注 {displayName(record)}</button>
-            <button disabled={busy} onClick={() => { setPreprocess(record); onWorkspaceChange?.({ cube_id: record.id }); }}>预处理 {displayName(record)}</button></td>
+            <button disabled={busy} onClick={() => { onOpen('s05', record); onWorkspaceChange?.({ cube_id: record.id }); }}>标注 {displayName(record)}</button>
+            <button disabled={busy} onClick={() => { onOpen('s06', record); onWorkspaceChange?.({ cube_id: record.id }); }}>预处理 {displayName(record)}</button></td>
         </tr>;
       })}</tbody>
     </table>
