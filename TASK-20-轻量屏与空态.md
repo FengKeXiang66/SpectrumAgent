@@ -52,10 +52,12 @@
 |---|---|---|
 | 数据集 | `records.length` 个已登记；点「查看全部」→ `openScreen('s03')` | App `records` |
 | 回归运行 | 总数 + 最近 3 条（`id` 前 8 位 + `status`）；点某条 → `openScreen('s08', undefined, id)` | `modeling.runs()` 过滤 `regression` |
-| 引擎 | `status.phase` / `pid` / `port` / `generation_id` | App `status` |
+| 引擎 | **精简版**：`status.phase`（中文相位）+ `generation_id`。**不显示 `pid` / `port`** | App `status` |
 | 快捷 | 「继续标注」→ `openScreen('s05')`（无选中时由 `openScreen` 的回退逻辑取 `workspace.cube_id`） | — |
 
 **不做**：标注像素统计、纯度聚合、批次进度——都没有 API，渲染即假数据。
+
+**与 S03 调试行的分工（裁定）**：`pid` / `port` / `generation_id` 现在显示在 S03 屏顶的调试行（`App.tsx:168` 一带）。S02 的引擎卡只做精简版（相位 + 代次），**`pid`/`port` 不重复展示**；S03 的调试行**保持原样**——本卡不动 S03，那行属 P3 换皮范围。两处并存不算冲突，但同一信息不叠两遍。
 
 ### 2.2 S09 台账（两层）
 
@@ -164,4 +166,5 @@ DatasetPanel 的 onOpen('s06', record)              ← panel.test.ts:62
 
 | 日期 | 变更 |
 |---|---|
+| 2026-11-03 | **裁定 S02 引擎卡与 S03 调试行的分工**：S02 只显示相位 + `generation_id`，`pid`/`port` 不重复；S03 调试行保持原样（本卡不动 S03，属 P3 范围）。补记：S05 相关断言实测 **65 处**（confirm 17 / display 14 / projection 13 / working 12 / overwrite 9，行=次），`display` 是 11 个 `match` + 3 个 `doesNotMatch` |
 | 2026-11-03 | 初版。P5 范围：S02 / S09 / S10 空态 / S11 入口。基线 209/209/0（无退场文件）。核心约束：回归侧无时间戳（R2），不编字段 |
