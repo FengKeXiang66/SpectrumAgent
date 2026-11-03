@@ -1,0 +1,39 @@
+{
+  "head": "2526ba0",
+  "original_pass": 201,
+  "new_pass": 3,
+  "total_pass": 204,
+  "fail": 0,
+  "original_pass_names_retained": true,
+  "new_tests": [
+    "A1 navigation retains five ordered groups and exactly ten unique screen entries",
+    "A1 titles cover all eleven Screen values including the viewer below data",
+    "A1 only s04 redirects its navigation highlight to s03"
+  ],
+  "annotation_diff_stat": "",
+  "dependencies": 4,
+  "screen_screenshots": [
+    "s01",
+    "s02",
+    "s03",
+    "s05",
+    "s06",
+    "s07",
+    "s08",
+    "s09",
+    "s10",
+    "s11"
+  ],
+  "canvas_clientHeight": 166,
+  "changed_existing_files": [
+    "src-tauri/tauri.conf.json",
+    "src/App.tsx",
+    "src/components/assistant/assistant.css",
+    "src/components/datasets/DatasetPanel.tsx",
+    "src/components/preprocess/panel.test.ts",
+    "src/style.css"
+  ],
+  "ipc_response_count": 118,
+  "ipc_failures": 0,
+  "draft_reads_200": 7
+}

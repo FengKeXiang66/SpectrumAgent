@@ -1,0 +1,259 @@
+{
+  "mode": "production frontend + isolated real FastAPI + engine/navigation IPC fixtures",
+  "screens": [
+    {
+      "active": "s03",
+      "alerts": [],
+      "placeholder": null,
+      "placeholderChildren": null,
+      "root": "数据集管理",
+      "screen": "s03",
+      "scrollTop": 0,
+      "text": null,
+      "screenshot": "s03.jpg"
+    },
+    {
+      "active": "s05",
+      "alerts": [],
+      "placeholder": null,
+      "placeholderChildren": null,
+      "root": "S05 标注工作台",
+      "screen": "s05",
+      "scrollTop": 0,
+      "text": null,
+      "screenshot": "s05.jpg"
+    },
+    {
+      "active": "s06",
+      "alerts": [],
+      "placeholder": null,
+      "placeholderChildren": null,
+      "root": "S06 预处理工作台",
+      "screen": "s06",
+      "scrollTop": 0,
+      "text": null,
+      "screenshot": "s06.jpg"
+    },
+    {
+      "active": "s07",
+      "alerts": [],
+      "placeholder": null,
+      "placeholderChildren": null,
+      "root": "PLS 回归工作台",
+      "screen": "s07",
+      "scrollTop": 0,
+      "text": null,
+      "screenshot": "s07.jpg"
+    },
+    {
+      "active": "s01",
+      "alerts": [],
+      "placeholder": "s01",
+      "placeholderChildren": 2,
+      "root": "智能助手（后续批次启用）",
+      "screen": "s01",
+      "scrollTop": 0,
+      "text": "本屏在后续批次启用。",
+      "screenshot": "s01.jpg"
+    },
+    {
+      "active": "s02",
+      "alerts": [],
+      "placeholder": "s02",
+      "placeholderChildren": 2,
+      "root": "工作台（后续批次启用）",
+      "screen": "s02",
+      "scrollTop": 0,
+      "text": "本屏在后续批次启用。",
+      "screenshot": "s02.jpg"
+    },
+    {
+      "active": "s08",
+      "alerts": [],
+      "placeholder": "s08",
+      "placeholderChildren": 2,
+      "root": "结果（后续批次启用）",
+      "screen": "s08",
+      "scrollTop": 0,
+      "text": "本屏在后续批次启用。",
+      "screenshot": "s08.jpg"
+    },
+    {
+      "active": "s09",
+      "alerts": [],
+      "placeholder": "s09",
+      "placeholderChildren": 2,
+      "root": "实验台账（后续批次启用）",
+      "screen": "s09",
+      "scrollTop": 0,
+      "text": "本屏在后续批次启用。",
+      "screenshot": "s09.jpg"
+    },
+    {
+      "active": "s10",
+      "alerts": [],
+      "placeholder": "s10",
+      "placeholderChildren": 2,
+      "root": "检索（后续批次启用）",
+      "screen": "s10",
+      "scrollTop": 0,
+      "text": "本屏在后续批次启用。",
+      "screenshot": "s10.jpg"
+    },
+    {
+      "active": "s11",
+      "alerts": [],
+      "placeholder": "s11",
+      "placeholderChildren": 2,
+      "root": "设置与出域记录（后续批次启用）",
+      "screen": "s11",
+      "scrollTop": 0,
+      "text": "本屏在后续批次启用。",
+      "screenshot": "s11.jpg"
+    }
+  ],
+  "canvas": {
+    "badgeText": "",
+    "bodyClientHeight": 396,
+    "bodyContentHeight": 360,
+    "clientHeight": 166,
+    "computedHeight": "165.594px",
+    "containerType": "size",
+    "minHeight": "0px",
+    "navCount": 10,
+    "navWidth": 196,
+    "viewport": {
+      "height": 820,
+      "width": 1280
+    }
+  },
+  "minWindowCanvas": {
+    "assistantHeight": 359,
+    "bodyClientHeight": 296,
+    "bodyContentHeight": 260,
+    "clientHeight": 160,
+    "computedHeight": "160px",
+    "viewport": {
+      "height": 720,
+      "width": 1180
+    }
+  },
+  "resizedPanelCanvas": {
+    "assistantHeight": 259,
+    "bodyClientHeight": 396,
+    "bodyContentHeight": 360,
+    "clientHeight": 166,
+    "computedHeight": "165.594px",
+    "viewport": {
+      "height": 720,
+      "width": 1180
+    }
+  },
+  "phases": [
+    {
+      "tested": "Failed",
+      "assistantCount": 0,
+      "navCount": 0,
+      "phase": "Failed",
+      "role": null,
+      "rootChildren": 1,
+      "tag": "DIV",
+      "text": "光谱数据 AI Agent引擎启动或运行失败无法启动引擎，请检查程序文件是否完整。工作线程不可用握手路径：E:\\AI_Agent\\.runtime\\task17\\browser-7ee6c0921e36430fb953f809bdc8f529\\handshake.json日志路径：E:\\AI_Agent\\.runtime\\task17\\browser-7ee6c0921e36430fb953f809bdc8f529\\logs数据目录：E:\\AI_Agent\\.runtime\\task17\\browser-7ee6c0921e36430fb953f809bdc8f529重试打开数据目录"
+    },
+    {
+      "tested": "Stopping",
+      "assistantCount": 0,
+      "navCount": 0,
+      "phase": null,
+      "role": "status",
+      "rootChildren": 1,
+      "tag": "P",
+      "text": "正在关闭"
+    },
+    {
+      "tested": "Starting",
+      "assistantCount": 0,
+      "navCount": 0,
+      "phase": null,
+      "role": null,
+      "rootChildren": 0,
+      "tag": null,
+      "text": ""
+    }
+  ],
+  "settings": {
+    "dialog": true,
+    "title": "LLM 设置"
+  },
+  "navigation": [
+    {
+      "content": "TASK17 none 2",
+      "active": "s05",
+      "alerts": [],
+      "heading": "标注工作台 20260804205217_70",
+      "input": "",
+      "screen": "s05"
+    },
+    {
+      "content": "TASK17 preprocess 1",
+      "active": "s06",
+      "alerts": [],
+      "heading": "S06 · 20260804205214_64",
+      "input": "",
+      "screen": "s06"
+    },
+    {
+      "content": "TASK17 none 2",
+      "active": "s06",
+      "alerts": [],
+      "heading": "S06 · 20260804205217_70",
+      "input": "",
+      "screen": "s06"
+    },
+    {
+      "content": "TASK17 none 1",
+      "active": "s03",
+      "alerts": [],
+      "heading": "数据接入",
+      "input": "",
+      "screen": "s03"
+    },
+    {
+      "content": "TASK17 annotation 2",
+      "active": "s05",
+      "alerts": [],
+      "heading": "标注工作台 20260804205217_70",
+      "input": "",
+      "screen": "s05"
+    },
+    {
+      "content": "TASK17 annotation 2",
+      "active": "s05",
+      "alerts": [],
+      "heading": "标注工作台 20260804205217_70",
+      "input": "",
+      "screen": "s05"
+    }
+  ],
+  "close": [
+    {
+      "from": "s05",
+      "screen": "s03",
+      "tableRows": 3
+    },
+    {
+      "from": "s06",
+      "screen": "s03",
+      "tableRows": 3
+    },
+    {
+      "from": "s07",
+      "screen": "s03",
+      "tableRows": 3
+    }
+  ],
+  "cold": {
+    "tableRows": 2,
+    "expectedRecord": "20260804205217_70"
+  }
+}
