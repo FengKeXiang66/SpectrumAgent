@@ -92,7 +92,7 @@ test('component wiring has no local label map or undo history and preserves the 
   assert.match(source, /api\.versionOverlay\(id, version\.id\)/);
   assert.doesNotMatch(readFileSync(new URL('./annotation.css', import.meta.url), 'utf8'), /position:\s*fixed/);
   const app = readFileSync(new URL('../../App.tsx', import.meta.url), 'utf8');
-  assert.match(app, /<AssistantPanel>/);
-  const panel = readFileSync(new URL('../assistant/AssistantPanel.tsx', import.meta.url), 'utf8');
+  assert.match(app, /<Composer/);
+  const panel = readFileSync(new URL('../assistant/Composer.tsx', import.meta.url), 'utf8');
   assert.match(panel, /<footer\b[^>]*aria-label="常驻对话条"/);
 });

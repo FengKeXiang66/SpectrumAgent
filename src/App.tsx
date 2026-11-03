@@ -4,8 +4,9 @@ import { listen } from '@tauri-apps/api/event';
 import { acceptSnapshot, type ExitReason, type Snapshot } from './status';
 import DatasetPanel from './components/datasets/DatasetPanel';
 import { datasets } from './components/datasets/api';
-import AssistantBar from './components/assistant/AssistantBar';
-import AssistantPanel from './components/assistant/AssistantPanel';
+import Composer from './components/assistant/Composer';
+import useSession from './components/assistant/useSession';
+import S01 from './screens/S01';
 import SettingsPanel from './components/settings/SettingsPanel';
 import type { DatasetRecord } from './components/datasets/types';
 import { describeError, mergeRecords } from './components/datasets/types';
@@ -56,7 +57,16 @@ export default function App() {
     setWorkspace(current => selectWorkspace(current, next)); setNavigation(null); setWorkspaceName('');
     if (next.cube_id) setSelected(current => records.find(record => record.id === next.cube_id) ?? current);
   }, [records]);
-  const input = useRef<HTMLInputElement>(null);
+  const composerInput = useRef<HTMLInputElement>(null);
+  const session = useSession({ enabled: status.phase === 'Ready', generation: status.generation_id,
+    workspace, records, displayName: workspaceName, onWorkspaceChange: changeWorkspace,
+    onWorkspaceNavigate: selection => { setNavigation(selection); setWorkspaceName(selection.display_name ?? ''); },
+    onPreviewCandidate: (cubeId, candidateRef) => setPreviewCandidates(current => ({ ...current, [cubeId]: candidateRef })),
+    onDataChanged: cubeIds => setRefreshVersions(current => {
+      const next = { ...current };
+      for (const cubeId of cubeIds) next[cubeId] = (next[cubeId] ?? 0) + 1;
+      return next;
+    }) });
   const statusRef = useRef(status);
   statusRef.current = status;
   useEffect(() => {
@@ -121,10 +131,10 @@ export default function App() {
   };
   useEffect(() => {
     const shortcut = (event: KeyboardEvent) => {
-      if (event.target instanceof Element && event.target.closest('.assistant-bar')) return;
-      if (!event.ctrlKey || status.phase !== 'Ready') return;
-      if (event.key.toLowerCase() === 'k') { event.preventDefault(); input.current?.focus(); }
-      if (event.key === 'Enter') { event.preventDefault(); void send(); }
+      if (screen === 's01' || !event.ctrlKey || status.phase !== 'Ready') return;
+      if (event.target instanceof Element && event.target.closest('.composer')) return;
+      if (event.key.toLowerCase() === 'k') { event.preventDefault(); composerInput.current?.focus(); }
+      if (event.key === 'Enter') { event.preventDefault(); void session.request({ content: session.content }); }
     };
     window.addEventListener('keydown', shortcut);
     return () => window.removeEventListener('keydown', shortcut);
@@ -162,13 +172,13 @@ export default function App() {
   };
   const renderScreen = () => {
     switch (screen) {
+      case 's01': return <S01 session={session} smoke={{ text, setText, message, busy, metrics, send }} />;
       case 's03': return <>
         <p role="status">引擎已就绪</p>
         <p>选择数据目录，查看数据集与单波段预览。</p>
         <p>进程 {status.pid} · 端口 {status.port} · 启动代次 {status.generation_id}</p>
         <DatasetPanel key={status.generation_id} api={datasets} records={records} onRecordsChange={setRecords}
           selectedRecord={selected} onWorkspaceChange={changeWorkspace} onOpen={openScreen} />
-        {metrics && <pre aria-label="冒烟测试真实结果">{JSON.stringify(metrics, null, 2)}</pre>}
       </>;
       case 's05': return selected ? <AnnotationWorkbench key={selected.id} record={selected} records={records} datasets={datasets}
         onWorkspaceChange={changeWorkspace} refreshVersion={refreshVersions[selected.id] ?? 0}
@@ -188,23 +198,7 @@ export default function App() {
     <AppShell screen={screen} onNavigate={next => openScreen(next)} topActions={<>
       <span aria-label="产品版本">版本 {__SPECTRUM_PRODUCT_VERSION__}</span>
       <button onClick={() => setSettingsOpen(true)}>设置</button>
-    </>} assistant={<AssistantPanel>
-      <p role="status">{message}</p>
-      <form onSubmit={event => { event.preventDefault(); void send(); }}>
-        <label htmlFor="agent-input">hello 对话条</label>
-        <input ref={input} id="agent-input" value={text} onChange={event => setText(event.target.value)} disabled={status.phase !== 'Ready' || busy} placeholder="运行冒烟测试（Ctrl+K 聚焦，Ctrl+Enter 发送）" />
-        <button type="submit" disabled={status.phase !== 'Ready' || busy}>{busy ? '运行中' : '发送'}</button>
-      </form>
-      <AssistantBar key={status.generation_id} enabled={status.phase === 'Ready'} workspace={workspace} records={records} displayName={workspaceName}
-        onWorkspaceChange={changeWorkspace}
-        onWorkspaceNavigate={selection => { setNavigation(selection); setWorkspaceName(selection.display_name ?? ''); }}
-        onPreviewCandidate={(cubeId, candidateRef) => setPreviewCandidates(current => ({ ...current, [cubeId]: candidateRef }))}
-        onDataChanged={cubeIds => setRefreshVersions(current => {
-          const next = { ...current };
-          for (const cubeId of cubeIds) next[cubeId] = (next[cubeId] ?? 0) + 1;
-          return next;
-        })} />
-    </AssistantPanel>}>
+    </>} assistant={screen === 's01' ? null : <Composer session={session} screen={screen} inputRef={composerInput} onExpand={() => setScreen('s01')} />}>
       {navigationError && <pre role="alert">{navigationError}</pre>}
       {renderScreen()}
     </AppShell>
