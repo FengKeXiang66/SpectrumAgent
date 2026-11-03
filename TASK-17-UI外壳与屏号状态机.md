@@ -104,12 +104,13 @@ export const NAV: { group: string; items: { screen: Screen; label: string; icon:
 ### 2.3 引擎三态必须在壳外
 
 ```tsx
-if (status.phase === 'Starting') return null;      // 现状保留
+if (status.phase === 'Starting') return null;                // 现状保留
 if (status.phase === 'Failed')   return <FailurePage .../>;  // 独立错误页，不得套壳
-// Ready / Stopping 才进 AppShell
+if (status.phase === 'Stopping') return <p role="status">正在关闭</p>;  // 一行字，同样不进壳
+// 只有 Ready 才进 AppShell
 ```
 
-**失败页不得出现空导航。** 引擎没起来时导航里每一项都是死链，比没有导航更糟。
+**四个相位里只有 `Ready` 进壳**：`Starting` 空白、`Stopping` 一行字、`Failed` 独立错误页。理由一致——引擎没起来或正在关闭时，导航里每一项都是死链，比没有导航更糟。
 
 ### 2.4 窗口尺寸
 
@@ -222,7 +223,7 @@ assert.match(source, /settingsOpen && status.phase === 'Ready' && <SettingsPanel
 | A3 | **引擎三态在壳外** | 制造 `Failed`（临时改 engine_status 返回值或断网）：错误页**不含** `.p-nav`；`Starting` 返回 null；`Stopping` 只有一行字 |
 | A4 | **画布不塌** | 进 S05，`.annotation-canvas-host` 的 `clientHeight > 100`（`46cqh` 生效） |
 | A5 | **S05 零改动** | `git diff --stat src/components/annotation/` 为空 |
-| A6 | **基线不退化** | `node --test "src/**/*.test.ts"` → 201/201/0（若 A8 的授权同步改了断言，数量不变） |
+| A6 | **基线不退化** | `node --test "src/**/*.test.ts"`：**原有 201 项全部通过**，新增的 `screens.test.ts` 用例另计（总数 = 201 + N，N ≥ 1），`fail = 0`。**禁止为了把总数凑回 201 而删改现有测试**；A8 若授权同步了断言，数量不变但断言意图不变 |
 | A7 | **构建过** | `npm run build`（含 `tsc --noEmit`） |
 | A8 | **设置入口仍可达** | 顶栏「设置」按钮点开仍是原 `SettingsPanel`；`SettingsPanel.test.ts` 三条断言保持绿（或同批授权同步） |
 
@@ -265,4 +266,5 @@ assert.match(source, /settingsOpen && status.phase === 'Ready' && <SettingsPanel
 | 2026-11-03 | 初版。P0 范围：外壳 + 屏号状态机 + 窗口尺寸 + container 搬家；R4 写死"S05 零改动"，R8 说明为何不引 jsdom。前置闸门：存档提交落地 + 标图 9 张 + 基线 201/201/0 |
 | 2026-11-03 | 复核轮补三处空隙：①新增 **§2.9 占位屏**（11 个 `Screen` 值里 P0 只接通 4 个，其余 7 个统一占位；`s04` 在 P0 不可达）；②**A2 修正**——原文写"由 S03 进入 S04"与 §1.2「不拆 S03/S04」自相矛盾，改为"10 屏可切换 + s04 由 A1 静态覆盖"；③§2.7 补**默认屏 `'s03'`**（原只写在提示词里，卡未覆盖）。另 §2.5 补 AssistantPanel 搬家的配套微调（`.assistant-resize-handle` 的 `margin: 0 -24px` 在 `.p-main` 里会压进导航 24px，允许改 `margin: 0`） |
 | 2026-11-03 | 补 §2.7 末「已知可接受差」：屏号上移后 `DatasetPanel` 在 `screen !== 's03'` 时卸载，单波段预览的已选波段/已加载图会重置（原行为保留）；属 P2 拆屏时重构，P0 不处理、不因此停手 |
+| 2026-11-03 | **执行方即停后补两处卡内冲突**：①§2.3 的注释「Ready / Stopping 才进 AppShell」与 A3 自相矛盾——改为**四相位里只有 Ready 进壳**（Starting 空白 / Stopping 一行字 / Failed 独立错误页），并给出代码形态；②**A6 与 A1 冲突**——A1 要求新增 `screens.test.ts`，A6 却写死总数 201。改为「原有 201 项全过，新增用例另计（201+N，N≥1），fail=0」，并明写**禁止为凑总数删改现有测试** |
 | 2026-11-03 | 发送前修正：§2.7 补 **`navigation` 消费的归属**——它由 `DatasetPanel:67-91` 的 effect 消费（内部调 `setAnnotation`/`setPreprocess`/`setModeling`），三个提前 return 删掉后必须**整段上移到 App**，按 stage 映射 s05/s06，且**不得作为 prop 传入 S05/S07**（两者今天都不接收，加 prop 就撞 A5 零改动）。另闸门 2 的"9 张"更正为"10 个有效 cube（PE3/PET3/PP4）" |
