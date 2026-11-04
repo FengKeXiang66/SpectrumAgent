@@ -88,7 +88,12 @@
 | 覆写已有的级联清理 | `src-python/spectrumagent/annotation/session.py:387-389` / `:405` | `DELETE FROM annotation / sample_spectrum / training_mat` + **`storage.rmtree(directory)`（A 段已收口，原 `shutil.rmtree` 在 `:406`）** |
 | A 段守卫实际接口 | `src-python/spectrumagent/storage/guard.py:329/333/345` | `resolve_write` / `resolve_delete` / `rmtree`（另有 `:337 mkdir`、`:341 unlink`、`:349 replace`）；**B 段直接调用，不另造出口** |
 | 父表重建迁移手法 | `src-python/spectrumagent/modeling/migrations.py:68-102` | `PRAGMA defer_foreign_keys` + `SAVEPOINT` + create-copy-drop-rename |
-| 项目级 projection 配置 | `src-python/spectrumagent/annotation/projection_io.py:21` / `:73` / `:74` | `:21` `return paths.root / "projects"/.../"projection.json"`；`:73` `root = paths.exports.resolve()`；`:74` `folder = root / cube_id`（A 段未改，仍吻合） |
+| 项目级 projection 配置 | `src-python/spectrumagent/annotation/projection_io.py:21` / `:73` / `:74` | `:21` `return paths.root / "projects"/.../"projection.json"`；`:73` `root = paths.exports.resolve()`；`:74` `folder = root / cube_id`（A/B 段未改，仍吻合） |
+| settings 现有契约（C 段起点） | `src-tauri/src/settings.rs:12/13/46-52` | `#[serde(tag="op", ..., deny_unknown_fields)]` / `pub enum SettingsRequest`（仅 `GetLlm`/`PutLlm`/`PutKey`）/ `destination` 固定路径构造；`:64-65` 敏感字段向量 |
+| settings 前端契约 | `src/components/settings/settings-forward.ts:5/20` | `SettingsRequest` 三 op 联合类型 / `settings_forward` 转发 |
+| settings 后端契约 | `src-python/spectrumagent/api/settings.py:13/14/19/23/28` | `make_router(database)` / `APIRouter(prefix="/api/v1/settings")` / `GET /llm`、`PUT /llm`、`PUT /llm/key` |
+| settings 注册与白名单 | `src-python/spectrumagent/app.py:54/93/110` | `make_settings_router(paths.database)`；`:93`/`:110` 的 `/api/v1/settings` 前缀白名单**已覆盖新路径，禁重复添加** |
+| OpenAPI 受控产物 | `src-python/spectrumagent/api/openapi.json:644/700` | `/api/v1/settings/llm` 与 `/llm/key`；新增端点须同步 |
 
 ### 0.3 科祥 2026-11-04 拍板口径（五条，不得自行改写）
 
@@ -117,6 +122,7 @@
 - NAS 只读挂载、只读账号与凭据加密、连接自检与 fail-closed、NAS 目录树浏览、产物实际写入 NAS 输出根 + run manifest（FR-A12 全量）——**另立卡**。
 - FR-A01 新格式（GeoTIFF/COG、HDF5/NetCDF、Specim、.mat、IrisCube）、S10 检索、分类双轨（PLS-DA）、E 域 L2–L4、J/K/L 三域、报告导出、深度模型、瓦片大图。
 - **S03 两个路径字段本卡只做「选择 / 保存 / 显示」**：数据源（本机或 UNC）、产物输出根配置为可保存设置；**产物落盘位置不变**（仍 `paths.root` 下），不把产物写到 NAS 输出根。界面须明示该状态，不得做成假入口。
+- **C 段项目路径接口仅保存配置**（§4.1）：不检查 NAS 连通性、不挂载、不写凭据、不启用输出根、不迁移任何产物落盘；`output_enabled` 服务端恒 `false` 并在界面明示（FR-A12 / FR-A13 全量另立卡）。
 
 ---
 
@@ -216,6 +222,23 @@
 4. **S11**：显示回收站占用体积、条目数、预计释放日期，以及出域禁运清单里的「NAS 路径与文件名」条目。
 5. **S03 两字段**：数据源（本机 / UNC）与产物输出根，两个独立输入框 + 只读徽标 + 「浏览…」 + 「保存为该项目默认」；`?src=` / `?out=` 预填；S11 显示当前值。`smb://` 在 Windows `Path()` 打不开，**必须归一为 UNC `\\server\share\...`**（`api/registry.py` 的 `absolute()` 要求绝对路径并 `resolve()`）。**显示完整路径 ≠ 暴露给 LLM**：`safe_name()` 的「never expose directories」约定不变，工具出参只准标量、沿用 `src-python/spectrumagent/agent/llm.py:136` 兜底。格式清单按 ui-v2.3 `:1417` 分期，**不得**出现 `.mat` / IrisCube 的假入口。
 
+### 4.1 项目路径保存接口契约（C 段新增，2026-11-04 23:44 即停裁定授权）
+
+执行方按即停条款「要改接口契约先停下问」报：现有 `settings.rs` 只有 LLM 三 op（`GetLlm` / `PutLlm` / `PutKey`），无项目路径保存接口。**裁定按建议补卡授权（选项 1）**，契约钉死如下，不得自行扩张：
+
+1. **端点**：挂在现有 `APIRouter(prefix="/api/v1/settings")`（`src-python/spectrumagent/api/settings.py:14`）下 → `GET /api/v1/settings/projects/{project_id}/paths` 与 `PUT /api/v1/settings/projects/{project_id}/paths`。`project_id` 走路径参数，**不进 body**。
+2. **PUT**：body **仅** `source_path`、`output_root` 两个字符串字段；Pydantic `extra="forbid"` + Rust `deny_unknown_fields` 双向拒绝未知字段；空串 = 未配置（沿用 `llm_settings` 空串约定），禁 `null`。`source_path` 若以 `smb://` 传入，按 §4 第 5 条归一为 UNC，**只做字符串归一、不验证可达性、不访问该路径**。
+3. **GET**：返回 `source_path`、`output_root`、`data_root`（实际 `paths.root`）、**`output_enabled: false`（服务端常量，禁前端传、禁配置化、禁由表字段驱动）**。界面须明示「输出根当前仅保存、不生效」，不做假入口。
+4. **持久化**：独立表 `project_path_settings(project_id TEXT PRIMARY KEY REFERENCES project(id), source_path TEXT NOT NULL, output_root TEXT NOT NULL, updated_at TEXT NOT NULL)`。**写路径覆盖**：逐列供值（`project_id` = 路径参数经 UUID 校验、`source_path` / `output_root` = PUT body 或启动默认空串、`updated_at` = 服务端 UTC），禁靠 DEFAULT 兜底。**禁塞 `dataset_registry.payload`**（重导入整列重写，§6 红线 9），也禁复用 `llm_settings` 键值表混存。
+5. **三处同步 + 受控产物**：
+   - Python：`src-python/spectrumagent/api/settings.py:13` 的 `make_router` 扩参以拿到 `paths`（`src-python/spectrumagent/app.py:54` 注册处同步从 `make_settings_router(paths.database)` 改为传入 `paths`），否则 GET 取不到 `paths.root`；`app.py:93` / `:110` 的 `/api/v1/settings` 前缀白名单**已覆盖新路径，不得重复添加**。
+   - Rust：`src-tauri/src/settings.rs:13` 的 `SettingsRequest` 增 `GetProjectPaths { project_id }` / `PutProjectPaths { project_id, body }`；`destination`（`:46-52`）继续用固定路径构造 + 身份校验，禁通用 URL / 端口入参；`:64-65` 的敏感字段向量同步评估纳入两个路径字段，防路径进入错误回显与日志。
+   - TS：`src/components/settings/settings-forward.ts:5` 的 `SettingsRequest` 联合类型与 `requests` / `forward` 同步两个 op。
+   - `src-python/spectrumagent/api/openapi.json` 同步新增两条路径（B 段已把它当受控产物）。
+6. **安全红线**：两个路径字段属 FR-A13 禁运元数据，**不得进 LLM 上下文、不得进工具出参、不得新增对话工具**，沿用 `agent/llm.py:136` 兜底 + 工具出参只准标量。PUT 只写 SQLite（本地数据根），**不触发任何文件系统写入**，因此不经 `storage.resolve_write`；但这两个字段**绝不能被后续代码当作可写目标**（输出根未启用），违者按 §6 红线 1 处理。
+7. **明确不做**：不检查 NAS 连通性 / 凭据、不只读挂载、不启用输出根、不迁移产物落盘、不改 `paths.root`——全部留在 FR-A12 另立卡。
+8. **验收**：GET/PUT 往返、空值、Python/Rust 双向未知字段拒绝、非法 `project_id`、`output_enabled` 恒 `false` 且 `data_root == paths.root`、重启后配置仍在、`dataset_registry.payload` 零改动、路径不出现在任何工具摘要 / LLM 请求体、openapi 两路径已同步、伪造 `boot_id` 被身份校验拒绝。每条贴取数命令与原文输出。
+
 ---
 
 ## 5. D 段 · 验收（每条带取数命令，禁自报数不带模式）
@@ -276,3 +299,4 @@
 | 2026-11-04 21:55 | **A 段后全量校准（即停后修订）**：执行方报 A 段 `9ad8268` 改造造成锚点漂移，备卡方独立实测后裁定「**修订卡后继续 B 段**」。① §0.2 全表按 HEAD `9ad8268` 重取：`registry.py` 118/150/159/168/194/198/155 → **120/156/165/174/200/204/161**、`database.py` 8 → **10**、`session.py` 388-390/406 → **387-389/405** 且删除出口改为 `storage.rmtree`、`paths.py` 新增 **:56 `trash`**、新增「A 段守卫实际接口」锚点行；② §3.3 三处（`session.py:362`→**361**、`modeling/run.py:175`→**176**、`modeling/inference.py:224`→**225**）、§3.5 `:159`→**165**、§6 红线 9 `:155`→**161** 同步；③ §0.1 保留历史基线（1489 / 13 文件）并新增「当前基线」（HEAD `9ad8268`、collected **1506**、写点 **14** 文件含新增 `storage/guard.py`、node 218/218）与**五条后续基线规则**；闸门②/§2.1/§5 D 组/§7 同步口径；④ §8 新增 D6（C 盘 0 字节的本机环境债，不属产品缺陷）。**裁定选 1，不拆段、不中断 B** |
 | 2026-11-04 23:06 | **§3.5 重新导入语义即停裁定**：执行方实测「删 A → 新建 B → A 留回收站时再次导入活跃 B」按卡字面先 409、确认后却复用 B（`existing=true`），与「新建 id」提示冲突（证据 `milestone25/evidence/B/reimport-active-ambiguity.txt`）。裁定**采纳「先查活跃记录」**：按 `(header_key,raw)` 判定，有活跃 → 正常返回已有、不弹框不新建；无活跃 + 回收站有同键 → 才要求 `confirm_new`、确认后 `INSERT` 新 id；两者皆无 → 首次导入。补四条细化：整批预检保原子、`INSERT` 前二次校验活跃记录且竞态返回 `REIMPORT_ACTIVE_EXISTS`（409）、`UNIQUE` 冲突结构化报错、确认框文案只在「无活跃+有回收站」场景出现且响应字段一致。§0.3 口径 3 补适用范围限定、§0.1 规则 4 补 B 段未提交代码的锚点漂移预告、§5 C 组改四象限断言、§8 D6 更新磁盘复测结论。**B 段代码与测试未提交，本轮只提交卡；§0.2 锚点仍锁定 HEAD `9ad8268`，B 段收口后由备卡方统一重取** |
 | 2026-11-04 23:33 | **B 段收口后全量校准，解除 C 段即停**：执行方 `d8bb622` 收口、status 干净、未 push，按即停条款上报漂移（`milestone25/evidence/B/anchor-drift.md`）与回归原文（`milestone25/REPORT-B.md`）。备卡方独立复跑确认上报**全部成立**，未漂移项亦逐条复核：§0.2 全表按 `d8bb622` 重取（`types.ts` mergeRecords 35→**50**、Map/set/values→**51/52/53**、DatasetTransport 26-33→**37-48**；`schemas.py` all_datasets 35→**36**；`registry.py` UNIQUE 120→**121**、查重 156→**177**、INSERT 165→**199**、all_records 174→**231**、readable/read_header 200/204→**258/262**、payload UPDATE 161→**219**；`api.ts` 浏览 35→**44**），§3.5 前端范围与 §6 红线 9 同步；其余锚点（App/Panel/test/Rust/database/paths/state/llm/mat/session/guard/migrations/projection_io/产物根）实测未漂移。§0.1 新增「B 段收口后当前基线」（HEAD `d8bb622`、node 源码口径 **223/223**、裸跑 227 仅对照、collected **1544**、写点 **15** 文件含新增 `storage/recycle.py`），历史 1489 / A 段后 1506 全保留作溯源；§0.1 规则 4 更新为「B 段已收口、锚点已按该 HEAD 校准，C/D 再改源码按同规则」；§7 标注 A/B 已收口。**C 段即停解除，可开工** |
+| 2026-11-04 23:44 | **C 段接口契约即停裁定（选项 1：按建议补卡后继续）**：执行方按「要改接口契约先停下问」报 `settings.rs` 仅 LLM 三 op、无项目路径保存接口。备卡方实测确认（`settings.rs:12/13/46-52/64-65`、`api/settings.py:13/14/19/23/28`、`app.py:54/93/110`、`settings-forward.ts:5/20`、`openapi.json:644/700`），**按建议补卡授权**并新增 §4.1 钉死八条：`GET/PUT /api/v1/settings/projects/{project_id}/paths`；PUT 仅收 `source_path` / `output_root` 且 Pydantic+Rust 双向拒绝未知字段；GET 返实际 `paths.root` 与 `output_enabled:false`（服务端常量）；独立 `project_path_settings` 表持久化（写路径覆盖、**禁塞 `dataset_registry.payload`**）；Python / Rust / TS / `openapi.json` 四处同步（`app.py:54` 需改传 `paths`，`:93/:110` 前缀已覆盖新路径、禁重复添加）；路径不进 LLM 上下文与工具出参、PUT 不触发任何文件写；不检查 NAS 连通性、不挂载、不启用输出根、不迁移产物落盘。§1 明确不做补一条、§0.2 新增 5 行 settings 锚点。**C 段按 §4.1 继续** |
