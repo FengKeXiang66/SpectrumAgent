@@ -1,0 +1,245 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.13, pytest-9.1.1, pluggy-1.7.0 -- E:\AI_Agent\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: E:\AI_Agent
+plugins: anyio-4.15.1
+collecting ... collected 7 items
+
+src-python/tests/storage/test_task25_acceptance.py::test_http_lifecycle_preserves_sources_audits_assets_and_has_no_business_orphans FAILED
+src-python/tests/storage/test_task25_acceptance.py::test_orphan_scan_detects_undeclared_references_outside_known_recycle_tables[cube_id] D_ORPHAN_COUNTEREXAMPLE={"column": "cube_id", "sqlite_fk_check": [], "detected": [["d_reference_probe", "cube_id", "missing-object"]]}
+PASSED
+src-python/tests/storage/test_task25_acceptance.py::test_orphan_scan_detects_undeclared_references_outside_known_recycle_tables[version_id] D_ORPHAN_COUNTEREXAMPLE={"column": "version_id", "sqlite_fk_check": [], "detected": [["d_reference_probe", "version_id", "missing-object"]]}
+PASSED
+src-python/tests/storage/test_task25_acceptance.py::test_orphan_scan_detects_undeclared_references_outside_known_recycle_tables[run_id] D_ORPHAN_COUNTEREXAMPLE={"column": "run_id", "sqlite_fk_check": [], "detected": [["d_reference_probe", "run_id", "missing-object"]]}
+PASSED
+src-python/tests/storage/test_task25_acceptance.py::test_orphan_scan_detects_undeclared_references_outside_known_recycle_tables[cube_ids] D_ORPHAN_COUNTEREXAMPLE={"column": "cube_ids", "sqlite_fk_check": [], "detected": [["d_reference_probe", "cube_ids", "missing-object"]]}
+PASSED
+src-python/tests/storage/test_task25_acceptance.py::test_fresh_engine_startup_recovers_both_orphan_windows_and_gates_writes[unmapped_kill] D_ACCEPTANCE_RECOVERY={"mode": "unmapped_kill", "actual_killed_process_returncode": 1, "fresh_interpreter": true, "source_unchanged": true, "all_product_files_preserved": true, "business_rows_unchanged": true, "events": ["directories_created", "self_check", "business_ready", "recycle_reconcile_started", "recycle_business_ready", "directories_created", "self_check", "business_ready"], "ready_gate_injection": {"import": {"status": 503, "error": "RECYCLE_RECONCILIATION_REQUIRED"}, "annotation": {"status": 503, "error": "RECYCLE_RECONCILIATION_REQUIRED"}, "training": {"status": 503, "error": "RECYCLE_RECONCILIATION_REQUIRED"}, "delete": {"status": 503, "error": "RECYCLE_RECONCILIATION_REQUIRED"}}, "post_quarantine_blocks": {"get": {"status": 503, "error": "RECYCLE_RECONCILIATION_REQUIRED"}, "import": {"status": 503, "error": "RECYCLE_RECONCILIATION_REQUIRED"}, "preview": {"status": 503, "error": "RECYCLE_RECONCILIATION_REQUIRED"}, "delete": {"status": 503, "error": "RECYCLE_RECONCILIATION_REQUIRED"}}, "blocked_cubes": ["6aed0c4f-25a9-480c-8a61-43dd99083cbb"], "blocked_key_count": 1, "health": [["6aed0c4f-25a9-480c-8a61-43dd99083cbb", "ORPHAN_QUARANTINE"]], "audit_actions": {"ORPHAN_QUARANTINE": 1}}
+PASSED
+src-python/tests/storage/test_task25_acceptance.py::test_fresh_engine_startup_recovers_both_orphan_windows_and_gates_writes[mapped_rollback] FAILED
+
+================================== FAILURES ===================================
+_ test_http_lifecycle_preserves_sources_audits_assets_and_has_no_business_orphans _
+
+ledger = namespace(paths=AppPaths(root=WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25dt/pytest-of-Administrator/pyt...ms": {"order": 1, "window": 15, "polyorder": 2}}]}', None, '2026-11-04T16:55:01.224114+00:00')], 'project_recipe': []})
+
+    def test_http_lifecycle_preserves_sources_audits_assets_and_has_no_business_orphans(ledger):
+        """Red on lost rows/files, dangling JSON refs, changed audits, source writes or early purge."""
+        c, identity = ledger, EngineIdentity()
+        app = create_app(c.paths, identity)
+        store, source_before = app.state.recycle, inventory(c.source)
+        removed = {c.cube, *c.ids.values()}
+        audits_before = seed_audit_history(c)
+        protected_tables = (*c.assets, 'skill_version', 'project_path_settings')
+        scans, phases, denied = {}, {'before': source_before}, []
+        with TestClient(app) as client:
+            client.headers['Authorization'] = 'Bearer ' + identity.token
+            def request(method, path, **kwargs):
+                response = client.request(method, path, **kwargs)
+                assert response.status_code == 200, (path, response.text)
+                assert response.headers['X-SpectrumAgent-Boot-Id'] == identity.boot_id
+                assert response.headers['X-SpectrumAgent-Pid'] == str(identity.pid)
+                return response.json()
+            project = request('GET', '/api/v1/projects')[0]['id']
+            settings_path = f'/api/v1/settings/projects/{project}/paths'
+            settings = request('PUT', settings_path, json={'source_path': str(c.source), 'output_root': r'\\unreachable-d-fixture\future-output'})
+            assert settings['output_enabled'] is False and settings['data_root'] == str(c.paths.root)
+            with connect_database(c.paths.database) as db:
+                protected = table_rows(db, protected_tables)
+                scans['before'] = scan_business(db)
+            assert_clean(scans['before'])
+            for action in (lambda: storage.resolve_write(c.header, kind='D_SOURCE_WRITE').write_text('must be denied', 'utf-8'),
+                           lambda: storage.unlink(c.header)):
+                with pytest.raises(DataError) as error:
+                    action()
+                assert error.value.code == 'WRITE_TO_SOURCE_DENIED'
+                denied.append(error.value.code)
+            assert inventory(c.source) == source_before
+            delete_path = f'/api/v1/datasets/{c.cube}/delete'
+            preview = request('GET', delete_path + '/preview')
+            assert [preview[key] for key in ('annotation_versions', 'preprocess_runs', 'training_runs', 'inference_runs')] == [1, 1, 1, 1]
+            owned = {item['path']: [entry for entry in inventory(c.paths.root / item['path']) if entry['type'] == 'file']
+                     for item in preview['directories']}
+            with sqlite3.connect(c.registry.storage_guard.audit_database) as db:
+                audit_prefix = table_rows(db, ('write_audit', 'deletion_audit'))
+            deletion = request('POST', delete_path, json={'confirm': True, 'preview_token': preview['preview_token']})
+            folder = c.paths.trash / deletion['deletion_id']
+            for relative, expected in owned.items():
+                assert not (c.paths.root / relative).exists()
+                assert [entry for entry in inventory(folder / relative) if entry['type'] == 'file'] == expected
+            assert (folder / f'annotations/{c.cube}/v1/annotation.json').is_file()
+            assert (c.paths.snapshots / c.cube / 'unreferenced/keep.json').is_file()
+            with connect_database(c.paths.database) as db:
+                assert all(count == 0 for count in (db.execute(f'SELECT count(*) FROM {table}').fetchone()[0] for table in TABLES))
+                scans['after_delete'] = scan_business(db, removed)
+                assert table_rows(db, AUDIT_TABLES) == audits_before
+                assert table_rows(db, protected_tables) == protected
+                assert c.cube in str(audits_before['agent_step'])  # Audit reference is intentionally retained.
+                context = db.execute("SELECT context_json FROM agent_session WHERE id='fixture-session'").fetchone()[0]
+                assert not has_reference(json.loads(context), removed)
+            assert_clean(scans['after_delete'])
+            phases['after_delete'] = inventory(c.source)
+            assert request('GET', '/api/v1/datasets/catalog')['total'] == 0
+>           assert request('GET', '/api/v1/recycle')['total_bytes'] == preview['total_bytes']
+E           assert 11299 == 743
+
+src-python\tests\storage\test_task25_acceptance.py:191: AssertionError
+_ test_fresh_engine_startup_recovers_both_orphan_windows_and_gates_writes[mapped_rollback] _
+
+ledger = namespace(paths=AppPaths(root=WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25dt/pytest-of-Administrator/pyt...ms": {"order": 1, "window": 15, "polyorder": 2}}]}', None, '2026-11-04T16:55:08.352168+00:00')], 'project_recipe': []})
+recovery = 'mapped_rollback'
+
+    @pytest.mark.parametrize('recovery', ['unmapped_kill', 'mapped_rollback'])
+    def test_fresh_engine_startup_recovers_both_orphan_windows_and_gates_writes(ledger, recovery):
+        """Red if a new interpreter loses products, skips reconciliation or admits blocked work."""
+        c = ledger
+        source_before = inventory(c.source)
+        roots = ('annotations', 'exports', 'preprocessed', 'models', 'inferences', 'projects')
+        products = {name: [entry for entry in inventory(c.paths.root / name) if entry['type'] == 'file'] for name in roots}
+        killed_returncode = None
+        if recovery == 'unmapped_kill':
+            child = r'''
+    import sys, tempfile, time
+    from pathlib import Path
+    sys.path.insert(0, str(Path.cwd() / 'src-python'))
+    tempfile.tempdir = sys.argv[3]
+    from spectrumagent.api.registry import DatasetRegistry
+    from spectrumagent.storage import guard as storage
+    registry = DatasetRegistry(Path(sys.argv[1]))
+    preview = registry.recycle.preview(sys.argv[2])
+    original = storage.replace
+    def pause_after_real_move(src, dst):
+        original(src, dst)
+        storage.resolve_write(Path(sys.argv[4]), kind='FAULT_SIGNAL').write_text('moved', 'utf-8')
+        while True:
+            time.sleep(.01)
+    storage.replace = pause_after_real_move
+    registry.recycle.delete(sys.argv[2], confirm=True, preview_token=preview['preview_token'])
+    '''
+            marker = c.paths.run / 'd-moved'
+            process = subprocess.Popen([sys.executable, '-c', child, str(c.paths.database), c.cube,
+                                        tempfile.gettempdir(), str(marker)], cwd=ROOT,
+                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            try:
+                deadline = monotonic() + 30
+                while not marker.exists() and process.poll() is None and monotonic() < deadline:
+                    sleep(.01)
+                assert marker.exists(), 'child never reached the uncommitted real-move window'
+                process.kill()  # Real process termination; no exception/finally-based compensation.
+                _, stderr = process.communicate(timeout=10)
+                killed_returncode = process.returncode
+                assert killed_returncode != 0, stderr
+            finally:
+                if process.poll() is None:
+                    process.kill()
+                    process.communicate(timeout=10)
+            with connect_database(c.paths.database) as db:
+                assert db.execute('SELECT count(*) FROM recycle_bin').fetchone()[0] == 0
+                assert db.execute('SELECT count(*) FROM recycle_item').fetchone()[0] == 0
+        else:
+            # Durable mapping-journal counterexample, not a second actual-kill claim.
+            deletion = fixture_module.deleted(c)['deletion_id']
+            with connect_database(c.paths.database) as db:
+                db.execute('DELETE FROM recycle_bin WHERE deletion_id=?', (deletion,))
+                for table in reversed(TABLES):
+                    for row in c.original[table]:
+                        db.execute(f'INSERT INTO {table} VALUES ({",".join("?" for _ in row)})', row)
+        with connect_database(c.paths.database) as db:
+            assert table_rows(db, TABLES) == c.original
+        # The parent deliberately never calls reconcile(). A fresh engine must do it.
+        startup = r'''
+    import json, sqlite3, sys, tempfile
+    from pathlib import Path
+    sys.path.insert(0, str(Path.cwd() / 'src-python'))
+    tempfile.tempdir = sys.argv[3]
+    from fastapi.testclient import TestClient
+    from backend.database import connect_database
+    from backend.identity import EngineIdentity
+    from backend.paths import AppPaths
+    from spectrumagent.app import create_app
+    from spectrumagent.data import DataError
+    paths, identity = AppPaths(Path(sys.argv[1])), EngineIdentity()
+    app = create_app(paths, identity)
+    registry, store = app.state.dataset_registry, app.state.recycle
+    assert store.coordinator.ready
+    events = registry.storage_guard.events
+    assert events.index('directories_created') < events.index('self_check') < events.index('recycle_reconcile_started') < events.index('recycle_business_ready')
+    gates = {}
+    with TestClient(app) as client:
+        client.headers['Authorization'] = 'Bearer ' + identity.token
+        # Explicit gate injection after construction; requests exercise actual middleware/auth.
+        store.coordinator.ready = False
+        try:
+            for operation, path, body in [
+                ('import', '/api/v1/datasets/import', {'path': sys.argv[4], 'raw': True, 'confirm_new': True}),
+                ('annotation', f'/api/v1/datasets/{sys.argv[2]}/annotations/save', {}),
+                ('training', '/api/v1/models/runs/preflight', {}),
+                ('delete', f'/api/v1/datasets/{sys.argv[2]}/delete', {'confirm': True, 'preview_token': 'blocked'}),
+            ]:
+                response = client.post(path, json=body)
+                assert response.status_code == 503, (operation, response.text)
+                assert response.json()['error'] == 'RECYCLE_RECONCILIATION_REQUIRED'
+                assert response.headers['X-SpectrumAgent-Boot-Id'] == identity.boot_id
+                assert response.headers['X-SpectrumAgent-Pid'] == str(identity.pid)
+                gates[operation] = {'status': response.status_code, 'error': response.json()['error']}
+        finally:
+            store.coordinator.ready = True
+    blocked = {}
+    if sys.argv[5] == 'unmapped_kill':
+        for operation, callback in [
+            ('get', lambda: registry.get(sys.argv[2])),
+            ('import', lambda: registry.import_path(sys.argv[4], raw=True, confirm_new=True)),
+            ('preview', lambda: store.preview(sys.argv[2])),
+            ('delete', lambda: store.delete(sys.argv[2], confirm=True, preview_token='blocked')),
+        ]:
+            try:
+                callback()
+            except DataError as error:
+                assert error.code == 'RECYCLE_RECONCILIATION_REQUIRED' and error.status_code == 503
+                blocked[operation] = {'status': error.status_code, 'error': error.code}
+            else:
+                raise AssertionError(operation + ' admitted a quarantined cube')
+        assert sys.argv[2] in store.coordinator.blocked and store.coordinator.blocked_keys
+    else:
+        assert not store.coordinator.blocked
+        assert str(registry.get(sys.argv[2]).id) == sys.argv[2]
+    with connect_database(paths.database) as db:
+        health = db.execute('SELECT cube_id,status FROM recycle_health').fetchall()
+    with sqlite3.connect(registry.storage_guard.audit_database) as db:
+        actions = dict(db.execute('SELECT action,count(*) FROM deletion_audit GROUP BY action'))
+    print('D_FRESH_ENGINE=' + json.dumps({'events': events, 'ready_gate_injection': gates,
+        'post_quarantine_blocks': blocked, 'blocked_cubes': sorted(store.coordinator.blocked),
+        'blocked_key_count': len(store.coordinator.blocked_keys), 'health': health, 'audit_actions': actions}))
+    registry.storage_guard.close()
+    '''
+        restarted = subprocess.run([sys.executable, '-c', startup, str(c.paths.root), c.cube,
+                                    tempfile.gettempdir(), str(c.header), recovery], cwd=ROOT,
+                                   capture_output=True, text=True, timeout=60)
+>       assert restarted.returncode == 0, restarted.stdout + restarted.stderr
+E       AssertionError: E:\AI_Agent\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+E           from starlette.testclient import TestClient as TestClient  # noqa
+E         Traceback (most recent call last):
+E           File "<string>", line 56, in <module>
+E         AttributeError: 'tuple' object has no attribute 'id'
+E         
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['E:\\AI_Agent\\.venv\\Scripts\\python.exe', '-c', "\nimport json, sqlite3, sys, tempfile\nfrom pathlib import Path\nsys.path.insert(0, str(Path.cwd() / 'src-python'))\ntempfile.tempdir = sys.argv[3]\nfrom fastapi.testclient import TestClient\nfrom backend.database import connect_database\nfrom backend.identity import EngineIdentity\nfrom backend.paths import AppPaths\nfrom spectrumagent.app import create_app\nfrom spectrumagent.data import DataError\npaths, identity = AppPaths(Path(sys.argv[1])), EngineIdentity()\napp = create_app(paths, identity)\nregistry, store = app.state.dataset_registry, app.state.recycle\nassert store.coordinator.ready\nevents = registry.storage_guard.events\nassert events.index('directories_created') < events.index('self_check') < events.index('recycle_reconcile_started') < events.index('recycle_business_ready')\ngates = {}\nwith TestClient(app) as client:\n    client.headers['Authorization'] = 'Bearer ' + identity.token\n    # Explicit gate injection after construction; requests exercise actual middleware/auth.\n    store.coordinator.ready = False\n    try:\n        for operation, path, body in [\n            ('import', '/api/v1/datasets/import', {'path': sys.argv[4], 'raw': True, 'confirm_new': True}),\n            ('annotation', f'/api/v1/datasets/{sys.argv[2]}/annotations/save', {}),\n            ('training', '/api/v1/models/runs/preflight', {}),\n            ('delete', f'/api/v1/datasets/{sys.argv[2]}/delete', {'confirm': True, 'preview_token': 'blocked'}),\n        ]:\n            response = client.post(path, json=body)\n            assert response.status_code == 503, (operation, response.text)\n            assert response.json()['error'] == 'RECYCLE_RECONCILIATION_REQUIRED'\n            assert response.headers['X-SpectrumAgent-Boot-Id'] == identity.boot_id\n            assert response.headers['X-SpectrumAgent-Pid'] == str(identity.pid)\n            gates[operation] = {'status': response.status_code, 'error': response.json()['error']}\n    finally:\n        store.coordinator.ready = True\nblocked = {}\nif sys.argv[5] == 'unmapped_kill':\n    for operation, callback in [\n        ('get', lambda: registry.get(sys.argv[2])),\n        ('import', lambda: registry.import_path(sys.argv[4], raw=True, confirm_new=True)),\n        ('preview', lambda: store.preview(sys.argv[2])),\n        ('delete', lambda: store.delete(sys.argv[2], confirm=True, preview_token='blocked')),\n    ]:\n        try:\n            callback()\n        except DataError as error:\n            assert error.code == 'RECYCLE_RECONCILIATION_REQUIRED' and error.status_code == 503\n            blocked[operation] = {'status': error.status_code, 'error': error.code}\n        else:\n            raise AssertionError(operation + ' admitted a quarantined cube')\n    assert sys.argv[2] in store.coordinator.blocked and store.coordinator.blocked_keys\nelse:\n    assert not store.coordinator.blocked\n    assert str(registry.get(sys.argv[2]).id) == sys.argv[2]\nwith connect_database(paths.database) as db:\n    health = db.execute('SELECT cube_id,status FROM recycle_health').fetchall()\nwith sqlite3.connect(registry.storage_guard.audit_database) as db:\n    actions = dict(db.execute('SELECT action,count(*) FROM deletion_audit GROUP BY action'))\nprint('D_FRESH_ENGINE=' + json.dumps({'events': events, 'ready_gate_injection': gates,\n    'post_quarantine_blocks': blocked, 'blocked_cubes': sorted(store.coordinator.blocked),\n    'blocked_key_count': len(store.coordinator.blocked_keys), 'health': health, 'audit_actions': actions}))\nregistry.storage_guard.close()\n", 'C:\\Users\\Administrator\\AppData\\Local\\Temp\\t25dt\\pytest-of-Administrator\\pytest-0\\rc-37938e82', '69150c8a-f46e-4017-8be4-87143b428fa3', 'C:\\Users\\Administrator\\AppData\\Local\\Temp\\t25dt\\pytest-of-Administrator\\pytest-0\\test_fresh_engine_startup_reco1-system-temp', 'C:\\Users\\Administrator\\AppData\\Local\\Temp\\t25dt\\pytest-of-Administrator\\pytest-0\\test_fresh_engine_startup_reco1\\source\\sample.hdr', 'mapped_rollback'], returncode=1, stdout='', stderr='E:\\AI_Agent\\.venv\\Lib\\site-packages\\fastapi\\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\n  from starlette.testclient import TestClient as TestClient  # noqa\nTraceback (most recent call last):\n  File "<string>", line 56, in <module>\nAttributeError: \'tuple\' object has no attribute \'id\'\n').returncode
+
+src-python\tests\storage\test_task25_acceptance.py:380: AssertionError
+============================== warnings summary ===============================
+.venv\Lib\site-packages\fastapi\testclient.py:1
+  E:\AI_Agent\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED src-python/tests/storage/test_task25_acceptance.py::test_http_lifecycle_preserves_sources_audits_assets_and_has_no_business_orphans - assert 11299 == 743
+FAILED src-python/tests/storage/test_task25_acceptance.py::test_fresh_engine_startup_recovers_both_orphan_windows_and_gates_writes[mapped_rollback] - AssertionError: E:\AI_Agent\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+  Traceback (most recent call last):
+    File "<string>", line 56, in <module>
+  AttributeError: 'tuple' object has no attribute 'id'
+  
+assert 1 == 0
+ +  where 1 = CompletedProcess(args=['E:\\AI_Agent\\.venv\\Scripts\\python.exe', '-c', "\nimport json, sqlite3, sys, tempfile\nfrom pathlib import Path\nsys.path.insert(0, str(Path.cwd() / 'src-python'))\ntempfile.tempdir = sys.argv[3]\nfrom fastapi.testclient import TestClient\nfrom backend.database import connect_database\nfrom backend.identity import EngineIdentity\nfrom backend.paths import AppPaths\nfrom spectrumagent.app import create_app\nfrom spectrumagent.data import DataError\npaths, identity = AppPaths(Path(sys.argv[1])), EngineIdentity()\napp = create_app(paths, identity)\nregistry, store = app.state.dataset_registry, app.state.recycle\nassert store.coordinator.ready\nevents = registry.storage_guard.events\nassert events.index('directories_created') < events.index('self_check') < events.index('recycle_reconcile_started') < events.index('recycle_business_ready')\ngates = {}\nwith TestClient(app) as client:\n    client.headers['Authorization'] = 'Bearer ' + identity.token\n    # Explicit gate injection after construction; requests exercise actual middleware/auth.\n    store.coordinator.ready = False\n    try:\n        for operation, path, body in [\n            ('import', '/api/v1/datasets/import', {'path': sys.argv[4], 'raw': True, 'confirm_new': True}),\n            ('annotation', f'/api/v1/datasets/{sys.argv[2]}/annotations/save', {}),\n            ('training', '/api/v1/models/runs/preflight', {}),\n            ('delete', f'/api/v1/datasets/{sys.argv[2]}/delete', {'confirm': True, 'preview_token': 'blocked'}),\n        ]:\n            response = client.post(path, json=body)\n            assert response.status_code == 503, (operation, response.text)\n            assert response.json()['error'] == 'RECYCLE_RECONCILIATION_REQUIRED'\n            assert response.headers['X-SpectrumAgent-Boot-Id'] == identity.boot_id\n            assert response.headers['X-SpectrumAgent-Pid'] == str(identity.pid)\n            gates[operation] = {'status': response.status_code, 'error': response.json()['error']}\n    finally:\n        store.coordinator.ready = True\nblocked = {}\nif sys.argv[5] == 'unmapped_kill':\n    for operation, callback in [\n        ('get', lambda: registry.get(sys.argv[2])),\n        ('import', lambda: registry.import_path(sys.argv[4], raw=True, confirm_new=True)),\n        ('preview', lambda: store.preview(sys.argv[2])),\n        ('delete', lambda: store.delete(sys.argv[2], confirm=True, preview_token='blocked')),\n    ]:\n        try:\n            callback()\n        except DataError as error:\n            assert error.code == 'RECYCLE_RECONCILIATION_REQUIRED' and error.status_code == 503\n            blocked[operation] = {'status': error.status_code, 'error': error.code}\n        else:\n            raise AssertionError(operation + ' admitted a quarantined cube')\n    assert sys.argv[2] in store.coordinator.blocked and store.coordinator.blocked_keys\nelse:\n    assert not store.coordinator.blocked\n    assert str(registry.get(sys.argv[2]).id) == sys.argv[2]\nwith connect_database(paths.database) as db:\n    health = db.execute('SELECT cube_id,status FROM recycle_health').fetchall()\nwith sqlite3.connect(registry.storage_guard.audit_database) as db:\n    actions = dict(db.execute('SELECT action,count(*) FROM deletion_audit GROUP BY action'))\nprint('D_FRESH_ENGINE=' + json.dumps({'events': events, 'ready_gate_injection': gates,\n    'post_quarantine_blocks': blocked, 'blocked_cubes': sorted(store.coordinator.blocked),\n    'blocked_key_count': len(store.coordinator.blocked_keys), 'health': health, 'audit_actions': actions}))\nregistry.storage_guard.close()\n", 'C:\\Users\\Administrator\\AppData\\Local\\Temp\\t25dt\\pytest-of-Administrator\\pytest-0\\rc-37938e82', '69150c8a-f46e-4017-8be4-87143b428fa3', 'C:\\Users\\Administrator\\AppData\\Local\\Temp\\t25dt\\pytest-of-Administrator\\pytest-0\\test_fresh_engine_startup_reco1-system-temp', 'C:\\Users\\Administrator\\AppData\\Local\\Temp\\t25dt\\pytest-of-Administrator\\pytest-0\\test_fresh_engine_startup_reco1\\source\\sample.hdr', 'mapped_rollback'], returncode=1, stdout='', stderr='E:\\AI_Agent\\.venv\\Lib\\site-packages\\fastapi\\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\n  from starlette.testclient import TestClient as TestClient  # noqa\nTraceback (most recent call last):\n  File "<string>", line 56, in <module>\nAttributeError: \'tuple\' object has no attribute \'id\'\n').returncode
+=================== 2 failed, 5 passed, 1 warning in 12.51s ===================

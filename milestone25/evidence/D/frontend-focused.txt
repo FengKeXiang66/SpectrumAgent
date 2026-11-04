@@ -1,0 +1,29 @@
+✔ C delete preview opens the impact dialog; only its confirm button sends strict deletion (27.9563ms)
+✔ C cancelling or unmounting a deletion confirmation never sends deletion (2.2152ms)
+✔ C existing active import never asks confirmation and ignores all_datasets in the UI (0.5439ms)
+✔ C only REIMPORT_CONFIRMATION_REQUIRED prompts, with a selected new-id choice and no request until click (1.8613ms)
+✔ C reimport cancellation and concurrent active-record conflict never silently retry or reuse (3.0769ms)
+✔ C restore requires the UI button, renders refusal reason, and incomplete items cannot restore (0.6916ms)
+✔ C S11 recycle summary includes retained space, count, per-item dates and incomplete cleanup refusal (5.4484ms)
+✔ C cold catalog follows every page and retains unavailable sources as visible summaries (1.3137ms)
+✔ C engine generation clears immediately and an older response cannot replace the new catalog (0.4057ms)
+✔ C stale failures and disposed requests cannot overwrite a current success (0.2151ms)
+✔ C current catalog failure is shown and explicit retry recovers (0.3489ms)
+✔ C three existing imports append only that batch; catalog refreshes global names without expanding visible scope (0.5974ms)
+✔ C broken pagination fails instead of looping or silently hiding catalog rows (0.9942ms)
+✔ G3 shared displayName uses the server name and preserves the legacy fallback (0.6212ms)
+✔ G2 all_datasets refreshes a previously unique name without duplicating records (1.0939ms)
+✔ G assistant choices and readable references use exactly the API display name (0.8863ms)
+✔ C SMB and URL prefills become UNC strings, preserving independent empty and absent fields (1.6557ms)
+✔ C rendered source and output inputs edit independently and save only the project defaults (11.684ms)
+✔ C browse targets only its field, cancel preserves values, and S11 summary displays saved values without editing (0.797ms)
+✔ C path form failure disables saving; disposal rejects stale GET and double save is suppressed (0.696ms)
+✔ C project path IPC uses fixed ops, strips view extras, normalizes both paths and propagates refusal (0.4589ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 211.512

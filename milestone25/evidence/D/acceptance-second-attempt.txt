@@ -1,0 +1,124 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.13, pytest-9.1.1, pluggy-1.7.0 -- E:\AI_Agent\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: E:\AI_Agent
+plugins: anyio-4.15.1
+collecting ... collected 7 items
+
+src-python/tests/storage/test_task25_acceptance.py::test_http_lifecycle_preserves_sources_audits_assets_and_has_no_business_orphans FAILED
+src-python/tests/storage/test_task25_acceptance.py::test_orphan_scan_detects_undeclared_references_outside_known_recycle_tables[cube_id] D_ORPHAN_COUNTEREXAMPLE={"column": "cube_id", "sqlite_fk_check": [], "detected": [["d_reference_probe", "cube_id", "missing-object"]]}
+PASSED
+src-python/tests/storage/test_task25_acceptance.py::test_orphan_scan_detects_undeclared_references_outside_known_recycle_tables[version_id] D_ORPHAN_COUNTEREXAMPLE={"column": "version_id", "sqlite_fk_check": [], "detected": [["d_reference_probe", "version_id", "missing-object"]]}
+PASSED
+src-python/tests/storage/test_task25_acceptance.py::test_orphan_scan_detects_undeclared_references_outside_known_recycle_tables[run_id] D_ORPHAN_COUNTEREXAMPLE={"column": "run_id", "sqlite_fk_check": [], "detected": [["d_reference_probe", "run_id", "missing-object"]]}
+PASSED
+src-python/tests/storage/test_task25_acceptance.py::test_orphan_scan_detects_undeclared_references_outside_known_recycle_tables[cube_ids] D_ORPHAN_COUNTEREXAMPLE={"column": "cube_ids", "sqlite_fk_check": [], "detected": [["d_reference_probe", "cube_ids", "missing-object"]]}
+PASSED
+src-python/tests/storage/test_task25_acceptance.py::test_fresh_engine_startup_recovers_both_orphan_windows_and_gates_writes[unmapped_kill] D_ACCEPTANCE_RECOVERY={"mode": "unmapped_kill", "actual_killed_process_returncode": 1, "fresh_interpreter": true, "source_unchanged": true, "all_product_files_preserved": true, "business_rows_unchanged": true, "events": ["directories_created", "self_check", "business_ready", "recycle_reconcile_started", "recycle_business_ready", "directories_created", "self_check", "business_ready"], "ready_gate_injection": {"import": {"status": 503, "error": "RECYCLE_RECONCILIATION_REQUIRED"}, "annotation": {"status": 503, "error": "RECYCLE_RECONCILIATION_REQUIRED"}, "training": {"status": 503, "error": "RECYCLE_RECONCILIATION_REQUIRED"}, "delete": {"status": 503, "error": "RECYCLE_RECONCILIATION_REQUIRED"}}, "post_quarantine_blocks": {"get": {"status": 503, "error": "RECYCLE_RECONCILIATION_REQUIRED"}, "import": {"status": 503, "error": "RECYCLE_RECONCILIATION_REQUIRED"}, "preview": {"status": 503, "error": "RECYCLE_RECONCILIATION_REQUIRED"}, "delete": {"status": 503, "error": "RECYCLE_RECONCILIATION_REQUIRED"}}, "blocked_cubes": ["62167fb4-7d7e-4111-a9b1-87fd53174235"], "blocked_key_count": 1, "health": [["62167fb4-7d7e-4111-a9b1-87fd53174235", "ORPHAN_QUARANTINE"]], "audit_actions": {"ORPHAN_QUARANTINE": 1}}
+PASSED
+src-python/tests/storage/test_task25_acceptance.py::test_fresh_engine_startup_recovers_both_orphan_windows_and_gates_writes[mapped_rollback] D_ACCEPTANCE_RECOVERY={"mode": "mapped_rollback", "actual_killed_process_returncode": null, "fresh_interpreter": true, "source_unchanged": true, "all_product_files_preserved": true, "business_rows_unchanged": true, "events": ["directories_created", "self_check", "business_ready", "recycle_reconcile_started", "recycle_business_ready", "directories_created", "self_check", "business_ready"], "ready_gate_injection": {"import": {"status": 503, "error": "RECYCLE_RECONCILIATION_REQUIRED"}, "annotation": {"status": 503, "error": "RECYCLE_RECONCILIATION_REQUIRED"}, "training": {"status": 503, "error": "RECYCLE_RECONCILIATION_REQUIRED"}, "delete": {"status": 503, "error": "RECYCLE_RECONCILIATION_REQUIRED"}}, "post_quarantine_blocks": {}, "blocked_cubes": [], "blocked_key_count": 0, "health": [], "audit_actions": {"DELETE": 1, "ORPHAN_ROLLBACK": 1}}
+PASSED
+
+================================== FAILURES ===================================
+_ test_http_lifecycle_preserves_sources_audits_assets_and_has_no_business_orphans _
+
+ledger = namespace(paths=AppPaths(root=WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25dt/pytest-of-Administrator/pyt...ms": {"order": 1, "window": 15, "polyorder": 2}}]}', None, '2026-11-04T16:55:46.048372+00:00')], 'project_recipe': []})
+
+    def test_http_lifecycle_preserves_sources_audits_assets_and_has_no_business_orphans(ledger):
+        """Red on lost rows/files, dangling JSON refs, changed audits, source writes or early purge."""
+        c, identity = ledger, EngineIdentity()
+        app = create_app(c.paths, identity)
+        store, source_before = app.state.recycle, inventory(c.source)
+        removed = {c.cube, *c.ids.values()}
+        audits_before = seed_audit_history(c)
+        protected_tables = (*c.assets, 'skill_version', 'project_path_settings')
+        scans, phases, denied = {}, {'before': source_before}, []
+        with TestClient(app) as client:
+            client.headers['Authorization'] = 'Bearer ' + identity.token
+            def request(method, path, **kwargs):
+                response = client.request(method, path, **kwargs)
+                assert response.status_code == 200, (path, response.text)
+                assert response.headers['X-SpectrumAgent-Boot-Id'] == identity.boot_id
+                assert response.headers['X-SpectrumAgent-Pid'] == str(identity.pid)
+                return response.json()
+            project = request('GET', '/api/v1/projects')[0]['id']
+            settings_path = f'/api/v1/settings/projects/{project}/paths'
+            settings = request('PUT', settings_path, json={'source_path': str(c.source), 'output_root': r'\\unreachable-d-fixture\future-output'})
+            assert settings['output_enabled'] is False and settings['data_root'] == str(c.paths.root)
+            with connect_database(c.paths.database) as db:
+                protected = table_rows(db, protected_tables)
+                scans['before'] = scan_business(db)
+            assert_clean(scans['before'])
+            for action in (lambda: storage.resolve_write(c.header, kind='D_SOURCE_WRITE').write_text('must be denied', 'utf-8'),
+                           lambda: storage.unlink(c.header)):
+                with pytest.raises(DataError) as error:
+                    action()
+                assert error.value.code == 'WRITE_TO_SOURCE_DENIED'
+                denied.append(error.value.code)
+            assert inventory(c.source) == source_before
+            delete_path = f'/api/v1/datasets/{c.cube}/delete'
+            preview = request('GET', delete_path + '/preview')
+            assert [preview[key] for key in ('annotation_versions', 'preprocess_runs', 'training_runs', 'inference_runs')] == [1, 1, 1, 1]
+            owned = {item['path']: [entry for entry in inventory(c.paths.root / item['path']) if entry['type'] == 'file']
+                     for item in preview['directories']}
+            with sqlite3.connect(c.registry.storage_guard.audit_database) as db:
+                audit_prefix = table_rows(db, ('write_audit', 'deletion_audit'))
+            deletion = request('POST', delete_path, json={'confirm': True, 'preview_token': preview['preview_token']})
+            folder = c.paths.trash / deletion['deletion_id']
+            for relative, expected in owned.items():
+                assert not (c.paths.root / relative).exists()
+                assert [entry for entry in inventory(folder / relative) if entry['type'] == 'file'] == expected
+            assert (folder / f'annotations/{c.cube}/v1/annotation.json').is_file()
+            assert (c.paths.snapshots / c.cube / 'unreferenced/keep.json').is_file()
+            with connect_database(c.paths.database) as db:
+                assert all(count == 0 for count in (db.execute(f'SELECT count(*) FROM {table}').fetchone()[0] for table in TABLES))
+                scans['after_delete'] = scan_business(db, removed)
+                assert table_rows(db, AUDIT_TABLES) == audits_before
+                assert table_rows(db, protected_tables) == protected
+                assert c.cube in str(audits_before['agent_step'])  # Audit reference is intentionally retained.
+                context = db.execute("SELECT context_json FROM agent_session WHERE id='fixture-session'").fetchone()[0]
+                assert not has_reference(json.loads(context), removed)
+            assert_clean(scans['after_delete'])
+            phases['after_delete'] = inventory(c.source)
+            assert request('GET', '/api/v1/datasets/catalog')['total'] == 0
+            occupied = sum(path.stat().st_size for path in c.paths.trash.rglob('*') if path.is_file())
+            assert request('GET', '/api/v1/recycle')['total_bytes'] == occupied
+            assert occupied > preview['total_bytes']  # The signed recovery manifest also occupies disk.
+            restored = request('POST', f'/api/v1/recycle/{deletion["deletion_id"]}/restore', json={'confirm': True})
+            assert restored['cube_id'] == c.cube
+            with connect_database(c.paths.database) as db:
+                assert table_rows(db, TABLES) == c.original
+                assert table_rows(db, AUDIT_TABLES) == audits_before
+                assert table_rows(db, protected_tables) == protected
+                scans['after_restore'] = scan_business(db)
+            assert_clean(scans['after_restore'])
+            for relative, expected in owned.items():
+                assert [entry for entry in inventory(c.paths.root / relative) if entry['type'] == 'file'] == expected
+            phases['after_restore'] = inventory(c.source)
+            assert not folder.exists()
+            assert request('GET', settings_path) == settings
+            preview = request('GET', delete_path + '/preview')
+            second = request('POST', delete_path, json={'confirm': True, 'preview_token': preview['preview_token']})
+            assert store.purge_expired() == []
+            assert (c.paths.trash / second['deletion_id']).is_dir()
+            future = store.clock() + timedelta(days=31)
+            store.clock = lambda: future
+            assert store.purge_expired() == [second['deletion_id']]
+            assert not (c.paths.trash / second['deletion_id']).exists()
+            with connect_database(c.paths.database) as db:
+                scans['after_purge'] = scan_business(db, removed)
+                assert table_rows(db, AUDIT_TABLES) == audits_before
+                assert table_rows(db, protected_tables) == protected
+>               assert db.execute('SELECT count(*) FROM recycle_item').fetchone()[0] == 0
+E               assert 21 == 0
+
+src-python\tests\storage\test_task25_acceptance.py:219: AssertionError
+============================== warnings summary ===============================
+.venv\Lib\site-packages\fastapi\testclient.py:1
+  E:\AI_Agent\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED src-python/tests/storage/test_task25_acceptance.py::test_http_lifecycle_preserves_sources_audits_assets_and_has_no_business_orphans - assert 21 == 0
+=================== 1 failed, 6 passed, 1 warning in 12.43s ===================

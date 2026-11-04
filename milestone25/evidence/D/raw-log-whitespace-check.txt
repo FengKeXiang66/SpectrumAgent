@@ -1,0 +1,7 @@
+warning: unable to access 'C:\Users\Administrator/.config/git/ignore': Permission denied
+milestone25/evidence/D/acceptance-first-attempt.txt:224: trailing whitespace.
++E         
+milestone25/evidence/D/acceptance-first-attempt.txt:242: trailing whitespace.
++  
+milestone25/evidence/D/after-Rust.txt:182: new blank line at EOF.
+milestone25/evidence/D/before-Rust.txt:182: new blank line at EOF.

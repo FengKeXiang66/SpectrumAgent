@@ -1,0 +1,140 @@
+E:\AI_Agent\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+{
+  "authority": "dfa67a7",
+  "mode": "fresh synthetic ENVI + full dependent ledger / real SQLite + guarded filesystem",
+  "old_id": "2c5cc7db-7d00-4500-8c32-18664c49d43e",
+  "new_id": "04a8058e-914f-4a72-aadc-20473d875ca0",
+  "confirmation_required": {
+    "status": 409,
+    "error": "REIMPORT_CONFIRMATION_REQUIRED"
+  },
+  "confirmed_summary": {
+    "total": 1,
+    "imported": 1,
+    "existing": 0
+  },
+  "confirmed_existing": false,
+  "active_ledger_counts": {
+    "inference_artifact": 0,
+    "inference_run": 0,
+    "model_registry": 0,
+    "metric": 0,
+    "training_fold": 0,
+    "model_artifact": 0,
+    "training_run": 0,
+    "sample_target": 0,
+    "preprocess_artifact": 0,
+    "preprocess_run": 0,
+    "training_mat": 0,
+    "annotation": 0,
+    "sample_spectrum": 0,
+    "annotation_version": 0,
+    "annotation_draft": 0,
+    "dataset_registry": 1
+  },
+  "old_rows_retained_in_recycle": [
+    [
+      "@file",
+      5
+    ],
+    [
+      "annotation",
+      1
+    ],
+    [
+      "annotation_draft",
+      1
+    ],
+    [
+      "annotation_version",
+      1
+    ],
+    [
+      "dataset_registry",
+      1
+    ],
+    [
+      "inference_artifact",
+      1
+    ],
+    [
+      "inference_run",
+      1
+    ],
+    [
+      "metric",
+      1
+    ],
+    [
+      "model_artifact",
+      1
+    ],
+    [
+      "model_registry",
+      1
+    ],
+    [
+      "preprocess_artifact",
+      1
+    ],
+    [
+      "preprocess_run",
+      1
+    ],
+    [
+      "sample_spectrum",
+      1
+    ],
+    [
+      "sample_target",
+      1
+    ],
+    [
+      "training_fold",
+      1
+    ],
+    [
+      "training_mat",
+      1
+    ],
+    [
+      "training_run",
+      1
+    ]
+  ],
+  "active_idempotency": [
+    {
+      "confirm_new": false,
+      "id": "04a8058e-914f-4a72-aadc-20473d875ca0",
+      "existing": true,
+      "summary": {
+        "total": 1,
+        "imported": 0,
+        "existing": 1
+      }
+    },
+    {
+      "confirm_new": true,
+      "id": "04a8058e-914f-4a72-aadc-20473d875ca0",
+      "existing": true,
+      "summary": {
+        "total": 1,
+        "imported": 0,
+        "existing": 1
+      }
+    }
+  ],
+  "restore_conflict": {
+    "status": 409,
+    "error": "RESTORE_CONFLICT"
+  },
+  "restore_denied_audit": [
+    [
+      "RESTORE_DENIED",
+      "2c5cc7db-7d00-4500-8c32-18664c49d43e"
+    ]
+  ],
+  "new_id_has_no_old_annotations_versions_runs": true,
+  "source_unchanged": true
+}

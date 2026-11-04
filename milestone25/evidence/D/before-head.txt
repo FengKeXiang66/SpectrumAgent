@@ -1,0 +1,1 @@
+dfa67a7 docs(task25): 按 cb97eeb 全量校准锚点与 C 段基线（解除 D 段即停）

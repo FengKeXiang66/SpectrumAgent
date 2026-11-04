@@ -1,0 +1,46 @@
+[
+  {
+    "column": "cube_id",
+    "sqlite_fk_check": [],
+    "detected": [
+      [
+        "d_reference_probe",
+        "cube_id",
+        "missing-object"
+      ]
+    ]
+  },
+  {
+    "column": "version_id",
+    "sqlite_fk_check": [],
+    "detected": [
+      [
+        "d_reference_probe",
+        "version_id",
+        "missing-object"
+      ]
+    ]
+  },
+  {
+    "column": "run_id",
+    "sqlite_fk_check": [],
+    "detected": [
+      [
+        "d_reference_probe",
+        "run_id",
+        "missing-object"
+      ]
+    ]
+  },
+  {
+    "column": "cube_ids",
+    "sqlite_fk_check": [],
+    "detected": [
+      [
+        "d_reference_probe",
+        "cube_ids",
+        "missing-object"
+      ]
+    ]
+  }
+]

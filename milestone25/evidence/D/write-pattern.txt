@@ -1,0 +1,1 @@
+\.write_text\(|\.write_bytes\(|np\.save|savemat\(|shutil\.rmtree|\.unlink\(|\.mkdir\(|open_memmap

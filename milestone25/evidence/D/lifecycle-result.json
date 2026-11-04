@@ -1,0 +1,293 @@
+{
+  "mode": "authenticated TestClient + real SQLite/FK + guarded moves + server-clock expiry",
+  "cube_id": "7d6e610e-17b0-401e-b497-3057713f6ec9",
+  "source_phases": {
+    "before": [
+      {
+        "path": ".",
+        "type": "directory",
+        "bytes": null,
+        "mtime_ns": 1793811383492554500,
+        "sha256": null
+      },
+      {
+        "path": "sample.hdr",
+        "type": "file",
+        "bytes": 174,
+        "mtime_ns": 1793811383492554500,
+        "sha256": "29b046af21bf7c88dcf7f623eb37c3a26aee2f3e4e658f35cf21f582c60d1772"
+      },
+      {
+        "path": "sample.img",
+        "type": "file",
+        "bytes": 48,
+        "mtime_ns": 1793811383492554500,
+        "sha256": "ee853b6166da521127447ce0a8fbaf735bda6f17ee4647650b66885c632d37c3"
+      }
+    ],
+    "after_delete": [
+      {
+        "path": ".",
+        "type": "directory",
+        "bytes": null,
+        "mtime_ns": 1793811383492554500,
+        "sha256": null
+      },
+      {
+        "path": "sample.hdr",
+        "type": "file",
+        "bytes": 174,
+        "mtime_ns": 1793811383492554500,
+        "sha256": "29b046af21bf7c88dcf7f623eb37c3a26aee2f3e4e658f35cf21f582c60d1772"
+      },
+      {
+        "path": "sample.img",
+        "type": "file",
+        "bytes": 48,
+        "mtime_ns": 1793811383492554500,
+        "sha256": "ee853b6166da521127447ce0a8fbaf735bda6f17ee4647650b66885c632d37c3"
+      }
+    ],
+    "after_restore": [
+      {
+        "path": ".",
+        "type": "directory",
+        "bytes": null,
+        "mtime_ns": 1793811383492554500,
+        "sha256": null
+      },
+      {
+        "path": "sample.hdr",
+        "type": "file",
+        "bytes": 174,
+        "mtime_ns": 1793811383492554500,
+        "sha256": "29b046af21bf7c88dcf7f623eb37c3a26aee2f3e4e658f35cf21f582c60d1772"
+      },
+      {
+        "path": "sample.img",
+        "type": "file",
+        "bytes": 48,
+        "mtime_ns": 1793811383492554500,
+        "sha256": "ee853b6166da521127447ce0a8fbaf735bda6f17ee4647650b66885c632d37c3"
+      }
+    ],
+    "after_purge": [
+      {
+        "path": ".",
+        "type": "directory",
+        "bytes": null,
+        "mtime_ns": 1793811383492554500,
+        "sha256": null
+      },
+      {
+        "path": "sample.hdr",
+        "type": "file",
+        "bytes": 174,
+        "mtime_ns": 1793811383492554500,
+        "sha256": "29b046af21bf7c88dcf7f623eb37c3a26aee2f3e4e658f35cf21f582c60d1772"
+      },
+      {
+        "path": "sample.img",
+        "type": "file",
+        "bytes": 48,
+        "mtime_ns": 1793811383492554500,
+        "sha256": "ee853b6166da521127447ce0a8fbaf735bda6f17ee4647650b66885c632d37c3"
+      }
+    ]
+  },
+  "source_unchanged": true,
+  "scans": {
+    "before": {
+      "rows": {
+        "agent_session": 1,
+        "annotation": 1,
+        "annotation_draft": 1,
+        "annotation_version": 1,
+        "dataset_registry": 1,
+        "inference_artifact": 1,
+        "inference_run": 1,
+        "label": 4,
+        "label_schema": 1,
+        "llm_settings": 6,
+        "metric": 1,
+        "model_artifact": 1,
+        "model_registry": 1,
+        "preprocess_artifact": 1,
+        "preprocess_recipe": 1,
+        "preprocess_recipe_version": 1,
+        "preprocess_run": 1,
+        "project": 1,
+        "project_path_settings": 1,
+        "project_recipe": 0,
+        "sample_spectrum": 1,
+        "sample_target": 1,
+        "skill_upgrade_guard": 0,
+        "skill_version": 3,
+        "training_fold": 1,
+        "training_mat": 1,
+        "training_run": 1
+      },
+      "checked_reference_values": 24,
+      "findings": [],
+      "excluded_archives": [
+        "agent_plan_action",
+        "agent_round",
+        "agent_step",
+        "llm_call",
+        "recycle_bin",
+        "recycle_health",
+        "recycle_item"
+      ],
+      "foreign_key_check": []
+    },
+    "after_delete": {
+      "rows": {
+        "agent_session": 1,
+        "annotation": 0,
+        "annotation_draft": 0,
+        "annotation_version": 0,
+        "dataset_registry": 0,
+        "inference_artifact": 0,
+        "inference_run": 0,
+        "label": 4,
+        "label_schema": 1,
+        "llm_settings": 6,
+        "metric": 0,
+        "model_artifact": 0,
+        "model_registry": 0,
+        "preprocess_artifact": 0,
+        "preprocess_recipe": 1,
+        "preprocess_recipe_version": 1,
+        "preprocess_run": 0,
+        "project": 1,
+        "project_path_settings": 1,
+        "project_recipe": 0,
+        "sample_spectrum": 0,
+        "sample_target": 0,
+        "skill_upgrade_guard": 0,
+        "skill_version": 3,
+        "training_fold": 0,
+        "training_mat": 0,
+        "training_run": 0
+      },
+      "checked_reference_values": 0,
+      "findings": [],
+      "excluded_archives": [
+        "agent_plan_action",
+        "agent_round",
+        "agent_step",
+        "llm_call",
+        "recycle_bin",
+        "recycle_health",
+        "recycle_item"
+      ],
+      "foreign_key_check": []
+    },
+    "after_restore": {
+      "rows": {
+        "agent_session": 1,
+        "annotation": 1,
+        "annotation_draft": 1,
+        "annotation_version": 1,
+        "dataset_registry": 1,
+        "inference_artifact": 1,
+        "inference_run": 1,
+        "label": 4,
+        "label_schema": 1,
+        "llm_settings": 6,
+        "metric": 1,
+        "model_artifact": 1,
+        "model_registry": 1,
+        "preprocess_artifact": 1,
+        "preprocess_recipe": 1,
+        "preprocess_recipe_version": 1,
+        "preprocess_run": 1,
+        "project": 1,
+        "project_path_settings": 1,
+        "project_recipe": 0,
+        "sample_spectrum": 1,
+        "sample_target": 1,
+        "skill_upgrade_guard": 0,
+        "skill_version": 3,
+        "training_fold": 1,
+        "training_mat": 1,
+        "training_run": 1
+      },
+      "checked_reference_values": 24,
+      "findings": [],
+      "excluded_archives": [
+        "agent_plan_action",
+        "agent_round",
+        "agent_step",
+        "llm_call",
+        "recycle_bin",
+        "recycle_health",
+        "recycle_item"
+      ],
+      "foreign_key_check": []
+    },
+    "after_purge": {
+      "rows": {
+        "agent_session": 1,
+        "annotation": 0,
+        "annotation_draft": 0,
+        "annotation_version": 0,
+        "dataset_registry": 0,
+        "inference_artifact": 0,
+        "inference_run": 0,
+        "label": 4,
+        "label_schema": 1,
+        "llm_settings": 6,
+        "metric": 0,
+        "model_artifact": 0,
+        "model_registry": 0,
+        "preprocess_artifact": 0,
+        "preprocess_recipe": 1,
+        "preprocess_recipe_version": 1,
+        "preprocess_run": 0,
+        "project": 1,
+        "project_path_settings": 1,
+        "project_recipe": 0,
+        "sample_spectrum": 0,
+        "sample_target": 0,
+        "skill_upgrade_guard": 0,
+        "skill_version": 3,
+        "training_fold": 0,
+        "training_mat": 0,
+        "training_run": 0
+      },
+      "checked_reference_values": 0,
+      "findings": [],
+      "excluded_archives": [
+        "agent_plan_action",
+        "agent_round",
+        "agent_step",
+        "llm_call",
+        "recycle_bin",
+        "recycle_health",
+        "recycle_item"
+      ],
+      "foreign_key_check": []
+    }
+  },
+  "audit_actions": {
+    "DELETE": 2,
+    "PURGE": 1,
+    "RESTORE": 1
+  },
+  "source_denials": [
+    [
+      "D_SOURCE_WRITE",
+      "DENY",
+      "WRITE_TO_SOURCE_DENIED"
+    ],
+    [
+      "DELETE",
+      "DENY",
+      "WRITE_TO_SOURCE_DENIED"
+    ]
+  ],
+  "restore_same_id": true,
+  "protected_project_paths": true,
+  "immutable_audit_history_preserved": true
+}

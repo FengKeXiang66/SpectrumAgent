@@ -1,0 +1,444 @@
+[
+  {
+    "generation": 1,
+    "command": "annotations_forward",
+    "op": "projects"
+  },
+  {
+    "generation": 1,
+    "command": "agent_forward",
+    "op": "get_runtime"
+  },
+  {
+    "generation": 1,
+    "command": "datasets_forward",
+    "op": "catalog",
+    "limit": 100,
+    "offset": 0
+  },
+  {
+    "generation": 1,
+    "command": "annotations_forward",
+    "op": "projects"
+  },
+  {
+    "generation": 1,
+    "command": "settings_forward",
+    "op": "get_project_paths",
+    "project_id": "00000000-0000-0000-0000-000000000099"
+  },
+  {
+    "generation": 1,
+    "command": "datasets_forward",
+    "op": "preview",
+    "id": "00000000-0000-0000-0000-000000000001",
+    "band": 0
+  },
+  {
+    "generation": 1,
+    "command": "datasets_forward",
+    "op": "preview",
+    "id": "00000000-0000-0000-0000-000000000002",
+    "band": 0
+  },
+  {
+    "generation": 1,
+    "command": "datasets_forward",
+    "op": "preview",
+    "id": "00000000-0000-0000-0000-000000000003",
+    "band": 0
+  },
+  {
+    "generation": 1,
+    "command": "datasets_forward",
+    "op": "preview",
+    "id": "00000000-0000-0000-0000-000000000001",
+    "band": 0
+  },
+  {
+    "generation": 1,
+    "command": "datasets_forward",
+    "op": "preview",
+    "id": "00000000-0000-0000-0000-000000000002",
+    "band": 0
+  },
+  {
+    "generation": 1,
+    "command": "datasets_forward",
+    "op": "preview",
+    "id": "00000000-0000-0000-0000-000000000003",
+    "band": 0
+  },
+  {
+    "generation": 1,
+    "command": "datasets_forward",
+    "op": "import",
+    "path": "\\\\qa-nas\\spectral\\sample-1",
+    "raw": false
+  },
+  {
+    "generation": 1,
+    "command": "datasets_forward",
+    "op": "catalog",
+    "limit": 100,
+    "offset": 0
+  },
+  {
+    "generation": 1,
+    "command": "datasets_forward",
+    "op": "import",
+    "path": "\\\\qa-nas\\spectral\\sample-2",
+    "raw": false
+  },
+  {
+    "generation": 1,
+    "command": "datasets_forward",
+    "op": "catalog",
+    "limit": 100,
+    "offset": 0
+  },
+  {
+    "generation": 1,
+    "command": "datasets_forward",
+    "op": "import",
+    "path": "\\\\qa-nas\\spectral\\sample-3",
+    "raw": false
+  },
+  {
+    "generation": 1,
+    "command": "datasets_forward",
+    "op": "catalog",
+    "limit": 100,
+    "offset": 0
+  },
+  {
+    "generation": 2,
+    "command": "annotations_forward",
+    "op": "projects"
+  },
+  {
+    "generation": 2,
+    "command": "datasets_forward",
+    "op": "preview",
+    "id": "00000000-0000-0000-0000-000000000001",
+    "band": 0
+  },
+  {
+    "generation": 2,
+    "command": "datasets_forward",
+    "op": "preview",
+    "id": "00000000-0000-0000-0000-000000000002",
+    "band": 0
+  },
+  {
+    "generation": 2,
+    "command": "datasets_forward",
+    "op": "preview",
+    "id": "00000000-0000-0000-0000-000000000003",
+    "band": 0
+  },
+  {
+    "generation": 2,
+    "command": "agent_forward",
+    "op": "get_runtime"
+  },
+  {
+    "generation": 2,
+    "command": "datasets_forward",
+    "op": "catalog",
+    "limit": 100,
+    "offset": 0
+  },
+  {
+    "generation": 2,
+    "command": "annotations_forward",
+    "op": "projects"
+  },
+  {
+    "generation": 2,
+    "command": "datasets_forward",
+    "op": "preview",
+    "id": "00000000-0000-0000-0000-000000000001",
+    "band": 0
+  },
+  {
+    "generation": 2,
+    "command": "datasets_forward",
+    "op": "preview",
+    "id": "00000000-0000-0000-0000-000000000002",
+    "band": 0
+  },
+  {
+    "generation": 2,
+    "command": "datasets_forward",
+    "op": "preview",
+    "id": "00000000-0000-0000-0000-000000000003",
+    "band": 0
+  },
+  {
+    "generation": 2,
+    "command": "settings_forward",
+    "op": "get_project_paths",
+    "project_id": "00000000-0000-0000-0000-000000000099"
+  },
+  {
+    "generation": 3,
+    "command": "annotations_forward",
+    "op": "projects"
+  },
+  {
+    "generation": 3,
+    "command": "agent_forward",
+    "op": "get_runtime"
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "catalog",
+    "limit": 100,
+    "offset": 0
+  },
+  {
+    "generation": 3,
+    "command": "annotations_forward",
+    "op": "projects"
+  },
+  {
+    "generation": 3,
+    "command": "settings_forward",
+    "op": "get_project_paths",
+    "project_id": "00000000-0000-0000-0000-000000000099"
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "preview",
+    "id": "00000000-0000-0000-0000-000000000001",
+    "band": 0
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "preview",
+    "id": "00000000-0000-0000-0000-000000000002",
+    "band": 0
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "preview",
+    "id": "00000000-0000-0000-0000-000000000003",
+    "band": 0
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "preview",
+    "id": "00000000-0000-0000-0000-000000000001",
+    "band": 0
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "preview",
+    "id": "00000000-0000-0000-0000-000000000002",
+    "band": 0
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "preview",
+    "id": "00000000-0000-0000-0000-000000000003",
+    "band": 0
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "delete_preview",
+    "id": "00000000-0000-0000-0000-000000000001"
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "delete",
+    "id": "00000000-0000-0000-0000-000000000001",
+    "confirm": true,
+    "preview_token": "ui-bound-preview"
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "catalog",
+    "limit": 100,
+    "offset": 0
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "recycle_list"
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "import",
+    "path": "\\\\qa-nas\\spectral\\sample-1",
+    "raw": false
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "import",
+    "path": "\\\\qa-nas\\spectral\\sample-1",
+    "raw": false,
+    "confirm_new": true
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "catalog",
+    "limit": 100,
+    "offset": 0
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "preview",
+    "id": "00000000-0000-0000-0000-000000000005",
+    "band": 0
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "preview",
+    "id": "00000000-0000-0000-0000-000000000005",
+    "band": 0
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "import",
+    "path": "\\\\qa-nas\\spectral\\sample-2",
+    "raw": false
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "catalog",
+    "limit": 100,
+    "offset": 0
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "import",
+    "path": "\\\\qa-nas\\spectral\\sample-3",
+    "raw": false
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "catalog",
+    "limit": 100,
+    "offset": 0
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "import",
+    "path": "\\\\qa-nas\\spectral\\sample-1",
+    "raw": false
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "catalog",
+    "limit": 100,
+    "offset": 0
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "import",
+    "path": "\\\\qa-nas\\spectral\\sample-2",
+    "raw": false
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "catalog",
+    "limit": 100,
+    "offset": 0
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "import",
+    "path": "\\\\qa-nas\\spectral\\sample-3",
+    "raw": false
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "catalog",
+    "limit": 100,
+    "offset": 0
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "recycle_list"
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "restore",
+    "deletion_id": "00000000-0000-0000-0000-000000000050",
+    "confirm": true
+  },
+  {
+    "generation": 3,
+    "command": "settings_forward",
+    "op": "put_project_paths",
+    "project_id": "00000000-0000-0000-0000-000000000099",
+    "body": {
+      "source_path": "\\\\qa-nas\\prefilled",
+      "output_root": "\\\\qa-nas\\future"
+    }
+  },
+  {
+    "generation": 3,
+    "command": "settings_forward",
+    "op": "get_llm"
+  },
+  {
+    "generation": 3,
+    "command": "annotations_forward",
+    "op": "projects"
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "recycle_list"
+  },
+  {
+    "generation": 3,
+    "command": "settings_forward",
+    "op": "get_llm"
+  },
+  {
+    "generation": 3,
+    "command": "annotations_forward",
+    "op": "projects"
+  },
+  {
+    "generation": 3,
+    "command": "datasets_forward",
+    "op": "recycle_list"
+  },
+  {
+    "generation": 3,
+    "command": "settings_forward",
+    "op": "get_project_paths",
+    "project_id": "00000000-0000-0000-0000-000000000099"
+  }
+]

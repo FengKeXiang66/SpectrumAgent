@@ -1,0 +1,113 @@
+[
+  {
+    "mode": "unmapped_kill",
+    "actual_killed_process_returncode": 1,
+    "fresh_interpreter": true,
+    "source_unchanged": true,
+    "all_product_files_preserved": true,
+    "business_rows_unchanged": true,
+    "events": [
+      "directories_created",
+      "self_check",
+      "business_ready",
+      "recycle_reconcile_started",
+      "recycle_business_ready",
+      "directories_created",
+      "self_check",
+      "business_ready"
+    ],
+    "ready_gate_injection": {
+      "import": {
+        "status": 503,
+        "error": "RECYCLE_RECONCILIATION_REQUIRED"
+      },
+      "annotation": {
+        "status": 503,
+        "error": "RECYCLE_RECONCILIATION_REQUIRED"
+      },
+      "training": {
+        "status": 503,
+        "error": "RECYCLE_RECONCILIATION_REQUIRED"
+      },
+      "delete": {
+        "status": 503,
+        "error": "RECYCLE_RECONCILIATION_REQUIRED"
+      }
+    },
+    "post_quarantine_blocks": {
+      "get": {
+        "status": 503,
+        "error": "RECYCLE_RECONCILIATION_REQUIRED"
+      },
+      "import": {
+        "status": 503,
+        "error": "RECYCLE_RECONCILIATION_REQUIRED"
+      },
+      "preview": {
+        "status": 503,
+        "error": "RECYCLE_RECONCILIATION_REQUIRED"
+      },
+      "delete": {
+        "status": 503,
+        "error": "RECYCLE_RECONCILIATION_REQUIRED"
+      }
+    },
+    "blocked_cubes": [
+      "3f2f7a4f-865b-4dc0-8603-d78e307dd999"
+    ],
+    "blocked_key_count": 1,
+    "health": [
+      [
+        "3f2f7a4f-865b-4dc0-8603-d78e307dd999",
+        "ORPHAN_QUARANTINE"
+      ]
+    ],
+    "audit_actions": {
+      "ORPHAN_QUARANTINE": 1
+    }
+  },
+  {
+    "mode": "mapped_rollback",
+    "actual_killed_process_returncode": null,
+    "fresh_interpreter": true,
+    "source_unchanged": true,
+    "all_product_files_preserved": true,
+    "business_rows_unchanged": true,
+    "events": [
+      "directories_created",
+      "self_check",
+      "business_ready",
+      "recycle_reconcile_started",
+      "recycle_business_ready",
+      "directories_created",
+      "self_check",
+      "business_ready"
+    ],
+    "ready_gate_injection": {
+      "import": {
+        "status": 503,
+        "error": "RECYCLE_RECONCILIATION_REQUIRED"
+      },
+      "annotation": {
+        "status": 503,
+        "error": "RECYCLE_RECONCILIATION_REQUIRED"
+      },
+      "training": {
+        "status": 503,
+        "error": "RECYCLE_RECONCILIATION_REQUIRED"
+      },
+      "delete": {
+        "status": 503,
+        "error": "RECYCLE_RECONCILIATION_REQUIRED"
+      }
+    },
+    "post_quarantine_blocks": {},
+    "blocked_cubes": [],
+    "blocked_key_count": 0,
+    "health": [],
+    "audit_actions": {
+      "DELETE": 1,
+      "ORPHAN_ROLLBACK": 1
+    }
+  }
+]
