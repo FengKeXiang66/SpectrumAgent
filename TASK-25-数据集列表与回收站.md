@@ -90,7 +90,7 @@
 ### 2.1 新增 `src-python/spectrumagent/storage/guard.py`
 
 - 单一出口 `resolve_write(path, *, kind)` 与 `resolve_delete(path)`：路径 `resolve()` 归一 → 判是否落在**三个可写根**内 → 判是否落在任一数据源目录（含子目录）内 → 越界抛 `WRITE_TO_SOURCE_DENIED` 并写审计。
-- 三个可写根（需求 8.1 / 开发手册 `:51` / 技术选型 v1.1 `:24`）：**本地数据根** `paths.root`（DB、日志、握手、snapshots、preprocessed、exports、models、inferences、trash）、**产物输出根**（本卡为配置项，默认不启用）、**系统临时目录**。漏掉本地根或 temp 会拦掉程序自身数据库与日志。
+- 三个可写根（需求 8.1 / 开发手册 `:51` / 技术选型 v1.1 `:24`）：**本地数据根** `paths.root`（DB / 日志 / 握手 / 缓存，以及 `annotations`（快照）、`preprocessed`、`exports`、`models`、`inferences`、`projects`（项目级配置）、`trash` 等产物目录）、**产物输出根**（本卡为配置项，默认不启用）、**系统临时目录**。**目录名一律以 `backend/paths.py` 实测为准，禁止按属性名推断**（`AppPaths.snapshots` 的实际目录名是 `annotations`，见 `backend/paths.py:44-45`）。漏掉本地根或 temp 会拦掉程序自身数据库与日志。
 - **`unlink` / `rmtree` / `rename` 同为写操作，必须一并收口**——否则删除功能就是绕过只读红线的后门。可复用 `src-python/spectrumagent/agent/mat.py:52/88/190` 的 `is_relative_to` 校验模式。
 - 逐文件改造 §0.1 实测的 **13 个**生产写点，`grep -rln` 取数命令同上，**一个不漏**；每个文件在回报里写「本文件的写入目标属于哪个根」。
 - ALLOW / DENY **全量留痕**（不只记 DENY），对应 UI 6.4 #13「被拒写入尝试均完整留痕」。
@@ -132,9 +132,9 @@
 
 - `backend/paths.py` 增 `trash` 属性 = `root / "trash"`；本次目录 `trash/<deletion_id>/`，保留原相对结构。
 - 删除用**同盘 move**（`Path.rename` / `shutil.move`），**不 unlink**；映射写进 `recycle_item.file_src/file_dst`。DB 事务提交成功后才算删除完成，失败则整体回滚（含文件移回）。
-- 要移走（实测路径）：`snapshots/<cube_id>/vN/`（`annotation.json`、`label_index.json`、`label_map.npz`、`spectra.npz`）、`exports/<cube_id>/`（labelme `.json` / `.meta.json` / `manifest.json` / `training_mat.mat`）、`preprocessed/<cube_id>/<run_id>/`、`models/<run_id>/`、`inferences/<run_id>/`。
-- **绝不碰**：源目录任何内容；`exports/projects/<project_id>/projection.json`（项目级共用，`projection_io.py:21`）；`project` / `label_schema` / `label` / `preprocess_recipe*` / `project_recipe`（项目级资产）；`llm_call` 与 `agent_*` 审计出域记录（FR-I03 不可改，S11 原型写明不可删）。
-- 按 `annotation_version.snapshot_ref` 精确解析目标，**禁一刀切 `rmtree(snapshots/<cube_id>)`**。
+- 要移走（**2026-11-04 20:50 实测路径，全部相对 `paths.root`**）：`annotations/<cube_id>/vN/`（`annotation.json`、`label_index.json`、`label_map.npz`、`spectra.npz`；`annotation/session.py:362` 用 `self.paths.snapshots / cube_id / f"v{version_no}"`，而 `AppPaths.snapshots` = `root/annotations`，`backend/paths.py:44-45`）、`exports/<cube_id>/`（labelme `.json` / `.meta.json` / `manifest.json`，`projection_io.py:73-74`）、`exports/<cube_id>/<version_id>/training_mat.mat`（`agent/mat.py:51`）、`preprocessed/<cube_id>/<run_id>/`（`preprocess/run.py:245`）、`models/<run_id>/`（`modeling/run.py:175`）、`inferences/<run_id>/`（`modeling/inference.py:224`）。`annotation_version.snapshot_ref` 是相对 `paths.snapshots` 的 POSIX 路径（`preprocess/run.py:165` 用 `paths.snapshots.joinpath` 消费），解析时必须以 `root/annotations` 为基，**不得当成 `root/snapshots`**。
+- **绝不碰**：源目录任何内容；`projects/<project_id>/projection.json`（**项目级共用，位于 `paths.root/projects/`，不在 `exports/` 下**，`projection_io.py:20-21`）；`project` / `label_schema` / `label` / `preprocess_recipe*` / `project_recipe`（项目级资产）；`llm_call` 与 `agent_*` 审计出域记录（FR-I03 不可改，S11 原型写明不可删）。
+- 按 `annotation_version.snapshot_ref` 精确解析目标，**禁一刀切 `rmtree(annotations/<cube_id>)`**。
 
 ### 3.4 到期物理删除
 
@@ -225,3 +225,4 @@
 | 2026-11-04 18:06 | **初版（201 行）**：四段 A 守卫与审计 → B 回收站删除链路 → C 列表与 S03 UI → D 验收；§0 事实底座（行号锚点全 `grep -n` 直取）；§0.4 方案 B（独立回收站表）定稿并保留方案 A 探针备查；§0.3 五条拍板口径；明确不做清单与 5 条遗留债 |
 | 2026-11-04 18:45 | **复核轮一（217 行）**：① 前端基线 222 → **218**、命令改 `node --test "src/**/*.test.ts"`、闸门②与 D 组同步、新增防再犯记录（222 = 218 + 2 + 2 的解剖）；② Python 分段注记按实测 collected 分布重写、删陈旧段数、改由执行方按 hook 现场定；③ `cube_id` 换精确取数命令 `cube_ids? +TEXT`；④ §0.4 措辞消歧为「以 §3.2 顺序清单为准」；⑤ §2.3 重写（审计独立通道不递归 / 启动顺序 / DB 未就绪环形缓冲）；⑥ 新增 §3.6 崩溃窗口三态对账；⑦ A/B/D 组验收补对应断言 |
 | 2026-11-04 20:08 | **定稿（217 行 + 本节）**：§0.2 `projection_io.py:73` 实测 off-by-one，改为 `:73`/`:74` 双行并留痕；整表锚点复核无第二处漂移；卡头「前置 HEAD」标注为出卡时事实记录、不作闸门（防闸门自指变体）；补 §9 修订记录。本卡随后由备卡方**单文件提交入库，远程推送归负责人** |
+| 2026-11-04 20:50 | **即停后路径裁定（228 行）**：执行方按即停条款报出 §3.3 两处路径与实物不符，备卡方实测后裁定「**先修订卡、再继续 B 段**」：① `AppPaths.snapshots` 实际目录名是 `annotations`（`backend/paths.py:44-45`；`annotation/session.py:362` 在其下建 `vN`），全卡 `snapshots/...` 统一改为 `annotations/...`；② 项目级配置实为 `paths.root/projects/<project_id>/projection.json`（`projection_io.py:20-21`），**不在 `exports/` 下**，修正 §3.3「绝不碰」清单（原写法有误删项目级配置风险）与 §2.1 可写根目录枚举；③ §0.2 对 `:21` 的描述原本即正确，属卡内自相矛盾，一并消歧；④ 提示词对应两处同步替换。其余产物根（`exports/<cube>/`、`preprocessed/<cube>/<run>/`、`models/<run>/`、`inferences/<run>/`）实测无误 |
