@@ -102,6 +102,60 @@
         }
       }
     },
+    "/api/v1/datasets/catalog": {
+      "get": {
+        "tags": [
+          "datasets"
+        ],
+        "summary": "Catalog",
+        "operationId": "catalog_api_v1_datasets_catalog_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/datasets/{identifier}": {
       "get": {
         "tags": [
@@ -409,6 +463,168 @@
                 "schema": {
                   "$ref": "#/components/schemas/RegionResponse"
                 }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/datasets/{identifier}/delete/preview": {
+      "get": {
+        "tags": [
+          "recycle"
+        ],
+        "summary": "Preview",
+        "operationId": "preview_api_v1_datasets__identifier__delete_preview_get",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Identifier"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/datasets/{identifier}/delete": {
+      "post": {
+        "tags": [
+          "recycle"
+        ],
+        "summary": "Delete",
+        "operationId": "delete_api_v1_datasets__identifier__delete_post",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Identifier"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/recycle": {
+      "get": {
+        "tags": [
+          "recycle"
+        ],
+        "summary": "Recycle",
+        "operationId": "recycle_api_v1_recycle_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/recycle/{deletion_id}/restore": {
+      "post": {
+        "tags": [
+          "recycle"
+        ],
+        "summary": "Restore",
+        "operationId": "restore_api_v1_recycle__deletion_id__restore_post",
+        "parameters": [
+          {
+            "name": "deletion_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Deletion Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestoreRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
               }
             }
           },
@@ -3122,6 +3338,27 @@
         ],
         "title": "DatasetRecord"
       },
+      "DeleteRequest": {
+        "properties": {
+          "confirm": {
+            "type": "boolean",
+            "title": "Confirm"
+          },
+          "preview_token": {
+            "type": "string",
+            "maxLength": 2048,
+            "minLength": 1,
+            "title": "Preview Token"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "confirm",
+          "preview_token"
+        ],
+        "title": "DeleteRequest"
+      },
       "DiffuseRequest": {
         "properties": {
           "seed": {
@@ -3496,6 +3733,11 @@
               }
             ],
             "title": "Data Path"
+          },
+          "confirm_new": {
+            "type": "boolean",
+            "title": "Confirm New",
+            "default": false
           }
         },
         "additionalProperties": false,
@@ -4388,6 +4630,20 @@
           "target_schema_id"
         ],
         "title": "RegressionRequest"
+      },
+      "RestoreRequest": {
+        "properties": {
+          "confirm": {
+            "type": "boolean",
+            "title": "Confirm"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "confirm"
+        ],
+        "title": "RestoreRequest"
       },
       "SAMParameters": {
         "properties": {

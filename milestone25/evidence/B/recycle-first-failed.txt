@@ -1,0 +1,622 @@
+EEEEEEEEEEEEEEEFFFFFFF                                                   [100%]
+=================================== ERRORS ====================================
+_________________ ERROR at setup of test_full_delete_restore __________________
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25bn/pytest-of-Administrator/pytest-0/test_full_delete_restore0')
+
+    @pytest.fixture
+    def case(tmp_path):
+        source = tmp_path / 'source'
+        header, _, _ = cube(source)
+        paths = AppPaths(runtime_path(tmp_path, tmp_path / 'app'))
+        registry = DatasetRegistry(paths.database)
+        identifier = str(registry.import_path(str(header), raw=True).datasets[0].id)
+        RecipeStore(paths.database)
+        ids = {key: str(uuid4()) for key in ('version', 'preprocess', 'training', 'model', 'inference')}
+        version, preprocess, training, model, inference = (ids[key] for key in ids)
+        with connect_database(paths.database) as db:
+            project = db.execute('SELECT project_id FROM dataset_registry WHERE id=?', (identifier,)).fetchone()[0]
+            label, schema = db.execute("SELECT id,schema_id FROM label WHERE code='PE'").fetchone()
+            recipe = db.execute('SELECT id FROM preprocess_recipe_version').fetchone()[0]
+            db.execute('INSERT INTO annotation_version (id,cube_id,version_no,snapshot_ref,n_pixels,labeled_pixels,params,created_at) '
+                       "VALUES (?,?,1,?,6,4,'{}','fixture')", (version, identifier, f'{identifier}/v1'))
+            db.execute('INSERT INTO annotation (id,cube_id,version_id,granularity,label_id,pixel_count,created_at) '
+                       "VALUES (?,?,?,'sample',?,4,'fixture')", (str(uuid4()), identifier, version, label))
+            db.execute('INSERT INTO sample_spectrum (id,cube_id,version_id,label_id,sample_code,n_pixels,mean_ref,std_ref,created_at) '
+                       "VALUES (?,?,?,?,'fixture',4,'mean','std','fixture')", (str(uuid4()), identifier, version, label))
+            db.execute("INSERT INTO annotation_draft VALUES (?,2,'{}',1,1,'fixture')", (identifier,))
+>           db.execute('INSERT INTO training_mat VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+                       (str(uuid4()), identifier, version, f'{identifier}/{version}/training_mat.mat', 'hash', 4, 4, 2, 'hash', 'fixture'))
+E           sqlite3.OperationalError: table training_mat has 10 columns but 11 values were supplied
+
+src-python\tests\storage\test_recycle.py:56: OperationalError
+________________ ERROR at setup of test_reimport_and_conflict _________________
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25bn/pytest-of-Administrator/pytest-0/test_reimport_and_conflict0')
+
+    @pytest.fixture
+    def case(tmp_path):
+        source = tmp_path / 'source'
+        header, _, _ = cube(source)
+        paths = AppPaths(runtime_path(tmp_path, tmp_path / 'app'))
+        registry = DatasetRegistry(paths.database)
+        identifier = str(registry.import_path(str(header), raw=True).datasets[0].id)
+        RecipeStore(paths.database)
+        ids = {key: str(uuid4()) for key in ('version', 'preprocess', 'training', 'model', 'inference')}
+        version, preprocess, training, model, inference = (ids[key] for key in ids)
+        with connect_database(paths.database) as db:
+            project = db.execute('SELECT project_id FROM dataset_registry WHERE id=?', (identifier,)).fetchone()[0]
+            label, schema = db.execute("SELECT id,schema_id FROM label WHERE code='PE'").fetchone()
+            recipe = db.execute('SELECT id FROM preprocess_recipe_version').fetchone()[0]
+            db.execute('INSERT INTO annotation_version (id,cube_id,version_no,snapshot_ref,n_pixels,labeled_pixels,params,created_at) '
+                       "VALUES (?,?,1,?,6,4,'{}','fixture')", (version, identifier, f'{identifier}/v1'))
+            db.execute('INSERT INTO annotation (id,cube_id,version_id,granularity,label_id,pixel_count,created_at) '
+                       "VALUES (?,?,?,'sample',?,4,'fixture')", (str(uuid4()), identifier, version, label))
+            db.execute('INSERT INTO sample_spectrum (id,cube_id,version_id,label_id,sample_code,n_pixels,mean_ref,std_ref,created_at) '
+                       "VALUES (?,?,?,?,'fixture',4,'mean','std','fixture')", (str(uuid4()), identifier, version, label))
+            db.execute("INSERT INTO annotation_draft VALUES (?,2,'{}',1,1,'fixture')", (identifier,))
+>           db.execute('INSERT INTO training_mat VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+                       (str(uuid4()), identifier, version, f'{identifier}/{version}/training_mat.mat', 'hash', 4, 4, 2, 'hash', 'fixture'))
+E           sqlite3.OperationalError: table training_mat has 10 columns but 11 values were supplied
+
+src-python\tests\storage\test_recycle.py:56: OperationalError
+___________________ ERROR at setup of test_expiry_and_audit ___________________
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25bn/pytest-of-Administrator/pytest-0/test_expiry_and_audit0')
+
+    @pytest.fixture
+    def case(tmp_path):
+        source = tmp_path / 'source'
+        header, _, _ = cube(source)
+        paths = AppPaths(runtime_path(tmp_path, tmp_path / 'app'))
+        registry = DatasetRegistry(paths.database)
+        identifier = str(registry.import_path(str(header), raw=True).datasets[0].id)
+        RecipeStore(paths.database)
+        ids = {key: str(uuid4()) for key in ('version', 'preprocess', 'training', 'model', 'inference')}
+        version, preprocess, training, model, inference = (ids[key] for key in ids)
+        with connect_database(paths.database) as db:
+            project = db.execute('SELECT project_id FROM dataset_registry WHERE id=?', (identifier,)).fetchone()[0]
+            label, schema = db.execute("SELECT id,schema_id FROM label WHERE code='PE'").fetchone()
+            recipe = db.execute('SELECT id FROM preprocess_recipe_version').fetchone()[0]
+            db.execute('INSERT INTO annotation_version (id,cube_id,version_no,snapshot_ref,n_pixels,labeled_pixels,params,created_at) '
+                       "VALUES (?,?,1,?,6,4,'{}','fixture')", (version, identifier, f'{identifier}/v1'))
+            db.execute('INSERT INTO annotation (id,cube_id,version_id,granularity,label_id,pixel_count,created_at) '
+                       "VALUES (?,?,?,'sample',?,4,'fixture')", (str(uuid4()), identifier, version, label))
+            db.execute('INSERT INTO sample_spectrum (id,cube_id,version_id,label_id,sample_code,n_pixels,mean_ref,std_ref,created_at) '
+                       "VALUES (?,?,?,?,'fixture',4,'mean','std','fixture')", (str(uuid4()), identifier, version, label))
+            db.execute("INSERT INTO annotation_draft VALUES (?,2,'{}',1,1,'fixture')", (identifier,))
+>           db.execute('INSERT INTO training_mat VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+                       (str(uuid4()), identifier, version, f'{identifier}/{version}/training_mat.mat', 'hash', 4, 4, 2, 'hash', 'fixture'))
+E           sqlite3.OperationalError: table training_mat has 10 columns but 11 values were supplied
+
+src-python\tests\storage\test_recycle.py:56: OperationalError
+________________ ERROR at setup of test_preview_binding[false] ________________
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25bn/pytest-of-Administrator/pytest-0/test_preview_binding_false_0')
+
+    @pytest.fixture
+    def case(tmp_path):
+        source = tmp_path / 'source'
+        header, _, _ = cube(source)
+        paths = AppPaths(runtime_path(tmp_path, tmp_path / 'app'))
+        registry = DatasetRegistry(paths.database)
+        identifier = str(registry.import_path(str(header), raw=True).datasets[0].id)
+        RecipeStore(paths.database)
+        ids = {key: str(uuid4()) for key in ('version', 'preprocess', 'training', 'model', 'inference')}
+        version, preprocess, training, model, inference = (ids[key] for key in ids)
+        with connect_database(paths.database) as db:
+            project = db.execute('SELECT project_id FROM dataset_registry WHERE id=?', (identifier,)).fetchone()[0]
+            label, schema = db.execute("SELECT id,schema_id FROM label WHERE code='PE'").fetchone()
+            recipe = db.execute('SELECT id FROM preprocess_recipe_version').fetchone()[0]
+            db.execute('INSERT INTO annotation_version (id,cube_id,version_no,snapshot_ref,n_pixels,labeled_pixels,params,created_at) '
+                       "VALUES (?,?,1,?,6,4,'{}','fixture')", (version, identifier, f'{identifier}/v1'))
+            db.execute('INSERT INTO annotation (id,cube_id,version_id,granularity,label_id,pixel_count,created_at) '
+                       "VALUES (?,?,?,'sample',?,4,'fixture')", (str(uuid4()), identifier, version, label))
+            db.execute('INSERT INTO sample_spectrum (id,cube_id,version_id,label_id,sample_code,n_pixels,mean_ref,std_ref,created_at) '
+                       "VALUES (?,?,?,?,'fixture',4,'mean','std','fixture')", (str(uuid4()), identifier, version, label))
+            db.execute("INSERT INTO annotation_draft VALUES (?,2,'{}',1,1,'fixture')", (identifier,))
+>           db.execute('INSERT INTO training_mat VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+                       (str(uuid4()), identifier, version, f'{identifier}/{version}/training_mat.mat', 'hash', 4, 4, 2, 'hash', 'fixture'))
+E           sqlite3.OperationalError: table training_mat has 10 columns but 11 values were supplied
+
+src-python\tests\storage\test_recycle.py:56: OperationalError
+______________ ERROR at setup of test_preview_binding[tampered] _______________
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25bn/pytest-of-Administrator/pytest-0/test_preview_binding_tampered_0')
+
+    @pytest.fixture
+    def case(tmp_path):
+        source = tmp_path / 'source'
+        header, _, _ = cube(source)
+        paths = AppPaths(runtime_path(tmp_path, tmp_path / 'app'))
+        registry = DatasetRegistry(paths.database)
+        identifier = str(registry.import_path(str(header), raw=True).datasets[0].id)
+        RecipeStore(paths.database)
+        ids = {key: str(uuid4()) for key in ('version', 'preprocess', 'training', 'model', 'inference')}
+        version, preprocess, training, model, inference = (ids[key] for key in ids)
+        with connect_database(paths.database) as db:
+            project = db.execute('SELECT project_id FROM dataset_registry WHERE id=?', (identifier,)).fetchone()[0]
+            label, schema = db.execute("SELECT id,schema_id FROM label WHERE code='PE'").fetchone()
+            recipe = db.execute('SELECT id FROM preprocess_recipe_version').fetchone()[0]
+            db.execute('INSERT INTO annotation_version (id,cube_id,version_no,snapshot_ref,n_pixels,labeled_pixels,params,created_at) '
+                       "VALUES (?,?,1,?,6,4,'{}','fixture')", (version, identifier, f'{identifier}/v1'))
+            db.execute('INSERT INTO annotation (id,cube_id,version_id,granularity,label_id,pixel_count,created_at) '
+                       "VALUES (?,?,?,'sample',?,4,'fixture')", (str(uuid4()), identifier, version, label))
+            db.execute('INSERT INTO sample_spectrum (id,cube_id,version_id,label_id,sample_code,n_pixels,mean_ref,std_ref,created_at) '
+                       "VALUES (?,?,?,?,'fixture',4,'mean','std','fixture')", (str(uuid4()), identifier, version, label))
+            db.execute("INSERT INTO annotation_draft VALUES (?,2,'{}',1,1,'fixture')", (identifier,))
+>           db.execute('INSERT INTO training_mat VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+                       (str(uuid4()), identifier, version, f'{identifier}/{version}/training_mat.mat', 'hash', 4, 4, 2, 'hash', 'fixture'))
+E           sqlite3.OperationalError: table training_mat has 10 columns but 11 values were supplied
+
+src-python\tests\storage\test_recycle.py:56: OperationalError
+_______________ ERROR at setup of test_preview_binding[expired] _______________
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25bn/pytest-of-Administrator/pytest-0/test_preview_binding_expired_0')
+
+    @pytest.fixture
+    def case(tmp_path):
+        source = tmp_path / 'source'
+        header, _, _ = cube(source)
+        paths = AppPaths(runtime_path(tmp_path, tmp_path / 'app'))
+        registry = DatasetRegistry(paths.database)
+        identifier = str(registry.import_path(str(header), raw=True).datasets[0].id)
+        RecipeStore(paths.database)
+        ids = {key: str(uuid4()) for key in ('version', 'preprocess', 'training', 'model', 'inference')}
+        version, preprocess, training, model, inference = (ids[key] for key in ids)
+        with connect_database(paths.database) as db:
+            project = db.execute('SELECT project_id FROM dataset_registry WHERE id=?', (identifier,)).fetchone()[0]
+            label, schema = db.execute("SELECT id,schema_id FROM label WHERE code='PE'").fetchone()
+            recipe = db.execute('SELECT id FROM preprocess_recipe_version').fetchone()[0]
+            db.execute('INSERT INTO annotation_version (id,cube_id,version_no,snapshot_ref,n_pixels,labeled_pixels,params,created_at) '
+                       "VALUES (?,?,1,?,6,4,'{}','fixture')", (version, identifier, f'{identifier}/v1'))
+            db.execute('INSERT INTO annotation (id,cube_id,version_id,granularity,label_id,pixel_count,created_at) '
+                       "VALUES (?,?,?,'sample',?,4,'fixture')", (str(uuid4()), identifier, version, label))
+            db.execute('INSERT INTO sample_spectrum (id,cube_id,version_id,label_id,sample_code,n_pixels,mean_ref,std_ref,created_at) '
+                       "VALUES (?,?,?,?,'fixture',4,'mean','std','fixture')", (str(uuid4()), identifier, version, label))
+            db.execute("INSERT INTO annotation_draft VALUES (?,2,'{}',1,1,'fixture')", (identifier,))
+>           db.execute('INSERT INTO training_mat VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+                       (str(uuid4()), identifier, version, f'{identifier}/{version}/training_mat.mat', 'hash', 4, 4, 2, 'hash', 'fixture'))
+E           sqlite3.OperationalError: table training_mat has 10 columns but 11 values were supplied
+
+src-python\tests\storage\test_recycle.py:56: OperationalError
+_______________ ERROR at setup of test_preview_binding[changed] _______________
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25bn/pytest-of-Administrator/pytest-0/test_preview_binding_changed_0')
+
+    @pytest.fixture
+    def case(tmp_path):
+        source = tmp_path / 'source'
+        header, _, _ = cube(source)
+        paths = AppPaths(runtime_path(tmp_path, tmp_path / 'app'))
+        registry = DatasetRegistry(paths.database)
+        identifier = str(registry.import_path(str(header), raw=True).datasets[0].id)
+        RecipeStore(paths.database)
+        ids = {key: str(uuid4()) for key in ('version', 'preprocess', 'training', 'model', 'inference')}
+        version, preprocess, training, model, inference = (ids[key] for key in ids)
+        with connect_database(paths.database) as db:
+            project = db.execute('SELECT project_id FROM dataset_registry WHERE id=?', (identifier,)).fetchone()[0]
+            label, schema = db.execute("SELECT id,schema_id FROM label WHERE code='PE'").fetchone()
+            recipe = db.execute('SELECT id FROM preprocess_recipe_version').fetchone()[0]
+            db.execute('INSERT INTO annotation_version (id,cube_id,version_no,snapshot_ref,n_pixels,labeled_pixels,params,created_at) '
+                       "VALUES (?,?,1,?,6,4,'{}','fixture')", (version, identifier, f'{identifier}/v1'))
+            db.execute('INSERT INTO annotation (id,cube_id,version_id,granularity,label_id,pixel_count,created_at) '
+                       "VALUES (?,?,?,'sample',?,4,'fixture')", (str(uuid4()), identifier, version, label))
+            db.execute('INSERT INTO sample_spectrum (id,cube_id,version_id,label_id,sample_code,n_pixels,mean_ref,std_ref,created_at) '
+                       "VALUES (?,?,?,?,'fixture',4,'mean','std','fixture')", (str(uuid4()), identifier, version, label))
+            db.execute("INSERT INTO annotation_draft VALUES (?,2,'{}',1,1,'fixture')", (identifier,))
+>           db.execute('INSERT INTO training_mat VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+                       (str(uuid4()), identifier, version, f'{identifier}/{version}/training_mat.mat', 'hash', 4, 4, 2, 'hash', 'fixture'))
+E           sqlite3.OperationalError: table training_mat has 10 columns but 11 values were supplied
+
+src-python\tests\storage\test_recycle.py:56: OperationalError
+_______________ ERROR at setup of test_move_failure_rolls_back ________________
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25bn/pytest-of-Administrator/pytest-0/test_move_failure_rolls_back0')
+
+    @pytest.fixture
+    def case(tmp_path):
+        source = tmp_path / 'source'
+        header, _, _ = cube(source)
+        paths = AppPaths(runtime_path(tmp_path, tmp_path / 'app'))
+        registry = DatasetRegistry(paths.database)
+        identifier = str(registry.import_path(str(header), raw=True).datasets[0].id)
+        RecipeStore(paths.database)
+        ids = {key: str(uuid4()) for key in ('version', 'preprocess', 'training', 'model', 'inference')}
+        version, preprocess, training, model, inference = (ids[key] for key in ids)
+        with connect_database(paths.database) as db:
+            project = db.execute('SELECT project_id FROM dataset_registry WHERE id=?', (identifier,)).fetchone()[0]
+            label, schema = db.execute("SELECT id,schema_id FROM label WHERE code='PE'").fetchone()
+            recipe = db.execute('SELECT id FROM preprocess_recipe_version').fetchone()[0]
+            db.execute('INSERT INTO annotation_version (id,cube_id,version_no,snapshot_ref,n_pixels,labeled_pixels,params,created_at) '
+                       "VALUES (?,?,1,?,6,4,'{}','fixture')", (version, identifier, f'{identifier}/v1'))
+            db.execute('INSERT INTO annotation (id,cube_id,version_id,granularity,label_id,pixel_count,created_at) '
+                       "VALUES (?,?,?,'sample',?,4,'fixture')", (str(uuid4()), identifier, version, label))
+            db.execute('INSERT INTO sample_spectrum (id,cube_id,version_id,label_id,sample_code,n_pixels,mean_ref,std_ref,created_at) '
+                       "VALUES (?,?,?,?,'fixture',4,'mean','std','fixture')", (str(uuid4()), identifier, version, label))
+            db.execute("INSERT INTO annotation_draft VALUES (?,2,'{}',1,1,'fixture')", (identifier,))
+>           db.execute('INSERT INTO training_mat VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+                       (str(uuid4()), identifier, version, f'{identifier}/{version}/training_mat.mat', 'hash', 4, 4, 2, 'hash', 'fixture'))
+E           sqlite3.OperationalError: table training_mat has 10 columns but 11 values were supplied
+
+src-python\tests\storage\test_recycle.py:56: OperationalError
+_______________ ERROR at setup of test_multi_cube_fails_closed ________________
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25bn/pytest-of-Administrator/pytest-0/test_multi_cube_fails_closed0')
+
+    @pytest.fixture
+    def case(tmp_path):
+        source = tmp_path / 'source'
+        header, _, _ = cube(source)
+        paths = AppPaths(runtime_path(tmp_path, tmp_path / 'app'))
+        registry = DatasetRegistry(paths.database)
+        identifier = str(registry.import_path(str(header), raw=True).datasets[0].id)
+        RecipeStore(paths.database)
+        ids = {key: str(uuid4()) for key in ('version', 'preprocess', 'training', 'model', 'inference')}
+        version, preprocess, training, model, inference = (ids[key] for key in ids)
+        with connect_database(paths.database) as db:
+            project = db.execute('SELECT project_id FROM dataset_registry WHERE id=?', (identifier,)).fetchone()[0]
+            label, schema = db.execute("SELECT id,schema_id FROM label WHERE code='PE'").fetchone()
+            recipe = db.execute('SELECT id FROM preprocess_recipe_version').fetchone()[0]
+            db.execute('INSERT INTO annotation_version (id,cube_id,version_no,snapshot_ref,n_pixels,labeled_pixels,params,created_at) '
+                       "VALUES (?,?,1,?,6,4,'{}','fixture')", (version, identifier, f'{identifier}/v1'))
+            db.execute('INSERT INTO annotation (id,cube_id,version_id,granularity,label_id,pixel_count,created_at) '
+                       "VALUES (?,?,?,'sample',?,4,'fixture')", (str(uuid4()), identifier, version, label))
+            db.execute('INSERT INTO sample_spectrum (id,cube_id,version_id,label_id,sample_code,n_pixels,mean_ref,std_ref,created_at) '
+                       "VALUES (?,?,?,?,'fixture',4,'mean','std','fixture')", (str(uuid4()), identifier, version, label))
+            db.execute("INSERT INTO annotation_draft VALUES (?,2,'{}',1,1,'fixture')", (identifier,))
+>           db.execute('INSERT INTO training_mat VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+                       (str(uuid4()), identifier, version, f'{identifier}/{version}/training_mat.mat', 'hash', 4, 4, 2, 'hash', 'fixture'))
+E           sqlite3.OperationalError: table training_mat has 10 columns but 11 values were supplied
+
+src-python\tests\storage\test_recycle.py:56: OperationalError
+___________ ERROR at setup of test_incomplete_fail_closed[missing] ____________
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25bn/pytest-of-Administrator/pytest-0/test_incomplete_fail_closed_mi0')
+
+    @pytest.fixture
+    def case(tmp_path):
+        source = tmp_path / 'source'
+        header, _, _ = cube(source)
+        paths = AppPaths(runtime_path(tmp_path, tmp_path / 'app'))
+        registry = DatasetRegistry(paths.database)
+        identifier = str(registry.import_path(str(header), raw=True).datasets[0].id)
+        RecipeStore(paths.database)
+        ids = {key: str(uuid4()) for key in ('version', 'preprocess', 'training', 'model', 'inference')}
+        version, preprocess, training, model, inference = (ids[key] for key in ids)
+        with connect_database(paths.database) as db:
+            project = db.execute('SELECT project_id FROM dataset_registry WHERE id=?', (identifier,)).fetchone()[0]
+            label, schema = db.execute("SELECT id,schema_id FROM label WHERE code='PE'").fetchone()
+            recipe = db.execute('SELECT id FROM preprocess_recipe_version').fetchone()[0]
+            db.execute('INSERT INTO annotation_version (id,cube_id,version_no,snapshot_ref,n_pixels,labeled_pixels,params,created_at) '
+                       "VALUES (?,?,1,?,6,4,'{}','fixture')", (version, identifier, f'{identifier}/v1'))
+            db.execute('INSERT INTO annotation (id,cube_id,version_id,granularity,label_id,pixel_count,created_at) '
+                       "VALUES (?,?,?,'sample',?,4,'fixture')", (str(uuid4()), identifier, version, label))
+            db.execute('INSERT INTO sample_spectrum (id,cube_id,version_id,label_id,sample_code,n_pixels,mean_ref,std_ref,created_at) '
+                       "VALUES (?,?,?,?,'fixture',4,'mean','std','fixture')", (str(uuid4()), identifier, version, label))
+            db.execute("INSERT INTO annotation_draft VALUES (?,2,'{}',1,1,'fixture')", (identifier,))
+>           db.execute('INSERT INTO training_mat VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+                       (str(uuid4()), identifier, version, f'{identifier}/{version}/training_mat.mat', 'hash', 4, 4, 2, 'hash', 'fixture'))
+E           sqlite3.OperationalError: table training_mat has 10 columns but 11 values were supplied
+
+src-python\tests\storage\test_recycle.py:56: OperationalError
+___________ ERROR at setup of test_incomplete_fail_closed[manifest] ___________
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25bn/pytest-of-Administrator/pytest-0/test_incomplete_fail_closed_ma0')
+
+    @pytest.fixture
+    def case(tmp_path):
+        source = tmp_path / 'source'
+        header, _, _ = cube(source)
+        paths = AppPaths(runtime_path(tmp_path, tmp_path / 'app'))
+        registry = DatasetRegistry(paths.database)
+        identifier = str(registry.import_path(str(header), raw=True).datasets[0].id)
+        RecipeStore(paths.database)
+        ids = {key: str(uuid4()) for key in ('version', 'preprocess', 'training', 'model', 'inference')}
+        version, preprocess, training, model, inference = (ids[key] for key in ids)
+        with connect_database(paths.database) as db:
+            project = db.execute('SELECT project_id FROM dataset_registry WHERE id=?', (identifier,)).fetchone()[0]
+            label, schema = db.execute("SELECT id,schema_id FROM label WHERE code='PE'").fetchone()
+            recipe = db.execute('SELECT id FROM preprocess_recipe_version').fetchone()[0]
+            db.execute('INSERT INTO annotation_version (id,cube_id,version_no,snapshot_ref,n_pixels,labeled_pixels,params,created_at) '
+                       "VALUES (?,?,1,?,6,4,'{}','fixture')", (version, identifier, f'{identifier}/v1'))
+            db.execute('INSERT INTO annotation (id,cube_id,version_id,granularity,label_id,pixel_count,created_at) '
+                       "VALUES (?,?,?,'sample',?,4,'fixture')", (str(uuid4()), identifier, version, label))
+            db.execute('INSERT INTO sample_spectrum (id,cube_id,version_id,label_id,sample_code,n_pixels,mean_ref,std_ref,created_at) '
+                       "VALUES (?,?,?,?,'fixture',4,'mean','std','fixture')", (str(uuid4()), identifier, version, label))
+            db.execute("INSERT INTO annotation_draft VALUES (?,2,'{}',1,1,'fixture')", (identifier,))
+>           db.execute('INSERT INTO training_mat VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+                       (str(uuid4()), identifier, version, f'{identifier}/{version}/training_mat.mat', 'hash', 4, 4, 2, 'hash', 'fixture'))
+E           sqlite3.OperationalError: table training_mat has 10 columns but 11 values were supplied
+
+src-python\tests\storage\test_recycle.py:56: OperationalError
+_____________ ERROR at setup of test_incomplete_fail_closed[file] _____________
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25bn/pytest-of-Administrator/pytest-0/test_incomplete_fail_closed_fi0')
+
+    @pytest.fixture
+    def case(tmp_path):
+        source = tmp_path / 'source'
+        header, _, _ = cube(source)
+        paths = AppPaths(runtime_path(tmp_path, tmp_path / 'app'))
+        registry = DatasetRegistry(paths.database)
+        identifier = str(registry.import_path(str(header), raw=True).datasets[0].id)
+        RecipeStore(paths.database)
+        ids = {key: str(uuid4()) for key in ('version', 'preprocess', 'training', 'model', 'inference')}
+        version, preprocess, training, model, inference = (ids[key] for key in ids)
+        with connect_database(paths.database) as db:
+            project = db.execute('SELECT project_id FROM dataset_registry WHERE id=?', (identifier,)).fetchone()[0]
+            label, schema = db.execute("SELECT id,schema_id FROM label WHERE code='PE'").fetchone()
+            recipe = db.execute('SELECT id FROM preprocess_recipe_version').fetchone()[0]
+            db.execute('INSERT INTO annotation_version (id,cube_id,version_no,snapshot_ref,n_pixels,labeled_pixels,params,created_at) '
+                       "VALUES (?,?,1,?,6,4,'{}','fixture')", (version, identifier, f'{identifier}/v1'))
+            db.execute('INSERT INTO annotation (id,cube_id,version_id,granularity,label_id,pixel_count,created_at) '
+                       "VALUES (?,?,?,'sample',?,4,'fixture')", (str(uuid4()), identifier, version, label))
+            db.execute('INSERT INTO sample_spectrum (id,cube_id,version_id,label_id,sample_code,n_pixels,mean_ref,std_ref,created_at) '
+                       "VALUES (?,?,?,?,'fixture',4,'mean','std','fixture')", (str(uuid4()), identifier, version, label))
+            db.execute("INSERT INTO annotation_draft VALUES (?,2,'{}',1,1,'fixture')", (identifier,))
+>           db.execute('INSERT INTO training_mat VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+                       (str(uuid4()), identifier, version, f'{identifier}/{version}/training_mat.mat', 'hash', 4, 4, 2, 'hash', 'fixture'))
+E           sqlite3.OperationalError: table training_mat has 10 columns but 11 values were supplied
+
+src-python\tests\storage\test_recycle.py:56: OperationalError
+_______________ ERROR at setup of test_orphan_mapping_rollback ________________
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25bn/pytest-of-Administrator/pytest-0/test_orphan_mapping_rollback0')
+
+    @pytest.fixture
+    def case(tmp_path):
+        source = tmp_path / 'source'
+        header, _, _ = cube(source)
+        paths = AppPaths(runtime_path(tmp_path, tmp_path / 'app'))
+        registry = DatasetRegistry(paths.database)
+        identifier = str(registry.import_path(str(header), raw=True).datasets[0].id)
+        RecipeStore(paths.database)
+        ids = {key: str(uuid4()) for key in ('version', 'preprocess', 'training', 'model', 'inference')}
+        version, preprocess, training, model, inference = (ids[key] for key in ids)
+        with connect_database(paths.database) as db:
+            project = db.execute('SELECT project_id FROM dataset_registry WHERE id=?', (identifier,)).fetchone()[0]
+            label, schema = db.execute("SELECT id,schema_id FROM label WHERE code='PE'").fetchone()
+            recipe = db.execute('SELECT id FROM preprocess_recipe_version').fetchone()[0]
+            db.execute('INSERT INTO annotation_version (id,cube_id,version_no,snapshot_ref,n_pixels,labeled_pixels,params,created_at) '
+                       "VALUES (?,?,1,?,6,4,'{}','fixture')", (version, identifier, f'{identifier}/v1'))
+            db.execute('INSERT INTO annotation (id,cube_id,version_id,granularity,label_id,pixel_count,created_at) '
+                       "VALUES (?,?,?,'sample',?,4,'fixture')", (str(uuid4()), identifier, version, label))
+            db.execute('INSERT INTO sample_spectrum (id,cube_id,version_id,label_id,sample_code,n_pixels,mean_ref,std_ref,created_at) '
+                       "VALUES (?,?,?,?,'fixture',4,'mean','std','fixture')", (str(uuid4()), identifier, version, label))
+            db.execute("INSERT INTO annotation_draft VALUES (?,2,'{}',1,1,'fixture')", (identifier,))
+>           db.execute('INSERT INTO training_mat VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+                       (str(uuid4()), identifier, version, f'{identifier}/{version}/training_mat.mat', 'hash', 4, 4, 2, 'hash', 'fixture'))
+E           sqlite3.OperationalError: table training_mat has 10 columns but 11 values were supplied
+
+src-python\tests\storage\test_recycle.py:56: OperationalError
+______________ ERROR at setup of test_killed_move_is_quarantined ______________
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25bn/pytest-of-Administrator/pytest-0/test_killed_move_is_quarantine0')
+
+    @pytest.fixture
+    def case(tmp_path):
+        source = tmp_path / 'source'
+        header, _, _ = cube(source)
+        paths = AppPaths(runtime_path(tmp_path, tmp_path / 'app'))
+        registry = DatasetRegistry(paths.database)
+        identifier = str(registry.import_path(str(header), raw=True).datasets[0].id)
+        RecipeStore(paths.database)
+        ids = {key: str(uuid4()) for key in ('version', 'preprocess', 'training', 'model', 'inference')}
+        version, preprocess, training, model, inference = (ids[key] for key in ids)
+        with connect_database(paths.database) as db:
+            project = db.execute('SELECT project_id FROM dataset_registry WHERE id=?', (identifier,)).fetchone()[0]
+            label, schema = db.execute("SELECT id,schema_id FROM label WHERE code='PE'").fetchone()
+            recipe = db.execute('SELECT id FROM preprocess_recipe_version').fetchone()[0]
+            db.execute('INSERT INTO annotation_version (id,cube_id,version_no,snapshot_ref,n_pixels,labeled_pixels,params,created_at) '
+                       "VALUES (?,?,1,?,6,4,'{}','fixture')", (version, identifier, f'{identifier}/v1'))
+            db.execute('INSERT INTO annotation (id,cube_id,version_id,granularity,label_id,pixel_count,created_at) '
+                       "VALUES (?,?,?,'sample',?,4,'fixture')", (str(uuid4()), identifier, version, label))
+            db.execute('INSERT INTO sample_spectrum (id,cube_id,version_id,label_id,sample_code,n_pixels,mean_ref,std_ref,created_at) '
+                       "VALUES (?,?,?,?,'fixture',4,'mean','std','fixture')", (str(uuid4()), identifier, version, label))
+            db.execute("INSERT INTO annotation_draft VALUES (?,2,'{}',1,1,'fixture')", (identifier,))
+>           db.execute('INSERT INTO training_mat VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+                       (str(uuid4()), identifier, version, f'{identifier}/{version}/training_mat.mat', 'hash', 4, 4, 2, 'hash', 'fixture'))
+E           sqlite3.OperationalError: table training_mat has 10 columns but 11 values were supplied
+
+src-python\tests\storage\test_recycle.py:56: OperationalError
+________________ ERROR at setup of test_busy_and_startup_gate _________________
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25bn/pytest-of-Administrator/pytest-0/test_busy_and_startup_gate0')
+
+    @pytest.fixture
+    def case(tmp_path):
+        source = tmp_path / 'source'
+        header, _, _ = cube(source)
+        paths = AppPaths(runtime_path(tmp_path, tmp_path / 'app'))
+        registry = DatasetRegistry(paths.database)
+        identifier = str(registry.import_path(str(header), raw=True).datasets[0].id)
+        RecipeStore(paths.database)
+        ids = {key: str(uuid4()) for key in ('version', 'preprocess', 'training', 'model', 'inference')}
+        version, preprocess, training, model, inference = (ids[key] for key in ids)
+        with connect_database(paths.database) as db:
+            project = db.execute('SELECT project_id FROM dataset_registry WHERE id=?', (identifier,)).fetchone()[0]
+            label, schema = db.execute("SELECT id,schema_id FROM label WHERE code='PE'").fetchone()
+            recipe = db.execute('SELECT id FROM preprocess_recipe_version').fetchone()[0]
+            db.execute('INSERT INTO annotation_version (id,cube_id,version_no,snapshot_ref,n_pixels,labeled_pixels,params,created_at) '
+                       "VALUES (?,?,1,?,6,4,'{}','fixture')", (version, identifier, f'{identifier}/v1'))
+            db.execute('INSERT INTO annotation (id,cube_id,version_id,granularity,label_id,pixel_count,created_at) '
+                       "VALUES (?,?,?,'sample',?,4,'fixture')", (str(uuid4()), identifier, version, label))
+            db.execute('INSERT INTO sample_spectrum (id,cube_id,version_id,label_id,sample_code,n_pixels,mean_ref,std_ref,created_at) '
+                       "VALUES (?,?,?,?,'fixture',4,'mean','std','fixture')", (str(uuid4()), identifier, version, label))
+            db.execute("INSERT INTO annotation_draft VALUES (?,2,'{}',1,1,'fixture')", (identifier,))
+>           db.execute('INSERT INTO training_mat VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+                       (str(uuid4()), identifier, version, f'{identifier}/{version}/training_mat.mat', 'hash', 4, 4, 2, 'hash', 'fixture'))
+E           sqlite3.OperationalError: table training_mat has 10 columns but 11 values were supplied
+
+src-python\tests\storage\test_recycle.py:56: OperationalError
+================================== FAILURES ===================================
+_______________________ test_http_contract_and_catalog ________________________
+
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25bn/pytest-of-Administrator/pytest-0/test_http_contract_and_catalog0')
+
+    def test_http_contract_and_catalog(tmp_path):
+        source = tmp_path / 'source'
+        header, data, _ = cube(source)
+        paths = AppPaths(runtime_path(tmp_path, tmp_path / 'api'))
+        identity = EngineIdentity()
+        app = create_app(paths, identity)
+        with TestClient(app) as client:
+            assert client.get('/api/v1/recycle').status_code == 401
+            client.headers['Authorization'] = 'Bearer ' + identity.token
+            imported = client.post('/api/v1/datasets/import', json={'path': str(header), 'raw': True}).json()
+            identifier = imported['datasets'][0]['id']
+            response = client.get('/api/v1/datasets/catalog?limit=1&offset=0')
+            assert response.status_code == 200, response.text
+            page = response.json()
+            assert page['total'] == 1 and len(page['datasets']) == 1
+            summary = page['datasets'][0]
+            assert set(summary) == {'id', 'display_name', 'shape', 'wavelength_range', 'raw', 'source_path', 'available'}
+            assert summary['available'] and summary['wavelength_range'] == [1, 4]
+            assert 'wavelengths' not in response.text and 'metadata' not in response.text
+            assert client.get('/api/v1/datasets/catalog?offset=1').json()['datasets'] == []
+            assert client.get('/api/v1/datasets/catalog?limit=201').status_code == 400
+            root = f'/api/v1/datasets/{identifier}/delete'
+            preview = client.get(root + '/preview').json()
+            for body in ({'confirm': True}, {'confirm': 1, 'preview_token': preview['preview_token']},
+                         {'confirm': True, 'preview_token': preview['preview_token'], 'expires_at': 'forged'}):
+                assert client.post(root, json=body).status_code == 400
+            assert client.post(root, json={'confirm': False, 'preview_token': preview['preview_token']}).status_code == 409
+            result = client.post(root, json={'confirm': True, 'preview_token': preview['preview_token']})
+            assert result.status_code == 200, result.text
+            assert client.get('/api/v1/recycle').json()['count'] == 1
+            assert client.get('/api/v1/datasets/catalog').json()['total'] == 0
+            assert client.post('/api/v1/datasets/import', json={'path': str(header), 'raw': True}).status_code == 409
+            restore = '/api/v1/recycle/' + result.json()['deletion_id'] + '/restore'
+            assert client.post(restore, json={'confirm': True, 'extra': 1}).status_code == 400
+            restored = client.post(restore, json={'confirm': True})
+            assert restored.status_code == 200, restored.text
+>           data.unlink()  # External source loss; the engine must report it, not hide the row.
+            ^^^^^^^^^^^^^
+
+src-python\tests\storage\test_recycle.py:380: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25bn/pytest-of-Administrator/pytest-0/test_http_contract_and_catalog0/source/sample.img')
+missing_ok = False
+
+    def unlink(self, missing_ok=False):
+        """
+        Remove this file or link.
+        If the path is a directory, use rmdir() instead.
+        """
+        try:
+>           os.unlink(self)
+E           PermissionError: [WinError 32] 另一个程序正在使用此文件，进程无法访问。: 'C:\\Users\\Administrator\\AppData\\Local\\Temp\\t25bn\\pytest-of-Administrator\\pytest-0\\test_http_contract_and_catalog0\\source\\sample.img'
+
+C:\Users\Administrator\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\pathlib.py:1342: PermissionError
+---------------------------- Captured stdout call -----------------------------
+2026-11-04 22:32:29 [warning  ] authentication_rejected        path=/api/v1/recycle
+____________________ test_mapping_paths_refused[/absolute] ____________________
+
+path = '/absolute'
+
+    @pytest.mark.parametrize('path', ['/absolute', '../escape', 'exports\\cube', 'C:/escape', 'exports/../projects', './exports'])
+    def test_mapping_paths_refused(path):
+>       with pytest.raises(DataError, match='INVALID_RECYCLE_PATH'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'INVALID_RECYCLE_PATH'
+E         Actual message: '回收站路径必须为相对 POSIX 路径'
+
+src-python\tests\storage\test_recycle.py:388: AssertionError
+____________________ test_mapping_paths_refused[../escape] ____________________
+
+path = '../escape'
+
+    @pytest.mark.parametrize('path', ['/absolute', '../escape', 'exports\\cube', 'C:/escape', 'exports/../projects', './exports'])
+    def test_mapping_paths_refused(path):
+>       with pytest.raises(DataError, match='INVALID_RECYCLE_PATH'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'INVALID_RECYCLE_PATH'
+E         Actual message: '回收站路径必须为相对 POSIX 路径'
+
+src-python\tests\storage\test_recycle.py:388: AssertionError
+__________________ test_mapping_paths_refused[exports\\cube] __________________
+
+path = 'exports\\cube'
+
+    @pytest.mark.parametrize('path', ['/absolute', '../escape', 'exports\\cube', 'C:/escape', 'exports/../projects', './exports'])
+    def test_mapping_paths_refused(path):
+>       with pytest.raises(DataError, match='INVALID_RECYCLE_PATH'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'INVALID_RECYCLE_PATH'
+E         Actual message: '回收站路径必须为相对 POSIX 路径'
+
+src-python\tests\storage\test_recycle.py:388: AssertionError
+____________________ test_mapping_paths_refused[C:/escape] ____________________
+
+path = 'C:/escape'
+
+    @pytest.mark.parametrize('path', ['/absolute', '../escape', 'exports\\cube', 'C:/escape', 'exports/../projects', './exports'])
+    def test_mapping_paths_refused(path):
+>       with pytest.raises(DataError, match='INVALID_RECYCLE_PATH'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'INVALID_RECYCLE_PATH'
+E         Actual message: '回收站路径必须为相对 POSIX 路径'
+
+src-python\tests\storage\test_recycle.py:388: AssertionError
+_______________ test_mapping_paths_refused[exports/../projects] _______________
+
+path = 'exports/../projects'
+
+    @pytest.mark.parametrize('path', ['/absolute', '../escape', 'exports\\cube', 'C:/escape', 'exports/../projects', './exports'])
+    def test_mapping_paths_refused(path):
+>       with pytest.raises(DataError, match='INVALID_RECYCLE_PATH'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'INVALID_RECYCLE_PATH'
+E         Actual message: '回收站路径必须为相对 POSIX 路径'
+
+src-python\tests\storage\test_recycle.py:388: AssertionError
+____________________ test_mapping_paths_refused[./exports] ____________________
+
+path = './exports'
+
+    @pytest.mark.parametrize('path', ['/absolute', '../escape', 'exports\\cube', 'C:/escape', 'exports/../projects', './exports'])
+    def test_mapping_paths_refused(path):
+>       with pytest.raises(DataError, match='INVALID_RECYCLE_PATH'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'INVALID_RECYCLE_PATH'
+E         Actual message: '回收站路径必须为相对 POSIX 路径'
+
+src-python\tests\storage\test_recycle.py:388: AssertionError
+============================== warnings summary ===============================
+.venv\Lib\site-packages\fastapi\testclient.py:1
+  E:\AI_Agent\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED src-python/tests/storage/test_recycle.py::test_http_contract_and_catalog
+FAILED src-python/tests/storage/test_recycle.py::test_mapping_paths_refused[/absolute]
+FAILED src-python/tests/storage/test_recycle.py::test_mapping_paths_refused[../escape]
+FAILED src-python/tests/storage/test_recycle.py::test_mapping_paths_refused[exports\\cube]
+FAILED src-python/tests/storage/test_recycle.py::test_mapping_paths_refused[C:/escape]
+FAILED src-python/tests/storage/test_recycle.py::test_mapping_paths_refused[exports/../projects]
+FAILED src-python/tests/storage/test_recycle.py::test_mapping_paths_refused[./exports]
+ERROR src-python/tests/storage/test_recycle.py::test_full_delete_restore - sq...
+ERROR src-python/tests/storage/test_recycle.py::test_reimport_and_conflict - ...
+ERROR src-python/tests/storage/test_recycle.py::test_expiry_and_audit - sqlit...
+ERROR src-python/tests/storage/test_recycle.py::test_preview_binding[false]
+ERROR src-python/tests/storage/test_recycle.py::test_preview_binding[tampered]
+ERROR src-python/tests/storage/test_recycle.py::test_preview_binding[expired]
+ERROR src-python/tests/storage/test_recycle.py::test_preview_binding[changed]
+ERROR src-python/tests/storage/test_recycle.py::test_move_failure_rolls_back
+ERROR src-python/tests/storage/test_recycle.py::test_multi_cube_fails_closed
+ERROR src-python/tests/storage/test_recycle.py::test_incomplete_fail_closed[missing]
+ERROR src-python/tests/storage/test_recycle.py::test_incomplete_fail_closed[manifest]
+ERROR src-python/tests/storage/test_recycle.py::test_incomplete_fail_closed[file]
+ERROR src-python/tests/storage/test_recycle.py::test_orphan_mapping_rollback
+ERROR src-python/tests/storage/test_recycle.py::test_killed_move_is_quarantined
+ERROR src-python/tests/storage/test_recycle.py::test_busy_and_startup_gate - ...
+7 failed, 1 warning, 15 errors in 4.67s

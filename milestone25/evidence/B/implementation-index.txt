@@ -1,0 +1,42 @@
+src-python/spectrumagent/api/recycle.py:15:class DeleteRequest(Envelope):
+src-python/spectrumagent/api/recycle.py:20:class RestoreRequest(Envelope):
+src-python/spectrumagent/api/recycle.py:24:class RecycleJobsMiddleware:
+src-python/spectrumagent/api/recycle.py:26:    def __init__(self, app, *, coordinator, token):
+src-python/spectrumagent/api/recycle.py:48:def make_router(store):
+src-python/spectrumagent/api/recycle.py:52:    def preview(identifier: UUID):
+src-python/spectrumagent/api/recycle.py:56:    def delete(identifier: UUID, request: DeleteRequest):
+src-python/spectrumagent/api/recycle.py:60:    def recycle():
+src-python/spectrumagent/api/recycle.py:64:    def restore(deletion_id: UUID, request: RestoreRequest):
+src-python/spectrumagent/storage/recycle.py:49:def encode(value):
+src-python/spectrumagent/storage/recycle.py:53:def digest(value):
+src-python/spectrumagent/storage/recycle.py:57:def failure(code, detail, status=409):
+src-python/spectrumagent/storage/recycle.py:63:def relative(value):
+src-python/spectrumagent/storage/recycle.py:74:def scrub(value, identifiers, *, root=True):
+src-python/spectrumagent/storage/recycle.py:90:class Coordinator:
+src-python/spectrumagent/storage/recycle.py:91:    def __init__(self):
+src-python/spectrumagent/storage/recycle.py:99:    def check(self, cube_id=None, key=None):
+src-python/spectrumagent/storage/recycle.py:105:    def job(self):
+src-python/spectrumagent/storage/recycle.py:116:    def exclusive(self, *, startup=False):
+src-python/spectrumagent/storage/recycle.py:132:class RecycleStore:
+src-python/spectrumagent/storage/recycle.py:133:    def __init__(self, registry, paths, *, clock=None):
+src-python/spectrumagent/storage/recycle.py:148:    def _rows(self, db, table, where='', parameters=()):
+src-python/spectrumagent/storage/recycle.py:155:    def _selected(self, db, cube):
+src-python/spectrumagent/storage/recycle.py:221:    def _owned(self, source, cube):
+src-python/spectrumagent/storage/recycle.py:236:    def _inventory(self, roots, *, base=None):
+src-python/spectrumagent/storage/recycle.py:257:    def _plan(self, cube):
+src-python/spectrumagent/storage/recycle.py:283:    def _summary(self, plan):
+src-python/spectrumagent/storage/recycle.py:292:    def preview(self, cube_id):
+src-python/spectrumagent/storage/recycle.py:302:    def _token(self, token, cube):
+src-python/spectrumagent/storage/recycle.py:317:    def _items(self, db, deletion):
+src-python/spectrumagent/storage/recycle.py:322:    def _move(self, source, destination):
+src-python/spectrumagent/storage/recycle.py:328:    def _clean_empty(self, folder):
+src-python/spectrumagent/storage/recycle.py:334:    def delete(self, cube_id, *, confirm, preview_token):
+src-python/spectrumagent/storage/recycle.py:399:    def _batch(self, db, deletion):
+src-python/spectrumagent/storage/recycle.py:406:    def _manifest(self, deletion, batch, items):
+src-python/spectrumagent/storage/recycle.py:429:    def _mapping(self, deletion, cube, items):
+src-python/spectrumagent/storage/recycle.py:443:    def _mark(self, deletion, cube, status):
+src-python/spectrumagent/storage/recycle.py:453:    def restore(self, deletion_id, *, confirm):
+src-python/spectrumagent/storage/recycle.py:515:    def list(self):
+src-python/spectrumagent/storage/recycle.py:519:    def _list(self):
+src-python/spectrumagent/storage/recycle.py:541:    def purge_expired(self):
+src-python/spectrumagent/storage/recycle.py:575:    def reconcile(self):

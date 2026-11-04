@@ -1,0 +1,4 @@
+326:        storage.replace(source, destination)
+332:            storage.rmtree(folder)
+379:                    storage.resolve_write(folder / 'manifest.json', kind='RECYCLE_MANIFEST').write_text(encode(manifest), 'utf-8')
+564:                        storage.rmtree(self.paths.trash / deletion)

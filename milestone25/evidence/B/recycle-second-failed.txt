@@ -1,0 +1,221 @@
+FF.......F............                                                   [100%]
+================================== FAILURES ===================================
+__________________________ test_full_delete_restore ___________________________
+
+case = namespace(paths=AppPaths(root=WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25bn/pytest-of-Administrator/pyt...ms": {"order": 1, "window": 15, "polyorder": 2}}]}', None, '2026-11-04T14:33:46.517835+00:00')], 'project_recipe': []})
+
+    def test_full_delete_restore(case):
+        c = case
+        source_before = files(c.source)
+        product_before = files(c.paths.root / 'annotations')
+        preview = c.store.preview(c.cube)
+        assert [preview[k] for k in ('annotation_versions', 'preprocess_runs', 'training_runs', 'inference_runs')] == [1, 1, 1, 1]
+        assert preview['total_bytes'] > 0
+        result = c.store.delete(c.cube, confirm=True, preview_token=preview['preview_token'])
+        deletion = result['deletion_id']
+        assert (datetime.fromisoformat(result['expires_at']) - c.store.clock()).days == 29
+        with connect_database(c.paths.database) as db:
+            assert db.execute('PRAGMA foreign_key_check').fetchall() == []
+            for table in TABLES:
+                assert db.execute(f'SELECT COUNT(*) FROM {table}').fetchone()[0] == 0, table
+            context = db.execute("SELECT context_json FROM agent_session WHERE id='fixture-session'").fetchone()[0]
+            assert c.cube not in context and c.ids['version'] not in context
+            assert json.loads(context)['keep'] == 'other'
+            for table, original in c.assets.items():
+                assert db.execute(f'SELECT * FROM {table}').fetchall() == original
+            items = c.store._items(db, deletion)
+            assert {i['table_name'] for i in items} == {*TABLES, FILE_ITEM}
+            for item in items:
+                if item['file_src']:
+                    assert relative(item['file_src']) and relative(item['file_dst'])
+        assert (c.paths.root / f'annotations/{c.cube}/unreferenced/keep.json').is_file()
+        assert not (c.paths.snapshots / c.cube / 'v1').exists()
+        assert (c.paths.trash / deletion / f'annotations/{c.cube}/v1/annotation.json').is_file()
+        assert list(c.paths.root.glob('projects/*/projection.json'))
+        c.store.reconcile()  # A valid batch must survive a real startup inventory/hash check.
+>       assert c.store.list()['items'][0]['status'] == 'READY'
+E       AssertionError: assert 'INCOMPLETE' == 'READY'
+E         
+E         - READY
+E         + INCOMPLETE
+
+src-python\tests\storage\test_recycle.py:147: AssertionError
+------------------------------ Captured log call ------------------------------
+WARNING  spectrumagent.storage.recycle:recycle.py:441 INCOMPLETE deletion_id=f5d6e93b-7a61-4125-821f-46d9414a76dc
+_________________________ test_reimport_and_conflict __________________________
+
+self = <spectrumagent.storage.recycle.RecycleStore object at 0x00000295C0D8C980>
+deletion = '39870719-b275-4ece-8b86-f467bc87cbfb'
+batch = {'deletion_id': '39870719-b275-4ece-8b86-f467bc87cbfb', 'cube_id': 'e871010f-79c7-40a4-b242-934f5985f44f', 'header_key...local\\temp\\t25bn\\pytest-of-administrator\\pytest-1\\test_reimport_and_conflict0\\source\\sample.hdr', 'raw': 1, ...}
+items = [{'seq': 0, 'table_name': 'inference_artifact', 'row_json': '{"created_at":"fixture","id":"63a9a926-47a9-4efb-9d8f-203...22365af3c7c/model.json","run_id":"67442900-49dd-478e-ad7f-a22365af3c7c","sha256":"hash"}', 'file_src': None, ...}, ...]
+
+    def _manifest(self, deletion, batch, items):
+        folder = self.paths.trash / deletion
+        try:
+            manifest = json.loads((folder / 'manifest.json').read_text('utf-8'))
+            if manifest['deletion_id'] != deletion or manifest['cube_id'] != batch['cube_id']:
+                raise ValueError('identity mismatch')
+            if digest(manifest) != batch['manifest_sha256']:
+                raise ValueError('manifest mismatch')
+            if manifest['items'] != [{k: v for k, v in item.items() if k != 'seq'} for item in items]:
+                raise ValueError('row mapping mismatch')
+            roots = self._mapping(deletion, batch['cube_id'], items)
+>           if self._inventory([src for src, _ in roots], base=folder) != manifest['entries']:
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src-python\spectrumagent\storage\recycle.py:410: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <spectrumagent.storage.recycle.RecycleStore object at 0x00000295C0D8C980>
+roots = ['annotations/e871010f-79c7-40a4-b242-934f5985f44f/v1', 'exports/e871010f-79c7-40a4-b242-934f5985f44f', 'inferences/ae...49dd-478e-ad7f-a22365af3c7c', 'preprocessed/e871010f-79c7-40a4-b242-934f5985f44f/52b0f722-c4c5-45fb-94bd-1d8111e9bd24']
+base = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25bn/pytest-of-Administrator/pytest-1/test_reimport_and_conflict0-runtime/app/trash/39870719-b275-4ece-8b86-f467bc87cbfb')
+hashes = True
+
+    def _inventory(self, roots, *, base=None, hashes=True):
+        base = base or self.paths.root
+        entries = []
+        for source in roots:
+            folder = base.joinpath(*relative(source).parts)
+            if not folder.is_dir() or folder.is_symlink():
+                raise failure('RECYCLE_INCOMPLETE', '产物目录缺失或包含非法链接')
+            for path in [folder, *sorted(folder.rglob('*'))]:
+                if path.is_symlink() or path.is_junction():
+                    raise failure('INVALID_RECYCLE_PATH', '产物目录包含链接，拒绝移动')
+                name = path.relative_to(base).as_posix()
+                if path.is_dir():
+                    entries.append({'path': name, 'kind': 'directory'})
+                elif path.is_file():
+                    stat = path.stat()
+                    entry = {'path': name, 'kind': 'file', 'bytes': stat.st_size, 'mtime_ns': stat.st_mtime_ns}
+                    if hashes:
+                        sha = hashlib.sha256()
+                        with path.open('rb') as stream:
+                            for block in iter(lambda: stream.read(1024 * 1024), b''):
+                                sha.update(block)
+                        entry['sha256'] = sha.hexdigest()
+                    entries.append(entry)
+                else:
+>                   raise failure('INVALID_RECYCLE_PATH', '产物目录包含不支持的文件项')
+E                   spectrumagent.data.errors.DataError: 产物目录包含不支持的文件项
+
+src-python\spectrumagent\storage\recycle.py:247: DataError
+
+The above exception was the direct cause of the following exception:
+
+case = namespace(paths=AppPaths(root=WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25bn/pytest-of-Administrator/pyt...ms": {"order": 1, "window": 15, "polyorder": 2}}]}', None, '2026-11-04T14:33:47.436232+00:00')], 'project_recipe': []})
+
+    def test_reimport_and_conflict(case):
+        c = case
+        deletion = deleted(c)['deletion_id']
+        with error_code('REIMPORT_CONFIRMATION_REQUIRED') as raised:
+            c.registry.import_path(str(c.header), raw=True)
+        assert raised.value.status_code == 409
+        fresh = str(c.registry.import_path(str(c.header), raw=True, confirm_new=True).datasets[0].id)
+        assert fresh != c.cube
+        with connect_database(c.paths.database) as db:
+            for table in ('annotation_version', 'annotation_draft', 'preprocess_run', 'sample_target'):
+                assert db.execute(f'SELECT COUNT(*) FROM {table} WHERE cube_id=?', (fresh,)).fetchone()[0] == 0
+            assert db.execute('SELECT COUNT(*) FROM training_run').fetchone()[0] == 0
+        with error_code('RESTORE_CONFLICT'):
+            c.store.restore(deletion, confirm=True)
+        assert audit(c, 'RESTORE_DENIED')
+        preview = c.store.preview(fresh)
+        c.store.delete(fresh, confirm=True, preview_token=preview['preview_token'])
+>       assert c.store.restore(deletion, confirm=True)['cube_id'] == c.cube
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src-python\tests\storage\test_recycle.py:177: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src-python\spectrumagent\storage\recycle.py:463: in restore
+    self._manifest(deletion, batch, items)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <spectrumagent.storage.recycle.RecycleStore object at 0x00000295C0D8C980>
+deletion = '39870719-b275-4ece-8b86-f467bc87cbfb'
+batch = {'deletion_id': '39870719-b275-4ece-8b86-f467bc87cbfb', 'cube_id': 'e871010f-79c7-40a4-b242-934f5985f44f', 'header_key...local\\temp\\t25bn\\pytest-of-administrator\\pytest-1\\test_reimport_and_conflict0\\source\\sample.hdr', 'raw': 1, ...}
+items = [{'seq': 0, 'table_name': 'inference_artifact', 'row_json': '{"created_at":"fixture","id":"63a9a926-47a9-4efb-9d8f-203...22365af3c7c/model.json","run_id":"67442900-49dd-478e-ad7f-a22365af3c7c","sha256":"hash"}', 'file_src': None, ...}, ...]
+
+    def _manifest(self, deletion, batch, items):
+        folder = self.paths.trash / deletion
+        try:
+            manifest = json.loads((folder / 'manifest.json').read_text('utf-8'))
+            if manifest['deletion_id'] != deletion or manifest['cube_id'] != batch['cube_id']:
+                raise ValueError('identity mismatch')
+            if digest(manifest) != batch['manifest_sha256']:
+                raise ValueError('manifest mismatch')
+            if manifest['items'] != [{k: v for k, v in item.items() if k != 'seq'} for item in items]:
+                raise ValueError('row mapping mismatch')
+            roots = self._mapping(deletion, batch['cube_id'], items)
+            if self._inventory([src for src, _ in roots], base=folder) != manifest['entries']:
+                raise ValueError('inventory mismatch')
+            expected = {'manifest.json', *(e['path'] for e in manifest['entries'])}
+            for entry in manifest['entries']:
+                expected.update(parent.as_posix() for parent in relative(entry['path']).parents
+                                if parent.as_posix() != '.')
+            if any(p.relative_to(folder).as_posix() not in expected for p in folder.rglob('*')):
+                raise ValueError('unmapped item')
+            return manifest
+        except (OSError, ValueError, KeyError, TypeError, DataError) as error:
+>           raise failure('RECYCLE_INCOMPLETE', '回收站目录或清单不完整，须人工处置，禁止恢复与到期清理') from error
+E           spectrumagent.data.errors.DataError: 回收站目录或清单不完整，须人工处置，禁止恢复与到期清理
+
+src-python\spectrumagent\storage\recycle.py:420: DataError
+------------------------------ Captured log call ------------------------------
+WARNING  spectrumagent.storage.recycle:recycle.py:441 INCOMPLETE deletion_id=39870719-b275-4ece-8b86-f467bc87cbfb
+____________________ test_incomplete_fail_closed[missing] _____________________
+
+case = namespace(paths=AppPaths(root=WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25bn/pytest-of-Administrator/pyt...ms": {"order": 1, "window": 15, "polyorder": 2}}]}', None, '2026-11-04T14:33:50.198911+00:00')], 'project_recipe': []})
+damage = 'missing'
+
+    @pytest.mark.parametrize('damage', ['missing', 'manifest', 'file'])
+    def test_incomplete_fail_closed(case, damage):
+        c = case
+        deletion = deleted(c)['deletion_id']
+        folder = c.paths.trash / deletion
+        if damage == 'missing':
+>           storage.rmtree(folder)
+
+src-python\tests\storage\test_recycle.py:259: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src-python\spectrumagent\storage\guard.py:346: in rmtree
+    return shutil.rmtree(resolve_delete(path))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Administrator\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\shutil.py:781: in rmtree
+    return _rmtree_unsafe(path, onexc)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Administrator\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\shutil.py:635: in _rmtree_unsafe
+    onexc(os.unlink, fullname, err)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25bn/pytest-of-Administrator/pytest-1/test_incomplete_fail_closed_mi0-runtime/app/trash/237f8267-81b1-4170-ab20-48fd63686884')
+onexc = <function rmtree.<locals>.onexc at 0x00000295C4F91F80>
+
+    def _rmtree_unsafe(path, onexc):
+        def onerror(err):
+            onexc(os.scandir, err.filename, err)
+        results = os.walk(path, topdown=False, onerror=onerror, followlinks=os._walk_symlinks_as_files)
+        for dirpath, dirnames, filenames in results:
+            for name in dirnames:
+                fullname = os.path.join(dirpath, name)
+                try:
+                    os.rmdir(fullname)
+                except OSError as err:
+                    onexc(os.rmdir, fullname, err)
+            for name in filenames:
+                fullname = os.path.join(dirpath, name)
+                try:
+>                   os.unlink(fullname)
+E                   FileNotFoundError: [WinError 3] 系统找不到指定的路径。: 'C:\\Users\\Administrator\\AppData\\Local\\Temp\\t25bn\\pytest-of-Administrator\\pytest-1\\test_incomplete_fail_closed_mi0-runtime\\app\\trash\\237f8267-81b1-4170-ab20-48fd63686884\\exports\\1e644d97-e4fd-4215-93ed-ea1b143bd0d8\\47eb64f7-cf83-4110-aa5c-2e1a30bad197\\training_mat.mat'
+
+C:\Users\Administrator\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\shutil.py:633: FileNotFoundError
+============================== warnings summary ===============================
+.venv\Lib\site-packages\fastapi\testclient.py:1
+  E:\AI_Agent\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED src-python/tests/storage/test_recycle.py::test_full_delete_restore - A...
+FAILED src-python/tests/storage/test_recycle.py::test_reimport_and_conflict
+FAILED src-python/tests/storage/test_recycle.py::test_incomplete_fail_closed[missing]
+3 failed, 19 passed, 1 warning in 10.69s

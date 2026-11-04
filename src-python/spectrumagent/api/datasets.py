@@ -65,7 +65,12 @@ def make_router(registry: DatasetRegistry):
 
     @router.post("/import", response_model=ImportResponse)
     def import_dataset(request: ImportRequest):
-        return registry.import_path(request.path, raw=request.raw, data_path=request.data_path)
+        return registry.import_path(request.path, raw=request.raw, data_path=request.data_path,
+                                    confirm_new=request.confirm_new)
+
+    @router.get('/catalog')
+    def catalog(limit: int = Query(100, ge=1, le=200), offset: int = Query(0, ge=0)):
+        return registry.catalog(limit=limit, offset=offset)
 
     @router.get("/{identifier}", response_model=DatasetRecord)
     def info(identifier: UUID):

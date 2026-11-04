@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import re
+import sqlite3
 from threading import RLock
 from uuid import uuid4
 
@@ -121,8 +122,12 @@ class DatasetRegistry:
             migrate(db)
             migrate_agent(db)
             migrate_modeling(db)
+        from backend.paths import AppPaths
+        from spectrumagent.storage.recycle import RecycleStore
+        self.recycle = RecycleStore(self, AppPaths(self.storage_guard.root))
 
-    def import_path(self, value: str, *, raw=False, data_path=None):
+    def import_path(self, value: str, *, raw=False, data_path=None, confirm_new=False):
+        self.recycle.coordinator.check()
         root = absolute(value)
         if data_path is not None:
             data_path = absolute(data_path)
@@ -149,11 +154,64 @@ class DatasetRegistry:
         for _, dataset in prepared:
             source_directories.update((Path(dataset.header_path).parent, Path(dataset.data_path).parent))
         self.storage_guard.add_sources(source_directories)
+        with self.lock:
+            planned = self._import_preflight(prepared, raw, confirm_new)
+            return self._import_batch(prepared, raw, confirm_new, planned)
+
+    @staticmethod
+    def _import_conflict(code, detail):
+        error = DataError(code, detail)
+        error.status_code = 409
+        return error
+
+    def _import_preflight(self, prepared, raw, confirm_new):
+        """Plan every key from one read snapshot before any batch mutation."""
+        with connect_database(self.database) as db:
+            db.execute('BEGIN')
+            return self._import_decisions(db, prepared, raw, confirm_new)
+
+    def _import_decisions(self, db, prepared, raw, confirm_new, planned=None):
+        decisions = {}
+        for key, _ in prepared:
+            self.recycle.coordinator.check(key=(key, int(raw)))
+            active = db.execute('SELECT id,payload FROM dataset_registry WHERE header_key=? AND raw=?',
+                                (key, int(raw))).fetchone()
+            if active:
+                if confirm_new is True and planned is not None and planned[key] is None:
+                    raise self._import_conflict('REIMPORT_ACTIVE_EXISTS',
+                        '确认后该路径已出现活跃数据集，请重新查看已有数据集并决策')
+            elif confirm_new is not True and db.execute(
+                    'SELECT 1 FROM recycle_bin WHERE header_key=? AND raw=? '
+                    'AND restored_at IS NULL AND purged_at IS NULL', (key, int(raw))).fetchone():
+                raise self._import_conflict('REIMPORT_CONFIRMATION_REQUIRED',
+                    '该路径无活跃记录且在回收站中；请确认作为全新数据集导入（新建 id、从头标注），'
+                    '旧数据保留 30 天，期内占双份空间')
+            decisions[key] = active
+        return decisions
+
+    def _insert_dataset(self, db, key, dataset, raw):
+        # Recheck immediately before INSERT, including confirmed imports. A unique
+        # conflict must remain a decision error rather than silently reusing an id.
+        if db.execute('SELECT 1 FROM dataset_registry WHERE header_key=? AND raw=?', (key, int(raw))).fetchone():
+            raise self._import_conflict('REIMPORT_ACTIVE_EXISTS', '该路径已有活跃记录，请重新查看并决策')
+        identifier = str(uuid4())
+        try:
+            db.execute('INSERT INTO dataset_registry (id,header_key,raw,payload,project_id) VALUES (?,?,?,?,?)',
+                       (identifier, key, int(raw), json.dumps(dataset.as_dict(), ensure_ascii=False), default_project_id(db)))
+        except sqlite3.IntegrityError as error:
+            code = ('REIMPORT_ACTIVE_EXISTS' if 'UNIQUE constraint failed' in str(error)
+                    or getattr(error, 'sqlite_errorname', '') in ('SQLITE_CONSTRAINT_UNIQUE', 'SQLITE_CONSTRAINT_PRIMARYKEY')
+                    else 'IMPORT_CONFLICT')
+            raise self._import_conflict(code, '导入约束冲突，整批未登记；请重新查看活跃数据集并决策') from error
+        return identifier
+
+    def _import_batch(self, prepared, raw, confirm_new, planned):
         records = []
-        with self.lock, connect_database(self.database, timeout=10) as db:
-            db.execute("BEGIN IMMEDIATE")
+        with connect_database(self.database, timeout=10) as db:
+            db.execute('BEGIN IMMEDIATE')
+            decisions = self._import_decisions(db, prepared, raw, confirm_new, planned)
             for key, dataset in prepared:
-                row = db.execute("SELECT id,payload FROM dataset_registry WHERE header_key=? AND raw=?", (key, int(raw))).fetchone()
+                row = decisions[key]
                 if row:
                     stored = TypeAdapter(SpectrumDataSet).validate_json(row[1])
                     if stored.name != dataset.name:
@@ -161,8 +219,7 @@ class DatasetRegistry:
                         db.execute("UPDATE dataset_registry SET payload=? WHERE id=?", (json.dumps(stored.as_dict(), ensure_ascii=False), row[0]))
                     records.append((row[0], stored, True))
                 else:
-                    identifier = str(uuid4())
-                    db.execute("INSERT INTO dataset_registry (id,header_key,raw,payload,project_id) VALUES (?,?,?,?,?)", (identifier, key, int(raw), json.dumps(dataset.as_dict(), ensure_ascii=False), default_project_id(db)))
+                    identifier = self._insert_dataset(db, key, dataset, raw)
                     records.append((identifier, dataset, False))
             rows = db.execute("SELECT id,payload,raw FROM dataset_registry ORDER BY rowid").fetchall()
             names = display_names((identifier, json.loads(payload).get("name"), mode)
@@ -180,6 +237,7 @@ class DatasetRegistry:
                               summary=ImportSummary(total=len(records), imported=len(records)-existing, existing=existing))
 
     def get(self, identifier):
+        self.recycle.coordinator.check(str(identifier))
         with connect_database(self.database) as db:
             row = db.execute("SELECT payload,raw FROM dataset_registry WHERE id=?", (str(identifier),)).fetchone()
         if row is None:
@@ -213,3 +271,25 @@ class DatasetRegistry:
             if getattr(current, field) != getattr(stored, field):
                 raise DataError("SOURCE_CHANGED", "源元数据与登记记录不一致", field=field)
         return current, mode
+
+    def catalog(self, *, limit=100, offset=0):
+        self.recycle.coordinator.check()
+        with connect_database(self.database) as db:
+            db.execute('BEGIN')  # Names, count and page share one WAL read snapshot.
+            labels = db.execute("SELECT id,json_extract(payload,'$.name'),raw FROM dataset_registry ORDER BY rowid").fetchall()
+            rows = db.execute('SELECT id,payload,raw FROM dataset_registry ORDER BY rowid LIMIT ? OFFSET ?',
+                              (limit, offset)).fetchall()
+        names = display_names(labels)
+        records = []
+        for identifier, payload, raw in rows:
+            dataset = TypeAdapter(SpectrumDataSet).validate_json(payload)
+            try:
+                self.readable(identifier)
+                available = True
+            except DataError:
+                available = False
+            records.append({'id': identifier, 'display_name': names[identifier], 'shape': dataset.shape,
+                            'wavelength_range': [min(dataset.wavelengths), max(dataset.wavelengths)]
+                            if dataset.wavelengths else None, 'raw': bool(raw),
+                            'source_path': dataset.header_path, 'available': available})
+        return {'datasets': records, 'total': len(labels), 'limit': limit, 'offset': offset}

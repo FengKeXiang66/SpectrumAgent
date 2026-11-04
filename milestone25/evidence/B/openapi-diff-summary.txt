@@ -1,0 +1,8 @@
+added_paths:
+/api/v1/datasets/catalog
+/api/v1/datasets/{identifier}/delete
+/api/v1/datasets/{identifier}/delete/preview
+/api/v1/recycle
+/api/v1/recycle/{deletion_id}/restore
+removed_paths: []
+added_import_fields: ['confirm_new']

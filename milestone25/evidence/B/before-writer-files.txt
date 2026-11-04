@@ -1,0 +1,14 @@
+backend/diagnostics.py
+backend/handshake.py
+backend/logging_config.py
+backend/paths.py
+backend/smoke.py
+src-python/spectrumagent/agent/mat.py
+src-python/spectrumagent/annotation/projection_io.py
+src-python/spectrumagent/annotation/session.py
+src-python/spectrumagent/api/registry.py
+src-python/spectrumagent/modeling/inference.py
+src-python/spectrumagent/modeling/run.py
+src-python/spectrumagent/preprocess/recipes.py
+src-python/spectrumagent/preprocess/run.py
+src-python/spectrumagent/storage/guard.py

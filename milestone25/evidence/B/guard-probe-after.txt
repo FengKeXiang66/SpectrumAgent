@@ -1,0 +1,89 @@
+STORAGE_SELF_CHECK_FAILED
+{
+  "fixture": "E:\\AI_Agent\\.runtime\\task25\\storage-probe-45139675eeb44e86948a6ed638b4c143",
+  "imported_id": "caf7cc64-d5da-4494-938d-c42eb3df1baa",
+  "startup_order": [
+    "directories_created",
+    "self_check",
+    "business_ready",
+    "recycle_reconcile_started",
+    "recycle_business_ready"
+  ],
+  "source_before": [
+    {
+      "path": "original.hdr",
+      "sha256": "872a3e0a6ca386353e16c53d47f8a3346e363e6abc6103f8d84619130348ecbf",
+      "mtime_ns": 1793803288710234500
+    },
+    {
+      "path": "original.img",
+      "sha256": "a46b67c8fb1c4c35fdfc8387c647f8c442a84e1520334a92a127f740b4c1dd5c",
+      "mtime_ns": 1793803288711251000
+    }
+  ],
+  "write_to_source": "WRITE_TO_SOURCE_DENIED",
+  "delete_from_source": "WRITE_TO_SOURCE_DENIED",
+  "source_overrides_whitelist": "WRITE_TO_SOURCE_DENIED",
+  "guard_calls_for_one_audited_resolution": 1,
+  "audit_while_business_writer_locked": "PASS",
+  "injected_selfcheck_failure": "STORAGE_SELF_CHECK_FAILED",
+  "business_after_failed_selfcheck": "STORAGE_SELF_CHECK_FAILED",
+  "audit_decisions": {
+    "ALLOW": 24,
+    "DENY": 4
+  },
+  "audit_not_null_supply": {
+    "write_audit": [
+      "id",
+      "ts",
+      "action",
+      "target_path",
+      "decision",
+      "reason",
+      "deletion_id",
+      "actor",
+      "flushed_at"
+    ],
+    "deletion_audit": [
+      "deletion_id",
+      "action",
+      "cube_id",
+      "summary_json",
+      "confirmed_by",
+      "created_at"
+    ]
+  },
+  "immutable_operations": {
+    "write_audit.UPDATE": "APPEND_ONLY_AUDIT",
+    "write_audit.DELETE": "APPEND_ONLY_AUDIT",
+    "deletion_audit.UPDATE": "APPEND_ONLY_AUDIT",
+    "deletion_audit.DELETE": "APPEND_ONLY_AUDIT"
+  },
+  "source_after": [
+    {
+      "path": "original.hdr",
+      "sha256": "872a3e0a6ca386353e16c53d47f8a3346e363e6abc6103f8d84619130348ecbf",
+      "mtime_ns": 1793803288710234500
+    },
+    {
+      "path": "original.img",
+      "sha256": "a46b67c8fb1c4c35fdfc8387c647f8c442a84e1520334a92a127f740b4c1dd5c",
+      "mtime_ns": 1793803288711251000
+    }
+  ],
+  "source_unchanged": true,
+  "bounded_buffer": {
+    "capacity": 2,
+    "overflow_count": 1,
+    "warnings": [
+      "AUDIT_BUFFER_OVERFLOW"
+    ],
+    "flushed_rows": 2,
+    "persistent_alert": [
+      [
+        "AUDIT_BUFFER_OVERFLOW",
+        "EVICTED_RECORDS:1"
+      ]
+    ]
+  }
+}

@@ -1,0 +1,53 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.13, pytest-9.1.1, pluggy-1.7.0 -- E:\AI_Agent\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: E:\AI_Agent
+plugins: anyio-4.15.1
+collecting ... collected 38 items
+
+src-python/tests/storage/test_recycle.py::test_full_delete_restore PASSED [  2%]
+src-python/tests/storage/test_recycle.py::test_reimport_and_conflict PASSED [  5%]
+src-python/tests/storage/test_recycle.py::test_reimport_quadrants[False-False-False] PASSED [  7%]
+src-python/tests/storage/test_recycle.py::test_reimport_quadrants[False-False-True] PASSED [ 10%]
+src-python/tests/storage/test_recycle.py::test_reimport_quadrants[False-True-False] PASSED [ 13%]
+src-python/tests/storage/test_recycle.py::test_reimport_quadrants[False-True-True] PASSED [ 15%]
+src-python/tests/storage/test_recycle.py::test_reimport_quadrants[True-False-False] PASSED [ 18%]
+src-python/tests/storage/test_recycle.py::test_reimport_quadrants[True-False-True] PASSED [ 21%]
+src-python/tests/storage/test_recycle.py::test_reimport_quadrants[True-True-False] PASSED [ 23%]
+src-python/tests/storage/test_recycle.py::test_reimport_quadrants[True-True-True] PASSED [ 26%]
+src-python/tests/storage/test_recycle.py::test_reimport_confirmed_race PASSED [ 28%]
+src-python/tests/storage/test_recycle.py::test_reimport_unique_is_structured PASSED [ 31%]
+src-python/tests/storage/test_recycle.py::test_reimport_batch_is_atomic PASSED [ 34%]
+src-python/tests/storage/test_recycle.py::test_reimport_key_includes_raw PASSED [ 36%]
+src-python/tests/storage/test_recycle.py::test_expiry_and_audit PASSED   [ 39%]
+src-python/tests/storage/test_recycle.py::test_preview_binding[false] PASSED [ 42%]
+src-python/tests/storage/test_recycle.py::test_preview_binding[tampered] PASSED [ 44%]
+src-python/tests/storage/test_recycle.py::test_preview_binding[expired] PASSED [ 47%]
+src-python/tests/storage/test_recycle.py::test_preview_binding[changed] PASSED [ 50%]
+src-python/tests/storage/test_recycle.py::test_move_failure_rolls_back PASSED [ 52%]
+src-python/tests/storage/test_recycle.py::test_commit_failure_rolls_back PASSED [ 55%]
+src-python/tests/storage/test_recycle.py::test_restore_move_failure PASSED [ 57%]
+src-python/tests/storage/test_recycle.py::test_purge_waits_for_long_run PASSED [ 60%]
+src-python/tests/storage/test_recycle.py::test_multi_cube_fails_closed PASSED [ 63%]
+src-python/tests/storage/test_recycle.py::test_incomplete_fail_closed[missing] PASSED [ 65%]
+src-python/tests/storage/test_recycle.py::test_incomplete_fail_closed[manifest] PASSED [ 68%]
+src-python/tests/storage/test_recycle.py::test_incomplete_fail_closed[file] PASSED [ 71%]
+src-python/tests/storage/test_recycle.py::test_orphan_mapping_rollback PASSED [ 73%]
+src-python/tests/storage/test_recycle.py::test_killed_move_is_quarantined PASSED [ 76%]
+src-python/tests/storage/test_recycle.py::test_busy_and_startup_gate PASSED [ 78%]
+src-python/tests/storage/test_recycle.py::test_stream_lease_until_body_end PASSED [ 81%]
+src-python/tests/storage/test_recycle.py::test_http_contract_and_catalog PASSED [ 84%]
+src-python/tests/storage/test_recycle.py::test_mapping_paths_refused[/absolute] PASSED [ 86%]
+src-python/tests/storage/test_recycle.py::test_mapping_paths_refused[../escape] PASSED [ 89%]
+src-python/tests/storage/test_recycle.py::test_mapping_paths_refused[exports\\cube] PASSED [ 92%]
+src-python/tests/storage/test_recycle.py::test_mapping_paths_refused[C:/escape] PASSED [ 94%]
+src-python/tests/storage/test_recycle.py::test_mapping_paths_refused[exports/../projects] PASSED [ 97%]
+src-python/tests/storage/test_recycle.py::test_mapping_paths_refused[./exports] PASSED [100%]
+
+============================== warnings summary ===============================
+.venv\Lib\site-packages\fastapi\testclient.py:1
+  E:\AI_Agent\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 38 passed, 1 warning in 14.43s ========================

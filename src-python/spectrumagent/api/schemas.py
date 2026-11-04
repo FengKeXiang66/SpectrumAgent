@@ -14,6 +14,7 @@ class ImportRequest(Envelope):
     path: Annotated[str, Field(min_length=1)]
     raw: StrictBool = False
     data_path: str | None = None
+    confirm_new: StrictBool = False
 
 
 class DatasetRecord(Envelope):

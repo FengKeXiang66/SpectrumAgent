@@ -55,9 +55,28 @@ pub enum DatasetRequest {
         #[serde(default)]
         raw: bool,
         data_path: Option<String>,
+        #[serde(default)]
+        confirm_new: bool,
     },
     Get {
         id: String,
+    },
+    Catalog {
+        limit: u32,
+        offset: u32,
+    },
+    DeletePreview {
+        id: String,
+    },
+    Delete {
+        id: String,
+        confirm: bool,
+        preview_token: String,
+    },
+    RecycleList {},
+    Restore {
+        deletion_id: String,
+        confirm: bool,
     },
     Preview {
         id: String,
@@ -110,16 +129,51 @@ impl DatasetRequest {
                 path,
                 raw,
                 data_path,
+                confirm_new,
             } => (
                 "/api/v1/datasets/import".to_owned(),
                 Method::POST,
-                Some(json!({"path":path,"raw":raw,"data_path":data_path})),
+                Some(
+                    json!({"path":path,"raw":raw,"data_path":data_path,"confirm_new":confirm_new}),
+                ),
                 None,
             ),
             Self::Get { id } => (
                 format!("/api/v1/datasets/{}", dataset_id(id)?),
                 Method::GET,
                 None,
+                None,
+            ),
+            Self::Catalog { .. } => (
+                "/api/v1/datasets/catalog".to_owned(),
+                Method::GET,
+                None,
+                None,
+            ),
+            Self::DeletePreview { id } => (
+                format!("/api/v1/datasets/{}/delete/preview", dataset_id(id)?),
+                Method::GET,
+                None,
+                None,
+            ),
+            Self::Delete {
+                id,
+                confirm,
+                preview_token,
+            } => (
+                format!("/api/v1/datasets/{}/delete", dataset_id(id)?),
+                Method::POST,
+                Some(json!({"confirm":confirm,"preview_token":preview_token})),
+                None,
+            ),
+            Self::RecycleList {} => ("/api/v1/recycle".to_owned(), Method::GET, None, None),
+            Self::Restore {
+                deletion_id,
+                confirm,
+            } => (
+                format!("/api/v1/recycle/{}/restore", dataset_id(deletion_id)?),
+                Method::POST,
+                Some(json!({"confirm":confirm})),
                 None,
             ),
             Self::Preview { id, band, .. } => (
@@ -153,6 +207,11 @@ impl DatasetRequest {
             return Err(ForwardError::new("TRANSPORT", "握手端口非法"));
         }
         url.set_path(&path);
+        if let Self::Catalog { limit, offset } = self {
+            url.query_pairs_mut()
+                .append_pair("limit", &limit.to_string())
+                .append_pair("offset", &offset.to_string());
+        }
         if let Some(band) = band {
             url.query_pairs_mut().append_pair("band", &band.to_string());
         }
@@ -456,6 +515,113 @@ mod tests {
             .ok_or_else(|| io::Error::other("expected error"))?;
         assert_eq!(error.error, "FILE_NOT_FOUND");
         assert_eq!(error.context["path"], "C:/data");
+        Ok(())
+    }
+
+    #[test]
+    fn catalog_contract() -> Result<(), Box<dyn std::error::Error>> {
+        let value = json!({"op":"catalog","limit":20,"offset":40});
+        let request: DatasetRequest = serde_json::from_value(value.clone())?;
+        let (url, method, body) = request.destination(4321)?;
+        assert_eq!(url.path(), "/api/v1/datasets/catalog");
+        assert_eq!(url.query(), Some("limit=20&offset=40"));
+        assert_eq!(method, Method::GET);
+        assert!(body.is_none());
+        reject_extra(value);
+        Ok(())
+    }
+
+    fn reject_extra(mut value: Value) {
+        value["method"] = json!("DELETE");
+        assert!(serde_json::from_value::<DatasetRequest>(value).is_err());
+    }
+
+    #[test]
+    fn delete_preview_contract() -> Result<(), Box<dyn std::error::Error>> {
+        let id = "00000000-0000-0000-0000-000000000001";
+        let value = json!({"op":"delete_preview","id":id});
+        let request: DatasetRequest = serde_json::from_value(value.clone())?;
+        let (url, method, body) = request.destination(4321)?;
+        assert_eq!(url.path(), format!("/api/v1/datasets/{id}/delete/preview"));
+        assert_eq!(method, Method::GET);
+        assert!(body.is_none());
+        reject_extra(value);
+        Ok(())
+    }
+
+    #[test]
+    fn delete_contract() -> Result<(), Box<dyn std::error::Error>> {
+        let id = "00000000-0000-0000-0000-000000000001";
+        let value = json!({"op":"delete","id":id,"confirm":true,"preview_token":"signed-preview"});
+        let request: DatasetRequest = serde_json::from_value(value.clone())?;
+        let (url, method, body) = request.destination(4321)?;
+        assert_eq!(url.path(), format!("/api/v1/datasets/{id}/delete"));
+        assert_eq!(method, Method::POST);
+        assert_eq!(
+            body,
+            Some(json!({"confirm":true,"preview_token":"signed-preview"}))
+        );
+        reject_extra(value);
+        assert!(
+            serde_json::from_value::<DatasetRequest>(json!({"op":"delete","id":id,"confirm":true}))
+                .is_err()
+        );
+        assert!(
+            serde_json::from_value::<DatasetRequest>(
+                json!({"op":"delete","id":id,"confirm":1,"preview_token":"x"})
+            )
+            .is_err()
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn recycle_list_contract() -> Result<(), Box<dyn std::error::Error>> {
+        let value = json!({"op":"recycle_list"});
+        let request: DatasetRequest = serde_json::from_value(value.clone())?;
+        let (url, method, body) = request.destination(4321)?;
+        assert_eq!(url.path(), "/api/v1/recycle");
+        assert_eq!(method, Method::GET);
+        assert!(body.is_none());
+        reject_extra(value);
+        Ok(())
+    }
+
+    #[test]
+    fn restore_contract() -> Result<(), Box<dyn std::error::Error>> {
+        let id = "00000000-0000-0000-0000-000000000001";
+        let value = json!({"op":"restore","deletion_id":id,"confirm":true});
+        let request: DatasetRequest = serde_json::from_value(value.clone())?;
+        let (url, method, body) = request.destination(4321)?;
+        assert_eq!(url.path(), format!("/api/v1/recycle/{id}/restore"));
+        assert_eq!(method, Method::POST);
+        assert_eq!(body, Some(json!({"confirm":true})));
+        reject_extra(value);
+        let invalid: DatasetRequest = serde_json::from_value(
+            json!({"op":"restore","deletion_id":"../health","confirm":true}),
+        )?;
+        assert!(invalid.destination(4321).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn import_confirmation_defaults_false() -> Result<(), Box<dyn std::error::Error>> {
+        for confirmed in [None, Some(true)] {
+            let mut value = json!({"op":"import","path":"C:/data"});
+            if let Some(confirmed) = confirmed {
+                value["confirm_new"] = json!(confirmed);
+            }
+            let request: DatasetRequest = serde_json::from_value(value.clone())?;
+            let (_, method, body) = request.destination(4321)?;
+            assert_eq!(method, Method::POST);
+            assert_eq!(
+                body,
+                Some(
+                    json!({"path":"C:/data","raw":false,"data_path":null,"confirm_new":confirmed.unwrap_or(false)})
+                )
+            );
+            reject_extra(value);
+        }
         Ok(())
     }
 

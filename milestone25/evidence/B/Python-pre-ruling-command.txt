@@ -1,0 +1,10 @@
+started=2026-11-04T23:03:15.7738692+08:00
+mode=Windows PowerShell / .venv python -m pytest
+PYTEST_DEBUG_TEMPROOT=C:\Users\Administrator\AppData\Local\Temp\t25b4
+before_free_bytes=8245424128
+commands: -m pytest backend/tests src-python/tests --collect-only -q; -m pytest backend/tests -q; -m pytest src-python/tests -q
+collect_exit=0
+backend_exit=0
+before_source_free_bytes=8240545792
+source_exit=0
+finished=2026-11-04T23:15:50.8958709+08:00

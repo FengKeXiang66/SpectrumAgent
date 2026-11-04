@@ -1,0 +1,171 @@
+E:\AI_Agent\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+{
+  "mode": "fresh synthetic ENVI + real SQLite/FK + guarded filesystem + authenticated TestClient",
+  "runtime_root": "E:\\AI_Agent\\.runtime\\task25\\b-lifecycle-69560c54d2",
+  "cube_id": "486620e2-6514-4261-9bcf-7e9a490a2e9f",
+  "impact": {
+    "cube_id": "486620e2-6514-4261-9bcf-7e9a490a2e9f",
+    "annotation_versions": 1,
+    "preprocess_runs": 1,
+    "training_runs": 1,
+    "inference_runs": 1,
+    "directories": [
+      {
+        "path": "annotations/486620e2-6514-4261-9bcf-7e9a490a2e9f/v1",
+        "bytes": 263
+      },
+      {
+        "path": "exports/486620e2-6514-4261-9bcf-7e9a490a2e9f",
+        "bytes": 273
+      },
+      {
+        "path": "inferences/71eefdde-51ff-4110-9feb-95f939c2de02",
+        "bytes": 55
+      },
+      {
+        "path": "models/bd17924a-da50-40ef-89f1-434103dae2a4",
+        "bytes": 54
+      },
+      {
+        "path": "preprocessed/486620e2-6514-4261-9bcf-7e9a490a2e9f/45429b7a-80bc-4896-8de3-e321ec0d56ce",
+        "bytes": 98
+      }
+    ],
+    "total_bytes": 743
+  },
+  "source_phases": {
+    "before": [
+      {
+        "path": "sample.hdr",
+        "bytes": 174,
+        "sha256": "29b046af21bf7c88dcf7f623eb37c3a26aee2f3e4e658f35cf21f582c60d1772",
+        "mtime_ns": 1793805583493471600
+      },
+      {
+        "path": "sample.img",
+        "bytes": 48,
+        "sha256": "ee853b6166da521127447ce0a8fbaf735bda6f17ee4647650b66885c632d37c3",
+        "mtime_ns": 1793805583493471600
+      }
+    ],
+    "after_delete": [
+      {
+        "path": "sample.hdr",
+        "bytes": 174,
+        "sha256": "29b046af21bf7c88dcf7f623eb37c3a26aee2f3e4e658f35cf21f582c60d1772",
+        "mtime_ns": 1793805583493471600
+      },
+      {
+        "path": "sample.img",
+        "bytes": 48,
+        "sha256": "ee853b6166da521127447ce0a8fbaf735bda6f17ee4647650b66885c632d37c3",
+        "mtime_ns": 1793805583493471600
+      }
+    ],
+    "after_restore": [
+      {
+        "path": "sample.hdr",
+        "bytes": 174,
+        "sha256": "29b046af21bf7c88dcf7f623eb37c3a26aee2f3e4e658f35cf21f582c60d1772",
+        "mtime_ns": 1793805583493471600
+      },
+      {
+        "path": "sample.img",
+        "bytes": 48,
+        "sha256": "ee853b6166da521127447ce0a8fbaf735bda6f17ee4647650b66885c632d37c3",
+        "mtime_ns": 1793805583493471600
+      }
+    ],
+    "after_purge": [
+      {
+        "path": "sample.hdr",
+        "bytes": 174,
+        "sha256": "29b046af21bf7c88dcf7f623eb37c3a26aee2f3e4e658f35cf21f582c60d1772",
+        "mtime_ns": 1793805583493471600
+      },
+      {
+        "path": "sample.img",
+        "bytes": 48,
+        "sha256": "ee853b6166da521127447ce0a8fbaf735bda6f17ee4647650b66885c632d37c3",
+        "mtime_ns": 1793805583493471600
+      }
+    ]
+  },
+  "source_unchanged": true,
+  "active_counts_after_delete": {
+    "inference_artifact": 0,
+    "inference_run": 0,
+    "model_registry": 0,
+    "metric": 0,
+    "training_fold": 0,
+    "model_artifact": 0,
+    "training_run": 0,
+    "sample_target": 0,
+    "preprocess_artifact": 0,
+    "preprocess_run": 0,
+    "training_mat": 0,
+    "annotation": 0,
+    "sample_spectrum": 0,
+    "annotation_version": 0,
+    "annotation_draft": 0,
+    "dataset_registry": 0
+  },
+  "active_counts_after_restore": {
+    "inference_artifact": 1,
+    "inference_run": 1,
+    "model_registry": 1,
+    "metric": 1,
+    "training_fold": 1,
+    "model_artifact": 1,
+    "training_run": 1,
+    "sample_target": 1,
+    "preprocess_artifact": 1,
+    "preprocess_run": 1,
+    "training_mat": 1,
+    "annotation": 1,
+    "sample_spectrum": 1,
+    "annotation_version": 1,
+    "annotation_draft": 1,
+    "dataset_registry": 1
+  },
+  "restored_id_unchanged": true,
+  "purged": [
+    "4059ef72-05a1-4310-afb7-3ddd99c93a2c"
+  ],
+  "deletion_audit": {
+    "DELETE": 2,
+    "PURGE": 1,
+    "RESTORE": 1
+  },
+  "source_denials": [
+    [
+      "SOURCE_WRITE_PROBE",
+      "DENY",
+      "WRITE_TO_SOURCE_DENIED"
+    ],
+    [
+      "DELETE",
+      "DENY",
+      "WRITE_TO_SOURCE_DENIED"
+    ]
+  ],
+  "startup_gate": {
+    "import": {
+      "status": 503,
+      "error": "RECYCLE_RECONCILIATION_REQUIRED"
+    },
+    "annotation": {
+      "status": 503,
+      "error": "RECYCLE_RECONCILIATION_REQUIRED"
+    },
+    "training": {
+      "status": 503,
+      "error": "RECYCLE_RECONCILIATION_REQUIRED"
+    },
+    "delete": {
+      "status": 503,
+      "error": "RECYCLE_RECONCILIATION_REQUIRED"
+    }
+  }
+}
