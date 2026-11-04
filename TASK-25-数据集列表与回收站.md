@@ -50,34 +50,45 @@
 | 生产写盘出口 | **15 个文件** = A 段后 14 + B 段新增 `src-python/spectrumagent/storage/recycle.py` | 同 §0.1 历史表 `grep -rln` 命令 |
 | 关联 `cube_id` 列定义 | **9 行**（DDL 未改） | 同历史表 |
 
-> **C/D 段开工以本表为该段当前基线**；`1489 / 1506 / 1544` 均为各时点溯源值，不作跨段固定阈值；`node 218 / 223` 同理（源码 glob 口径不变）。
+**当前基线（C 段收口后，HEAD `cb97eeb`，2026-11-05 00:35 备卡方实测）**
+
+| 项 | 实测值 | 取数命令 |
+|---|---|---|
+| HEAD / 工作区 | `cb97eeb` / 干净 | `git log -1 --oneline`；`git status --short`（空） |
+| 前端（源码口径） | **241 / 241 pass，fail 0**（C 段新增 18） | `node --test "src/**/*.test.ts"`（禁裸跑） |
+| Python | **collected 1561**（C 段新增 17）；执行方 `REPORT-C.md:38-40` 另贴 `backend 45 pass`、`src 1514 pass / 2 skip`，按 `1561 = 45 + 1514 + 2`（**pass/skip 与 collected 口径勿混用**） | 同 §0.1 历史表 `--collect-only -q` 命令 |
+| Rust / 构建 | `cargo test` **13 组全绿**（主组 54）、`cargo clippy --all-targets -- -D warnings` **0 error**、`npm run build`（含 `tsc --noEmit`）**通过**；以 `milestone25/REPORT-C.md:41-43` 开工/收口原文为准，**备卡方本轮未独立复跑 Rust / build，不编新数** | `cd src-tauri && cargo test`；`cargo clippy --all-targets -- -D warnings`；`npm run build` |
+| 生产写盘出口 | **15 个文件**（C 段未新增直接文件写出口；`api/project_paths.py` 只走 `connect_database`） | 同 §0.1 历史表 `grep -rln` 命令 |
+| 关联 `cube_id` 列定义 | **9 行**（DDL 未改） | 同历史表 |
+
+> **D 段开工以本表为该段当前基线**；`1489 / 1506 / 1544 / 1561` 与 `node 218 / 223 / 241` 均为各时点溯源值，不作跨段固定阈值（源码 glob 口径不变）。
 
 > **后续基线规则（B/C/D 段，不得自行简化）**：
 > 1. 历史 **1489 collected / 13 文件 / 出卡时行号** 是 A 段前的事实记录，**永久保留、仅供溯源，不作任何闸门**；不得用它判断 B/C/D 是否退化，也不得要求退回该数值。
 > 2. B/C/D **每段开工前**复跑「该段开工时」的当前基线（node 源码 glob / Python collected / cargo / clippy）并贴原文；**终值与该段开工值比较**，不得把 1489 或 1506 当跨段固定阈值。
 > 3. 段内新增用例另计（沿用 TASK-17 的 A6 裁定：「原有 N 项全过，新增用例另计 N+M，M≥1，fail=0」）；**禁止为凑总数删改现有测试**。
-> 4. 每段开工前按闸门③ `grep -n` 复核 §0.2 全部锚点；源码一改即可能漂移，**漂移继续即停上报**，由备卡方统一校准，执行方不得自行改卡。**2026-11-04 23:33 状态**：B 段已于 `d8bb622` 收口，执行方按即停条款上报全部漂移（`milestone25/evidence/B/anchor-drift.md`），备卡方已独立复跑并**按该 HEAD 完成本表全量校准**；此前「B 段未提交、锚点锁定 `9ad8268`」的临时说明作废。**C/D 段若再改源码，仍按同一规则：收口回报列全新行号并即停，由备卡方统一重取，执行方不得自行改卡，也不得按未提交的工作区代码改卡。**
+> 4. 每段开工前按闸门③ `grep -n` 复核 §0.2 全部锚点；源码一改即可能漂移，**漂移继续即停上报**，由备卡方统一校准，执行方不得自行改卡。**2026-11-05 00:35 状态**：A/B/C 已分别于 `9ad8268` / `d8bb622` / `cb97eeb` 收口，执行方按即停条款上报 C 段全部漂移（`milestone25/evidence/C/anchor-drift.md`）与回归原文（`milestone25/REPORT-C.md`），备卡方独立复跑并**按 `cb97eeb` 完成本表全量校准**；此前「锚点锁定 `d8bb622`」的临时说明作废。**D 段若再改源码，仍按同一规则：收口回报列全新行号并即停，由备卡方统一重取，执行方不得自行改卡，也不得按未提交的工作区代码改卡。**
 > 5. `1489 → 1506` 的增量来自 A 段新增测试（含 `storage/guard.py` 相关），是正常增长，不是回归退化。
 
-### 0.2 行号锚点（全部 `grep -n` 直取；**2026-11-04 23:33 按 HEAD `d8bb622` 全量校准，A/B 段收口后**）
+### 0.2 行号锚点（全部 `grep -n` 直取；**2026-11-05 00:35 按 HEAD `cb97eeb` 全量校准，A/B/C 段收口后**）
 
 | 事实 | 路径:行 | 判定行要点 |
 |---|---|---|
-| 列表初始为空 | `src/App.tsx:54` | `useState<DatasetRecord[]>([])` |
-| 引擎换代次清空列表 | `src/App.tsx:85` | `setRecords([])` 在 `[status.generation_id]` 的 useEffect 内 |
-| 合并全库 | `src/components/datasets/DatasetPanel.tsx:48` | `mergeRecords(previous, result.all_datasets)` |
-| 合并函数只加不删 | `src/components/datasets/types.ts:50` | `export function mergeRecords`；`Map` / `set` / `values` 在 `:51`/`:52`/`:53`（B 段前 `:35`/`36-38`） |
-| 全库字段声明 | `src/components/datasets/types.ts:15`；`src-python/spectrumagent/api/schemas.py:36` | `all_datasets: ...`（schemas 侧 B 段前 `:35`；types 侧未漂移） |
-| 已有断言依赖该字段 | `src/components/datasets/display_names.test.ts:14` | `G2 all_datasets refreshes a previously unique name...` |
+| 列表初始为空（C 段改存摘要） | `src/App.tsx:56` | `useState<CatalogRecord[]>([])`；冷启动只存摘要，详情打开时单独 `get`（C 段前 `:54` 为 `DatasetRecord[]`） |
+| 引擎换代次清空列表 | `src/App.tsx:111` | `setRecords([])`；重置与 Ready 自动加载在 `:113-119`，controller 按代次 + 请求序号双重失效（C 段前 `:85`） |
+| 批次入口（**C 段已移除全库合并**） | `src/components/datasets/actions.ts:47` | `callbacks.imported(result.datasets)`；原 `DatasetPanel.tsx:48` 的 `mergeRecords(previous, result.all_datasets)` **已删除**，`catalog.ts` 的 `imported` / `refreshNames` 只更新当前可见集合 |
+| 合并函数只加不删 | `src/components/datasets/types.ts:51` | `export function mergeRecords`；`Map` / `set` / `values` 在 `:52`/`:53`/`:54`（C 段前 `:50`/`51-53`） |
+| 全库字段声明 | `src/components/datasets/types.ts:15`；`src-python/spectrumagent/api/schemas.py:36` | `all_datasets: ...`（**保留未删**，G2 仍依赖；两处未漂移） |
+| 已有断言依赖该字段 | `src/components/datasets/display_names.test.ts:14` | `G2 all_datasets refreshes a previously unique name...`（原样未改） |
 | 表内唯一约束 | `src-python/spectrumagent/api/registry.py:121` | `CREATE TABLE ... UNIQUE(header_key,raw)`（B 段前 `:120`，出卡时 `:118`） |
 | 导入查重 | `src-python/spectrumagent/api/registry.py:177` | `SELECT id,payload ... WHERE header_key=? AND raw=?`（B 段前 `:156`） |
 | 导入插入 | `src-python/spectrumagent/api/registry.py:199` | `INSERT INTO dataset_registry (...)`（B 段前 `:165`） |
 | 全库记录生成 | `src-python/spectrumagent/api/registry.py:231` | `all_records = [...]`（B 段前 `:174`） |
 | 读时重新打开源文件 | `src-python/spectrumagent/api/registry.py:258` / `:262` | `def readable` / `read_header(Path(stored.header_path), ...)`；失败抛 `SOURCE_CHANGED`（B 段前 `:200`/`:204`） |
 | `payload` 整列重写 | `src-python/spectrumagent/api/registry.py:219` | `UPDATE dataset_registry SET payload=? WHERE id=?`（B 段前 `:161`） |
-| 前端 IPC 请求联合类型 | `src/components/datasets/api.ts:6` | `export type Request = ...`（内容已含 `confirm_new?: boolean`，**行号未变**） |
-| 目录选择对话框 | `src/components/datasets/api.ts:44` | `open({ directory: true, multiple: true, filters: [...] })`（B 段前 `:35`） |
-| 前端传输契约范围 | `src/components/datasets/types.ts:37-48` | `DatasetTransport`（B 段前 `26-33`，`SpectrumRegion` 仍在 `:26`） |
+| 前端 IPC 请求联合类型 | `src/components/datasets/api.ts:7` | `export type Request = ...`（C 段新增 SMB→UNC 字符串归一 import，请求 op 未增；C 段前 `:6`） |
+| 目录选择对话框 | `src/components/datasets/api.ts:45` | `open({ directory: true, multiple: true, filters: [...] })`（C 段前 `:44`） |
+| 前端传输契约范围 | `src/components/datasets/types.ts:38-49` | `DatasetTransport`；B 段五个方法当前在 **`:42-46`**（C 段前 `41-45`，**旧卡误注 `39-43` 已更正**）；`SpectrumRegion` 仍在 `:26` |
 | Rust 请求枚举 | `src-tauri/src/datasets_dev.rs:51` / `:52` | `#[serde(tag = "op", ..., deny_unknown_fields)]` / `pub enum DatasetRequest` |
 | 外键开关 | `backend/database.py:10` | `PRAGMA foreign_keys=ON`（原 `:8`） |
 | NAS 占位常量 | `backend/paths.py:8` / `:9` | `NAS_SOURCE_ROOT`/`NAS_OUTPUT_ROOT` = `None` |
@@ -89,11 +100,12 @@
 | A 段守卫实际接口 | `src-python/spectrumagent/storage/guard.py:329/333/345` | `resolve_write` / `resolve_delete` / `rmtree`（另有 `:337 mkdir`、`:341 unlink`、`:349 replace`）；**B 段直接调用，不另造出口** |
 | 父表重建迁移手法 | `src-python/spectrumagent/modeling/migrations.py:68-102` | `PRAGMA defer_foreign_keys` + `SAVEPOINT` + create-copy-drop-rename |
 | 项目级 projection 配置 | `src-python/spectrumagent/annotation/projection_io.py:21` / `:73` / `:74` | `:21` `return paths.root / "projects"/.../"projection.json"`；`:73` `root = paths.exports.resolve()`；`:74` `folder = root / cube_id`（A/B 段未改，仍吻合） |
-| settings 现有契约（C 段起点） | `src-tauri/src/settings.rs:12/13/46-52` | `#[serde(tag="op", ..., deny_unknown_fields)]` / `pub enum SettingsRequest`（仅 `GetLlm`/`PutLlm`/`PutKey`）/ `destination` 固定路径构造；`:64-65` 敏感字段向量 |
-| settings 前端契约 | `src/components/settings/settings-forward.ts:5/20` | `SettingsRequest` 三 op 联合类型 / `settings_forward` 转发 |
-| settings 后端契约 | `src-python/spectrumagent/api/settings.py:13/14/19/23/28` | `make_router(database)` / `APIRouter(prefix="/api/v1/settings")` / `GET /llm`、`PUT /llm`、`PUT /llm/key` |
-| settings 注册与白名单 | `src-python/spectrumagent/app.py:54/93/110` | `make_settings_router(paths.database)`；`:93`/`:110` 的 `/api/v1/settings` 前缀白名单**已覆盖新路径，禁重复添加** |
-| OpenAPI 受控产物 | `src-python/spectrumagent/api/openapi.json:644/700` | `/api/v1/settings/llm` 与 `/llm/key`；新增端点须同步 |
+| settings 请求枚举（C 后**五 op**） | `src-tauri/src/settings.rs:12/13/69-100` | `#[serde(...deny_unknown_fields)]` / `pub enum SettingsRequest`（`GetLlm`/`PutLlm`/`PutKey` + `GetProjectPaths`/`PutProjectPaths`）；`:69` `destination`、完整 match `:72-100`、项目路径分支 `:83`/`:91`；serde/enum `:12/13` 未漂移 |
+| settings 敏感字段保护 | `src-tauri/src/settings.rs:106-111/114-115` | `:106-111` 两个路径**错误响应**不得回显（成功响应允许展示给 UI）；`:114-115` 原 key 全响应保护 |
+| settings 前端契约 | `src/components/settings/settings-forward.ts:8/28` | `SettingsRequest` **五 op** 联合类型 / `settings_forward` 转发（`:21`/`:22` 两个新 op，严格投影、不接 URL/port） |
+| settings 后端契约 | `src-python/spectrumagent/api/settings.py:14/16/22/26/31`；`src-python/spectrumagent/api/project_paths.py:43/57/66` | `make_router(paths)` / prefix / 三 LLM 端点；`:43` `CREATE TABLE project_path_settings`、`:57` GET、`:66` PUT |
+| settings 注册与白名单 | `src-python/spectrumagent/app.py:54/93/110` | `:54` 实参已改 `make_settings_router(paths)`（**行号未漂移**）；`:93`/`:110` 前缀白名单**未改、未重复添加** |
+| OpenAPI 受控产物 | `src-python/spectrumagent/api/openapi.json:644/738/794` | `:644` 项目路径 GET/PUT 共用 path item；`:738` `/llm`、`:794` `/llm/key` |
 
 ### 0.3 科祥 2026-11-04 拍板口径（五条，不得自行改写）
 
@@ -187,7 +199,7 @@
 |---|---|
 | 后端 | `GET /api/v1/datasets/catalog`（活跃列表，**只返摘要字段**：id / display_name / shape / 波长范围 / 读模式 / source_path / 可用状态；带 limit+offset，**禁回传完整 `SpectrumDataSet`**，8MiB forward 红线）；`GET /api/v1/datasets/{id}/delete/preview`（影响清单 + preview_token）；`POST /api/v1/datasets/{id}/delete`（body `confirm: true` + `preview_token`）；`GET /api/v1/recycle`；`POST /api/v1/recycle/{deletion_id}/restore`（`confirm: true`）。新增 `src-python/spectrumagent/api/recycle.py` 并在 `src-python/spectrumagent/app.py` 注册。 |
 | Tauri | `src-tauri/src/datasets_dev.rs:52` 的 `DatasetRequest` 增 `Catalog {limit,offset}` / `DeletePreview {id}` / `Delete {id,confirm,preview_token}` / `RecycleList {}` / `Restore {deletion_id,confirm}`；`destination` 与 `forward` 同步；`deny_unknown_fields` 的契约测试逐 op 覆盖。 |
-| 前端 | `src/components/datasets/api.ts:6` 的 `Request` 与 `src/components/datasets/types.ts:37-48` 的 `DatasetTransport` 同步新增方法（**B 段已落地**：`catalog` / `deletePreview` / `delete` / `recycleList` / `restore` 在 `:39-43`；B 段前该类型范围为 `26-33`）。 |
+| 前端 | `src/components/datasets/api.ts:7` 的 `Request` 与 `src/components/datasets/types.ts:38-49` 的 `DatasetTransport` 同步新增方法（B 段五方法现 `:42-46`，C 段前 `41-45`；**旧卡误注 `:39-43` 已按 `git show 3091c13` 与当前实物更正**）。 |
 
 **重新导入分支（2026-11-04 23:06 即停裁定，取代原字面规则）**：`POST /api/v1/datasets/import` 保留 `confirm_new: bool = False`，判定键一律为 **`(header_key, raw)` 二元组**（与 `UNIQUE(header_key,raw)` 及查重 SQL 一致）。**先查活跃记录、再查回收站**；整批预检 → 整批执行，保持批次原子：
 
@@ -216,8 +228,8 @@
 
 ## 4. C 段 · 列表与 S03 UI
 
-1. **冷启动自动加载**：`src/App.tsx` 在 `status.phase === 'Ready'` 且 `generation_id` 稳定后调 `catalog()` 填 `records`；必须处理竞态（旧代次响应不得覆盖新代次）、失败提示、源文件失效标记（显示但标「源文件不可用」，**不静默跳过、不拿旧数据接着算**）。`src/App.tsx:85` 的清空保持不变，清空后必须重新拉。
-2. **导入只合并本次批次**：`src/components/datasets/DatasetPanel.tsx:48` 改用 `result.datasets`；提示补「本次选中 N 个（新增 X / 已有 Y）」。`all_datasets` 字段**保留不删**——`src/components/datasets/display_names.test.ts:14` 的 G2 断言靠它刷新重名显示名；改造后须让 `catalog()` 接管该刷新，并保留 G2 断言全绿。
+1. **冷启动自动加载**：`src/App.tsx` 在 `status.phase === 'Ready'` 且 `generation_id` 稳定后调 `catalog()` 填 `records`；必须处理竞态（旧代次响应不得覆盖新代次）、失败提示、源文件失效标记（显示但标「源文件不可用」，**不静默跳过、不拿旧数据接着算**）。`src/App.tsx:111` 的清空保持不变，清空后必须重新拉（C 段前 `:85`）。
+2. **导入只合并本次批次**（C 段已落地）：原 `src/components/datasets/DatasetPanel.tsx:48` 的全库合并**已移除**，现批次入口为 `src/components/datasets/actions.ts:47` 的 `callbacks.imported(result.datasets)`；提示补「本次选中 N 个（新增 X / 已有 Y）」。`all_datasets` 字段**保留不删**——`src/components/datasets/display_names.test.ts:14` 的 G2 断言靠它刷新重名显示名；改造后须让 `catalog()` 接管该刷新，并保留 G2 断言全绿。
 3. **删除/恢复 UI**：列表加「已删除」筛选、删除确认框（展示影响清单、写清 30 天可恢复与占用不释放）、恢复按钮（冲突时显示拒绝原因）。**删除不能由对话直接执行**（FR-D07 + UI `:1209`），对话只能「发起 → 人点确认框」。
 4. **S11**：显示回收站占用体积、条目数、预计释放日期，以及出域禁运清单里的「NAS 路径与文件名」条目。
 5. **S03 两字段**：数据源（本机 / UNC）与产物输出根，两个独立输入框 + 只读徽标 + 「浏览…」 + 「保存为该项目默认」；`?src=` / `?out=` 预填；S11 显示当前值。`smb://` 在 Windows `Path()` 打不开，**必须归一为 UNC `\\server\share\...`**（`api/registry.py` 的 `absolute()` 要求绝对路径并 `resolve()`）。**显示完整路径 ≠ 暴露给 LLM**：`safe_name()` 的「never expose directories」约定不变，工具出参只准标量、沿用 `src-python/spectrumagent/agent/llm.py:136` 兜底。格式清单按 ui-v2.3 `:1417` 分期，**不得**出现 `.mat` / IrisCube 的假入口。
@@ -226,15 +238,15 @@
 
 执行方按即停条款「要改接口契约先停下问」报：现有 `settings.rs` 只有 LLM 三 op（`GetLlm` / `PutLlm` / `PutKey`），无项目路径保存接口。**裁定按建议补卡授权（选项 1）**，契约钉死如下，不得自行扩张：
 
-1. **端点**：挂在现有 `APIRouter(prefix="/api/v1/settings")`（`src-python/spectrumagent/api/settings.py:14`）下 → `GET /api/v1/settings/projects/{project_id}/paths` 与 `PUT /api/v1/settings/projects/{project_id}/paths`。`project_id` 走路径参数，**不进 body**。
+1. **端点**：挂在现有 `APIRouter(prefix="/api/v1/settings")`（`src-python/spectrumagent/api/settings.py:16`；C 段前 `:14`）下 → `GET /api/v1/settings/projects/{project_id}/paths` 与 `PUT /api/v1/settings/projects/{project_id}/paths`。`project_id` 走路径参数，**不进 body**。
 2. **PUT**：body **仅** `source_path`、`output_root` 两个字符串字段；Pydantic `extra="forbid"` + Rust `deny_unknown_fields` 双向拒绝未知字段；空串 = 未配置（沿用 `llm_settings` 空串约定），禁 `null`。`source_path` 若以 `smb://` 传入，按 §4 第 5 条归一为 UNC，**只做字符串归一、不验证可达性、不访问该路径**。
 3. **GET**：返回 `source_path`、`output_root`、`data_root`（实际 `paths.root`）、**`output_enabled: false`（服务端常量，禁前端传、禁配置化、禁由表字段驱动）**。界面须明示「输出根当前仅保存、不生效」，不做假入口。
 4. **持久化**：独立表 `project_path_settings(project_id TEXT PRIMARY KEY REFERENCES project(id), source_path TEXT NOT NULL, output_root TEXT NOT NULL, updated_at TEXT NOT NULL)`。**写路径覆盖**：逐列供值（`project_id` = 路径参数经 UUID 校验、`source_path` / `output_root` = PUT body 或启动默认空串、`updated_at` = 服务端 UTC），禁靠 DEFAULT 兜底。**禁塞 `dataset_registry.payload`**（重导入整列重写，§6 红线 9），也禁复用 `llm_settings` 键值表混存。
 5. **三处同步 + 受控产物**：
-   - Python：`src-python/spectrumagent/api/settings.py:13` 的 `make_router` 扩参以拿到 `paths`（`src-python/spectrumagent/app.py:54` 注册处同步从 `make_settings_router(paths.database)` 改为传入 `paths`），否则 GET 取不到 `paths.root`；`app.py:93` / `:110` 的 `/api/v1/settings` 前缀白名单**已覆盖新路径，不得重复添加**。
-   - Rust：`src-tauri/src/settings.rs:13` 的 `SettingsRequest` 增 `GetProjectPaths { project_id }` / `PutProjectPaths { project_id, body }`；`destination`（`:46-52`）继续用固定路径构造 + 身份校验，禁通用 URL / 端口入参；`:64-65` 的敏感字段向量同步评估纳入两个路径字段，防路径进入错误回显与日志。
-   - TS：`src/components/settings/settings-forward.ts:5` 的 `SettingsRequest` 联合类型与 `requests` / `forward` 同步两个 op。
-   - `src-python/spectrumagent/api/openapi.json` 同步新增两条路径（B 段已把它当受控产物）。
+   - Python：**C 段已按此实现**：`src-python/spectrumagent/api/settings.py:14` 的 `make_router(paths)` 已扩参；`src-python/spectrumagent/app.py:54` 注册实参已改为 `make_settings_router(paths)`（行号未漂移）；新端点在独立 `src-python/spectrumagent/api/project_paths.py:57/66`，表定义 `:43`。`app.py:93` / `:110` 的 `/api/v1/settings` 前缀白名单**未改、未重复添加**。
+   - Rust：**已实现五 op**：`src-tauri/src/settings.rs:13` 的 `SettingsRequest` 增 `GetProjectPaths { project_id }` / `PutProjectPaths { project_id, body }`；`destination`（`:69`，完整 match `:72-100`、项目分支 `:83`/`:91`）继续固定路径构造 + 身份校验，禁通用 URL / 端口入参；`:106-111` 两路径仅错误响应保护（成功响应允许展示给 UI）、`:114-115` 原 key 全响应保护。
+   - TS：`src/components/settings/settings-forward.ts:8` 的 `SettingsRequest` 现为**五 op**，`settings_forward` 转发在 `:28`；两个新 op 在 `:21`/`:22`，严格投影、不接 URL / port。
+   - `src-python/spectrumagent/api/openapi.json:644` 项目路径 path item 已同步（`:738` `/llm`、`:794` `/llm/key`；B 段起即受控产物）。
 6. **安全红线**：两个路径字段属 FR-A13 禁运元数据，**不得进 LLM 上下文、不得进工具出参、不得新增对话工具**，沿用 `agent/llm.py:136` 兜底 + 工具出参只准标量。PUT 只写 SQLite（本地数据根），**不触发任何文件系统写入**，因此不经 `storage.resolve_write`；但这两个字段**绝不能被后续代码当作可写目标**（输出根未启用），违者按 §6 红线 1 处理。
 7. **明确不做**：不检查 NAS 连通性 / 凭据、不只读挂载、不启用输出根、不迁移产物落盘、不改 `paths.root`——全部留在 FR-A12 另立卡。
 8. **验收**：GET/PUT 往返、空值、Python/Rust 双向未知字段拒绝、非法 `project_id`、`output_enabled` 恒 `false` 且 `data_root == paths.root`、重启后配置仍在、`dataset_registry.payload` 零改动、路径不出现在任何工具摘要 / LLM 请求体、openapi 两路径已同步、伪造 `boot_id` 被身份校验拒绝。每条贴取数命令与原文输出。
@@ -273,7 +285,7 @@
 
 ## 7. 交付与提交顺序
 
-按 A → B → C → D 四段推进，**一次一段、每段独立提交并贴该段回归原文**；**A 段 `9ad8268`、B 段 `d8bb622` 均已收口，C/D 未开工**。每段开工前复跑 §0.1 **该段当前基线**与 §0.2 行号：历史 1489 / 13 文件 / 出卡时行号仅作溯源、不作闸门；段内新增用例另计，禁为凑总数删改测试；数值一律带执行模式与取数命令。回报格式沿用 TASK-23/24：改动文件清单、每条验收的取数命令与原文输出、未决项、遗留债。
+按 A → B → C → D 四段推进，**一次一段、每段独立提交并贴该段回归原文**；**A `9ad8268` / B `d8bb622` / C `cb97eeb` 均已收口，D 未开工**。每段开工前复跑 §0.1 **该段当前基线**与 §0.2 行号：历史 1489 / 13 文件 / 出卡时行号仅作溯源、不作闸门；段内新增用例另计，禁为凑总数删改测试；数值一律带执行模式与取数命令。回报格式沿用 TASK-23/24：改动文件清单、每条验收的取数命令与原文输出、未决项、遗留债。
 
 ## 8. 遗留债（本卡发现，不在授权面内）
 
@@ -300,3 +312,4 @@
 | 2026-11-04 23:06 | **§3.5 重新导入语义即停裁定**：执行方实测「删 A → 新建 B → A 留回收站时再次导入活跃 B」按卡字面先 409、确认后却复用 B（`existing=true`），与「新建 id」提示冲突（证据 `milestone25/evidence/B/reimport-active-ambiguity.txt`）。裁定**采纳「先查活跃记录」**：按 `(header_key,raw)` 判定，有活跃 → 正常返回已有、不弹框不新建；无活跃 + 回收站有同键 → 才要求 `confirm_new`、确认后 `INSERT` 新 id；两者皆无 → 首次导入。补四条细化：整批预检保原子、`INSERT` 前二次校验活跃记录且竞态返回 `REIMPORT_ACTIVE_EXISTS`（409）、`UNIQUE` 冲突结构化报错、确认框文案只在「无活跃+有回收站」场景出现且响应字段一致。§0.3 口径 3 补适用范围限定、§0.1 规则 4 补 B 段未提交代码的锚点漂移预告、§5 C 组改四象限断言、§8 D6 更新磁盘复测结论。**B 段代码与测试未提交，本轮只提交卡；§0.2 锚点仍锁定 HEAD `9ad8268`，B 段收口后由备卡方统一重取** |
 | 2026-11-04 23:33 | **B 段收口后全量校准，解除 C 段即停**：执行方 `d8bb622` 收口、status 干净、未 push，按即停条款上报漂移（`milestone25/evidence/B/anchor-drift.md`）与回归原文（`milestone25/REPORT-B.md`）。备卡方独立复跑确认上报**全部成立**，未漂移项亦逐条复核：§0.2 全表按 `d8bb622` 重取（`types.ts` mergeRecords 35→**50**、Map/set/values→**51/52/53**、DatasetTransport 26-33→**37-48**；`schemas.py` all_datasets 35→**36**；`registry.py` UNIQUE 120→**121**、查重 156→**177**、INSERT 165→**199**、all_records 174→**231**、readable/read_header 200/204→**258/262**、payload UPDATE 161→**219**；`api.ts` 浏览 35→**44**），§3.5 前端范围与 §6 红线 9 同步；其余锚点（App/Panel/test/Rust/database/paths/state/llm/mat/session/guard/migrations/projection_io/产物根）实测未漂移。§0.1 新增「B 段收口后当前基线」（HEAD `d8bb622`、node 源码口径 **223/223**、裸跑 227 仅对照、collected **1544**、写点 **15** 文件含新增 `storage/recycle.py`），历史 1489 / A 段后 1506 全保留作溯源；§0.1 规则 4 更新为「B 段已收口、锚点已按该 HEAD 校准，C/D 再改源码按同规则」；§7 标注 A/B 已收口。**C 段即停解除，可开工** |
 | 2026-11-04 23:44 | **C 段接口契约即停裁定（选项 1：按建议补卡后继续）**：执行方按「要改接口契约先停下问」报 `settings.rs` 仅 LLM 三 op、无项目路径保存接口。备卡方实测确认（`settings.rs:12/13/46-52/64-65`、`api/settings.py:13/14/19/23/28`、`app.py:54/93/110`、`settings-forward.ts:5/20`、`openapi.json:644/700`），**按建议补卡授权**并新增 §4.1 钉死八条：`GET/PUT /api/v1/settings/projects/{project_id}/paths`；PUT 仅收 `source_path` / `output_root` 且 Pydantic+Rust 双向拒绝未知字段；GET 返实际 `paths.root` 与 `output_enabled:false`（服务端常量）；独立 `project_path_settings` 表持久化（写路径覆盖、**禁塞 `dataset_registry.payload`**）；Python / Rust / TS / `openapi.json` 四处同步（`app.py:54` 需改传 `paths`，`:93/:110` 前缀已覆盖新路径、禁重复添加）；路径不进 LLM 上下文与工具出参、PUT 不触发任何文件写；不检查 NAS 连通性、不挂载、不启用输出根、不迁移产物落盘。§1 明确不做补一条、§0.2 新增 5 行 settings 锚点。**C 段按 §4.1 继续** |
+| 2026-11-05 00:35 | **C 段收口后全量校准，解除 D 段即停**：执行方 `cb97eeb` 收口、status 干净、未 push，按规则 4 / 红线 11 上报漂移（`milestone25/evidence/C/anchor-drift.md`）与回归原文（`milestone25/REPORT-C.md`）。备卡方独立复跑确认上报**全部成立**、未漂移项逐条复核：§0.2 全表按 `cb97eeb` 重取（App 54/85→**56/111**；原 `DatasetPanel.tsx:48` 全库合并**已移除**，批次入口 `actions.ts:47`；types merge 50→**51**、Map/set/values→**52/53/54**、Transport 37-48→**38-49**；api Request 6→**7**、浏览 44→**45**；`settings.rs` destination 46→**69**、完整 match 72-100、敏感 64→**114**、路径错误保护 106-111；`settings-forward.ts` 5/20→**8/28**；`api/settings.py` 13/14/19/23/28→**14/16/22/26/31**，新 `api/project_paths.py:43/57/66`；OpenAPI 644/700→**738/794**、新 path item **:644**；`app.py:54` 仅实参改 `paths`、93/110 白名单未改）。**认领并更正上轮误注**：§3.5 五方法范围旧卡 `:39-43` 系未逐行实测的推断，`git show 3091c13` 实测 C 前 `41-45`、C 后 `42-46`；**范围类锚点今后一律逐行实测、禁由起始行推算**（继「发现域」之后，「数字带出处」教训的第四种变体）。§0.1 新增「C 段收口后当前基线」（node **241/241**、collected **1561**、写点 **15**、Rust 13 组 / clippy / build 以 `REPORT-C.md:41-43` 原文为准且本轮未独立复跑）；规则 4 更新为 C 已收口、已按该 HEAD 校准；§3.5 / §4 第 1、2 条 / §4.1 第 1、5 条的行号与「待实现」语气同步改为「C 段已落地、以下为当前落点」；§7 标注 A/B/C 已收口。**D 段即停解除，可开工** |
