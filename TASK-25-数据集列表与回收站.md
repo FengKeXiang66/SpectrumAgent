@@ -40,31 +40,44 @@
 | 生产写盘出口 | **14 个文件** = 原 13 个（内容已全部改为走守卫）+ 新增 `src-python/spectrumagent/storage/guard.py` | 同 §0.1 历史表 `grep -rln` 命令 |
 | 关联 `cube_id` 列定义 | **9 行**（DDL 未改，历史值仍成立） | `grep -rn -E "cube_ids? +TEXT" src-python/spectrumagent/*/migrations.py` |
 
+**当前基线（B 段收口后，HEAD `d8bb622`，2026-11-04 23:33 备卡方实测）**
+
+| 项 | 实测值 | 取数命令 |
+|---|---|---|
+| HEAD / 工作区 | `d8bb622` / 干净 | `git log -1 --oneline`；`git status --short`（空） |
+| 前端（源码口径） | **223 / 223 pass，fail 0**；裸跑对照 **227**（= 223 + 4 个归档快照，见下方防再犯记录） | `node --test "src/**/*.test.ts"`；裸跑仅作对照、**不作闸门** |
+| Python | **collected 1544**；执行方 `milestone25/REPORT-B.md` 另贴 `backend 45`、`src 1497 pass / 2 skip`（**pass 口径**，与本行 collected 口径不同，勿混用） | 同 §0.1 历史表 `--collect-only -q` 命令 |
+| 生产写盘出口 | **15 个文件** = A 段后 14 + B 段新增 `src-python/spectrumagent/storage/recycle.py` | 同 §0.1 历史表 `grep -rln` 命令 |
+| 关联 `cube_id` 列定义 | **9 行**（DDL 未改） | 同历史表 |
+
+> **C/D 段开工以本表为该段当前基线**；`1489 / 1506 / 1544` 均为各时点溯源值，不作跨段固定阈值；`node 218 / 223` 同理（源码 glob 口径不变）。
+
 > **后续基线规则（B/C/D 段，不得自行简化）**：
 > 1. 历史 **1489 collected / 13 文件 / 出卡时行号** 是 A 段前的事实记录，**永久保留、仅供溯源，不作任何闸门**；不得用它判断 B/C/D 是否退化，也不得要求退回该数值。
 > 2. B/C/D **每段开工前**复跑「该段开工时」的当前基线（node 源码 glob / Python collected / cargo / clippy）并贴原文；**终值与该段开工值比较**，不得把 1489 或 1506 当跨段固定阈值。
 > 3. 段内新增用例另计（沿用 TASK-17 的 A6 裁定：「原有 N 项全过，新增用例另计 N+M，M≥1，fail=0」）；**禁止为凑总数删改现有测试**。
-> 4. 每段开工前按闸门③ `grep -n` 复核 §0.2 全部锚点；源码一改即可能漂移，**漂移继续即停上报**，由备卡方统一校准，执行方不得自行改卡。**2026-11-04 23:06 状态补充**：B 段代码与测试已准备但**尚未提交**，其改动会再次推动 `registry.py` / `datasets.py` / `schemas.py` / `recycle.py` 等行号；§0.2 当前锚点锁定的是 HEAD `9ad8268`（A 段后、B 段前）。**B 段收口提交后由备卡方统一重取校准**；执行方在 B 段回报里列出全部新行号并即停上报，**不得在 B 段未定稿期间按工作区未提交代码改卡**，也不得自行改卡。
+> 4. 每段开工前按闸门③ `grep -n` 复核 §0.2 全部锚点；源码一改即可能漂移，**漂移继续即停上报**，由备卡方统一校准，执行方不得自行改卡。**2026-11-04 23:33 状态**：B 段已于 `d8bb622` 收口，执行方按即停条款上报全部漂移（`milestone25/evidence/B/anchor-drift.md`），备卡方已独立复跑并**按该 HEAD 完成本表全量校准**；此前「B 段未提交、锚点锁定 `9ad8268`」的临时说明作废。**C/D 段若再改源码，仍按同一规则：收口回报列全新行号并即停，由备卡方统一重取，执行方不得自行改卡，也不得按未提交的工作区代码改卡。**
 > 5. `1489 → 1506` 的增量来自 A 段新增测试（含 `storage/guard.py` 相关），是正常增长，不是回归退化。
 
-### 0.2 行号锚点（全部 `grep -n` 直取；**2026-11-04 21:55 按 HEAD `9ad8268` 全量校准，A 段改造后**）
+### 0.2 行号锚点（全部 `grep -n` 直取；**2026-11-04 23:33 按 HEAD `d8bb622` 全量校准，A/B 段收口后**）
 
 | 事实 | 路径:行 | 判定行要点 |
 |---|---|---|
 | 列表初始为空 | `src/App.tsx:54` | `useState<DatasetRecord[]>([])` |
 | 引擎换代次清空列表 | `src/App.tsx:85` | `setRecords([])` 在 `[status.generation_id]` 的 useEffect 内 |
 | 合并全库 | `src/components/datasets/DatasetPanel.tsx:48` | `mergeRecords(previous, result.all_datasets)` |
-| 合并函数只加不删 | `src/components/datasets/types.ts:35` | `Map` set 后 `[...merged.values()]` |
-| 全库字段声明 | `src/components/datasets/types.ts:15`；`src-python/spectrumagent/api/schemas.py:35` | `all_datasets: ...` |
+| 合并函数只加不删 | `src/components/datasets/types.ts:50` | `export function mergeRecords`；`Map` / `set` / `values` 在 `:51`/`:52`/`:53`（B 段前 `:35`/`36-38`） |
+| 全库字段声明 | `src/components/datasets/types.ts:15`；`src-python/spectrumagent/api/schemas.py:36` | `all_datasets: ...`（schemas 侧 B 段前 `:35`；types 侧未漂移） |
 | 已有断言依赖该字段 | `src/components/datasets/display_names.test.ts:14` | `G2 all_datasets refreshes a previously unique name...` |
-| 表内唯一约束 | `src-python/spectrumagent/api/registry.py:120` | `CREATE TABLE ... UNIQUE(header_key,raw)`（原 `:118`） |
-| 导入查重 | `src-python/spectrumagent/api/registry.py:156` | `SELECT id,payload ... WHERE header_key=? AND raw=?`（原 `:150`） |
-| 导入插入 | `src-python/spectrumagent/api/registry.py:165` | `INSERT INTO dataset_registry (...)`（原 `:159`） |
-| 全库记录生成 | `src-python/spectrumagent/api/registry.py:174` | `all_records = [...]`（原 `:168`） |
-| 读时重新打开源文件 | `src-python/spectrumagent/api/registry.py:200` / `:204` | `def readable` / `read_header(Path(stored.header_path), ...)`；失败抛 `SOURCE_CHANGED`（原 `:194`/`:198`） |
-| `payload` 整列重写 | `src-python/spectrumagent/api/registry.py:161` | `UPDATE dataset_registry SET payload=? WHERE id=?`（原 `:155`） |
-| 前端 IPC 请求联合类型 | `src/components/datasets/api.ts:6` | `export type Request = ...` |
-| 目录选择对话框 | `src/components/datasets/api.ts:35` | `open({ directory: true, multiple: true, filters: [...] })` |
+| 表内唯一约束 | `src-python/spectrumagent/api/registry.py:121` | `CREATE TABLE ... UNIQUE(header_key,raw)`（B 段前 `:120`，出卡时 `:118`） |
+| 导入查重 | `src-python/spectrumagent/api/registry.py:177` | `SELECT id,payload ... WHERE header_key=? AND raw=?`（B 段前 `:156`） |
+| 导入插入 | `src-python/spectrumagent/api/registry.py:199` | `INSERT INTO dataset_registry (...)`（B 段前 `:165`） |
+| 全库记录生成 | `src-python/spectrumagent/api/registry.py:231` | `all_records = [...]`（B 段前 `:174`） |
+| 读时重新打开源文件 | `src-python/spectrumagent/api/registry.py:258` / `:262` | `def readable` / `read_header(Path(stored.header_path), ...)`；失败抛 `SOURCE_CHANGED`（B 段前 `:200`/`:204`） |
+| `payload` 整列重写 | `src-python/spectrumagent/api/registry.py:219` | `UPDATE dataset_registry SET payload=? WHERE id=?`（B 段前 `:161`） |
+| 前端 IPC 请求联合类型 | `src/components/datasets/api.ts:6` | `export type Request = ...`（内容已含 `confirm_new?: boolean`，**行号未变**） |
+| 目录选择对话框 | `src/components/datasets/api.ts:44` | `open({ directory: true, multiple: true, filters: [...] })`（B 段前 `:35`） |
+| 前端传输契约范围 | `src/components/datasets/types.ts:37-48` | `DatasetTransport`（B 段前 `26-33`，`SpectrumRegion` 仍在 `:26`） |
 | Rust 请求枚举 | `src-tauri/src/datasets_dev.rs:51` / `:52` | `#[serde(tag = "op", ..., deny_unknown_fields)]` / `pub enum DatasetRequest` |
 | 外键开关 | `backend/database.py:10` | `PRAGMA foreign_keys=ON`（原 `:8`） |
 | NAS 占位常量 | `backend/paths.py:8` / `:9` | `NAS_SOURCE_ROOT`/`NAS_OUTPUT_ROOT` = `None` |
@@ -168,7 +181,7 @@
 |---|---|
 | 后端 | `GET /api/v1/datasets/catalog`（活跃列表，**只返摘要字段**：id / display_name / shape / 波长范围 / 读模式 / source_path / 可用状态；带 limit+offset，**禁回传完整 `SpectrumDataSet`**，8MiB forward 红线）；`GET /api/v1/datasets/{id}/delete/preview`（影响清单 + preview_token）；`POST /api/v1/datasets/{id}/delete`（body `confirm: true` + `preview_token`）；`GET /api/v1/recycle`；`POST /api/v1/recycle/{deletion_id}/restore`（`confirm: true`）。新增 `src-python/spectrumagent/api/recycle.py` 并在 `src-python/spectrumagent/app.py` 注册。 |
 | Tauri | `src-tauri/src/datasets_dev.rs:52` 的 `DatasetRequest` 增 `Catalog {limit,offset}` / `DeletePreview {id}` / `Delete {id,confirm,preview_token}` / `RecycleList {}` / `Restore {deletion_id,confirm}`；`destination` 与 `forward` 同步；`deny_unknown_fields` 的契约测试逐 op 覆盖。 |
-| 前端 | `src/components/datasets/api.ts:6` 的 `Request` 与 `src/components/datasets/types.ts:26-33` 的 `DatasetTransport` 同步新增方法。 |
+| 前端 | `src/components/datasets/api.ts:6` 的 `Request` 与 `src/components/datasets/types.ts:37-48` 的 `DatasetTransport` 同步新增方法（**B 段已落地**：`catalog` / `deletePreview` / `delete` / `recycleList` / `restore` 在 `:39-43`；B 段前该类型范围为 `26-33`）。 |
 
 **重新导入分支（2026-11-04 23:06 即停裁定，取代原字面规则）**：`POST /api/v1/datasets/import` 保留 `confirm_new: bool = False`，判定键一律为 **`(header_key, raw)` 二元组**（与 `UNIQUE(header_key,raw)` 及查重 SQL 一致）。**先查活跃记录、再查回收站**；整批预检 → 整批执行，保持批次原子：
 
@@ -229,7 +242,7 @@
 6. NAS 路径 / 文件名 / 凭据不进 LLM 上下文、不进日志；工具出参只准标量。
 7. `catalog` 只返摘要，不回灌完整 payload（8MiB forward 红线）。
 8. 锁：SQLite WAL 单 writer，删除/恢复为短事务，事务内不跑长计算；**禁给 `DraftStore` 加锁**（锁序反转）。
-9. `dataset_registry.payload` 重导入整列重写（`src-python/spectrumagent/api/registry.py:161` `UPDATE dataset_registry SET payload=? WHERE id=?`），**任何新增元数据不得塞 payload**，一律独立列/独立表。
+9. `dataset_registry.payload` 重导入整列重写（`src-python/spectrumagent/api/registry.py:219` `UPDATE dataset_registry SET payload=? WHERE id=?`；B 段前 `:161`），**任何新增元数据不得塞 payload**，一律独立列/独立表。
 10. **逐文件提交**，禁 `git add -A` / `git add .`；每段提交带对应测试。
 11. **行号与实物不符须在回报中显式说明，不得自行改写本卡。**
 
@@ -237,7 +250,7 @@
 
 ## 7. 交付与提交顺序
 
-按 A → B → C → D 四段推进，**一次一段、每段独立提交并贴该段回归原文**；**A 段已于 `9ad8268` 收口**。每段开工前复跑 §0.1 **该段当前基线**与 §0.2 行号：历史 1489 / 13 文件 / 出卡时行号仅作溯源、不作闸门；段内新增用例另计，禁为凑总数删改测试；数值一律带执行模式与取数命令。回报格式沿用 TASK-23/24：改动文件清单、每条验收的取数命令与原文输出、未决项、遗留债。
+按 A → B → C → D 四段推进，**一次一段、每段独立提交并贴该段回归原文**；**A 段 `9ad8268`、B 段 `d8bb622` 均已收口，C/D 未开工**。每段开工前复跑 §0.1 **该段当前基线**与 §0.2 行号：历史 1489 / 13 文件 / 出卡时行号仅作溯源、不作闸门；段内新增用例另计，禁为凑总数删改测试；数值一律带执行模式与取数命令。回报格式沿用 TASK-23/24：改动文件清单、每条验收的取数命令与原文输出、未决项、遗留债。
 
 ## 8. 遗留债（本卡发现，不在授权面内）
 
@@ -262,3 +275,4 @@
 | 2026-11-04 20:50 | **即停后路径裁定（228 行）**：执行方报 §3.3 两处路径与实物不符，实测裁定「先修卡再继续 B 段」：① `AppPaths.snapshots` 实际目录名 `annotations`（当时 `backend/paths.py:44-45`、`annotation/session.py:362`），全卡 `snapshots/...` 改为 `annotations/...`；② 项目级配置实为 `paths.root/projects/<project_id>/projection.json`（`projection_io.py:20-21`），**不在 `exports/` 下**，修正「绝不碰」清单与 §2.1 枚举；③ §0.2 的 `:21` 描述原本即正确，属卡内自相矛盾；④ 提示词两处同步替换。其余产物根实测无误。（**本行行号为 20:50 时点实测，A 段后以 §0.2 校准表为准**） |
 | 2026-11-04 21:55 | **A 段后全量校准（即停后修订）**：执行方报 A 段 `9ad8268` 改造造成锚点漂移，备卡方独立实测后裁定「**修订卡后继续 B 段**」。① §0.2 全表按 HEAD `9ad8268` 重取：`registry.py` 118/150/159/168/194/198/155 → **120/156/165/174/200/204/161**、`database.py` 8 → **10**、`session.py` 388-390/406 → **387-389/405** 且删除出口改为 `storage.rmtree`、`paths.py` 新增 **:56 `trash`**、新增「A 段守卫实际接口」锚点行；② §3.3 三处（`session.py:362`→**361**、`modeling/run.py:175`→**176**、`modeling/inference.py:224`→**225**）、§3.5 `:159`→**165**、§6 红线 9 `:155`→**161** 同步；③ §0.1 保留历史基线（1489 / 13 文件）并新增「当前基线」（HEAD `9ad8268`、collected **1506**、写点 **14** 文件含新增 `storage/guard.py`、node 218/218）与**五条后续基线规则**；闸门②/§2.1/§5 D 组/§7 同步口径；④ §8 新增 D6（C 盘 0 字节的本机环境债，不属产品缺陷）。**裁定选 1，不拆段、不中断 B** |
 | 2026-11-04 23:06 | **§3.5 重新导入语义即停裁定**：执行方实测「删 A → 新建 B → A 留回收站时再次导入活跃 B」按卡字面先 409、确认后却复用 B（`existing=true`），与「新建 id」提示冲突（证据 `milestone25/evidence/B/reimport-active-ambiguity.txt`）。裁定**采纳「先查活跃记录」**：按 `(header_key,raw)` 判定，有活跃 → 正常返回已有、不弹框不新建；无活跃 + 回收站有同键 → 才要求 `confirm_new`、确认后 `INSERT` 新 id；两者皆无 → 首次导入。补四条细化：整批预检保原子、`INSERT` 前二次校验活跃记录且竞态返回 `REIMPORT_ACTIVE_EXISTS`（409）、`UNIQUE` 冲突结构化报错、确认框文案只在「无活跃+有回收站」场景出现且响应字段一致。§0.3 口径 3 补适用范围限定、§0.1 规则 4 补 B 段未提交代码的锚点漂移预告、§5 C 组改四象限断言、§8 D6 更新磁盘复测结论。**B 段代码与测试未提交，本轮只提交卡；§0.2 锚点仍锁定 HEAD `9ad8268`，B 段收口后由备卡方统一重取** |
+| 2026-11-04 23:33 | **B 段收口后全量校准，解除 C 段即停**：执行方 `d8bb622` 收口、status 干净、未 push，按即停条款上报漂移（`milestone25/evidence/B/anchor-drift.md`）与回归原文（`milestone25/REPORT-B.md`）。备卡方独立复跑确认上报**全部成立**，未漂移项亦逐条复核：§0.2 全表按 `d8bb622` 重取（`types.ts` mergeRecords 35→**50**、Map/set/values→**51/52/53**、DatasetTransport 26-33→**37-48**；`schemas.py` all_datasets 35→**36**；`registry.py` UNIQUE 120→**121**、查重 156→**177**、INSERT 165→**199**、all_records 174→**231**、readable/read_header 200/204→**258/262**、payload UPDATE 161→**219**；`api.ts` 浏览 35→**44**），§3.5 前端范围与 §6 红线 9 同步；其余锚点（App/Panel/test/Rust/database/paths/state/llm/mat/session/guard/migrations/projection_io/产物根）实测未漂移。§0.1 新增「B 段收口后当前基线」（HEAD `d8bb622`、node 源码口径 **223/223**、裸跑 227 仅对照、collected **1544**、写点 **15** 文件含新增 `storage/recycle.py`），历史 1489 / A 段后 1506 全保留作溯源；§0.1 规则 4 更新为「B 段已收口、锚点已按该 HEAD 校准，C/D 再改源码按同规则」；§7 标注 A/B 已收口。**C 段即停解除，可开工** |
