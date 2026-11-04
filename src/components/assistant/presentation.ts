@@ -1,4 +1,4 @@
-import type { DatasetRecord } from '../datasets/types.ts';
+import type { DatasetReference } from '../datasets/types.ts';
 import { displayName } from '../datasets/types.ts';
 import type { AgentEvent, ChatEntry } from './sse.ts';
 import type { WorkspaceContext } from './api.ts';
@@ -9,7 +9,7 @@ export type DatasetChoice = { id: string; label: string; index: number };
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const uuidInText = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
 
-export function datasetChoices(entries: ChatEntry[], records: DatasetRecord[]): DatasetChoice[] {
+export function datasetChoices(entries: ChatEntry[], records: DatasetReference[]): DatasetChoice[] {
   const listing = [...entries].reverse().find(entry => entry.event === 'step' && entry.data.tool === 'datasets.list' && entry.data.status === 'ok');
   if (!listing || listing.event !== 'step') return [];
   const summary = listing.data.result_summary;
@@ -26,7 +26,7 @@ export function datasetChoices(entries: ChatEntry[], records: DatasetRecord[]): 
     label: records.filter(record => record.id === id).map(displayName)[0] || `数据集 ${index + 1}` }));
 }
 
-export function readableText(text: string, choices: DatasetChoice[], records: DatasetRecord[]): string {
+export function readableText(text: string, choices: DatasetChoice[], records: DatasetReference[]): string {
   // Keep references accurate while avoiding UUID tables in ordinary replies.
   return text.replace(uuidInText, id => {
     const choice = choices.find(item => item.id.toLowerCase() === id.toLowerCase());

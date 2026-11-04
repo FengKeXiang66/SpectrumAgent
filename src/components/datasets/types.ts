@@ -16,8 +16,9 @@ export type ImportResponse = {
   summary: { total: number; imported: number; existing: number };
 };
 
-export function displayName(record: DatasetRecord): string {
-  return record.display_name ?? record.dataset.name;
+export type DatasetReference = DatasetRecord | { id: string; display_name: string };
+export function displayName(record: DatasetReference): string {
+  return record.display_name ?? ('dataset' in record ? record.dataset.name : '数据集');
 }
 export type Preview = { id: string; band: number; width: number; height: number; mime: 'image/png'; png_base64: string;
   bands?: [number, number, number]; wavelengths?: number[]; fallback?: boolean };

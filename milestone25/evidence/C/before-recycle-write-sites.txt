@@ -1,0 +1,3 @@
+src-python/spectrumagent/storage/recycle.py:325:        storage.mkdir(destination.parent, parents=True, exist_ok=True)
+src-python/spectrumagent/storage/recycle.py:378:                    storage.mkdir(folder, parents=True)
+src-python/spectrumagent/storage/recycle.py:379:                    storage.resolve_write(folder / 'manifest.json', kind='RECYCLE_MANIFEST').write_text(encode(manifest), 'utf-8')

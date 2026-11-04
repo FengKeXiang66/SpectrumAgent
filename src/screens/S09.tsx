@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import { displayName, type DatasetRecord } from '../components/datasets/types';
+import { displayName, type DatasetReference } from '../components/datasets/types';
 import { metricLabels, modeling, type Result } from '../components/modeling/api';
 import { failureMessage } from '../components/modeling/chart';
 import { preprocessing } from '../components/preprocess/api';
 import type { RunSummary } from '../components/preprocess/types';
 import '../components/modeling/modeling.css';
 
-export default function S09({ records }: { records: DatasetRecord[] }) {
+export default function S09({ records }: { records: DatasetReference[] }) {
   const [runs, setRuns] = useState<{ id: string; task: string; status: string }[]>([]);
   const [task, setTask] = useState<'all' | 'regression'>('regression');
   const [loading, setLoading] = useState(true), [error, setError] = useState('');

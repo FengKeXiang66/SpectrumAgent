@@ -15,6 +15,90 @@ use std::{
 const ID: &str = "00000000-0000-0000-0000-000000000001";
 const IDENTITY: &str = "X-SpectrumAgent-Boot-Id: 1234abcd\r\nX-SpectrumAgent-Pid: 123\r\n";
 
+#[test]
+fn project_paths_fixed_contract_empty_values_and_unknown_fields()
+-> Result<(), Box<dyn std::error::Error>> {
+    let body = json!({"source_path":"", "output_root":""});
+    for (request, method, expected) in [
+        (
+            json!({"op":"get_project_paths", "project_id":ID}),
+            "GET",
+            None,
+        ),
+        (
+            json!({"op":"put_project_paths", "project_id":ID, "body":body}),
+            "PUT",
+            Some(body.clone()),
+        ),
+    ] {
+        let (url, actual, payload) = settings::parse_request(request)?.destination(4321)?;
+        assert_eq!(
+            url.as_str(),
+            format!("http://127.0.0.1:4321/api/v1/settings/projects/{ID}/paths")
+        );
+        assert_eq!(actual.as_str(), method);
+        assert_eq!(payload, expected);
+    }
+    for request in [
+        json!({"op":"get_project_paths", "project_id":ID, "url":"private"}),
+        json!({"op":"get_project_paths", "project_id":"../private"}),
+        json!({"op":"put_project_paths", "project_id":ID, "body":{"source_path":"", "output_root":"", "output_enabled":true}}),
+        json!({"op":"put_project_paths", "project_id":ID, "body":{"source_path":null, "output_root":""}}),
+        json!({"op":"put_project_paths", "project_id":ID, "body":{"source_path":""}}),
+        json!({"op":"put_project_paths", "project_id":ID, "body":body, "data_root":"private"}),
+    ] {
+        let error = settings::parse_request(request)
+            .err()
+            .ok_or("accepted invalid project paths request")?;
+        assert_eq!(error.error, "INVALID_REQUEST");
+        assert!(!error.to_string().contains("private"));
+    }
+    Ok(())
+}
+
+#[test]
+fn project_paths_visible_in_success_but_rejected_in_error_envelopes_and_identity_checked_first()
+-> Result<(), Box<dyn std::error::Error>> {
+    let source = r"\\private-nas\source";
+    let output = r"\\private-nas\output";
+    let response = json!({"source_path":source, "output_root":output, "data_root":r"C:\actual", "output_enabled":false});
+    for request in [
+        json!({"op":"get_project_paths", "project_id":ID}),
+        json!({"op":"put_project_paths", "project_id":ID, "body":{"source_path":source, "output_root":output}}),
+    ] {
+        assert_eq!(
+            exchange(
+                request.clone(),
+                true,
+                "200 OK",
+                IDENTITY,
+                serde_json::to_vec(&response)?,
+                None
+            )??,
+            response
+        );
+        let error = exchange(
+            request,
+            true,
+            "500 Internal Server Error",
+            "X-SpectrumAgent-Boot-Id: forged\r\nX-SpectrumAgent-Pid: 123\r\n",
+            serde_json::to_vec(&response)?,
+            None,
+        )?
+        .err()
+        .ok_or("forged identity accepted")?;
+        assert_eq!(error.error, "DATASET_IDENTITY_MISMATCH");
+    }
+    for path in [source, output] {
+        let error = exchange(json!({"op":"put_project_paths", "project_id":ID, "body":{"source_path":source, "output_root":output}}),
+            true, "400 Bad Request", IDENTITY, serde_json::to_vec(&json!({"error":"INVALID_REQUEST", "detail":format!("failed {path}"), "context":{}}))?, None)?
+            .err().ok_or("path leaked into error")?;
+        assert_eq!(error.error, "SENSITIVE_RESPONSE");
+        assert!(!error.to_string().contains("private-nas"));
+    }
+    Ok(())
+}
+
 fn exchange(
     request: Value,
     settings_domain: bool,

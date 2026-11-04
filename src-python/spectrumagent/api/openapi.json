@@ -641,6 +641,100 @@
         }
       }
     },
+    "/api/v1/settings/projects/{project_id}/paths": {
+      "get": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Get Project Paths",
+        "operationId": "get_project_paths_api_v1_settings_projects__project_id__paths_get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Project Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectPathResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Put Project Paths",
+        "operationId": "put_project_paths_api_v1_settings_projects__project_id__paths_put",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Project Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectPathRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectPathResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/settings/llm": {
       "get": {
         "tags": [
@@ -4416,6 +4510,55 @@
           "png_base64"
         ],
         "title": "PreviewResponse"
+      },
+      "ProjectPathRequest": {
+        "properties": {
+          "source_path": {
+            "type": "string",
+            "title": "Source Path"
+          },
+          "output_root": {
+            "type": "string",
+            "title": "Output Root"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source_path",
+          "output_root"
+        ],
+        "title": "ProjectPathRequest"
+      },
+      "ProjectPathResponse": {
+        "properties": {
+          "source_path": {
+            "type": "string",
+            "title": "Source Path"
+          },
+          "output_root": {
+            "type": "string",
+            "title": "Output Root"
+          },
+          "data_root": {
+            "type": "string",
+            "title": "Data Root"
+          },
+          "output_enabled": {
+            "type": "boolean",
+            "const": false,
+            "title": "Output Enabled"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source_path",
+          "output_root",
+          "data_root",
+          "output_enabled"
+        ],
+        "title": "ProjectPathResponse"
       },
       "RegionRequest": {
         "properties": {

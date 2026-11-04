@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { annotations } from '../annotation/api.ts';
 import type { LabelSchema, Project } from '../annotation/types.ts';
-import type { DatasetRecord } from '../datasets/types.ts';
+import type { DatasetReference } from '../datasets/types.ts';
 import { displayName } from '../datasets/types.ts';
 import { preprocessing } from '../preprocess/api.ts';
 import { modeling, type ImportResult, type Target } from './api.ts';
@@ -10,7 +10,7 @@ import InferencePanel from './InferencePanel.tsx';
 import './modeling.css';
 import './modeling-skin.css';
 
-export default function ModelPanel({ records, onClose, onOpenResults }: { records: DatasetRecord[]; onClose(): void; onOpenResults(run: string): void }) {
+export default function ModelPanel({ records, onClose, onOpenResults }: { records: DatasetReference[]; onClose(): void; onOpenResults(run: string): void }) {
   const [view, setView] = useState<'training' | 'registry' | 'inference'>('training');
   const [projects, setProjects] = useState<Project[]>([]), [project, setProject] = useState('');
   const [schemas, setSchemas] = useState<LabelSchema[]>([]), [schema, setSchema] = useState('');

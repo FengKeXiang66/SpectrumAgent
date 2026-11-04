@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { DatasetRecord } from '../datasets/types.ts';
+import type { DatasetReference } from '../datasets/types.ts';
 import { displayName } from '../datasets/types.ts';
 import { preprocessing } from '../preprocess/api.ts';
 import { modeling, stageLabels, inferenceWarning, mapSource, clippingMessage, paletteGradient,
@@ -8,7 +8,7 @@ import { failureMessage } from './chart.ts';
 
 type Choice = { id: string; version: string; recipe: string };
 type Item = { cube: string; result?: InferenceResult; map?: ConcentrationMap; error?: string; mapError?: string };
-export default function InferencePanel({ records, onClose }: { records: DatasetRecord[]; onClose(): void }) {
+export default function InferencePanel({ records, onClose }: { records: DatasetReference[]; onClose(): void }) {
   const [models, setModels] = useState<RegisteredModel[]>([]), [model, setModel] = useState('');
   const [choices, setChoices] = useState<Record<string, Choice[]>>({}), [selected, setSelected] = useState<Record<string, string>>({});
   const [items, setItems] = useState<Item[]>([]), [domain, setDomain] = useState(false);

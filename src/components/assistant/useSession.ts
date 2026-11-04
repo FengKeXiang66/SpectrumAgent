@@ -2,11 +2,11 @@ import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { agent, type MessageBody, type RuntimeInfo, type WorkspaceContext } from './api.ts';
 import { initialChat, reduceChat, requestError, validateWorkspaceEvent, type WorkspaceEventData } from './sse.ts';
 import { changedCubes, datasetChoices, proposedCandidates } from './presentation.ts';
-import type { DatasetRecord } from '../datasets/types.ts';
+import type { DatasetReference } from '../datasets/types.ts';
 
 export default function useSession({ enabled, generation, workspace = {}, records = [], displayName,
   onWorkspaceChange, onWorkspaceNavigate, onPreviewCandidate, onDataChanged }: {
-  enabled: boolean; generation: number; workspace?: WorkspaceContext; records?: DatasetRecord[]; displayName?: string;
+  enabled: boolean; generation: number; workspace?: WorkspaceContext; records?: DatasetReference[]; displayName?: string;
   onWorkspaceChange?(workspace: WorkspaceContext): void;
   onWorkspaceNavigate?(selection: WorkspaceEventData): void;
   onPreviewCandidate?(cubeId: string, candidateRef: string): void;

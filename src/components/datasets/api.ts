@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-dialog';
+import { normalizePath } from './paths.ts';
 import type { CatalogPage, DatasetRecord, DatasetTransport, DeletePreview, DeleteResult, ImportResponse, MeanSpectrum, Preview, PreviewOptions, RecycleList, SpectrumRegion } from './types.ts';
 
 // One auditable exit for dataset IPC. No URL, port, method or token is accepted.
@@ -28,7 +29,7 @@ export function datasetClient(chooseDirectories: DatasetTransport['chooseDirecto
   return {
     chooseDirectories,
     get: id => send<DatasetRecord>({ op: 'get', id }),
-    importDirectory: (path, raw, confirmNew) => send<ImportResponse>({ op: 'import', path, raw,
+    importDirectory: (path, raw, confirmNew) => send<ImportResponse>({ op: 'import', path: normalizePath(path), raw,
       ...(confirmNew === undefined ? {} : { confirm_new: confirmNew }) }),
     catalog: (limit = 100, offset = 0) => send<CatalogPage>({ op: 'catalog', limit, offset }),
     deletePreview: id => send<DeletePreview>({ op: 'delete_preview', id }),

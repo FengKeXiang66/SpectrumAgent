@@ -1,0 +1,110 @@
+- text: 合成 IPC 验收环境：不会读写真实数据。
+- button "模拟引擎换代"
+- complementary:
+  - generic: 光谱数据 AI Agent
+  - navigation "主导航":
+    - region "主入口":
+      - heading "主入口" [level=2]
+      - button "智能助手":
+        - generic: ◈
+        - text: 智能助手
+    - region "我的工作":
+      - heading "我的工作" [level=2]
+      - button "工作台":
+        - generic: ◧
+        - text: 工作台
+    - region "分析流程":
+      - heading "分析流程" [level=2]
+      - button "数据":
+        - generic: ▤
+        - text: 数据
+      - button "标注":
+        - generic: ✎
+        - text: 标注
+      - button "预处理":
+        - generic: ⚗
+        - text: 预处理
+      - button "建模":
+        - generic: ⊞
+        - text: 建模
+      - button "结果":
+        - generic: ◫
+        - text: 结果
+    - region "沉淀与复用":
+      - heading "沉淀与复用" [level=2]
+      - button "实验台账":
+        - generic: ☰
+        - text: 实验台账
+      - button "检索":
+        - generic: ⌕
+        - text: 检索
+    - region "本机":
+      - heading "本机" [level=2]
+      - button "设置与出域记录":
+        - generic: ⚙
+        - text: 设置与出域记录
+- main:
+  - generic "当前位置": 光谱数据 AI Agent / 数据
+  - searchbox "搜索（后续批次启用）" [disabled]
+  - generic "产品版本": 版本 0.4.0
+  - button "设置"
+  - status: 引擎已就绪
+  - paragraph: 选择数据目录，查看数据集与单波段预览。
+  - paragraph: 进程 2531 · 端口 14201 · 启动代次 1
+  - region "项目路径设置":
+    - heading "数据源与产物输出根" [level=2]
+    - paragraph: 项目：默认项目
+    - paragraph: 输出根当前仅保存、不生效。产物仍写入本机数据根；未检查 NAS 连通性或挂载状态。
+    - text: 数据源（本机 / UNC）
+    - textbox "数据源（本机 / UNC）": \\qa-nas\prefilled
+    - button "浏览…"
+    - generic: 源目录只读（程序不写）
+    - text: 产物输出根
+    - textbox "产物输出根": \\qa-nas\future
+    - button "浏览…"
+    - button "保存为该项目默认"
+    - paragraph:
+      - text: 实际产物数据根：
+      - code: C:\QA\SpectrumAgent
+    - status: 已保存为该项目默认。输出根当前仅保存、不生效。
+    - paragraph: 当前：ENVI（.hdr + .dat/.img）、纯二进制 + 头文件。多波段 GeoTIFF / COG：第二批验证；HDF5 / NetCDF、Specim：阶段二支持。
+  - region "数据集管理":
+    - heading "数据集" [level=2]
+    - button "PLS 回归与样品取值"
+    - checkbox "原始 DN 模式（未除 scale factor）"
+    - text: 原始 DN 模式（未除 scale factor）
+    - button "选择数据目录"
+    - button "重新加载活跃列表"
+    - status: 本次选中 3 个（新增 1 / 已有 2）
+    - alert: 同路径已有活跃数据集 若同路径已有活跃数据集，须先把新的也删进回收站，或等 30 天到期。
+    - text: 数据集状态
+    - combobox "数据集状态":
+      - option "活跃数据集"
+      - option "已删除（回收站）" [selected]
+    - paragraph: 删除后保留 30 天；源文件不删除，回收站产物仍占本机空间。
+    - button "刷新回收站"
+    - paragraph: 1 个条目 · 3,234 B
+    - table "回收站列表":
+      - rowgroup:
+        - row "名称 / 源路径 占用 预计释放日期 恢复":
+          - columnheader "名称 / 源路径"
+          - columnheader "占用"
+          - columnheader "预计释放日期"
+          - columnheader "恢复"
+      - rowgroup:
+        - row "样品 1 \\\\qa-nas\\spectral\\sample-1.hdr 3,234 B 2026/12/5 08:00:00 恢复 样品 1":
+          - cell "样品 1 \\\\qa-nas\\spectral\\sample-1.hdr":
+            - strong: 样品 1
+            - code: \\qa-nas\spectral\sample-1.hdr
+          - cell "3,234 B"
+          - cell "2026/12/5 08:00:00"
+          - cell "恢复 样品 1":
+            - button "恢复 样品 1"
+  - generic "常驻对话条":
+    - generic "当前数据：未选择 · 视图「数据」"
+    - generic: 对话
+    - textbox "对话":
+      - /placeholder: 输入需要编排的任务
+    - button "展开助手页"
+    - button "发送" [disabled]
+- generic "合成 IPC 操作记录（测试夹具）"

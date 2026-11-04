@@ -15,8 +15,10 @@ import S10 from './screens/S10';
 import S11 from './screens/S11';
 import { modeling } from './components/modeling/api';
 import { failureMessage } from './components/modeling/chart';
-import type { DatasetRecord } from './components/datasets/types';
-import { describeError, mergeRecords } from './components/datasets/types';
+import type { CatalogRecord, DatasetRecord, DatasetReference } from './components/datasets/types';
+import { describeError } from './components/datasets/types';
+import { createCatalogController, emptyCatalog } from './components/datasets/catalog';
+import ProjectPathsPanel from './components/settings/ProjectPathsPanel';
 import AnnotationWorkbench from './components/annotation/AnnotationWorkbench';
 import PreprocessPanel from './components/preprocess/PreprocessPanel';
 import ModelPanel from './components/modeling/ModelPanel';
@@ -51,7 +53,9 @@ export default function App() {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [busy, setBusy] = useState(false);
   const [workspace, setWorkspace] = useState<WorkspaceContext>({});
-  const [records, setRecords] = useState<DatasetRecord[]>([]);
+  const [records, setRecords] = useState<CatalogRecord[]>([]);
+  const [catalog, setCatalog] = useState(emptyCatalog);
+  const [catalogController] = useState(() => createCatalogController(datasets, next => { setRecords(next.records); setCatalog(next); }));
   const [refreshVersions, setRefreshVersions] = useState<Record<string, number>>({});
   const [navigation, setNavigation] = useState<WorkspaceEventData | null>(null);
   const [workspaceName, setWorkspaceName] = useState('');
@@ -63,10 +67,12 @@ export default function App() {
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState('');
   const [navigationError, setNavigationError] = useState('');
+  const [opening, setOpening] = useState(false);
+  const openingTicket = useRef(0);
   const changeWorkspace = useCallback((next: WorkspaceContext) => {
     setWorkspace(current => selectWorkspace(current, next)); setNavigation(null); setWorkspaceName('');
-    if (next.cube_id) setSelected(current => records.find(record => record.id === next.cube_id) ?? current);
-  }, [records]);
+    setSelected(current => current?.id === next.cube_id ? current : null);
+  }, []);
   const composerInput = useRef<HTMLInputElement>(null);
   const session = useSession({ enabled: status.phase === 'Ready', generation: status.generation_id,
     workspace, records, displayName: workspaceName, onWorkspaceChange: changeWorkspace,
@@ -79,12 +85,45 @@ export default function App() {
     }) });
   const statusRef = useRef(status);
   statusRef.current = status;
+  const openDataset = useCallback(async (id: string, nextScreen: Screen) => {
+    if (statusRef.current.phase !== 'Ready') return;
+    if (catalogController.snapshot().phase !== 'ready') { setNavigationError('请等待数据目录加载完成，或重新加载后再打开。'); return; }
+    const ticket = ++openingTicket.current, generation = statusRef.current.generation_id;
+    const current = () => ticket === openingTicket.current && generation === statusRef.current.generation_id && statusRef.current.phase === 'Ready';
+    setOpening(true); setNavigationError(''); setSelected(null);
+    try {
+      await catalogController.refreshNames([id]);
+      if (!current()) return;
+      const latest = catalogController.snapshot();
+      if (latest.phase !== 'ready') throw new Error(latest.error || '无法核验数据目录，请重试。');
+      const row = latest.records.find(record => record.id === id);
+      if (!row?.available) throw new Error('源文件不可用，已停止打开工作台；请检查源文件后重新加载。');
+      const detail = await datasets.get(id);
+      if (!current()) return;
+      if (detail.id !== id) throw new Error('读取的数据与选择不一致，请重试。');
+      changeWorkspace({ cube_id: id }); setSelected({ ...detail, display_name: row.display_name }); setScreen(nextScreen);
+    } catch (failure) { if (current()) { setNavigationError(describeError(failure)); setScreen('s03'); } }
+    finally { if (current()) setOpening(false); }
+  }, [catalogController, changeWorkspace]);
   useEffect(() => {
     setBusy(false); setMetrics(null); setText('');
     setMessage('输入“运行冒烟测试”，或点击发送。');
     setWorkspace({}); setRecords([]); setRefreshVersions({}); setNavigation(null); setWorkspaceName(''); setPreviewCandidates({});
     setScreen('s03'); setSelected(null); setNavigationError('');
-  }, [status.generation_id]);
+    openingTicket.current++; setOpening(false); catalogController.reset(status.generation_id);
+  }, [status.generation_id, catalogController]);
+  useEffect(() => {
+    if (status.phase !== 'Ready') return;
+    void catalogController.load(status.generation_id);
+    return () => catalogController.cancel();
+  }, [status.phase, status.generation_id, catalogController]);
+  useEffect(() => {
+    setSelected(current => {
+      if (!current) return current;
+      const row = records.find(record => record.id === current.id);
+      return row?.available ? { ...current, display_name: row.display_name } : null;
+    });
+  }, [records]);
   useEffect(() => {
     let disposed = false;
     const accept = (next: Snapshot) => {
@@ -99,27 +138,8 @@ export default function App() {
   }, []);
   useEffect(() => {
     if (!navigation) return;
-    let cancelled = false;
-    setNavigationError('');
-    const show = (record: DatasetRecord) => {
-      if (cancelled) return;
-      setSelected(record);
-      if (navigation.stage === 'annotation') setScreen('s05');
-      else if (navigation.stage === 'preprocess') setScreen('s06');
-      else setScreen(current => current === 's07' ? 's03' : current);
-    };
-    const record = records.find(item => item.id === navigation.cube_id);
-    if (record) show(record);
-    else {
-      setScreen('s03'); setSelected(null);
-      void datasets.get(navigation.cube_id).then(next => {
-        if (cancelled) return;
-        if (next.id !== navigation.cube_id) throw new Error('读取的数据与助手选择不一致，请重试。');
-        setRecords(current => mergeRecords(current, [next])); show(next);
-      }).catch(failure => { if (!cancelled) setNavigationError(describeError(failure)); });
-    }
-    return () => { cancelled = true; };
-  }, [navigation, records]);
+    void openDataset(navigation.cube_id, navigation.stage === 'annotation' ? 's05' : navigation.stage === 'preprocess' ? 's06' : 's03');
+  }, [navigation, openDataset]);
   useEffect(() => {
     if (screen !== 's02' || status.phase !== 'Ready') return;
     let live = true;
@@ -181,12 +201,14 @@ export default function App() {
   </div>;
   if (status.phase === 'Stopping') return <p role="status">正在关闭</p>;
 
-  const openScreen = (next: Screen, record?: DatasetRecord, run?: string) => {
+  const openScreen = (next: Screen, record?: DatasetReference, run?: string) => {
+    openingTicket.current++; setOpening(false);
     setNavigation(null); setNavigationError('');
     if (run !== undefined) setRunId(run);
-    if (record) setSelected(record);
-    else if (next === 's05' || next === 's06') {
-      setSelected(records.find(item => item.id === workspace.cube_id) ?? selected ?? records[0] ?? null);
+    if (next === 's04' || next === 's05' || next === 's06') {
+      const id = record?.id ?? workspace.cube_id ?? selected?.id ?? records.find(row => row.available)?.id;
+      if (id) { void openDataset(id, next); return; }
+      setSelected(null);
     }
     setScreen(next);
   };
@@ -197,19 +219,27 @@ export default function App() {
         <p role="status">引擎已就绪</p>
         <p>选择数据目录，查看数据集与单波段预览。</p>
         <p>进程 {status.pid} · 端口 {status.port} · 启动代次 {status.generation_id}</p>
-        <DatasetPanel key={status.generation_id} api={datasets} records={records} onRecordsChange={setRecords}
-          onWorkspaceChange={changeWorkspace} onOpen={openScreen} />
+        <ProjectPathsPanel key={`paths-${status.generation_id}`} />
+        <DatasetPanel key={status.generation_id} api={datasets} records={records} phase={catalog.phase} error={catalog.error}
+          onReload={() => { void catalogController.load(status.generation_id); }} onImported={rows => catalogController.imported(rows)}
+          onDeleted={async id => {
+            catalogController.remove(id);
+            if (workspace.cube_id === id) { changeWorkspace({}); session.startNew(); }
+            setSelected(current => current?.id === id ? null : current);
+            await catalogController.refreshNames();
+          }} onRestored={id => catalogController.refreshNames([id])} onOpen={openScreen} />
       </>;
       case 's04': return selected ? <S04 key={selected.id} record={selected} api={datasets} onClose={() => setScreen('s03')} />
         : <section aria-label="S04 数据查看器"><p>请先在数据屏选择数据集。</p><button onClick={() => setScreen('s03')}>返回数据屏</button></section>;
-      case 's05': return selected ? <AnnotationWorkbench key={selected.id} record={selected} records={records} datasets={datasets}
+      case 's05': return selected ? <AnnotationWorkbench key={selected.id} record={selected} records={records.filter(row => row.available)} datasets={datasets}
         onWorkspaceChange={changeWorkspace} refreshVersion={refreshVersions[selected.id] ?? 0}
         previewCandidateRef={previewCandidates[selected.id]}
-        onNavigate={next => { setSelected(next); changeWorkspace({ cube_id: next.id }); }} onClose={() => setScreen('s03')} />
+        onNavigate={next => { void openDataset(next.id, 's05'); }} onClose={() => setScreen('s03')} />
         : <section aria-label="S05 标注工作台"><p>请先在数据屏选择数据集。</p><button onClick={() => setScreen('s03')}>返回数据屏</button></section>;
       case 's06': return selected ? <PreprocessPanel key={selected.id} record={selected} refreshVersion={refreshVersions[selected.id] ?? 0} onClose={() => setScreen('s03')} />
         : <section aria-label="S06 预处理工作台"><p>请先在数据屏选择数据集。</p><button onClick={() => setScreen('s03')}>返回数据屏</button></section>;
-      case 's07': return <ModelPanel records={records} onOpenResults={run => openScreen('s08', undefined, run)} onClose={() => setScreen('s03')} />;
+      case 's07': return catalog.phase === 'ready' ? <ModelPanel records={records.filter(row => row.available)} onOpenResults={run => openScreen('s08', undefined, run)} onClose={() => setScreen('s03')} />
+        : <p role="status">请先返回数据屏加载数据目录。</p>;
       case 's08': return <S08 runId={runId} onOpen={id => openScreen('s08', undefined, id)} onBackToList={() => setRunId(null)} onClose={() => setScreen('s07')} />;
       case 's02': return <S02 records={records} runs={dashboardRuns} loading={dashboardLoading} error={dashboardError} status={status}
         onOpenData={() => openScreen('s03')} onOpenRun={id => openScreen('s08', undefined, id)} onContinueAnnotation={() => openScreen('s05')} />;
@@ -228,6 +258,7 @@ export default function App() {
       <button onClick={() => openScreen('s11')}>设置</button>
     </>} assistant={screen === 's01' ? null : <Composer session={session} screen={screen} inputRef={composerInput} onExpand={() => setScreen('s01')} />}>
       {navigationError && <pre role="alert">{navigationError}</pre>}
+      {opening && <p role="status">正在核验源文件并读取数据详情…</p>}
       {renderScreen()}
     </AppShell>
   </div>;

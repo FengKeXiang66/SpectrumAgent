@@ -11,7 +11,7 @@ const results = source('./S08.tsx');
 
 test('P2 navigation preserves App runId until the results back-to-list action', () => {
   assert.match(app, /\[runId, setRunId\] = useState<string \| null>\(null\)/);
-  assert.match(app, /openScreen = \(next: Screen, record\?: DatasetRecord, run\?: string\)/);
+  assert.match(app, /openScreen = \(next: Screen, record\?: DatasetReference, run\?: string\)/);
   assert.match(app, /if \(run !== undefined\) setRunId\(run\)/);
   assert.match(app, /onNavigate=\{next => openScreen\(next\)\}/);
   assert.equal((app.match(/setRunId\(null\)/g) ?? []).length, 1);
@@ -23,7 +23,10 @@ test('P2 S04 and S03 thumbnails share BandCanvas and viewing updates workspace',
   assert.match(datasets, /import BandCanvas from '\.\/BandCanvas'/);
   assert.match(viewer, /import BandCanvas from '\.\.\/components\/datasets\/BandCanvas'/);
   assert.match(datasets, /<BandCanvas preview=\{preview\} thumbnail \/>/);
-  assert.match(datasets, /onOpen\('s04', record\); onWorkspaceChange\?\.\(\{ cube_id: record.id \}\); \}\}>查看/);
+  assert.match(datasets, /onOpen\('s04', record\)/);
+  assert.match(app, /await datasets.get\(id\)/);
+  assert.match(app, /changeWorkspace\(\{ cube_id: id \}\); setSelected/);
+  assert.match(app, /if \(!row\?\.available\) throw new Error/);
   assert.doesNotMatch(datasets, /selectedRecord|loadPreview|单波段预览/);
   assert.match(viewer, /api.preview\(record.id, index\)/);
   assert.match(viewer, /request === sequence.current/);

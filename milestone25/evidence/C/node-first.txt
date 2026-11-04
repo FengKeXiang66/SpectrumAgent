@@ -1,0 +1,841 @@
+✔ block clicks retain the legacy geometry and omit label_id for erase and uncertain (1.9802ms)
+✔ IPC superpixels: exact Rust variant, one command, no arbitrary route (0.3737ms)
+✔ IPC diffuse: exact Rust variant, one command, no arbitrary route (0.2872ms)
+✔ IPC regions: exact Rust variant, one command, no arbitrary route (0.1989ms)
+✔ IPC undo: exact Rust variant, one command, no arbitrary route (0.2244ms)
+✔ IPC working: exact Rust variant, one command, no arbitrary route (0.2134ms)
+✔ IPC validate: exact Rust variant, one command, no arbitrary route (0.2128ms)
+✔ IPC save: exact Rust variant, one command, no arbitrary route (0.2321ms)
+✔ IPC versions: exact Rust variant, one command, no arbitrary route (0.21ms)
+✔ IPC version_overlay: exact Rust variant, one command, no arbitrary route (0.3123ms)
+✔ IPC projects: exact Rust variant, one command, no arbitrary route (0.2225ms)
+✔ IPC labels: exact Rust variant, one command, no arbitrary route (0.1382ms)
+✔ IPC add_label: exact Rust variant, one command, no arbitrary route (0.2001ms)
+✔ IPC catalog: exact Rust variant, one command, no arbitrary route (0.1786ms)
+✔ optional defaults are left to Python; all prompt and geometry forms retain [line,sample] (0.3497ms)
+✔ all three structured label bodies match Python and carry the working project id (0.2331ms)
+✔ local estimates and display state cannot enter request projections (0.3973ms)
+✔ structured errors keep code, field messages and context; client never swallows rejection (0.8353ms)
+✔ RGB id decoding retains ids above 255 and verifies every block count (2.9178ms)
+✔ hitTest is local and rejects out-of-image and fractional coordinates (0.2963ms)
+✔ 3px Euclidean boundary is inclusive; drags produce no block action (0.2394ms)
+✔ badges distinguish blank, uncertain, two and three kinds of marking (0.3504ms)
+✔ canvas uses unscaled id loading, the existing contextmenu guard and down-time modifiers (1.8492ms)
+✔ 2GiB boundary and plus one require exactly the shared extra approval (1.3441ms)
+✔ draft client projects only fixed confirm fields into the tenth command (1.3158ms)
+✔ mock forward fetches estimate then confirms the fetched revision (0.4396ms)
+✔ fetch failure and invalid summaries block approval instead of assuming zero (0.9396ms)
+✔ confirmation card renders fetched byte count, loading, refusal and second dialog (9.6258ms)
+✔ only HUMAN_CHECK uses the confirm card and pending-call revision stays server-owned (1.6204ms)
+✔ old numeric preview call keeps the exact single-band request (1.7776ms)
+✔ extended preview request projects only allowed keys and explicit full resolution (0.2198ms)
+✔ S05 band changes use display state, full resolution, and retain PNG onload hotfix (1.1682ms)
+✔ display modes are exclusive, preserve RGB order and reject duplicates (0.4973ms)
+✔ entry defaults to backend automatic selection and displays returned RGB wavelengths (0.5413ms)
+✔ default LUT is identity for all 256 intensities (0.4855ms)
+✔ LUT rejects nonfinite/out of range/gap under 16 and preserves last valid parameters (0.3928ms)
+✔ LUT follows clamp and inverse gamma, one table for RGB, alpha unchanged and input untouched (0.3901ms)
+✔ manual LUT values stay local and are independent of image request keys (0.8753ms)
+✔ point coordinates retain [line,sample] and send one-pixel spectra_mean, never region (0.408ms)
+✔ point inspection returns before any edit tool and leaves null gaps visible (0.6142ms)
+✔ box mean uses existing half-open endpoints, direction independent, no spectral arithmetic (0.2406ms)
+✔ box inspection routes to spectra before edits and has no readiness dependency (0.3752ms)
+✔ storeGesture projects exactly point, box or doodle and strips nested extras (1.9156ms)
+✔ gesture projection adds no absent variant fields or optional defaults (0.4056ms)
+✔ gesture client uses only annotations_draft_forward and preserves server reference (0.2993ms)
+✔ gesture store failure reaches caller without a fabricated reference (0.574ms)
+✔ B1/B6 parent folder supports Windows, slash and mixed paths (1.4321ms)
+✔ B1 matching is exact, case insensitive and trims only (0.2585ms)
+✔ B1 background number 1 is excluded; first ordered foreground match wins (0.2194ms)
+✔ B2 catalog returns the canonical code without constructing label fields (0.2157ms)
+✔ B2 an absent folder matches after the refreshed label list includes the catalog label (0.1992ms)
+✔ B3 matching leaves the input list and labels unchanged (0.2496ms)
+✔ B4 folders are derived separately for each cube (0.1873ms)
+✔ B5 single-file import with an arbitrary parent has no fallback label or catalog code (0.2505ms)
+✔ C4: previous version total and current label-index counts render as separate summaries (24.4133ms)
+✔ C4: zero classes and uncertainty are omitted while zero blank pixels remain visible (0.2795ms)
+✔ C4: missing overwrite summary cannot suppress the confirmation dialog (0.384ms)
+✔ C1/C2/C3/C7: auto-default uses a touched ref, resets per dataset, and follows the version count (0.3089ms)
+✔ C1/C3/C6: overwrite retains the confirmation gate and cancelling only dismisses the dialog (0.2361ms)
+✔ projection consumes save response, shows a selectable absolute path and fixed folder command (1.1025ms)
+✔ projection failures keep save available and explicitly explain overwrite retry (0.5261ms)
+✔ click binds C; Delete and Shift are not independent commands (1.9415ms)
+✔ 0 is background-only; 1–9 are numeric; unbound or out-of-range labels remain mouse-only (0.7122ms)
+✔ Enter / Z / D / E-B-P / arrows / Ctrl+S / space have the specified actions (0.3116ms)
+✔ typing never changes labels or undo; disabled settings suppress shortcuts; global chat keys pass through (0.1821ms)
+✔ local remapping is deterministic and rejects duplicates/reserved keys without altering server labels (0.4364ms)
+✔ each edit reads working again; write-response pixels, queue and statistics are never reconstructed (7.1336ms)
+✔ switching cubes and recovering after confirm use only GET working, never diffuse (0.4097ms)
+✔ a failed edit propagates its envelope and cannot manufacture a successful redraw (0.5582ms)
+✔ R17 label indexes use sort_order plus SQLite BINARY code order, independent of tree grouping (0.3389ms)
+✔ local remaining-time estimate derives only from confirmation speed and handles no progress (0.1891ms)
+✔ catalog color proximity uses backend colors and the task-card <30 rule (1.3079ms)
+✔ viewport transforms preserve [line,sample], bounds, zoom anchors and half-open boxes (0.7386ms)
+✔ component wiring has no local label map or undo history and preserves the outer conversation bar (2.7719ms)
+✔ plan card renders table, scalar metadata, estimates, aria labels and chosen invalidation (13.9654ms)
+✔ all destructive choices require a reason and IPC projects only plan contract fields (34.6114ms)
+✔ disabled controls cannot submit and history keeps the plan decision without action buttons (4.9948ms)
+✔ all agent operations invoke only agent_forward with exact projection (2.0028ms)
+✔ view state, URL, key and mixed-body extras cannot enter IPC (0.2789ms)
+✔ structured preflight HTTP status and errors pass through unchanged (0.6291ms)
+✔ workspace context projects opaque references and cannot leak display data or geometry (0.2425ms)
+✔ server-listed ordinals and names are usable without reimporting files in the current UI (2.4813ms)
+✔ legacy lists retain backend order while local names remain local (1.3651ms)
+✔ changing cubes clears an old gesture and same-cube followups retain it (0.2796ms)
+✔ only successful annotation or preprocessing steps cause authoritative result refresh (0.3719ms)
+✔ workspace SSE rejects paths, unbound geometry, unknown stage and invalid revisions (0.8586ms)
+✔ request failures and SSE failures share human-readable error messages (0.3613ms)
+✔ curated backend explanations survive both error delivery paths (0.3093ms)
+✔ AI preview focus uses the workflow reference rather than queue order or a diffusion identifier (0.3752ms)
+✔ P1 A1 App owns one session shared by Composer and S01; renderers have no reducer (2.7185ms)
+✔ P1 A2 A3 composer hiding and global shortcuts leave S01 input independent (0.6809ms)
+✔ P1 A4 A5 smoke stays in S01 and the three columns use current session context (0.7064ms)
+✔ P1 A6 A8 retired panel files and rules are absent with only six new layout classes (2.2165ms)
+✔ SSE 正常流 retains order and JSON (3.2607ms)
+✔ SSE 确认后挂起 retains order and JSON (1.2351ms)
+✔ SSE 错误收尾 retains order and JSON (0.3011ms)
+✔ SSE 空流 retains order and JSON (0.1373ms)
+✔ SSE accepts CRLF, multiline data, comments and final frame at EOF (0.3046ms)
+✔ SSE rejects unknown events, missing event, malformed and nonobject data (0.4707ms)
+✔ SSE collector retains every rejected step beyond eight (1.5175ms)
+✔ approve disables both controls and records executing until response (0.2691ms)
+✔ reject immediately closes confirmation card; server result remains ordered (0.3735ms)
+✔ pending check accepts ordinary dialogue and sequential checks replace pending id (0.3507ms)
+✔ clarify and errors release busy state and keep messages in order (0.3478ms)
+✔ summary renderer displays scalars and excludes unexpected objects (0.3018ms)
+✔ plan SSE is accepted, accepts dialogue and cannot use the tool-decision path (0.2703ms)
+✔ unrecognized approval dialogue keeps its card while terminal outcomes clear it (0.4184ms)
+✔ plan actions preserve pending while executing and retain the decision with the original plan (0.356ms)
+✔ plan approval can suspend again at human check and all terminal events clear pending (0.2343ms)
+✔ chat-selected registered cubes load through the existing fixed get operation (1.6883ms)
+✔ catalog and recycle operations use fixed typed requests with explicit confirmation (0.4014ms)
+✔ reimport confirmation is sent only from an explicit caller choice (0.4056ms)
+✔ G3 shared displayName uses the server name and preserves the legacy fallback (1.0157ms)
+✔ G2 all_datasets refreshes a previously unique name without duplicating records (1.0591ms)
+✔ G assistant choices and readable references use exactly the API display name (0.8869ms)
+✔ only the absent-active recycled-key error promises a new dataset id (1.1649ms)
+✔ active records and concurrent active conflicts never open the fresh-id confirmation (0.2706ms)
+✔ existing and newly imported messages agree with actual response counts (0.4873ms)
+✔ retries and existing imports keep exactly one row per persisted ID (2.3354ms)
+✔ batch errors retain source path and reason for the user (1.0956ms)
+✔ sample value uses fixed native command and preserves annotation response (2.1755ms)
+✔ CSV duplicate confirmation is an explicit second import (0.247ms)
+✔ PLS request retains explicit bound runs and only regression CV; seven result labels (0.2236ms)
+✔ coefficients use one fixed read-only native operation and exact model id body (0.176ms)
+✔ extents exclude null and non-finite values without changing inputs (2.507ms)
+✔ coordinate mapping covers endpoints, inverted Y, constants and extreme finite domains (0.3777ms)
+✔ nice ticks are deterministic, rounded and integer-only for counts or LVs (0.4309ms)
+✔ null and non-finite curve points split paths and never interpolate gaps (0.3096ms)
+✔ histogram uses sqrt sample count capped at 20, shared rounded edges and grouped counts (1.2199ms)
+✔ histogram bins are left-closed with rightmost edge included; rounded inner edges agree with membership (0.3312ms)
+✔ one histogram sample becomes a single nonzero-width bin; invalid values produce no bins (0.3258ms)
+✔ four evaluation models include curve, scatter, residual and grouped histogram (2.0978ms)
+✔ LV markers use saved recommendations verbatim rather than recomputing an elbow (0.7103ms)
+✔ empty curve and all non-finite curves show explicit no-data status without axes (0.6248ms)
+✔ curve missing values retain separated finite paths and single-point strokes (0.5782ms)
+✔ one prediction is a square, maps constant axes to midlines and has one populated histogram bar (0.4528ms)
+✔ constant references with varying predictions remain on X midline with an explicit note (0.4038ms)
+✔ null metrics never enter chart coordinates or quality calculations (0.6472ms)
+✔ get_run failure produces four explicit unavailable plots, never blank axes (0.4212ms)
+✔ missing LV artifact preserves the three prediction plots and their quality labels (0.3998ms)
+✔ undefined predictions from classification runs are explicit, empty arrays remain no-data (0.3852ms)
+✔ missing fields and unknown sets are excluded per chart, with an explicit reason when all are unusable (0.2812ms)
+✔ half-quantitative label uses backend flag or label and never derives RPD (0.837ms)
+✔ loading has visible messages and a result can render while its curve is still loading (0.1646ms)
+✔ error descriptions handle structured native errors and opaque values without secondary throws (0.1359ms)
+✔ coefficient chart preserves signed values, zero reference, backend quality and tick targets (0.3973ms)
+✔ coefficient refusal: unknown axis (0.1178ms)
+✔ coefficient refusal: dimension mismatch (0.043ms)
+✔ coefficient refusal: same dimensions unsafe operator (0.0296ms)
+✔ coefficient loading, missing artifact and 404 have visible messages without secondary errors (0.0786ms)
+✔ coefficient empty and invalid arrays are distinct and never draw malformed nested coefficients (0.108ms)
+✔ coefficient zero line remains inside frame for 1,1,1 (0.1468ms)
+✔ coefficient zero line remains inside frame for -3,-3,-3 (0.0759ms)
+✔ coefficient zero line remains inside frame for 0,0,0 (0.0527ms)
+✔ coefficient zero line remains inside frame for 1,2,3 (0.0757ms)
+✔ coefficient zero line remains inside frame for -1,-2,-3 (0.0438ms)
+✔ single coefficient is one square; nonascending wavelengths retain artifact order and disclose it (0.1516ms)
+✔ six new fixed requests preserve exact bodies and strip input extras (1.1915ms)
+✔ map source permits only PNG base64 and positive integer dimensions (0.2342ms)
+✔ fixed palette rejects invalid RGB and preserves ordered endpoints (0.1469ms)
+✔ clipping disclosure includes foreground totals and both directions (0.1054ms)
+✔ stages and required scientific warning are explicit (0.0963ms)
+✔ components use the client, disclose calibration, progress and independent map errors (0.5974ms)
+✔ registered coefficient button is lazy per model and shows pending then success or 404 state (90.572ms)
+✔ preprocess IPC list_recipes: exact projection and sole command (2.7891ms)
+✔ preprocess IPC create_recipe: exact projection and sole command (1.0214ms)
+✔ preprocess IPC get_recipe: exact projection and sole command (0.1802ms)
+✔ preprocess IPC add_version: exact projection and sole command (0.1229ms)
+✔ preprocess IPC select_recipe: exact projection and sole command (0.1259ms)
+✔ preprocess IPC deselect_recipe: exact projection and sole command (0.0992ms)
+✔ preprocess IPC list_project_recipes: exact projection and sole command (0.1222ms)
+✔ preprocess IPC create_run: exact projection and sole command (0.1414ms)
+✔ preprocess IPC list_runs: exact projection and sole command (0.1226ms)
+✔ preprocess IPC get_run: exact projection and sole command (0.1699ms)
+✔ preprocess IPC compare: exact projection and sole command (0.1159ms)
+✔ preprocess IPC get_artifact: exact projection and sole command (0.1292ms)
+✔ request bodies omit runtime extras, run guard/block_size, and editor state (0.1396ms)
+✔ report is parsed JSON; only sample_spectra uses binary wrapper; 204 stays null (1.1379ms)
+✔ recovery inspects only new succeeded summaries and matches recipe in details (2.6734ms)
+✔ transport and timeout recover, business errors do not; structured details remain visible (0.6259ms)
+✔ submit TRANSPORT automatically restores new matching success; unknown outcome stays pending verification (0.6951ms)
+✔ legend resolves index→id→code with backend colors, missing id prefix, unlabeled title (0.1788ms)
+✖ S06 component wiring: no transport outside API, no numeric engine / fake preview; global chat unchanged (4.8094ms)
+✔ unsupported operations are all marked stage two / not applicable without example metrics (0.2907ms)
+✔ operator directory matches explicit R15 names and excludes run B01 / unresolved reference methods (2.5028ms)
+✔ axisAfter is pure, crop closed, resample replaces, decomposition removes axis (0.5989ms)
+✔ crop→resample→crop supplies EACH current source, never stale saved source (0.6063ms)
+✔ schema-direction validation: odd SG, STRICT polynomial bound, derivative order/mode (0.4967ms)
+✔ all exposed methods accept valid schema choices; unknown keys and absent components reject (1.6333ms)
+✔ no wavelengths disables axis operators; lo<hi, nonempty crop, target finite/increasing enforce (0.3026ms)
+✔ move/delete/repeat preserve order and compile legal explicit steps (0.2474ms)
+✔ target creation is axis-only; chart gaps retain separate strokes and values (0.2573ms)
+✔ settings screen starts with five empty text fields, an enabled egress switch, a password input and an unknown key status (13.8123ms)
+✔ rendered field changes and submit save the six-key config then key, and clear the password (4.3925ms)
+✔ GET has_key renders both states without pre-filling a key, and blank key preserves existing credentials (1.9758ms)
+✔ GET failure disables saving and fields while the rendered cancel button remains usable (2.3049ms)
+✔ nonempty URL and numeric validation blocks invalid saves without inventing provider limits (3.5387ms)
+✔ backend 400 code and detail are rendered and a failed config save never submits the key (1.3986ms)
+✔ failed key write reports partial save, clears its input and redacts credentials in errors (2.3518ms)
+✔ saving prevents duplicate submits and disposing ignores an in-flight GET (0.7906ms)
+✔ App settings entry opens S11 with its embedded form, preserving UI-to-configuration reachability (0.5618ms)
+✔ egress checkbox reflects the false value returned by GET (1.0318ms)
+✔ unchecking egress saves a boolean false and keeps the returned switch state (0.705ms)
+✔ settings GET and two PUT operations use only settings_forward with exact bodies (1.9965ms)
+✔ settings projections exclude credentials and view or route extras from config and responses (0.215ms)
+✔ settings forward preserves the backend 400 envelope unchanged (0.4839ms)
+✔ egress false remains boolean through config PUT and GET projections (0.202ms)
+✔ P5 S02 uses props for four cards, recent regression runs and phase plus generation only (1.3158ms)
+✔ P5 S09 regression table has only id task status and a client task filter without invented timestamps (1.0635ms)
+✔ P5 S09 fetches selected run details and retains backend metrics quality and collapsed leak report (0.2959ms)
+✔ P5 S09 preprocess reads only the selected dataset and preserves real time fields and empty states (0.321ms)
+✖ P5 S10 has a data-screen action and S11 embeds the settings form without fake controls (1.1082ms)
+✖ P5 inserts four screen cases while preserving source anchors S03 debug text and theme boundary (7.5155ms)
+✖ P2 navigation preserves App runId until the results back-to-list action (1.7382ms)
+✖ P2 S04 and S03 thumbnails share BandCanvas and viewing updates workspace (0.4477ms)
+✔ P2 S08 loads real regression runs and refetches run plus sweep on mount (0.2799ms)
+✖ P2 S07 keeps training and internal views while results and source anchors stay intact (1.0528ms)
+✔ A1 navigation retains five ordered groups and exactly ten unique screen entries (1.7497ms)
+✔ A1 titles cover all eleven Screen values including the viewer below data (0.1936ms)
+✔ A1 only s04 redirects its navigation highlight to s03 (0.1841ms)
+✔ skin guards: annotation-skin.css (1.4524ms)
+✔ skin guards: preprocess-skin.css (0.2517ms)
+✔ skin guards: modeling-skin.css (0.2634ms)
+ℹ tests 223
+ℹ suites 0
+ℹ pass 217
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 666.0349
+
+✖ failing tests:
+
+test at src\components\preprocess\panel.test.ts:48:1
+✖ S06 component wiring: no transport outside API, no numeric engine / fake preview; global chat unchanged (4.8094ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /onOpen\('s06', record\)/. Input:
+  
+  "import { useCallback, useEffect, useRef, useState } from 'react';\n" +
+    "import { describeError, type CatalogRecord, type DatasetTransport, type Preview, type RecycleList } from './types';\n" +
+    "import { createDatasetActions, emptyActions } from './actions.ts';\n" +
+    "import { byteSize, DatasetDialog, releaseDate } from './RecycleView.ts';\n" +
+    "import BandCanvas from './BandCanvas';\n" +
+    "import './datasets.css';\n" +
+    '\n' +
+    'function Thumbnail({ record, api }: { record: CatalogRecord; api: DatasetTransport }) {\n' +
+    "  const [preview, setPreview] = useState<Preview | null>(null), [error, setError] = useState('');\n" +
+    '  useEffect(() => {\n' +
+    '    let cancelled = false;\n' +
+    "    setPreview(null); setError('');\n" +
+    '    if (!record.available) return;\n' +
+    '    void api.preview(record.id, 0).then(result => { if (!cancelled) setPreview(result); })\n' +
+    '      .catch(failure => { if (!cancelled) setError(describeError(failure)); });\n' +
+    '    return () => { cancelled = true; };\n' +
+    '  }, [api, record.id, record.available]);\n' +
+    '  return preview ? <BandCanvas preview={preview} thumbnail />\n' +
+    '    : error ? <span role="alert">{error}</span> : <span>缩略图读取中…</span>;\n' +
+    '}\n' +
+    '\n' +
+    'type Callbacks = Parameters<typeof createDatasetActions>[1];\n' +
+    'export default function DatasetPanel({ api, records, phase, error, onReload, onImported, onDeleted, onRestored, onOpen }: {\n' +
+    "  api: DatasetTransport; records: CatalogRecord[]; phase: 'idle'|'loading'|'ready'|'error'; error: string; onReload(): void;\n" +
+    "  onImported: Callbacks['imported']; onDeleted: Callbacks['deleted']; onRestored: Callbacks['restored'];\n" +
+    "  onOpen(screen: 's04'|'s05'|'s06'|'s07', record?: CatalogRecord): void;\n" +
+    '}) {\n' +
+    "  const [raw, setRaw] = useState(false), [filter, setFilter] = useState<'active'|'deleted'>('active');\n" +
+    '  const [state, setState] = useState(emptyActions);\n' +
+    "  const [recycle, setRecycle] = useState<RecycleList | null>(null), [recycleError, setRecycleError] = useState('');\n" +
+    '  const [recycleLoading, setRecycleLoading] = useState(false);\n' +
+    '  const live = useRef(true), recycleTicket = useRef(0);\n' +
+    '  const callbacks = useRef({ onImported, onDeleted, onRestored });\n' +
+    '  callbacks.current = { onImported, onDeleted, onRestored };\n' +
+    '  const actions = useRef<ReturnType<typeof createDatasetActions> | null>(null);\n' +
+    '  const loadRecycle = useCallback(async () => {\n' +
+    '    const ticket = ++recycleTicket.current;\n' +
+    "    setRecycleLoading(true); setRecycleError('');\n" +
+    '    try {\n' +
+    '      const value = await api.recycleList();\n' +
+    '      if (live.current && ticket === recycleTicket.current) setRecycle(value);\n' +
+    '    } catch (failure) { if (live.current && ticket === recycleTicket.current) setRecycleError(describeError(failure)); }\n' +
+    '    finally { if (live.current && ticket === recycleTicket.current) setRecycleLoading(false); }\n' +
+    '  }, [api]);\n' +
+    '  useEffect(() => {\n' +
+    '    live.current = true;\n' +
+    '    const current = createDatasetActions(api, {\n' +
+    '      imported: rows => callbacks.current.onImported(rows),\n' +
+    '      deleted: async id => { await callbacks.current.onDeleted(id); if (live.current) await loadRecycle(); },\n' +
+    '      restored: async id => { await callbacks.current.onRestored(id); if (live.current) await loadRecycle(); },\n' +
+    '    }, setState);\n' +
+    '    actions.current = current;\n' +
+    '    return () => { live.current = false; recycleTicket.current++; current.dispose(); actions.current = null; };\n' +
+    '  }, [api, loadRecycle]);\n' +
+    "  useEffect(() => { if (filter === 'deleted') void loadRecycle(); }, [filter, loadRecycle]);\n" +
+    "  const disabled = state.busy || phase !== 'ready';\n" +
+    '  return <section className="dataset-panel" aria-label="数据集管理">\n' +
+    '    <div inert={state.dialog !== null}>\n' +
+    '      <h2>数据集</h2>\n' +
+    '      <div className="dataset-toolbar">\n' +
+    "        <button disabled={disabled || !records.some(row => row.available)} onClick={() => onOpen('s07')}>PLS 回归与样品取值</button>\n" +
+    '        <label><input type="checkbox" checked={raw} disabled={disabled} onChange={event => setRaw(event.target.checked)} /> 原始 DN 模式（未除 scale factor）</label>\n' +
+    '        <button disabled={disabled} onClick={() => { void actions.current?.choose(raw); }}>选择数据目录</button>\n' +
+    "        <button disabled={state.busy || phase === 'loading'} onClick={onReload}>重新加载活跃列表</button>\n" +
+    '      </div>\n' +
+    '      <p role="status">{state.message}</p>\n' +
+    `      {phase === 'loading' && <p role="status">正在读取已登记数据集…</p>}\n` +
+    '      {error && <pre role="alert">{error}</pre>}\n' +
+    '      {state.busy && !state.dialog && <progress aria-label="操作进度" {...(state.total ? { value: state.done, max: state.total } : {})} />}\n' +
+    '      {state.error && <pre role="alert">{state.error}</pre>}\n' +
+    "      <label>数据集状态<select value={filter} disabled={state.busy} onChange={event => setFilter(event.target.value as 'active'|'deleted')}>\n" +
+    '        <option value="active">活跃数据集</option><option value="deleted">已删除（回收站）</option>\n' +
+    '      </select></label>\n' +
+    `      {filter === 'active' ? <div className="dataset-table-scroll"><table aria-label="数据集列表">\n` +
+    '        <thead><tr><th>名称 / 源路径</th><th>维度 L×S×B</th><th>波长范围 nm</th><th>读模式</th><th>预览与操作</th></tr></thead>\n' +
+    '        <tbody>{records.map(record => <tr key={record.id}>\n' +
+    '          <td><strong>{record.display_name}</strong><code>{record.source_path}</code>{!record.available && <p className="dataset-unavailable">源文件不可用</p>}</td>\n' +
+    "          <td>{record.shape.join('×')}</td><td>{record.wavelength_range?.join('–') ?? '未提供'}</td><td>{record.raw ? 'DN 原值' : '反射率'}</td>\n" +
+    '          <td>{record.available && <Thumbnail record={record} api={api} />}\n' +
+    `            <div className="dataset-row-actions">{(['s04', 's05', 's06'] as const).map((screen, index) => <button key={screen}\n` +
+    "              disabled={disabled || !record.available} onClick={() => onOpen(screen, record)}>{['查看', '标注', '预处理'][index]} {record.display_name}</button>)}\n" +
+    '              <button className="dataset-danger" disabled={disabled} onClick={() => { void actions.current?.requestDelete(record); }}>移入回收站 {record.display_name}</button>\n' +
+    '            </div></td>\n' +
+    '        </tr>)}</tbody>\n' +
+    "      </table>{phase === 'ready' && !records.length && <p>暂无活跃数据集。可选择数据目录登记，或在回收站恢复。</p>}</div> : <>\n" +
+    '        <p>删除后保留 30 天；源文件不删除，回收站产物仍占本机空间。</p>\n' +
+    '        {recycleLoading && <p role="status">正在读取回收站…</p>}\n' +
+    '        {recycleError && <pre role="alert">{recycleError}</pre>}\n' +
+    '        <button disabled={state.busy || recycleLoading} onClick={() => { void loadRecycle(); }}>刷新回收站</button>\n' +
+    '        {recycle && <><p>{recycle.count} 个条目 · {byteSize(recycle.total_bytes)}</p>\n' +
+    '          <div className="dataset-table-scroll"><table aria-label="回收站列表"><thead><tr><th>名称 / 源路径</th><th>占用</th><th>预计释放日期</th><th>恢复</th></tr></thead>\n' +
+    '            <tbody>{recycle.items.map(row => <tr key={row.deletion_id}><td><strong>{row.display_name}</strong><code>{row.source_path}</code></td>\n' +
+    '              <td>{byteSize(row.total_bytes)}</td><td>{releaseDate(row.expires_at)}</td><td>\n' +
+    `                {row.status !== 'READY' ? <span role="status">不完整，等待人工处理，已禁止恢复与自动清理。</span>\n` +
+    '                  : <button disabled={state.busy || recycleLoading} onClick={() => { void actions.current?.requestRestore(row); }}>恢复 {row.display_name}</button>}\n' +
+    '              </td></tr>)}</tbody></table></div>\n' +
+    '          {!recycle.count && <p>回收站为空。</p>}\n' +
+    '          {recycle.count > recycle.items.length && <p>另有隔离条目，等待人工处理，不会自动删除。</p>}\n' +
+    '        </>}\n' +
+    '      </>}\n' +
+    '    </div>\n' +
+    '    {state.dialog && <DatasetDialog dialog={state.dialog} onDecision={value => actions.current?.decide(value)} />}\n' +
+    '  </section>;\n' +
+    '}\n'
+  
+      at TestContext.<anonymous> (file:///E:/AI_Agent/src/components/preprocess/panel.test.ts:62:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: `import { useCallback, useEffect, useRef, useState } from 'react';\nimport { describeError, type CatalogRecord, type DatasetTransport, type Preview, type RecycleList } from './types';\nimport { createDatasetActions, emptyActions } from './actions.ts';\nimport { byteSize, DatasetDialog, releaseDate } from './RecycleView.ts';\nimport BandCanvas from './BandCanvas';\nimport './datasets.css';\n\nfunction Thumbnail({ record, api }: { record: CatalogRecord; api: DatasetTransport }) {\n  const [preview, setPreview] = useState<Preview | null>(null), [error, setError] = useState('');\n  useEffect(() => {\n    let cancelled = false;\n    setPreview(null); setError('');\n    if (!record.available) return;\n    void api.preview(record.id, 0).then(result => { if (!cancelled) setPreview(result); })\n      .catch(failure => { if (!cancelled) setError(describeError(failure)); });\n    return () => { cancelled = true; };\n  }, [api, record.id, record.available]);\n  return preview ? <BandCanvas preview={preview} thumbnail />\n    : error ? <span role="alert">{error}</span> : <span>缩略图读取中…</span>;\n}\n\ntype Callbacks = Parameters<typeof createDatasetActions>[1];\nexport default function DatasetPanel({ api, records, phase, error, onReload, onImported, onDeleted, onRestored, onOpen }: {\n  api: DatasetTransport; records: CatalogRecord[]; phase: 'idle'|'loading'|'ready'|'error'; error: string; onReload(): void;\n  onImported: Callbacks['imported']; onDeleted: Callbacks['deleted']; onRestored: Callbacks['restored'];\n  onOpen(screen: 's04'|'s05'|'s06'|'s07', record?: CatalogRecord): void;\n}) {\n  const [raw, setRaw] = useState(false), [filter, setFilter] = useState<'active'|'deleted'>('active');\n  const [state, setState] = useState(emptyActions);\n  const [recycle, setRecycle] = useState<RecycleList | null>(null), [recycleError, setRecycleError] = useState('');\n  const [recycleLoading, setRecycleLoading] = useState(false);\n  const live = useRef(true), recycleTicket = useRef(0);\n  const callbacks = useRef({ onImported, onDeleted, onRestored });\n  callbacks.current = { onImported, onDeleted, onRestored };\n  const actions = useRef<ReturnType<typeof createDatasetActions> | null>(null);\n  const loadRecycle = useCallback(async () => {\n    const ticket = ++recycleTicket.current;\n    setRecycleLoading(true); setRecycleError('');\n    try {\n      const value = await api.recycleList();\n      if (live.current && ticket === recycleTicket.current) setRecycle(value);\n    } catch (failure) { if (live.current && ticket === recycleTicket.current) setRecycleError(describeError(failure)); }\n    finally { if (live.current && ticket === recycleTicket.current) setRecycleLoading(false); }\n  }, [api]);\n  useEffect(() => {\n    live.current = true;\n    const current = createDatasetActions(api, {\n      imported: rows => callbacks.current.onImported(rows),\n      deleted: async id => { await callbacks.current.onDeleted(id); if (live.current) await loadRecycle(); },\n      restored: async id => { await callbacks.current.onRestored(id); if (live.current) await loadRecycle(); },\n    }, setState);\n    actions.current = current;\n    return () => { live.current = false; recycleTicket.current++; current.dispose(); actions.current = null; };\n  }, [api, loadRecycle]);\n  useEffect(() => { if (filter === 'deleted') void loadRecycle(); }, [filter, loadRecycle]);\n  const disabled = state.busy || phase !== 'ready';\n  return <section className="dataset-panel" aria-label="数据集管理">\n    <div inert={state.dialog !== null}>\n      <h2>数据集</h2>\n      <div className="dataset-toolbar">\n        <button disabled={disabled || !records.some(row => row.available)} onClick={() => onOpen('s07')}>PLS 回归与样品取值</button>\n        <label><input type="checkbox" checked={raw} disabled={disabled} onChange={event => setRaw(event.target.checked)} /> 原始 DN 模式（未除 scale factor）</label>\n        <button disabled={disabled} onClick={() => { void actions.current?.choose(raw); }}>选择数据目录</button>\n        <button disabled={state.busy || phase === 'loading'} onClick={onReload}>重新加载活跃列表</button>\n      </div>\n      <p role="status">{state.message}</p>\n      {phase === 'loading' && <p role="status">正在读取已登记数据集…</p>}\n      {error && <pre role="alert">{error}</pre>}\n      {state.busy && !state.dialog && <progress aria-label="操作进度" {...(state.total ? { value: state.done, max: state.total } : {})} />}\n      {state.error && <pre role="alert">{state.error}</pre>}\n      <label>数据集状态<select value={filter} disabled={state.busy} onChange={event => setFilter(event.target.value as 'active'|'deleted')}>\n        <option value="active">活跃数据集</option><option value="deleted">已删除（回收站）</option>\n      </select></label>\n      {filter === 'active' ? <div className="dataset-table-scroll"><table aria-label="数据集列表">\n        <thead><tr><th>名称 / 源路径</th><th>维度 L×S×B</th><th>波长范围 nm</th><th>读模式</th><th>预览与操作</th></tr></thead>\n        <tbody>{records.map(record => <tr key={record.id}>\n          <td><strong>{record.display_name}</strong><code>{record.source_path}</code>{!record.available && <p className="dataset-unavailable">源文件不可用</p>}</td>\n          <td>{record.shape.join('×')}</td><td>{record.wavelength_range?.join('–') ?? '未提供'}</td><td>{record.raw ? 'DN 原值' : '反射率'}</td>\n          <td>{record.available && <Thumbnail record={record} api={api} />}\n            <div className="dataset-row-actions">{(['s04', 's05', 's06'] as const).map((screen, index) => <button key={screen}\n              disabled={disabled || !record.available} onClick={() => onOpen(screen, record)}>{['查看', '标注', '预处理'][index]} {record.display_name}</button>)}\n              <button className="dataset-danger" disabled={disabled} onClick={() => { void actions.current?.requestDelete(record); }}>移入回收站 {record.display_name}</button>\n            </div></td>\n        </tr>)}</tbody>\n      </table>{phase === 'ready' && !records.length && <p>暂无活跃数据集。可选择数据目录登记，或在回收站恢复。</p>}</div> : <>\n        <p>删除后保留 30 天；源文件不删除，回收站产物仍占本机空间。</p>\n        {recycleLoading && <p role="status">正在读取回收站…</p>}\n        {recycleError && <pre role="alert">{recycleError}</pre>}\n        <button disabled={state.busy || recycleLoading} onClick={() => { void loadRecycle(); }}>刷新回收站</button>\n        {recycle && <><p>{recycle.count} 个条目 · {byteSize(recycle.total_bytes)}</p>\n          <div className="dataset-table-scroll"><table aria-label="回收站列表"><thead><tr><th>名称 / 源路径</th><th>占用</th><th>预计释放日期</th><th>恢复</th></tr></thead>\n            <tbody>{recycle.items.map(row => <tr key={row.deletion_id}><td><strong>{row.display_name}</strong><code>{row.source_path}</code></td>\n              <td>{byteSize(row.total_bytes)}</td><td>{releaseDate(row.expires_at)}</td><td>\n                {row.status !== 'READY' ? <span role="status">不完整，等待人工处理，已禁止恢复与自动清理。</span>\n                  : <button disabled={state.busy || recycleLoading} onClick={() => { void actions.current?.requestRestore(row); }}>恢复 {row.display_name}</button>}\n              </td></tr>)}</tbody></table></div>\n          {!recycle.count && <p>回收站为空。</p>}\n          {recycle.count > recycle.items.length && <p>另有隔离条目，等待人工处理，不会自动删除。</p>}\n        </>}\n      </>}\n    </div>\n    {state.dialog && <DatasetDialog dialog={state.dialog} onDecision={value => actions.current?.decide(value)} />}\n  </section>;\n}\n`,
+    expected: /onOpen\('s06', record\)/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at src\screens\light-screens.test.ts:58:1
+✖ P5 S10 has a data-screen action and S11 embeds the settings form without fake controls (1.1082ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///E:/AI_Agent/src/screens/light-screens.test.ts:65:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at src\screens\light-screens.test.ts:72:1
+✖ P5 inserts four screen cases while preserving source anchors S03 debug text and theme boundary (7.5155ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(read('../components/datasets/DatasetPanel.tsx').includes("onOpen('s06', record)"))
+  
+      at TestContext.<anonymous> (file:///E:/AI_Agent/src/screens/light-screens.test.ts:79:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at src\screens\split-screens.test.ts:12:1
+✖ P2 navigation preserves App runId until the results back-to-list action (1.7382ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /openScreen = \(next: Screen, record\?: DatasetRecord, run\?: string\)/. Input:
+  
+  "import { useCallback, useEffect, useRef, useState } from 'react';\n" +
+    "import { invoke } from '@tauri-apps/api/core';\n" +
+    "import { listen } from '@tauri-apps/api/event';\n" +
+    "import { acceptSnapshot, type ExitReason, type Snapshot } from './status';\n" +
+    "import DatasetPanel from './components/datasets/DatasetPanel';\n" +
+    "import { datasets } from './components/datasets/api';\n" +
+    "import Composer from './components/assistant/Composer';\n" +
+    "import useSession from './components/assistant/useSession';\n" +
+    "import S01 from './screens/S01';\n" +
+    "import S04 from './screens/S04';\n" +
+    "import S08 from './screens/S08';\n" +
+    "import S02 from './screens/S02';\n" +
+    "import S09 from './screens/S09';\n" +
+    "import S10 from './screens/S10';\n" +
+    "import S11 from './screens/S11';\n" +
+    "import { modeling } from './components/modeling/api';\n" +
+    "import { failureMessage } from './components/modeling/chart';\n" +
+    "import type { CatalogRecord, DatasetRecord, DatasetReference } from './components/datasets/types';\n" +
+    "import { describeError } from './components/datasets/types';\n" +
+    "import { createCatalogController, emptyCatalog } from './components/datasets/catalog';\n" +
+    "import ProjectPathsPanel from './components/settings/ProjectPathsPanel';\n" +
+    "import AnnotationWorkbench from './components/annotation/AnnotationWorkbench';\n" +
+    "import PreprocessPanel from './components/preprocess/PreprocessPanel';\n" +
+    "import ModelPanel from './components/modeling/ModelPanel';\n" +
+    "import AppShell from './shell/AppShell';\n" +
+    "import { SCREEN_TITLE, type Screen } from './shell/screens';\n" +
+    "import type { WorkspaceContext } from './components/assistant/api';\n" +
+    "import { selectWorkspace } from './components/assistant/presentation';\n" +
+    "import type { WorkspaceEventData } from './components/assistant/sse';\n" +
+    '\n' +
+    'type Metrics = { nan_ratio: number; reflectance_range: [number, number]; bands: number; shape: [number, number, number]; elapsed_ms: number };\n' +
+    'const reasons: Record<string, string> = {\n' +
+    "  SpawnFailed: '无法启动引擎，请检查程序文件是否完整。',\n" +
+    "  JobSetupFailed: '无法建立引擎进程保护。', ResumeFailed: '无法恢复引擎主线程。',\n" +
+    "  ProcessIdentityFailed: '无法确认引擎进程身份。', ExitedBeforeReady: '引擎在就绪前退出，请检查程序文件与日志。',\n" +
+    "  HandshakeInvalid: '握手文件校验失败，请通过数据目录检查文件并查看日志。',\n" +
+    "  StartupTimeout: '引擎启动超过 30 秒，请查看日志。', HealthIdentityMismatch: '引擎健康响应身份不匹配。',\n" +
+    "  SmokeIdentityMismatch: '冒烟响应身份不匹配，已停止连接。', EngineExitedAfterReady: '引擎意外退出。',\n" +
+    '};\n' +
+    "const initial: Snapshot = { generation_id: 0, phase: 'Starting', pid: null, port: null, boot_id: null, failure: null, cleanup_complete: false };\n" +
+    '\n' +
+    'function reasonCode(reason: ExitReason): string {\n' +
+    "  if (typeof reason === 'string') return reason === 'StartupDeadline' ? '启动超时' : '工作线程不可用';\n" +
+    "  if ('ProcessExit' in reason) return `退出码：${reason.ProcessExit.code}`;\n" +
+    "  if ('Win32' in reason) return `Win32 错误码：${reason.Win32.code}（${reason.Win32.api}）`;\n" +
+    '  return `身份校验：${reason.IdentityMismatch.layer}`;\n' +
+    '}\n' +
+    '\n' +
+    'export default function App() {\n' +
+    '  const [status, setStatus] = useState<Snapshot>(initial);\n' +
+    "  const [text, setText] = useState('');\n" +
+    "  const [message, setMessage] = useState('输入“运行冒烟测试”，或点击发送。');\n" +
+    '  const [metrics, setMetrics] = useState<Metrics | null>(null);\n' +
+    '  const [busy, setBusy] = useState(false);\n' +
+    '  const [workspace, setWorkspace] = useState<WorkspaceContext>({});\n' +
+    '  const [records, setRecords] = useState<CatalogRecord[]>([]);\n' +
+    '  const [catalog, setCatalog] = useState(emptyCatalog);\n' +
+    '  const [catalogController] = useState(() => createCatalogController(datasets, next => { setRecords(next.records); setCatalog(next); }));\n' +
+    '  const [refreshVersions, setRefreshVersions] = useState<Record<string, number>>({});\n' +
+    '  const [navigation, setNavigation] = useState<WorkspaceEventData | null>(null);\n' +
+    "  const [workspaceName, setWorkspaceName] = useState('');\n" +
+    '  const [previewCandidates, setPreviewCandidates] = useState<Record<string, string>>({});\n' +
+    "  const [screen, setScreen] = useState<Screen>('s03');\n" +
+    '  const [selected, setSelected] = useState<DatasetRecord | null>(null);\n' +
+    '  const [runId, setRunId] = useState<string | null>(null);\n' +
+    '  const [dashboardRuns, setDashboardRuns] = useState<Awaited<ReturnType<typeof modeling.runs>>>([]);\n' +
+    '  const [dashboardLoading, setDashboardLoading] = useState(true);\n' +
+    "  const [dashboardError, setDashboardError] = useState('');\n" +
+    "  const [navigationError, setNavigationError] = useState('');\n" +
+    '  const [opening, setOpening] = useState(false);\n' +
+    '  const openingTicket = useRef(0);\n' +
+    '  const changeWorkspace = useCallback((next: WorkspaceContext) => {\n' +
+    "    setWorkspace(current => selectWorkspace(current, next)); setNavigation(null); setWorkspaceName('');\n" +
+    '    setSelected(current => current?.id === next.cube_id ? current : null);\n' +
+    '  }, []);\n' +
+    '  const composerInput = useRef<HTMLInputElement>(null);\n' +
+    "  const session = useSession({ enabled: status.phase === 'Ready', generation: status.generation_id,\n" +
+    '    workspace, records, displayName: workspaceName, onWorkspaceChange: changeWorkspace,\n' +
+    "    onWorkspaceNavigate: selection => { setNavigation(selection); setWorkspaceName(selection.display_name ?? ''); },\n" +
+    '    onPreviewCandidate: (cubeId, candidateRef) => setPreviewCandidates(current => ({ ...current, [cubeId]: candidateRef })),\n' +
+    '    onDataChanged: cubeIds => setRefreshVersions(current => {\n' +
+    '      const next = { ...current };\n' +
+    '      for (const cubeId of cubeIds) next[cubeId] = (next[cubeId] ?? 0) + 1;\n' +
+    '      return next;\n' +
+    '    }) });\n' +
+    '  const statusRef = useRef(status);\n' +
+    '  statusRef.current = status;\n' +
+    '  const openDataset = useCallback(async (id: string, nextScreen: Screen) => {\n' +
+    "    if (statusRef.current.phase !== 'Ready') return;\n" +
+    "    if (catalogController.snapshot().phase !== 'ready') { setNavigationError('请等待数据目录加载完成，或重新加载后再打开。'); return; }\n" +
+    '    const ticket = ++openingTicket.current, generation = statusRef.current.generation_id;\n' +
+    "    const current = () => ticket === openingTicket.current && generation === statusRef.current.generation_id && statusRef.current.phase === 'Ready';\n" +
+    "    setOpening(true); setNavigationError(''); setSelected(null);\n" +
+    '    try {\n' +
+    '      await catalogController.refreshNames([id]);\n' +
+    '      if (!current()) return;\n' +
+    '      const latest = catalogController.snapshot();\n' +
+    "      if (latest.phase !== 'ready') throw new Error(latest.error || '无法核验数据目录，请重试。');\n" +
+    '      const row = latest.records.find(record => record.id === id);\n' +
+    "      if (!row?.available) throw new Error('源文件不可用，已停止打开工作台；请检查源文件后重新加载。');\n" +
+    '      const detail = await datasets.get(id);\n' +
+    '      if (!current()) return;\n' +
+    "      if (detail.id !== id) throw new Error('读取的数据与选择不一致，请重试。');\n" +
+    '      changeWorkspace({ cube_id: id }); setSelected({ ...detail, display_name: row.display_name }); setScreen(nextScreen);\n' +
+    "    } catch (failure) { if (current()) { setNavigationError(describeError(failure)); setScreen('s03'); } }\n" +
+    '    finally { if (current()) setOpening(false); }\n' +
+    '  }, [catalogController, changeWorkspace]);\n' +
+    '  useEffect(() => {\n' +
+    "    setBusy(false); setMetrics(null); setText('');\n" +
+    "    setMessage('输入“运行冒烟测试”，或点击发送。');\n" +
+    "    setWorkspace({}); setRecords([]); setRefreshVersions({}); setNavigation(null); setWorkspaceName(''); setPreviewCandidates({});\n" +
+    "    setScreen('s03'); setSelected(null); setNavigationError('');\n" +
+    '    openingTicket.current++; setOpening(false); catalogController.reset(status.generation_id);\n' +
+    '  }, [status.generation_id, catalogController]);\n' +
+    '  useEffect(() => {\n' +
+    "    if (status.phase !== 'Ready') return;\n" +
+    '    void catalogController.load(status.generation_id);\n' +
+    '    return () => catalogController.cancel();\n' +
+    '  }, [status.phase, status.generation_id, catalogController]);\n' +
+    '  useEffect(() => {\n' +
+    '    setSelected(current => {\n' +
+    '      if (!current) return current;\n' +
+    '      const row = records.find(record => record.id === current.id);\n' +
+    '      return row?.available ? { ...current, display_name: row.display_name } : null;\n' +
+    '    });\n' +
+    '  }, [records]);\n' +
+    '  useEffect(() => {\n' +
+    '    let disposed = false;\n' +
+    '    const accept = (next: Snapshot) => {\n' +
+    '      if (disposed) return;\n' +
+    '      setStatus(previous => acceptSnapshot(previous, next));\n' +
+    '    };\n' +
+    '    // Subscribe before snapshot to cover the startup/registration race.\n' +
+    "    const subscription = listen<Snapshot>('engine-status', event => accept(event.payload));\n" +
+    "    void subscription.then(() => invoke<Snapshot>('engine_status')).then(accept)\n" +
+    "      .catch(() => { if (!disposed) setMessage('无法读取外壳状态，请查看日志。'); });\n" +
+    '    return () => { disposed = true; void subscription.then(unlisten => unlisten()); };\n' +
+    '  }, []);\n' +
+    '  useEffect(() => {\n' +
+    '    if (!navigation) return;\n' +
+    "    void openDataset(navigation.cube_id, navigation.stage === 'annotation' ? 's05' : navigation.stage === 'preprocess' ? 's06' : 's03');\n" +
+    '  }, [navigation, openDataset]);\n' +
+    '  useEffect(() => {\n' +
+    "    if (screen !== 's02' || status.phase !== 'Ready') return;\n" +
+    '    let live = true;\n' +
+    "    setDashboardLoading(true); setDashboardError(''); setDashboardRuns([]);\n" +
+    "    void modeling.runs().then(rows => { if (live) setDashboardRuns(rows.filter(row => row.task === 'regression')); })\n" +
+    '      .catch(failure => { if (live) setDashboardError(failureMessage(failure)); })\n' +
+    '      .finally(() => { if (live) setDashboardLoading(false); });\n' +
+    '    return () => { live = false; };\n' +
+    '  }, [screen, status.phase, status.generation_id]);\n' +
+    '  const send = async () => {\n' +
+    "    if (status.phase !== 'Ready' || busy) return;\n" +
+    "    if (text.trim() && text.trim() !== '运行冒烟测试') {\n" +
+    "      setMessage('当前地基演示仅支持冒烟测试');\n" +
+    '      return;\n' +
+    '    }\n' +
+    '    const generation = status.generation_id;\n' +
+    "    setBusy(true); setMetrics(null); setMessage('正在运行冒烟测试…');\n" +
+    '    try {\n' +
+    "      const result = await invoke<Metrics>('run_smoke');\n" +
+    "      if (statusRef.current.generation_id === generation && statusRef.current.phase === 'Ready') {\n" +
+    "        setMetrics(result); setMessage('冒烟测试完成。'); setText('');\n" +
+    '      }\n' +
+    '    } catch {\n' +
+    "      if (statusRef.current.generation_id === generation) setMessage('冒烟测试未完成，请检查引擎状态与日志。');\n" +
+    '    } finally {\n' +
+    '      if (statusRef.current.generation_id === generation) setBusy(false);\n' +
+    '    }\n' +
+    '  };\n' +
+    '  useEffect(() => {\n' +
+    '    const shortcut = (event: KeyboardEvent) => {\n' +
+    "      if (screen === 's01' || !event.ctrlKey || status.phase !== 'Ready') return;\n" +
+    "      if (event.target instanceof Element && event.target.closest('.composer')) return;\n" +
+    "      if (event.key.toLowerCase() === 'k') { event.preventDefault(); composerInput.current?.focus(); }\n" +
+    '   '... 5831 more characters
+  
+      at TestContext.<anonymous> (file:///E:/AI_Agent/src/screens/split-screens.test.ts:14:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: "import { useCallback, useEffect, useRef, useState } from 'react';\nimport { invoke } from '@tauri-apps/api/core';\nimport { listen } from '@tauri-apps/api/event';\nimport { acceptSnapshot, type ExitReason, type Snapshot } from './status';\nimport DatasetPanel from './components/datasets/DatasetPanel';\nimport { datasets } from './components/datasets/api';\nimport Composer from './components/assistant/Composer';\nimport useSession from './components/assistant/useSession';\nimport S01 from './screens/S01';\nimport S04 from './screens/S04';\nimport S08 from './screens/S08';\nimport S02 from './screens/S02';\nimport S09 from './screens/S09';\nimport S10 from './screens/S10';\nimport S11 from './screens/S11';\nimport { modeling } from './components/modeling/api';\nimport { failureMessage } from './components/modeling/chart';\nimport type { CatalogRecord, DatasetRecord, DatasetReference } from './components/datasets/types';\nimport { describeError } from './components/datasets/types';\nimport { createCatalogController, emptyCatalog } from './components/datasets/catalog';\nimport ProjectPathsPanel from './components/settings/ProjectPathsPanel';\nimport AnnotationWorkbench from './components/annotation/AnnotationWorkbench';\nimport PreprocessPanel from './components/preprocess/PreprocessPanel';\nimport ModelPanel from './components/modeling/ModelPanel';\nimport AppShell from './shell/AppShell';\nimport { SCREEN_TITLE, type Screen } from './shell/screens';\nimport type { WorkspaceContext } from './components/assistant/api';\nimport { selectWorkspace } from './components/assistant/presentation';\nimport type { WorkspaceEventData } from './components/assistant/sse';\n\ntype Metrics = { nan_ratio: number; reflectance_range: [number, number]; bands: number; shape: [number, number, number]; elapsed_ms: number };\nconst reasons: Record<string, string> = {\n  SpawnFailed: '无法启动引擎，请检查程序文件是否完整。',\n  JobSetupFailed: '无法建立引擎进程保护。', ResumeFailed: '无法恢复引擎主线程。',\n  ProcessIdentityFailed: '无法确认引擎进程身份。', ExitedBeforeReady: '引擎在就绪前退出，请检查程序文件与日志。',\n  HandshakeInvalid: '握手文件校验失败，请通过数据目录检查文件并查看日志。',\n  StartupTimeout: '引擎启动超过 30 秒，请查看日志。', HealthIdentityMismatch: '引擎健康响应身份不匹配。',\n  SmokeIdentityMismatch: '冒烟响应身份不匹配，已停止连接。', EngineExitedAfterReady: '引擎意外退出。',\n};\nconst initial: Snapshot = { generation_id: 0, phase: 'Starting', pid: null, port: null, boot_id: null, failure: null, cleanup_complete: false };\n\nfunction reasonCode(reason: ExitReason): string {\n  if (typeof reason === 'string') return reason === 'StartupDeadline' ? '启动超时' : '工作线程不可用';\n  if ('ProcessExit' in reason) return `退出码：${reason.ProcessExit.code}`;\n  if ('Win32' in reason) return `Win32 错误码：${reason.Win32.code}（${reason.Win32.api}）`;\n  return `身份校验：${reason.IdentityMismatch.layer}`;\n}\n\nexport default function App() {\n  const [status, setStatus] = useState<Snapshot>(initial);\n  const [text, setText] = useState('');\n  const [message, setMessage] = useState('输入“运行冒烟测试”，或点击发送。');\n  const [metrics, setMetrics] = useState<Metrics | null>(null);\n  const [busy, setBusy] = useState(false);\n  const [workspace, setWorkspace] = useState<WorkspaceContext>({});\n  const [records, setRecords] = useState<CatalogRecord[]>([]);\n  const [catalog, setCatalog] = useState(emptyCatalog);\n  const [catalogController] = useState(() => createCatalogController(datasets, next => { setRecords(next.records); setCatalog(next); }));\n  const [refreshVersions, setRefreshVersions] = useState<Record<string, number>>({});\n  const [navigation, setNavigation] = useState<WorkspaceEventData | null>(null);\n  const [workspaceName, setWorkspaceName] = useState('');\n  const [previewCandidates, setPreviewCandidates] = useState<Record<string, string>>({});\n  const [screen, setScreen] = useState<Screen>('s03');\n  const [selected, setSelected] = useState<DatasetRecord | null>(null);\n  const [runId, setRunId] = useState<string | null>(null);\n  const [dashboardRuns, setDashboardRuns] = useState<Awaited<ReturnType<typeof modeling.runs>>>([]);\n  const [dashboardLoading, setDashboardLoading] = useState(true);\n  const [dashboardError, setDashboardError] = useState('');\n  const [navigationError, setNavigationError] = useState('');\n  const [opening, setOpening] = useState(false);\n  const openingTicket = useRef(0);\n  const changeWorkspace = useCallback((next: WorkspaceContext) => {\n    setWorkspace(current => selectWorkspace(current, next)); setNavigation(null); setWorkspaceName('');\n    setSelected(current => current?.id === next.cube_id ? current : null);\n  }, []);\n  const composerInput = useRef<HTMLInputElement>(null);\n  const session = useSession({ enabled: status.phase === 'Ready', generation: status.generation_id,\n    workspace, records, displayName: workspaceName, onWorkspaceChange: changeWorkspace,\n    onWorkspaceNavigate: selection => { setNavigation(selection); setWorkspaceName(selection.display_name ?? ''); },\n    onPreviewCandidate: (cubeId, candidateRef) => setPreviewCandidates(current => ({ ...current, [cubeId]: candidateRef })),\n    onDataChanged: cubeIds => setRefreshVersions(current => {\n      const next = { ...current };\n      for (const cubeId of cubeIds) next[cubeId] = (next[cubeId] ?? 0) + 1;\n      return next;\n    }) });\n  const statusRef = useRef(status);\n  statusRef.current = status;\n  const openDataset = useCallback(async (id: string, nextScreen: Screen) => {\n    if (statusRef.current.phase !== 'Ready') return;\n    if (catalogController.snapshot().phase !== 'ready') { setNavigationError('请等待数据目录加载完成，或重新加载后再打开。'); return; }\n    const ticket = ++openingTicket.current, generation = statusRef.current.generation_id;\n    const current = () => ticket === openingTicket.current && generation === statusRef.current.generation_id && statusRef.current.phase === 'Ready';\n    setOpening(true); setNavigationError(''); setSelected(null);\n    try {\n      await catalogController.refreshNames([id]);\n      if (!current()) return;\n      const latest = catalogController.snapshot();\n      if (latest.phase !== 'ready') throw new Error(latest.error || '无法核验数据目录，请重试。');\n      const row = latest.records.find(record => record.id === id);\n      if (!row?.available) throw new Error('源文件不可用，已停止打开工作台；请检查源文件后重新加载。');\n      const detail = await datasets.get(id);\n      if (!current()) return;\n      if (detail.id !== id) throw new Error('读取的数据与选择不一致，请重试。');\n      changeWorkspace({ cube_id: id }); setSelected({ ...detail, display_name: row.display_name }); setScreen(nextScreen);\n    } catch (failure) { if (current()) { setNavigationError(describeError(failure)); setScreen('s03'); } }\n    finally { if (current()) setOpening(false); }\n  }, [catalogController, changeWorkspace]);\n  useEffect(() => {\n    setBusy(false); setMetrics(null); setText('');\n    setMessage('输入“运行冒烟测试”，或点击发送。');\n    setWorkspace({}); setRecords([]); setRefreshVersions({}); setNavigation(null); setWorkspaceName(''); setPreviewCandidates({});\n    setScreen('s03'); setSelected(null); setNavigationError('');\n    openingTicket.current++; setOpening(false); catalogController.reset(status.generation_id);\n  }, [status.generation_id, catalogController]);\n  useEffect(() => {\n    if (status.phase !== 'Ready') return;\n    void catalogController.load(status.generation_id);\n    return () => catalogController.cancel();\n  }, [status.phase, status.generation_id, catalogController]);\n  useEffect(() => {\n    setSelected(current => {\n      if (!current) return current;\n      const row = records.find(record => record.id === current.id);\n      return row?.available ? { ...current, display_name: row.display_name } : null;\n    });\n  }, [records]);\n  useEffect(() => {\n    let disposed = false;\n    const accept = (next: Snapshot) => {\n      if (disposed) return;\n      setStatus(previous => acceptSnapshot(previous, next));\n    };\n    // Subscribe before snapshot to cover the startup/registration race.\n    const subscription = listen<Snapshot>('engine-status', event => accept(event.payload));\n    void subscription.then(() => invoke<Snapshot>('engine_status')).then(accept)\n      .catch(() => { if (!disposed) setMessage('无法读取外壳状态，请查看日志。'); });\n    return () => { disposed = true; void subscription.then(unlisten => unlisten()); };\n  }, []);\n  useEffect(() => {\n    if (!navigation) return;\n    void openDataset(navigation.cube_id, navigation.stage === 'annotation' ? 's05' : navigation.stage === 'preprocess' ? 's06' : 's03');\n  }, [navigation, openDataset]);\n  useEffect(() => {\n    if (screen !== 's02' || status.phase !== 'Ready') return;\n    let live = true;\n    setDashboardLoading(true); setDashboardError(''); setDashboardRuns([]);\n    void modeling.runs().then(rows => { if (live) setDashboardRuns(rows.filter(row => row.task === 'regression')); })\n      .catch(failure => { if (live) setDashboardError(failureMessage(failure)); })\n      .finally(() => { if (live) setDashboardLoading(false); });\n    return () => { live = false; };\n  }, [screen, status.phase, status.generation_id]);\n  const send = async () => {\n    if (status.phase !== 'Ready' || busy) return;\n    if (text.trim() && text.trim() !== '运行冒烟测试') {\n      setMessage('当前地基演示仅支持冒烟测试');\n      return;\n    }\n    const generation = status.generation_id;\n    setBusy(true); setMetrics(null); setMessage('正在运行冒烟测试…');\n    try {\n      const result = await invoke<Metrics>('run_smoke');\n      if (statusRef.current.generation_id === generation && statusRef.current.phase === 'Ready') {\n        setMetrics(result); setMessage('冒烟测试完成。'); setText('');\n      }\n    } catch {\n      if (statusRef.current.generation_id === generation) setMessage('冒烟测试未完成，请检查引擎状态与日志。');\n    } finally {\n      if (statusRef.current.generation_id === generation) setBusy(false);\n    }\n  };\n  useEffect(() => {\n    const shortcut = (event: KeyboardEvent) => {\n      if (screen === 's01' || !event.ctrlKey || status.phase !== 'Ready') return;\n      if (event.target instanceof Element && event.target.closest('.composer')) return;\n      if (event.key.toLowerCase() === 'k') { event.preventDefault(); composerInput.current?.focus(); }\n   "... 5831 more characters,
+    expected: /openScreen = \(next: Screen, record\?: DatasetRecord, run\?: string\)/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at src\screens\split-screens.test.ts:22:1
+✖ P2 S04 and S03 thumbnails share BandCanvas and viewing updates workspace (0.4477ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /onOpen\('s04', record\); onWorkspaceChange\?\.\(\{ cube_id: record.id \}\); \}\}>查看/. Input:
+  
+  "import { useCallback, useEffect, useRef, useState } from 'react';\n" +
+    "import { describeError, type CatalogRecord, type DatasetTransport, type Preview, type RecycleList } from './types';\n" +
+    "import { createDatasetActions, emptyActions } from './actions.ts';\n" +
+    "import { byteSize, DatasetDialog, releaseDate } from './RecycleView.ts';\n" +
+    "import BandCanvas from './BandCanvas';\n" +
+    "import './datasets.css';\n" +
+    '\n' +
+    'function Thumbnail({ record, api }: { record: CatalogRecord; api: DatasetTransport }) {\n' +
+    "  const [preview, setPreview] = useState<Preview | null>(null), [error, setError] = useState('');\n" +
+    '  useEffect(() => {\n' +
+    '    let cancelled = false;\n' +
+    "    setPreview(null); setError('');\n" +
+    '    if (!record.available) return;\n' +
+    '    void api.preview(record.id, 0).then(result => { if (!cancelled) setPreview(result); })\n' +
+    '      .catch(failure => { if (!cancelled) setError(describeError(failure)); });\n' +
+    '    return () => { cancelled = true; };\n' +
+    '  }, [api, record.id, record.available]);\n' +
+    '  return preview ? <BandCanvas preview={preview} thumbnail />\n' +
+    '    : error ? <span role="alert">{error}</span> : <span>缩略图读取中…</span>;\n' +
+    '}\n' +
+    '\n' +
+    'type Callbacks = Parameters<typeof createDatasetActions>[1];\n' +
+    'export default function DatasetPanel({ api, records, phase, error, onReload, onImported, onDeleted, onRestored, onOpen }: {\n' +
+    "  api: DatasetTransport; records: CatalogRecord[]; phase: 'idle'|'loading'|'ready'|'error'; error: string; onReload(): void;\n" +
+    "  onImported: Callbacks['imported']; onDeleted: Callbacks['deleted']; onRestored: Callbacks['restored'];\n" +
+    "  onOpen(screen: 's04'|'s05'|'s06'|'s07', record?: CatalogRecord): void;\n" +
+    '}) {\n' +
+    "  const [raw, setRaw] = useState(false), [filter, setFilter] = useState<'active'|'deleted'>('active');\n" +
+    '  const [state, setState] = useState(emptyActions);\n' +
+    "  const [recycle, setRecycle] = useState<RecycleList | null>(null), [recycleError, setRecycleError] = useState('');\n" +
+    '  const [recycleLoading, setRecycleLoading] = useState(false);\n' +
+    '  const live = useRef(true), recycleTicket = useRef(0);\n' +
+    '  const callbacks = useRef({ onImported, onDeleted, onRestored });\n' +
+    '  callbacks.current = { onImported, onDeleted, onRestored };\n' +
+    '  const actions = useRef<ReturnType<typeof createDatasetActions> | null>(null);\n' +
+    '  const loadRecycle = useCallback(async () => {\n' +
+    '    const ticket = ++recycleTicket.current;\n' +
+    "    setRecycleLoading(true); setRecycleError('');\n" +
+    '    try {\n' +
+    '      const value = await api.recycleList();\n' +
+    '      if (live.current && ticket === recycleTicket.current) setRecycle(value);\n' +
+    '    } catch (failure) { if (live.current && ticket === recycleTicket.current) setRecycleError(describeError(failure)); }\n' +
+    '    finally { if (live.current && ticket === recycleTicket.current) setRecycleLoading(false); }\n' +
+    '  }, [api]);\n' +
+    '  useEffect(() => {\n' +
+    '    live.current = true;\n' +
+    '    const current = createDatasetActions(api, {\n' +
+    '      imported: rows => callbacks.current.onImported(rows),\n' +
+    '      deleted: async id => { await callbacks.current.onDeleted(id); if (live.current) await loadRecycle(); },\n' +
+    '      restored: async id => { await callbacks.current.onRestored(id); if (live.current) await loadRecycle(); },\n' +
+    '    }, setState);\n' +
+    '    actions.current = current;\n' +
+    '    return () => { live.current = false; recycleTicket.current++; current.dispose(); actions.current = null; };\n' +
+    '  }, [api, loadRecycle]);\n' +
+    "  useEffect(() => { if (filter === 'deleted') void loadRecycle(); }, [filter, loadRecycle]);\n" +
+    "  const disabled = state.busy || phase !== 'ready';\n" +
+    '  return <section className="dataset-panel" aria-label="数据集管理">\n' +
+    '    <div inert={state.dialog !== null}>\n' +
+    '      <h2>数据集</h2>\n' +
+    '      <div className="dataset-toolbar">\n' +
+    "        <button disabled={disabled || !records.some(row => row.available)} onClick={() => onOpen('s07')}>PLS 回归与样品取值</button>\n" +
+    '        <label><input type="checkbox" checked={raw} disabled={disabled} onChange={event => setRaw(event.target.checked)} /> 原始 DN 模式（未除 scale factor）</label>\n' +
+    '        <button disabled={disabled} onClick={() => { void actions.current?.choose(raw); }}>选择数据目录</button>\n' +
+    "        <button disabled={state.busy || phase === 'loading'} onClick={onReload}>重新加载活跃列表</button>\n" +
+    '      </div>\n' +
+    '      <p role="status">{state.message}</p>\n' +
+    `      {phase === 'loading' && <p role="status">正在读取已登记数据集…</p>}\n` +
+    '      {error && <pre role="alert">{error}</pre>}\n' +
+    '      {state.busy && !state.dialog && <progress aria-label="操作进度" {...(state.total ? { value: state.done, max: state.total } : {})} />}\n' +
+    '      {state.error && <pre role="alert">{state.error}</pre>}\n' +
+    "      <label>数据集状态<select value={filter} disabled={state.busy} onChange={event => setFilter(event.target.value as 'active'|'deleted')}>\n" +
+    '        <option value="active">活跃数据集</option><option value="deleted">已删除（回收站）</option>\n' +
+    '      </select></label>\n' +
+    `      {filter === 'active' ? <div className="dataset-table-scroll"><table aria-label="数据集列表">\n` +
+    '        <thead><tr><th>名称 / 源路径</th><th>维度 L×S×B</th><th>波长范围 nm</th><th>读模式</th><th>预览与操作</th></tr></thead>\n' +
+    '        <tbody>{records.map(record => <tr key={record.id}>\n' +
+    '          <td><strong>{record.display_name}</strong><code>{record.source_path}</code>{!record.available && <p className="dataset-unavailable">源文件不可用</p>}</td>\n' +
+    "          <td>{record.shape.join('×')}</td><td>{record.wavelength_range?.join('–') ?? '未提供'}</td><td>{record.raw ? 'DN 原值' : '反射率'}</td>\n" +
+    '          <td>{record.available && <Thumbnail record={record} api={api} />}\n' +
+    `            <div className="dataset-row-actions">{(['s04', 's05', 's06'] as const).map((screen, index) => <button key={screen}\n` +
+    "              disabled={disabled || !record.available} onClick={() => onOpen(screen, record)}>{['查看', '标注', '预处理'][index]} {record.display_name}</button>)}\n" +
+    '              <button className="dataset-danger" disabled={disabled} onClick={() => { void actions.current?.requestDelete(record); }}>移入回收站 {record.display_name}</button>\n' +
+    '            </div></td>\n' +
+    '        </tr>)}</tbody>\n' +
+    "      </table>{phase === 'ready' && !records.length && <p>暂无活跃数据集。可选择数据目录登记，或在回收站恢复。</p>}</div> : <>\n" +
+    '        <p>删除后保留 30 天；源文件不删除，回收站产物仍占本机空间。</p>\n' +
+    '        {recycleLoading && <p role="status">正在读取回收站…</p>}\n' +
+    '        {recycleError && <pre role="alert">{recycleError}</pre>}\n' +
+    '        <button disabled={state.busy || recycleLoading} onClick={() => { void loadRecycle(); }}>刷新回收站</button>\n' +
+    '        {recycle && <><p>{recycle.count} 个条目 · {byteSize(recycle.total_bytes)}</p>\n' +
+    '          <div className="dataset-table-scroll"><table aria-label="回收站列表"><thead><tr><th>名称 / 源路径</th><th>占用</th><th>预计释放日期</th><th>恢复</th></tr></thead>\n' +
+    '            <tbody>{recycle.items.map(row => <tr key={row.deletion_id}><td><strong>{row.display_name}</strong><code>{row.source_path}</code></td>\n' +
+    '              <td>{byteSize(row.total_bytes)}</td><td>{releaseDate(row.expires_at)}</td><td>\n' +
+    `                {row.status !== 'READY' ? <span role="status">不完整，等待人工处理，已禁止恢复与自动清理。</span>\n` +
+    '                  : <button disabled={state.busy || recycleLoading} onClick={() => { void actions.current?.requestRestore(row); }}>恢复 {row.display_name}</button>}\n' +
+    '              </td></tr>)}</tbody></table></div>\n' +
+    '          {!recycle.count && <p>回收站为空。</p>}\n' +
+    '          {recycle.count > recycle.items.length && <p>另有隔离条目，等待人工处理，不会自动删除。</p>}\n' +
+    '        </>}\n' +
+    '      </>}\n' +
+    '    </div>\n' +
+    '    {state.dialog && <DatasetDialog dialog={state.dialog} onDecision={value => actions.current?.decide(value)} />}\n' +
+    '  </section>;\n' +
+    '}\n'
+  
+      at TestContext.<anonymous> (file:///E:/AI_Agent/src/screens/split-screens.test.ts:26:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: `import { useCallback, useEffect, useRef, useState } from 'react';\nimport { describeError, type CatalogRecord, type DatasetTransport, type Preview, type RecycleList } from './types';\nimport { createDatasetActions, emptyActions } from './actions.ts';\nimport { byteSize, DatasetDialog, releaseDate } from './RecycleView.ts';\nimport BandCanvas from './BandCanvas';\nimport './datasets.css';\n\nfunction Thumbnail({ record, api }: { record: CatalogRecord; api: DatasetTransport }) {\n  const [preview, setPreview] = useState<Preview | null>(null), [error, setError] = useState('');\n  useEffect(() => {\n    let cancelled = false;\n    setPreview(null); setError('');\n    if (!record.available) return;\n    void api.preview(record.id, 0).then(result => { if (!cancelled) setPreview(result); })\n      .catch(failure => { if (!cancelled) setError(describeError(failure)); });\n    return () => { cancelled = true; };\n  }, [api, record.id, record.available]);\n  return preview ? <BandCanvas preview={preview} thumbnail />\n    : error ? <span role="alert">{error}</span> : <span>缩略图读取中…</span>;\n}\n\ntype Callbacks = Parameters<typeof createDatasetActions>[1];\nexport default function DatasetPanel({ api, records, phase, error, onReload, onImported, onDeleted, onRestored, onOpen }: {\n  api: DatasetTransport; records: CatalogRecord[]; phase: 'idle'|'loading'|'ready'|'error'; error: string; onReload(): void;\n  onImported: Callbacks['imported']; onDeleted: Callbacks['deleted']; onRestored: Callbacks['restored'];\n  onOpen(screen: 's04'|'s05'|'s06'|'s07', record?: CatalogRecord): void;\n}) {\n  const [raw, setRaw] = useState(false), [filter, setFilter] = useState<'active'|'deleted'>('active');\n  const [state, setState] = useState(emptyActions);\n  const [recycle, setRecycle] = useState<RecycleList | null>(null), [recycleError, setRecycleError] = useState('');\n  const [recycleLoading, setRecycleLoading] = useState(false);\n  const live = useRef(true), recycleTicket = useRef(0);\n  const callbacks = useRef({ onImported, onDeleted, onRestored });\n  callbacks.current = { onImported, onDeleted, onRestored };\n  const actions = useRef<ReturnType<typeof createDatasetActions> | null>(null);\n  const loadRecycle = useCallback(async () => {\n    const ticket = ++recycleTicket.current;\n    setRecycleLoading(true); setRecycleError('');\n    try {\n      const value = await api.recycleList();\n      if (live.current && ticket === recycleTicket.current) setRecycle(value);\n    } catch (failure) { if (live.current && ticket === recycleTicket.current) setRecycleError(describeError(failure)); }\n    finally { if (live.current && ticket === recycleTicket.current) setRecycleLoading(false); }\n  }, [api]);\n  useEffect(() => {\n    live.current = true;\n    const current = createDatasetActions(api, {\n      imported: rows => callbacks.current.onImported(rows),\n      deleted: async id => { await callbacks.current.onDeleted(id); if (live.current) await loadRecycle(); },\n      restored: async id => { await callbacks.current.onRestored(id); if (live.current) await loadRecycle(); },\n    }, setState);\n    actions.current = current;\n    return () => { live.current = false; recycleTicket.current++; current.dispose(); actions.current = null; };\n  }, [api, loadRecycle]);\n  useEffect(() => { if (filter === 'deleted') void loadRecycle(); }, [filter, loadRecycle]);\n  const disabled = state.busy || phase !== 'ready';\n  return <section className="dataset-panel" aria-label="数据集管理">\n    <div inert={state.dialog !== null}>\n      <h2>数据集</h2>\n      <div className="dataset-toolbar">\n        <button disabled={disabled || !records.some(row => row.available)} onClick={() => onOpen('s07')}>PLS 回归与样品取值</button>\n        <label><input type="checkbox" checked={raw} disabled={disabled} onChange={event => setRaw(event.target.checked)} /> 原始 DN 模式（未除 scale factor）</label>\n        <button disabled={disabled} onClick={() => { void actions.current?.choose(raw); }}>选择数据目录</button>\n        <button disabled={state.busy || phase === 'loading'} onClick={onReload}>重新加载活跃列表</button>\n      </div>\n      <p role="status">{state.message}</p>\n      {phase === 'loading' && <p role="status">正在读取已登记数据集…</p>}\n      {error && <pre role="alert">{error}</pre>}\n      {state.busy && !state.dialog && <progress aria-label="操作进度" {...(state.total ? { value: state.done, max: state.total } : {})} />}\n      {state.error && <pre role="alert">{state.error}</pre>}\n      <label>数据集状态<select value={filter} disabled={state.busy} onChange={event => setFilter(event.target.value as 'active'|'deleted')}>\n        <option value="active">活跃数据集</option><option value="deleted">已删除（回收站）</option>\n      </select></label>\n      {filter === 'active' ? <div className="dataset-table-scroll"><table aria-label="数据集列表">\n        <thead><tr><th>名称 / 源路径</th><th>维度 L×S×B</th><th>波长范围 nm</th><th>读模式</th><th>预览与操作</th></tr></thead>\n        <tbody>{records.map(record => <tr key={record.id}>\n          <td><strong>{record.display_name}</strong><code>{record.source_path}</code>{!record.available && <p className="dataset-unavailable">源文件不可用</p>}</td>\n          <td>{record.shape.join('×')}</td><td>{record.wavelength_range?.join('–') ?? '未提供'}</td><td>{record.raw ? 'DN 原值' : '反射率'}</td>\n          <td>{record.available && <Thumbnail record={record} api={api} />}\n            <div className="dataset-row-actions">{(['s04', 's05', 's06'] as const).map((screen, index) => <button key={screen}\n              disabled={disabled || !record.available} onClick={() => onOpen(screen, record)}>{['查看', '标注', '预处理'][index]} {record.display_name}</button>)}\n              <button className="dataset-danger" disabled={disabled} onClick={() => { void actions.current?.requestDelete(record); }}>移入回收站 {record.display_name}</button>\n            </div></td>\n        </tr>)}</tbody>\n      </table>{phase === 'ready' && !records.length && <p>暂无活跃数据集。可选择数据目录登记，或在回收站恢复。</p>}</div> : <>\n        <p>删除后保留 30 天；源文件不删除，回收站产物仍占本机空间。</p>\n        {recycleLoading && <p role="status">正在读取回收站…</p>}\n        {recycleError && <pre role="alert">{recycleError}</pre>}\n        <button disabled={state.busy || recycleLoading} onClick={() => { void loadRecycle(); }}>刷新回收站</button>\n        {recycle && <><p>{recycle.count} 个条目 · {byteSize(recycle.total_bytes)}</p>\n          <div className="dataset-table-scroll"><table aria-label="回收站列表"><thead><tr><th>名称 / 源路径</th><th>占用</th><th>预计释放日期</th><th>恢复</th></tr></thead>\n            <tbody>{recycle.items.map(row => <tr key={row.deletion_id}><td><strong>{row.display_name}</strong><code>{row.source_path}</code></td>\n              <td>{byteSize(row.total_bytes)}</td><td>{releaseDate(row.expires_at)}</td><td>\n                {row.status !== 'READY' ? <span role="status">不完整，等待人工处理，已禁止恢复与自动清理。</span>\n                  : <button disabled={state.busy || recycleLoading} onClick={() => { void actions.current?.requestRestore(row); }}>恢复 {row.display_name}</button>}\n              </td></tr>)}</tbody></table></div>\n          {!recycle.count && <p>回收站为空。</p>}\n          {recycle.count > recycle.items.length && <p>另有隔离条目，等待人工处理，不会自动删除。</p>}\n        </>}\n      </>}\n    </div>\n    {state.dialog && <DatasetDialog dialog={state.dialog} onDecision={value => actions.current?.decide(value)} />}\n  </section>;\n}\n`,
+    expected: /onOpen\('s04', record\); onWorkspaceChange\?\.\(\{ cube_id: record.id \}\); \}\}>查看/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at src\screens\split-screens.test.ts:47:1
+✖ P2 S07 keeps training and internal views while results and source anchors stay intact (1.0528ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /onOpen\('s06', record\)/. Input:
+  
+  "import { useCallback, useEffect, useRef, useState } from 'react';\n" +
+    "import { describeError, type CatalogRecord, type DatasetTransport, type Preview, type RecycleList } from './types';\n" +
+    "import { createDatasetActions, emptyActions } from './actions.ts';\n" +
+    "import { byteSize, DatasetDialog, releaseDate } from './RecycleView.ts';\n" +
+    "import BandCanvas from './BandCanvas';\n" +
+    "import './datasets.css';\n" +
+    '\n' +
+    'function Thumbnail({ record, api }: { record: CatalogRecord; api: DatasetTransport }) {\n' +
+    "  const [preview, setPreview] = useState<Preview | null>(null), [error, setError] = useState('');\n" +
+    '  useEffect(() => {\n' +
+    '    let cancelled = false;\n' +
+    "    setPreview(null); setError('');\n" +
+    '    if (!record.available) return;\n' +
+    '    void api.preview(record.id, 0).then(result => { if (!cancelled) setPreview(result); })\n' +
+    '      .catch(failure => { if (!cancelled) setError(describeError(failure)); });\n' +
+    '    return () => { cancelled = true; };\n' +
+    '  }, [api, record.id, record.available]);\n' +
+    '  return preview ? <BandCanvas preview={preview} thumbnail />\n' +
+    '    : error ? <span role="alert">{error}</span> : <span>缩略图读取中…</span>;\n' +
+    '}\n' +
+    '\n' +
+    'type Callbacks = Parameters<typeof createDatasetActions>[1];\n' +
+    'export default function DatasetPanel({ api, records, phase, error, onReload, onImported, onDeleted, onRestored, onOpen }: {\n' +
+    "  api: DatasetTransport; records: CatalogRecord[]; phase: 'idle'|'loading'|'ready'|'error'; error: string; onReload(): void;\n" +
+    "  onImported: Callbacks['imported']; onDeleted: Callbacks['deleted']; onRestored: Callbacks['restored'];\n" +
+    "  onOpen(screen: 's04'|'s05'|'s06'|'s07', record?: CatalogRecord): void;\n" +
+    '}) {\n' +
+    "  const [raw, setRaw] = useState(false), [filter, setFilter] = useState<'active'|'deleted'>('active');\n" +
+    '  const [state, setState] = useState(emptyActions);\n' +
+    "  const [recycle, setRecycle] = useState<RecycleList | null>(null), [recycleError, setRecycleError] = useState('');\n" +
+    '  const [recycleLoading, setRecycleLoading] = useState(false);\n' +
+    '  const live = useRef(true), recycleTicket = useRef(0);\n' +
+    '  const callbacks = useRef({ onImported, onDeleted, onRestored });\n' +
+    '  callbacks.current = { onImported, onDeleted, onRestored };\n' +
+    '  const actions = useRef<ReturnType<typeof createDatasetActions> | null>(null);\n' +
+    '  const loadRecycle = useCallback(async () => {\n' +
+    '    const ticket = ++recycleTicket.current;\n' +
+    "    setRecycleLoading(true); setRecycleError('');\n" +
+    '    try {\n' +
+    '      const value = await api.recycleList();\n' +
+    '      if (live.current && ticket === recycleTicket.current) setRecycle(value);\n' +
+    '    } catch (failure) { if (live.current && ticket === recycleTicket.current) setRecycleError(describeError(failure)); }\n' +
+    '    finally { if (live.current && ticket === recycleTicket.current) setRecycleLoading(false); }\n' +
+    '  }, [api]);\n' +
+    '  useEffect(() => {\n' +
+    '    live.current = true;\n' +
+    '    const current = createDatasetActions(api, {\n' +
+    '      imported: rows => callbacks.current.onImported(rows),\n' +
+    '      deleted: async id => { await callbacks.current.onDeleted(id); if (live.current) await loadRecycle(); },\n' +
+    '      restored: async id => { await callbacks.current.onRestored(id); if (live.current) await loadRecycle(); },\n' +
+    '    }, setState);\n' +
+    '    actions.current = current;\n' +
+    '    return () => { live.current = false; recycleTicket.current++; current.dispose(); actions.current = null; };\n' +
+    '  }, [api, loadRecycle]);\n' +
+    "  useEffect(() => { if (filter === 'deleted') void loadRecycle(); }, [filter, loadRecycle]);\n" +
+    "  const disabled = state.busy || phase !== 'ready';\n" +
+    '  return <section className="dataset-panel" aria-label="数据集管理">\n' +
+    '    <div inert={state.dialog !== null}>\n' +
+    '      <h2>数据集</h2>\n' +
+    '      <div className="dataset-toolbar">\n' +
+    "        <button disabled={disabled || !records.some(row => row.available)} onClick={() => onOpen('s07')}>PLS 回归与样品取值</button>\n" +
+    '        <label><input type="checkbox" checked={raw} disabled={disabled} onChange={event => setRaw(event.target.checked)} /> 原始 DN 模式（未除 scale factor）</label>\n' +
+    '        <button disabled={disabled} onClick={() => { void actions.current?.choose(raw); }}>选择数据目录</button>\n' +
+    "        <button disabled={state.busy || phase === 'loading'} onClick={onReload}>重新加载活跃列表</button>\n" +
+    '      </div>\n' +
+    '      <p role="status">{state.message}</p>\n' +
+    `      {phase === 'loading' && <p role="status">正在读取已登记数据集…</p>}\n` +
+    '      {error && <pre role="alert">{error}</pre>}\n' +
+    '      {state.busy && !state.dialog && <progress aria-label="操作进度" {...(state.total ? { value: state.done, max: state.total } : {})} />}\n' +
+    '      {state.error && <pre role="alert">{state.error}</pre>}\n' +
+    "      <label>数据集状态<select value={filter} disabled={state.busy} onChange={event => setFilter(event.target.value as 'active'|'deleted')}>\n" +
+    '        <option value="active">活跃数据集</option><option value="deleted">已删除（回收站）</option>\n' +
+    '      </select></label>\n' +
+    `      {filter === 'active' ? <div className="dataset-table-scroll"><table aria-label="数据集列表">\n` +
+    '        <thead><tr><th>名称 / 源路径</th><th>维度 L×S×B</th><th>波长范围 nm</th><th>读模式</th><th>预览与操作</th></tr></thead>\n' +
+    '        <tbody>{records.map(record => <tr key={record.id}>\n' +
+    '          <td><strong>{record.display_name}</strong><code>{record.source_path}</code>{!record.available && <p className="dataset-unavailable">源文件不可用</p>}</td>\n' +
+    "          <td>{record.shape.join('×')}</td><td>{record.wavelength_range?.join('–') ?? '未提供'}</td><td>{record.raw ? 'DN 原值' : '反射率'}</td>\n" +
+    '          <td>{record.available && <Thumbnail record={record} api={api} />}\n' +
+    `            <div className="dataset-row-actions">{(['s04', 's05', 's06'] as const).map((screen, index) => <button key={screen}\n` +
+    "              disabled={disabled || !record.available} onClick={() => onOpen(screen, record)}>{['查看', '标注', '预处理'][index]} {record.display_name}</button>)}\n" +
+    '              <button className="dataset-danger" disabled={disabled} onClick={() => { void actions.current?.requestDelete(record); }}>移入回收站 {record.display_name}</button>\n' +
+    '            </div></td>\n' +
+    '        </tr>)}</tbody>\n' +
+    "      </table>{phase === 'ready' && !records.length && <p>暂无活跃数据集。可选择数据目录登记，或在回收站恢复。</p>}</div> : <>\n" +
+    '        <p>删除后保留 30 天；源文件不删除，回收站产物仍占本机空间。</p>\n' +
+    '        {recycleLoading && <p role="status">正在读取回收站…</p>}\n' +
+    '        {recycleError && <pre role="alert">{recycleError}</pre>}\n' +
+    '        <button disabled={state.busy || recycleLoading} onClick={() => { void loadRecycle(); }}>刷新回收站</button>\n' +
+    '        {recycle && <><p>{recycle.count} 个条目 · {byteSize(recycle.total_bytes)}</p>\n' +
+    '          <div className="dataset-table-scroll"><table aria-label="回收站列表"><thead><tr><th>名称 / 源路径</th><th>占用</th><th>预计释放日期</th><th>恢复</th></tr></thead>\n' +
+    '            <tbody>{recycle.items.map(row => <tr key={row.deletion_id}><td><strong>{row.display_name}</strong><code>{row.source_path}</code></td>\n' +
+    '              <td>{byteSize(row.total_bytes)}</td><td>{releaseDate(row.expires_at)}</td><td>\n' +
+    `                {row.status !== 'READY' ? <span role="status">不完整，等待人工处理，已禁止恢复与自动清理。</span>\n` +
+    '                  : <button disabled={state.busy || recycleLoading} onClick={() => { void actions.current?.requestRestore(row); }}>恢复 {row.display_name}</button>}\n' +
+    '              </td></tr>)}</tbody></table></div>\n' +
+    '          {!recycle.count && <p>回收站为空。</p>}\n' +
+    '          {recycle.count > recycle.items.length && <p>另有隔离条目，等待人工处理，不会自动删除。</p>}\n' +
+    '        </>}\n' +
+    '      </>}\n' +
+    '    </div>\n' +
+    '    {state.dialog && <DatasetDialog dialog={state.dialog} onDecision={value => actions.current?.decide(value)} />}\n' +
+    '  </section>;\n' +
+    '}\n'
+  
+      at TestContext.<anonymous> (file:///E:/AI_Agent/src/screens/split-screens.test.ts:54:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: `import { useCallback, useEffect, useRef, useState } from 'react';\nimport { describeError, type CatalogRecord, type DatasetTransport, type Preview, type RecycleList } from './types';\nimport { createDatasetActions, emptyActions } from './actions.ts';\nimport { byteSize, DatasetDialog, releaseDate } from './RecycleView.ts';\nimport BandCanvas from './BandCanvas';\nimport './datasets.css';\n\nfunction Thumbnail({ record, api }: { record: CatalogRecord; api: DatasetTransport }) {\n  const [preview, setPreview] = useState<Preview | null>(null), [error, setError] = useState('');\n  useEffect(() => {\n    let cancelled = false;\n    setPreview(null); setError('');\n    if (!record.available) return;\n    void api.preview(record.id, 0).then(result => { if (!cancelled) setPreview(result); })\n      .catch(failure => { if (!cancelled) setError(describeError(failure)); });\n    return () => { cancelled = true; };\n  }, [api, record.id, record.available]);\n  return preview ? <BandCanvas preview={preview} thumbnail />\n    : error ? <span role="alert">{error}</span> : <span>缩略图读取中…</span>;\n}\n\ntype Callbacks = Parameters<typeof createDatasetActions>[1];\nexport default function DatasetPanel({ api, records, phase, error, onReload, onImported, onDeleted, onRestored, onOpen }: {\n  api: DatasetTransport; records: CatalogRecord[]; phase: 'idle'|'loading'|'ready'|'error'; error: string; onReload(): void;\n  onImported: Callbacks['imported']; onDeleted: Callbacks['deleted']; onRestored: Callbacks['restored'];\n  onOpen(screen: 's04'|'s05'|'s06'|'s07', record?: CatalogRecord): void;\n}) {\n  const [raw, setRaw] = useState(false), [filter, setFilter] = useState<'active'|'deleted'>('active');\n  const [state, setState] = useState(emptyActions);\n  const [recycle, setRecycle] = useState<RecycleList | null>(null), [recycleError, setRecycleError] = useState('');\n  const [recycleLoading, setRecycleLoading] = useState(false);\n  const live = useRef(true), recycleTicket = useRef(0);\n  const callbacks = useRef({ onImported, onDeleted, onRestored });\n  callbacks.current = { onImported, onDeleted, onRestored };\n  const actions = useRef<ReturnType<typeof createDatasetActions> | null>(null);\n  const loadRecycle = useCallback(async () => {\n    const ticket = ++recycleTicket.current;\n    setRecycleLoading(true); setRecycleError('');\n    try {\n      const value = await api.recycleList();\n      if (live.current && ticket === recycleTicket.current) setRecycle(value);\n    } catch (failure) { if (live.current && ticket === recycleTicket.current) setRecycleError(describeError(failure)); }\n    finally { if (live.current && ticket === recycleTicket.current) setRecycleLoading(false); }\n  }, [api]);\n  useEffect(() => {\n    live.current = true;\n    const current = createDatasetActions(api, {\n      imported: rows => callbacks.current.onImported(rows),\n      deleted: async id => { await callbacks.current.onDeleted(id); if (live.current) await loadRecycle(); },\n      restored: async id => { await callbacks.current.onRestored(id); if (live.current) await loadRecycle(); },\n    }, setState);\n    actions.current = current;\n    return () => { live.current = false; recycleTicket.current++; current.dispose(); actions.current = null; };\n  }, [api, loadRecycle]);\n  useEffect(() => { if (filter === 'deleted') void loadRecycle(); }, [filter, loadRecycle]);\n  const disabled = state.busy || phase !== 'ready';\n  return <section className="dataset-panel" aria-label="数据集管理">\n    <div inert={state.dialog !== null}>\n      <h2>数据集</h2>\n      <div className="dataset-toolbar">\n        <button disabled={disabled || !records.some(row => row.available)} onClick={() => onOpen('s07')}>PLS 回归与样品取值</button>\n        <label><input type="checkbox" checked={raw} disabled={disabled} onChange={event => setRaw(event.target.checked)} /> 原始 DN 模式（未除 scale factor）</label>\n        <button disabled={disabled} onClick={() => { void actions.current?.choose(raw); }}>选择数据目录</button>\n        <button disabled={state.busy || phase === 'loading'} onClick={onReload}>重新加载活跃列表</button>\n      </div>\n      <p role="status">{state.message}</p>\n      {phase === 'loading' && <p role="status">正在读取已登记数据集…</p>}\n      {error && <pre role="alert">{error}</pre>}\n      {state.busy && !state.dialog && <progress aria-label="操作进度" {...(state.total ? { value: state.done, max: state.total } : {})} />}\n      {state.error && <pre role="alert">{state.error}</pre>}\n      <label>数据集状态<select value={filter} disabled={state.busy} onChange={event => setFilter(event.target.value as 'active'|'deleted')}>\n        <option value="active">活跃数据集</option><option value="deleted">已删除（回收站）</option>\n      </select></label>\n      {filter === 'active' ? <div className="dataset-table-scroll"><table aria-label="数据集列表">\n        <thead><tr><th>名称 / 源路径</th><th>维度 L×S×B</th><th>波长范围 nm</th><th>读模式</th><th>预览与操作</th></tr></thead>\n        <tbody>{records.map(record => <tr key={record.id}>\n          <td><strong>{record.display_name}</strong><code>{record.source_path}</code>{!record.available && <p className="dataset-unavailable">源文件不可用</p>}</td>\n          <td>{record.shape.join('×')}</td><td>{record.wavelength_range?.join('–') ?? '未提供'}</td><td>{record.raw ? 'DN 原值' : '反射率'}</td>\n          <td>{record.available && <Thumbnail record={record} api={api} />}\n            <div className="dataset-row-actions">{(['s04', 's05', 's06'] as const).map((screen, index) => <button key={screen}\n              disabled={disabled || !record.available} onClick={() => onOpen(screen, record)}>{['查看', '标注', '预处理'][index]} {record.display_name}</button>)}\n              <button className="dataset-danger" disabled={disabled} onClick={() => { void actions.current?.requestDelete(record); }}>移入回收站 {record.display_name}</button>\n            </div></td>\n        </tr>)}</tbody>\n      </table>{phase === 'ready' && !records.length && <p>暂无活跃数据集。可选择数据目录登记，或在回收站恢复。</p>}</div> : <>\n        <p>删除后保留 30 天；源文件不删除，回收站产物仍占本机空间。</p>\n        {recycleLoading && <p role="status">正在读取回收站…</p>}\n        {recycleError && <pre role="alert">{recycleError}</pre>}\n        <button disabled={state.busy || recycleLoading} onClick={() => { void loadRecycle(); }}>刷新回收站</button>\n        {recycle && <><p>{recycle.count} 个条目 · {byteSize(recycle.total_bytes)}</p>\n          <div className="dataset-table-scroll"><table aria-label="回收站列表"><thead><tr><th>名称 / 源路径</th><th>占用</th><th>预计释放日期</th><th>恢复</th></tr></thead>\n            <tbody>{recycle.items.map(row => <tr key={row.deletion_id}><td><strong>{row.display_name}</strong><code>{row.source_path}</code></td>\n              <td>{byteSize(row.total_bytes)}</td><td>{releaseDate(row.expires_at)}</td><td>\n                {row.status !== 'READY' ? <span role="status">不完整，等待人工处理，已禁止恢复与自动清理。</span>\n                  : <button disabled={state.busy || recycleLoading} onClick={() => { void actions.current?.requestRestore(row); }}>恢复 {row.display_name}</button>}\n              </td></tr>)}</tbody></table></div>\n          {!recycle.count && <p>回收站为空。</p>}\n          {recycle.count > recycle.items.length && <p>另有隔离条目，等待人工处理，不会自动删除。</p>}\n        </>}\n      </>}\n    </div>\n    {state.dialog && <DatasetDialog dialog={state.dialog} onDecision={value => actions.current?.decide(value)} />}\n  </section>;\n}\n`,
+    expected: /onOpen\('s06', record\)/,
+    operator: 'match',
+    diff: 'simple'
+  }

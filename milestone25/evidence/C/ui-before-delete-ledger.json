@@ -1,0 +1,111 @@
+[
+  {
+    "command": "annotations_forward",
+    "op": "projects"
+  },
+  {
+    "command": "agent_forward",
+    "op": "get_runtime"
+  },
+  {
+    "command": "datasets_forward",
+    "op": "catalog",
+    "limit": 100,
+    "offset": 0
+  },
+  {
+    "command": "annotations_forward",
+    "op": "projects"
+  },
+  {
+    "command": "settings_forward",
+    "op": "get_project_paths",
+    "project_id": "00000000-0000-0000-0000-000000000099"
+  },
+  {
+    "command": "datasets_forward",
+    "op": "preview",
+    "id": "00000000-0000-0000-0000-000000000001",
+    "band": 0
+  },
+  {
+    "command": "datasets_forward",
+    "op": "preview",
+    "id": "00000000-0000-0000-0000-000000000002",
+    "band": 0
+  },
+  {
+    "command": "datasets_forward",
+    "op": "preview",
+    "id": "00000000-0000-0000-0000-000000000003",
+    "band": 0
+  },
+  {
+    "command": "datasets_forward",
+    "op": "preview",
+    "id": "00000000-0000-0000-0000-000000000001",
+    "band": 0
+  },
+  {
+    "command": "datasets_forward",
+    "op": "preview",
+    "id": "00000000-0000-0000-0000-000000000002",
+    "band": 0
+  },
+  {
+    "command": "datasets_forward",
+    "op": "preview",
+    "id": "00000000-0000-0000-0000-000000000003",
+    "band": 0
+  },
+  {
+    "command": "settings_forward",
+    "op": "put_project_paths",
+    "project_id": "00000000-0000-0000-0000-000000000099",
+    "body": {
+      "source_path": "\\\\qa-nas\\prefilled",
+      "output_root": "\\\\qa-nas\\future"
+    }
+  },
+  {
+    "command": "datasets_forward",
+    "op": "import",
+    "path": "\\\\qa-nas\\spectral\\sample-1",
+    "raw": false
+  },
+  {
+    "command": "datasets_forward",
+    "op": "catalog",
+    "limit": 100,
+    "offset": 0
+  },
+  {
+    "command": "datasets_forward",
+    "op": "import",
+    "path": "\\\\qa-nas\\spectral\\sample-2",
+    "raw": false
+  },
+  {
+    "command": "datasets_forward",
+    "op": "catalog",
+    "limit": 100,
+    "offset": 0
+  },
+  {
+    "command": "datasets_forward",
+    "op": "import",
+    "path": "\\\\qa-nas\\spectral\\sample-3",
+    "raw": false
+  },
+  {
+    "command": "datasets_forward",
+    "op": "catalog",
+    "limit": 100,
+    "offset": 0
+  },
+  {
+    "command": "datasets_forward",
+    "op": "delete_preview",
+    "id": "00000000-0000-0000-0000-000000000001"
+  }
+]

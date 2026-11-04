@@ -1,0 +1,13 @@
+src-python/spectrumagent/api/settings.py:19:    @router.get("/llm")
+src-python/spectrumagent/api/settings.py:23:    @router.put("/llm")
+src-python/spectrumagent/api/settings.py:28:    @router.put("/llm/key")
+src-tauri/src/settings.rs:13:pub enum SettingsRequest {
+src-tauri/src/settings.rs:14:    GetLlm {},
+src-tauri/src/settings.rs:15:    PutLlm { body: Value },
+src-tauri/src/settings.rs:16:    PutKey { key: String },
+src-tauri/src/settings.rs:27:        if let Self::PutLlm { body } = self {
+src-tauri/src/settings.rs:49:            Self::GetLlm {} => ("/api/v1/settings/llm", Method::GET, None),
+src-tauri/src/settings.rs:50:            Self::PutLlm { body } => ("/api/v1/settings/llm", Method::PUT, Some(body.clone())),
+src-tauri/src/settings.rs:51:            Self::PutKey { key } => (
+src-tauri/src/settings.rs:64:        SettingsRequest::PutKey { key } => vec![key.as_str()],
+src/components/settings/settings-forward.ts:5:export type SettingsRequest = { op: 'get_llm' } | { op: 'put_llm'; body: LLMConfig } | { op: 'put_key'; key: string };

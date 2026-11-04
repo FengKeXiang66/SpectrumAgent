@@ -1,0 +1,669 @@
+Diff in \\?\E:\AI_Agent\src-tauri\src\agent.rs:230:
+                 Method::GET,
+                 None,
+             ),
+-            Self::GetRuntime {} => (
+-                "/api/v1/agent/runtime".into(),
+-                Method::GET,
+-                None,
+-            ),
++            Self::GetRuntime {} => ("/api/v1/agent/runtime".into(), Method::GET, None),
+             Self::SendMessage { id, body } => (
+                 format!("/api/v1/agent/sessions/{id}/messages"),
+                 Method::POST,
+Diff in \\?\E:\AI_Agent\src-tauri\src\agent.rs:364:
+ fn reject_sensitive_value(value: &Value, secrets: &[&str]) -> Result<(), ForwardError> {
+     match value {
+         Value::String(text) => reject_sensitive(text.as_bytes(), secrets),
+-        Value::Array(items) => items.iter().try_for_each(|item| reject_sensitive_value(item, secrets)),
++        Value::Array(items) => items
++            .iter()
++            .try_for_each(|item| reject_sensitive_value(item, secrets)),
+         Value::Object(fields) => fields.iter().try_for_each(|(key, item)| {
+             reject_sensitive(key.as_bytes(), secrets)?;
+             reject_sensitive_value(item, secrets)
+Diff in \\?\E:\AI_Agent\src-tauri\src\agent.rs:444:
+     }
+     let secrets: Vec<&str> = std::iter::once(identity.token())
+         .chain(secrets.iter().copied())
+-        .chain(error_secrets.iter().copied().filter(|_| !status.is_success()))
++        .chain(
++            error_secrets
++                .iter()
++                .copied()
++                .filter(|_| !status.is_success()),
++        )
+         .collect();
+     reject_sensitive(&bytes, &secrets)?;
+     let value = if sse && status.is_success() {
+Diff in \\?\E:\AI_Agent\src-tauri\src\lib.rs:1:
+ //! SpectrumAgent process supervision core. The desktop UI is added after core acceptance.
+ 
++pub mod agent;
++pub mod annotation;
++pub mod annotations_draft;
+ pub mod causality;
++pub mod datasets_dev;
++#[cfg(debug_assertions)]
++pub mod dev_engine;
+ pub mod engine_path;
+ pub mod handshake;
+ pub mod health;
+Diff in \\?\E:\AI_Agent\src-tauri\src\lib.rs:7:
+ pub mod logging;
++pub mod models;
++pub mod preprocess;
+ pub mod process;
++pub mod settings;
+ pub mod state;
+ pub mod supervisor;
+ pub mod win32;
+Diff in \\?\E:\AI_Agent\src-tauri\src\lib.rs:12:
+-#[cfg(debug_assertions)]
+-pub mod dev_engine;
+-pub mod datasets_dev;
+-pub mod annotation;
+-pub mod preprocess;
+-pub mod models;
+-pub mod agent;
+-pub mod settings;
+-pub mod annotations_draft;
+ 
+Diff in \\?\E:\AI_Agent\src-tauri\src\process.rs:158:
+     /// launcher handle and the original kill-on-close Job. Never fall back.
+     #[cfg(debug_assertions)]
+     pub fn adopt_dev_python(&mut self, pid: u32, created: i64) -> Result<(), WinError> {
+-        let job = self.dev_job().ok_or(WinError { api: "dev_job_handle", code: 6 })?;
++        let job = self.dev_job().ok_or(WinError {
++            api: "dev_job_handle",
++            code: 6,
++        })?;
+         let raw = self.api.open_dev_process(pid)?;
+         let pinned = OwnedHandle::new(raw, self.api.clone());
+         validate_dev_process(self.api.as_ref(), raw, job, created)?;
+Diff in \\?\E:\AI_Agent\src-tauri\src\process.rs:221:
+         }
+         #[cfg(debug_assertions)]
+         if let Some(launcher) = self.launcher.as_mut()
+-            && let Err(error) = launcher.close() {
++            && let Err(error) = launcher.close()
++        {
+             errors.push(error);
+         }
+         if let Some(job) = self.job.as_mut()
+Diff in \\?\E:\AI_Agent\src-tauri\src\process.rs:234:
+ }
+ 
+ #[cfg(debug_assertions)]
+-pub fn validate_dev_process(api: &dyn Win32, raw: RawHandle, job: RawHandle, created: i64) -> Result<(), WinError> {
+-    if !api.dev_in_job(raw, job)? { return Err(WinError { api: "IsProcessInJob", code: 5 }); }
+-    if api.created_at_ms(raw)? != created { return Err(WinError { api: "dev_process_created_at", code: 13 }); }
+-    if api.wait(raw, Some(0))? != WaitResult::Timeout { return Err(WinError { api: "dev_process_exited", code: 6 }); }
++pub fn validate_dev_process(
++    api: &dyn Win32,
++    raw: RawHandle,
++    job: RawHandle,
++    created: i64,
++) -> Result<(), WinError> {
++    if !api.dev_in_job(raw, job)? {
++        return Err(WinError {
++            api: "IsProcessInJob",
++            code: 5,
++        });
++    }
++    if api.created_at_ms(raw)? != created {
++        return Err(WinError {
++            api: "dev_process_created_at",
++            code: 13,
++        });
++    }
++    if api.wait(raw, Some(0))? != WaitResult::Timeout {
++        return Err(WinError {
++            api: "dev_process_exited",
++            code: 6,
++        });
++    }
+     Ok(())
+ }
+ 
+Diff in \\?\E:\AI_Agent\src-tauri\src\settings.rs:12:
+ #[serde(tag = "op", rename_all = "snake_case", deny_unknown_fields)]
+ pub enum SettingsRequest {
+     GetLlm {},
+-    PutLlm { body: Value },
+-    PutKey { key: String },
+-    GetProjectPaths { project_id: String },
+-    PutProjectPaths { project_id: String, body: ProjectPathsBody },
++    PutLlm {
++        body: Value,
++    },
++    PutKey {
++        key: String,
++    },
++    GetProjectPaths {
++        project_id: String,
++    },
++    PutProjectPaths {
++        project_id: String,
++        body: ProjectPathsBody,
++    },
+ }
+ 
+ #[derive(Deserialize, serde::Serialize)]
+Diff in \\?\E:\AI_Agent\src-tauri\src\settings.rs:33:
+ 
+ impl SettingsRequest {
+     fn validate(&self) -> Result<(), ForwardError> {
+-        if let Self::GetProjectPaths { project_id } | Self::PutProjectPaths { project_id, .. } = self {
++        if let Self::GetProjectPaths { project_id } | Self::PutProjectPaths { project_id, .. } =
++            self
++        {
+             uuid(project_id)?;
+         }
+         if let Self::PutLlm { body } = self {
+Diff in \\?\E:\AI_Agent\src-tauri\src\settings.rs:59:
+         self.validate()?;
+         let (path, method, body) = match self {
+             Self::GetLlm {} => ("/api/v1/settings/llm".into(), Method::GET, None),
+-            Self::PutLlm { body } => ("/api/v1/settings/llm".into(), Method::PUT, Some(body.clone())),
++            Self::PutLlm { body } => (
++                "/api/v1/settings/llm".into(),
++                Method::PUT,
++                Some(body.clone()),
++            ),
+             Self::PutKey { key } => (
+                 "/api/v1/settings/llm/key".into(),
+                 Method::PUT,
+Diff in \\?\E:\AI_Agent\src-tauri\src\settings.rs:66:
+                 Some(json!({"key":key})),
+             ),
+             Self::GetProjectPaths { project_id } => (
+-                format!("/api/v1/settings/projects/{}/paths", project_id.to_ascii_lowercase()), Method::GET, None),
++                format!(
++                    "/api/v1/settings/projects/{}/paths",
++                    project_id.to_ascii_lowercase()
++                ),
++                Method::GET,
++                None,
++            ),
+             Self::PutProjectPaths { project_id, body } => (
+-                format!("/api/v1/settings/projects/{}/paths", project_id.to_ascii_lowercase()), Method::PUT,
+-                Some(serde_json::to_value(body).map_err(|_| invalid_request())?)),
++                format!(
++                    "/api/v1/settings/projects/{}/paths",
++                    project_id.to_ascii_lowercase()
++                ),
++                Method::PUT,
++                Some(serde_json::to_value(body).map_err(|_| invalid_request())?),
++            ),
+         };
+         Ok((fixed_url(port, &path)?, method, body))
+     }
+Diff in \\?\E:\AI_Agent\src-tauri\src\settings.rs:79:
+     let (url, method, body) = request.destination(identity.port)?;
+     if let SettingsRequest::PutProjectPaths { body: fields, .. } = request {
+         let paths: Vec<&str> = [fields.source_path.as_str(), fields.output_root.as_str()]
+-            .into_iter().filter(|value| !value.is_empty()).collect();
++            .into_iter()
++            .filter(|value| !value.is_empty())
++            .collect();
+         return forward_http_scoped(identity, url, method, body, false, (&[], &paths));
+     }
+     let secrets = match request {
+Diff in \\?\E:\AI_Agent\src-tauri\src\supervisor.rs:106:
+ impl SupervisorHandle {
+     pub fn dataset_identity(&self) -> Result<(u64, Arc<Handshake>), &'static str> {
+         let (reply, response) = mpsc::channel();
+-        self.tx.send(Message::DatasetIdentity(reply)).map_err(|_| "ENGINE_NOT_READY")?;
+-        response.recv_timeout(Duration::from_secs(2)).map_err(|_| "ENGINE_NOT_READY")?
++        self.tx
++            .send(Message::DatasetIdentity(reply))
++            .map_err(|_| "ENGINE_NOT_READY")?;
++        response
++            .recv_timeout(Duration::from_secs(2))
++            .map_err(|_| "ENGINE_NOT_READY")?
+     }
+     /// No caller inputs. Blocking channel wait must run on a worker, never the UI thread.
+     pub fn run_smoke(&self) -> Result<SmokeMetrics, SmokeFailure> {
+Diff in \\?\E:\AI_Agent\src-tauri\src\supervisor.rs:594:
+             };
+             match message {
+                 Message::DatasetIdentity(reply) => {
+-                    let identity = self.verified.as_ref()
++                    let identity = self
++                        .verified
++                        .as_ref()
+                         .filter(|_| self.machine.phase() == Phase::Ready)
+                         .map(|identity| (self.view.generation_id, identity.clone()))
+                         .ok_or("ENGINE_NOT_READY");
+Diff in \\?\E:\AI_Agent\src-tauri\src\win32.rs:97:
+ pub trait Win32: Send + Sync {
+     #[cfg(debug_assertions)]
+     fn open_dev_process(&self, _pid: u32) -> Result<RawHandle, WinError> {
+-        Err(WinError { api: "OpenProcess", code: 50 })
++        Err(WinError {
++            api: "OpenProcess",
++            code: 50,
++        })
+     }
+     #[cfg(debug_assertions)]
+     fn dev_in_job(&self, _process: RawHandle, _job: RawHandle) -> Result<bool, WinError> {
+Diff in \\?\E:\AI_Agent\src-tauri\src\win32.rs:104:
+-        Err(WinError { api: "IsProcessInJob", code: 50 })
++        Err(WinError {
++            api: "IsProcessInJob",
++            code: 50,
++        })
+     }
+     fn create_suspended(&self, parameters: &CreationParameters)
+     -> Result<CreatedProcess, WinError>;
+Diff in \\?\E:\AI_Agent\src-tauri\src\win32.rs:156:
+ impl Win32 for NativeWin32 {
+     #[cfg(debug_assertions)]
+     fn open_dev_process(&self, pid: u32) -> Result<RawHandle, WinError> {
+-        use windows_sys::Win32::System::Threading::{OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_SYNCHRONIZE};
+-        let raw = unsafe { OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_SYNCHRONIZE, 0, pid) };
+-        if raw.is_null() { return Err(error("OpenProcess")); }
++        use windows_sys::Win32::System::Threading::{
++            OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_SYNCHRONIZE,
++        };
++        let raw = unsafe {
++            OpenProcess(
++                PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_SYNCHRONIZE,
++                0,
++                pid,
++            )
++        };
++        if raw.is_null() {
++            return Err(error("OpenProcess"));
++        }
+         Ok(raw as usize)
+     }
+     #[cfg(debug_assertions)]
+Diff in \\?\E:\AI_Agent\src-tauri\src\main.rs:89:
+ ) -> Result<(), String> {
+     let generation = state.supervisor.snapshot()?.generation_id;
+     let timestamp = chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Millis, true);
+-    monitor.lock().map_err(|_| "boot monitor lock poisoned".to_owned())?
++    monitor
++        .lock()
++        .map_err(|_| "boot monitor lock poisoned".to_owned())?
+         .boot_at = Some(timestamp.clone());
+-    state.log.event("boot_received", json!({"generation_id":generation,"boot_at":timestamp}))
++    state
++        .log
++        .event(
++            "boot_received",
++            json!({"generation_id":generation,"boot_at":timestamp}),
++        )
+         .map_err(|error| error.to_string())
+ }
+ 
+Diff in \\?\E:\AI_Agent\src-tauri\src\main.rs:119:
+     use spectrum_agent::datasets_dev::{ForwardError, forward};
+     let supervisor = state.supervisor.clone();
+     tauri::async_runtime::spawn_blocking(move || {
+-        let (generation, identity) = supervisor.dataset_identity()
++        let (generation, identity) = supervisor
++            .dataset_identity()
+             .map_err(|_| ForwardError::new("ENGINE_NOT_READY", "数据引擎尚未就绪"))?;
+         let result = forward(&identity, &request);
+-        let current = supervisor.snapshot()
++        let current = supervisor
++            .snapshot()
+             .map_err(|_| ForwardError::new("ENGINE_NOT_READY", "无法核验当前引擎代次"))?;
+         if current.generation_id != generation || current.phase != Phase::Ready {
+-            return Err(ForwardError::new("STALE_RESPONSE", "引擎代次已变化，请重试"));
++            return Err(ForwardError::new(
++                "STALE_RESPONSE",
++                "引擎代次已变化，请重试",
++            ));
+         }
+         result
+-    }).await.map_err(|_| ForwardError::new("WORKER_FAILED", "数据请求工作线程失败"))?
++    })
++    .await
++    .map_err(|_| ForwardError::new("WORKER_FAILED", "数据请求工作线程失败"))?
+ }
+ // TASK-04 §5.7: annotations_forward release registration approved 2026-10-20.
+ #[tauri::command]
+Diff in \\?\E:\AI_Agent\src-tauri\src\main.rs:141:
+     let request = parse_request(request)?;
+     let supervisor = state.supervisor.clone();
+     tauri::async_runtime::spawn_blocking(move || {
+-        let (generation, identity) = supervisor.dataset_identity()
++        let (generation, identity) = supervisor
++            .dataset_identity()
+             .map_err(|_| ForwardError::new("ENGINE_NOT_READY", "数据引擎尚未就绪"))?;
+         let result = forward(&identity, &request);
+-        let current = supervisor.snapshot()
++        let current = supervisor
++            .snapshot()
+             .map_err(|_| ForwardError::new("ENGINE_NOT_READY", "无法核验当前引擎代次"))?;
+         if current.generation_id != generation || current.phase != Phase::Ready {
+-            return Err(ForwardError::new("STALE_RESPONSE", "引擎代次已变化，请重试"));
++            return Err(ForwardError::new(
++                "STALE_RESPONSE",
++                "引擎代次已变化，请重试",
++            ));
+         }
+         result
+-    }).await.map_err(|_| ForwardError::new("WORKER_FAILED", "数据请求工作线程失败"))?
++    })
++    .await
++    .map_err(|_| ForwardError::new("WORKER_FAILED", "数据请求工作线程失败"))?
+ }
+ #[tauri::command]
+ async fn models_forward(
+Diff in \\?\E:\AI_Agent\src-tauri\src\main.rs:157:
+-    state: tauri::State<'_, Desktop>, request: serde_json::Value,
++    state: tauri::State<'_, Desktop>,
++    request: serde_json::Value,
+ ) -> Result<serde_json::Value, spectrum_agent::models::ForwardError> {
+     use spectrum_agent::models::{ForwardError, forward, parse_request};
+-    let supervisor=state.supervisor.clone();
++    let supervisor = state.supervisor.clone();
+     tauri::async_runtime::spawn_blocking(move || {
+-        let (generation,identity)=supervisor.dataset_identity().map_err(|_|ForwardError::new("ENGINE_NOT_READY","引擎尚未就绪"))?;
+-        let request=parse_request(request)?;
+-        let result=forward(&identity,&request);
+-        let current=supervisor.snapshot().map_err(|_|ForwardError::new("ENGINE_NOT_READY","无法核验引擎代次"))?;
+-        spectrum_agent::preprocess::validate_generation(generation,&current)?;
++        let (generation, identity) = supervisor
++            .dataset_identity()
++            .map_err(|_| ForwardError::new("ENGINE_NOT_READY", "引擎尚未就绪"))?;
++        let request = parse_request(request)?;
++        let result = forward(&identity, &request);
++        let current = supervisor
++            .snapshot()
++            .map_err(|_| ForwardError::new("ENGINE_NOT_READY", "无法核验引擎代次"))?;
++        spectrum_agent::preprocess::validate_generation(generation, &current)?;
+         result
+-    }).await.map_err(|_|ForwardError::new("WORKER_FAILED","建模工作线程失败"))?
++    })
++    .await
++    .map_err(|_| ForwardError::new("WORKER_FAILED", "建模工作线程失败"))?
+ }
+ // TASK-05 §11.5/R13/R14: fixed preprocessing operations, 300s request timeout.
+ #[tauri::command]
+Diff in \\?\E:\AI_Agent\src-tauri\src\main.rs:176:
+     use spectrum_agent::preprocess::{ForwardError, forward, parse_request, validate_generation};
+     let supervisor = state.supervisor.clone();
+     tauri::async_runtime::spawn_blocking(move || {
+-        let (generation, identity) = supervisor.dataset_identity()
++        let (generation, identity) = supervisor
++            .dataset_identity()
+             .map_err(|_| ForwardError::new("ENGINE_NOT_READY", "数据引擎尚未就绪"))?;
+         let request = parse_request(request)?;
+         let result = forward(&identity, &request);
+Diff in \\?\E:\AI_Agent\src-tauri\src\main.rs:183:
+-        let current = supervisor.snapshot()
++        let current = supervisor
++            .snapshot()
+             .map_err(|_| ForwardError::new("ENGINE_NOT_READY", "无法核验当前引擎代次"))?;
+         validate_generation(generation, &current)?;
+         result
+Diff in \\?\E:\AI_Agent\src-tauri\src\main.rs:187:
+-    }).await.map_err(|_| ForwardError::new("WORKER_FAILED", "数据请求工作线程失败"))?
++    })
++    .await
++    .map_err(|_| ForwardError::new("WORKER_FAILED", "数据请求工作线程失败"))?
+ }
+ #[tauri::command]
+ async fn open_data_directory(
+Diff in \\?\E:\AI_Agent\src-tauri\src\main.rs:266:
+     use spectrum_agent::agent::{ForwardError, forward, parse_request, validate_generation};
+     let supervisor = state.supervisor.clone();
+     tauri::async_runtime::spawn_blocking(move || {
+-        let (generation, identity) = supervisor.dataset_identity()
++        let (generation, identity) = supervisor
++            .dataset_identity()
+             .map_err(|_| ForwardError::new("ENGINE_NOT_READY", "数据引擎尚未就绪"))?;
+         let request = parse_request(request)?;
+         let result = forward(&identity, &request);
+Diff in \\?\E:\AI_Agent\src-tauri\src\main.rs:273:
+-        let current = supervisor.snapshot()
++        let current = supervisor
++            .snapshot()
+             .map_err(|_| ForwardError::new("ENGINE_NOT_READY", "无法核验当前引擎代次"))?;
+         validate_generation(generation, &current)?;
+         result
+Diff in \\?\E:\AI_Agent\src-tauri\src\main.rs:277:
+-    }).await.map_err(|_| ForwardError::new("WORKER_FAILED", "请求工作线程失败"))?
++    })
++    .await
++    .map_err(|_| ForwardError::new("WORKER_FAILED", "请求工作线程失败"))?
+ }
+ 
+ #[tauri::command]
+Diff in \\?\E:\AI_Agent\src-tauri\src\main.rs:285:
+     use spectrum_agent::settings::{ForwardError, forward, parse_request, validate_generation};
+     let supervisor = state.supervisor.clone();
+     tauri::async_runtime::spawn_blocking(move || {
+-        let (generation, identity) = supervisor.dataset_identity()
++        let (generation, identity) = supervisor
++            .dataset_identity()
+             .map_err(|_| ForwardError::new("ENGINE_NOT_READY", "数据引擎尚未就绪"))?;
+         let request = parse_request(request)?;
+         let result = forward(&identity, &request);
+Diff in \\?\E:\AI_Agent\src-tauri\src\main.rs:292:
+-        let current = supervisor.snapshot()
++        let current = supervisor
++            .snapshot()
+             .map_err(|_| ForwardError::new("ENGINE_NOT_READY", "无法核验当前引擎代次"))?;
+         validate_generation(generation, &current)?;
+         result
+Diff in \\?\E:\AI_Agent\src-tauri\src\main.rs:296:
+-    }).await.map_err(|_| ForwardError::new("WORKER_FAILED", "请求工作线程失败"))?
++    })
++    .await
++    .map_err(|_| ForwardError::new("WORKER_FAILED", "请求工作线程失败"))?
+ }
+ 
+ #[tauri::command]
+Diff in \\?\E:\AI_Agent\src-tauri\src\main.rs:301:
+     state: tauri::State<'_, Desktop>,
+     request: serde_json::Value,
+ ) -> Result<serde_json::Value, spectrum_agent::annotations_draft::ForwardError> {
+-    use spectrum_agent::annotations_draft::{ForwardError, forward, parse_request, validate_generation};
++    use spectrum_agent::annotations_draft::{
++        ForwardError, forward, parse_request, validate_generation,
++    };
+     let supervisor = state.supervisor.clone();
+     tauri::async_runtime::spawn_blocking(move || {
+-        let (generation, identity) = supervisor.dataset_identity()
++        let (generation, identity) = supervisor
++            .dataset_identity()
+             .map_err(|_| ForwardError::new("ENGINE_NOT_READY", "数据引擎尚未就绪"))?;
+         let request = parse_request(request)?;
+         let result = forward(&identity, &request);
+Diff in \\?\E:\AI_Agent\src-tauri\src\main.rs:311:
+-        let current = supervisor.snapshot()
++        let current = supervisor
++            .snapshot()
+             .map_err(|_| ForwardError::new("ENGINE_NOT_READY", "无法核验当前引擎代次"))?;
+         validate_generation(generation, &current)?;
+         result
+Diff in \\?\E:\AI_Agent\src-tauri\src\main.rs:315:
+-    }).await.map_err(|_| ForwardError::new("WORKER_FAILED", "请求工作线程失败"))?
++    })
++    .await
++    .map_err(|_| ForwardError::new("WORKER_FAILED", "请求工作线程失败"))?
+ }
+ 
+ fn begin_shutdown(app: &tauri::AppHandle) {
+Diff in \\?\E:\AI_Agent\src-tauri\src\main.rs:363:
+ }
+ 
+ fn start_boot_monitor(app: &tauri::AppHandle, log: &ShellLog, generation: u64) {
+-    let Some(state) = app.try_state::<Mutex<BootMonitor>>() else { return; };
+-    let Ok(mut monitor) = state.lock() else { return; };
+-    if !monitor.begin_generation(generation) { return; }
++    let Some(state) = app.try_state::<Mutex<BootMonitor>>() else {
++        return;
++    };
++    let Ok(mut monitor) = state.lock() else {
++        return;
++    };
++    if !monitor.begin_generation(generation) {
++        return;
++    }
+     drop(monitor);
+     let app = app.clone();
+     let thread_log = log.clone();
+Diff in \\?\E:\AI_Agent\src-tauri\src\main.rs:416:
+         }
+     });
+     if let Err(error) = result {
+-        let _ = thread_log.event("boot_monitor_failed", json!({"generation_id":generation,"error":error.to_string()}));
++        let _ = thread_log.event(
++            "boot_monitor_failed",
++            json!({"generation_id":generation,"error":error.to_string()}),
++        );
+     }
+ }
+ 
+Diff in \\?\E:\AI_Agent\src-tauri\src\main.rs:429:
+     fn reload_budget_is_independent_and_activations_do_not_reset_it() {
+         let mut monitor = BootMonitor::default();
+         assert!(monitor.begin_generation(1));
+-        assert_eq!(monitor.decide(1, Duration::from_secs(5)), Some(BootAction::Reload));
++        assert_eq!(
++            monitor.decide(1, Duration::from_secs(5)),
++            Some(BootAction::Reload)
++        );
+         assert!(!monitor.begin_generation(1));
+         monitor.document_started(); // The automatic reload preserves its generation budget.
+-        assert_eq!(monitor.decide(1, Duration::from_secs(10)), Some(BootAction::Wait));
+-        assert_eq!(monitor.decide(1, Duration::from_secs(15)), Some(BootAction::GiveUp));
++        assert_eq!(
++            monitor.decide(1, Duration::from_secs(10)),
++            Some(BootAction::Wait)
++        );
++        assert_eq!(
++            monitor.decide(1, Duration::from_secs(15)),
++            Some(BootAction::GiveUp)
++        );
+         assert_eq!(monitor.decide(1, Duration::from_secs(60)), None);
+         assert!(monitor.begin_generation(2));
+-        assert_eq!(monitor.decide(2, Duration::from_secs(5)), Some(BootAction::Reload));
++        assert_eq!(
++            monitor.decide(2, Duration::from_secs(5)),
++            Some(BootAction::Reload)
++        );
+     }
+ 
+     #[test]
+Diff in \\?\E:\AI_Agent\src-tauri\src\main.rs:443:
+     fn engine_retry_keeps_healthy_document_until_real_navigation() {
+-        let mut monitor = BootMonitor { boot_at: Some("document boot timestamp".to_owned()), ..BootMonitor::default() };
++        let mut monitor = BootMonitor {
++            boot_at: Some("document boot timestamp".to_owned()),
++            ..BootMonitor::default()
++        };
+         for generation in [1, 2, 99] {
+             assert!(monitor.begin_generation(generation));
+             // Wait produces no reload/title/failure-file operation in the caller.
+Diff in \\?\E:\AI_Agent\src-tauri\src\main.rs:448:
+-            assert_eq!(monitor.decide(generation, Duration::from_secs(60)), Some(BootAction::Wait));
++            assert_eq!(
++                monitor.decide(generation, Duration::from_secs(60)),
++                Some(BootAction::Wait)
++            );
+             assert_eq!(monitor.decide(generation, Duration::from_secs(120)), None);
+         }
+         monitor.document_started();
+Diff in \\?\E:\AI_Agent\src-tauri\src\main.rs:452:
+         assert!(monitor.boot_at.is_none());
+         assert!(monitor.begin_generation(100));
+-        assert_eq!(monitor.decide(100, Duration::from_secs(5)), Some(BootAction::Reload));
++        assert_eq!(
++            monitor.decide(100, Duration::from_secs(5)),
++            Some(BootAction::Reload)
++        );
+     }
+ }
+ 
+Diff in \\?\E:\AI_Agent\src-tauri\src\main.rs:468:
+     let builder = tauri::Builder::default()
+         .manage(Mutex::new(BootMonitor::default()))
+         .on_page_load(|webview, payload| {
+-            if webview.label() == "main" && payload.event() == tauri::webview::PageLoadEvent::Started
++            if webview.label() == "main"
++                && payload.event() == tauri::webview::PageLoadEvent::Started
+                 && let Some(state) = webview.app_handle().try_state::<Mutex<BootMonitor>>()
+-                && let Ok(mut monitor) = state.lock() {
++                && let Ok(mut monitor) = state.lock()
++            {
+                 monitor.document_started();
+             }
+         })
+Diff in \\?\E:\AI_Agent\src-tauri\src\main.rs:477:
+         // Must be the first registered plugin; it acquires the lock before setup/spawn.
+-        .plugin(tauri_plugin_single_instance::init(move |app, _args, _cwd| {
+-            pending_callback.store(true, Ordering::Release);
+-            let _ = callback_log.event("single_instance_activation", json!({}));
+-            if let Some(state) = app.try_state::<Desktop>() {
+-                let _ = state.supervisor.activate();
+-                if let Ok(status) = state.supervisor.snapshot()
+-                    && matches!(status.phase, Phase::Ready | Phase::Failed) {
+-                    show_window(app, &callback_log, status.generation_id, true);
+-                    pending_callback.store(false, Ordering::Release);
++        .plugin(tauri_plugin_single_instance::init(
++            move |app, _args, _cwd| {
++                pending_callback.store(true, Ordering::Release);
++                let _ = callback_log.event("single_instance_activation", json!({}));
++                if let Some(state) = app.try_state::<Desktop>() {
++                    let _ = state.supervisor.activate();
++                    if let Ok(status) = state.supervisor.snapshot()
++                        && matches!(status.phase, Phase::Ready | Phase::Failed)
++                    {
++                        show_window(app, &callback_log, status.generation_id, true);
++                        pending_callback.store(false, Ordering::Release);
++                    }
+                 }
+-            }
+-        }))
++            },
++        ))
+         .plugin(tauri_plugin_opener::init())
+         .plugin(tauri_plugin_dialog::init());
+     #[cfg(debug_assertions)]
+Diff in \\?\E:\AI_Agent\src-tauri\src\main.rs:493:
+-    let builder = builder.invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, open_exports_directory, boot_probe, datasets_forward, annotations_forward, preprocess_forward, agent_forward, settings_forward, annotations_draft_forward, models_forward]);
++    let builder = builder.invoke_handler(tauri::generate_handler![
++        engine_status,
++        retry_engine,
++        run_smoke,
++        open_data_directory,
++        open_exports_directory,
++        boot_probe,
++        datasets_forward,
++        annotations_forward,
++        preprocess_forward,
++        agent_forward,
++        settings_forward,
++        annotations_draft_forward,
++        models_forward
++    ]);
+     #[cfg(not(debug_assertions))]
+-    let builder = builder
+-        .invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, open_exports_directory, boot_probe, datasets_forward, annotations_forward, preprocess_forward, agent_forward, settings_forward, annotations_draft_forward, models_forward]);
++    let builder = builder.invoke_handler(tauri::generate_handler![
++        engine_status,
++        retry_engine,
++        run_smoke,
++        open_data_directory,
++        open_exports_directory,
++        boot_probe,
++        datasets_forward,
++        annotations_forward,
++        preprocess_forward,
++        agent_forward,
++        settings_forward,
++        annotations_draft_forward,
++        models_forward
++    ]);
+     let app = builder.setup(move |app| {
+             setup_log.event("single_instance_lock_acquired", json!({}))?;
+             let resource = app.path().resolve("resources/backend/app.exe", tauri::path::BaseDirectory::Resource)?;

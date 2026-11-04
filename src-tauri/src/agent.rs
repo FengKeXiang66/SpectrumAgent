@@ -230,11 +230,7 @@ impl AgentRequest {
                 Method::GET,
                 None,
             ),
-            Self::GetRuntime {} => (
-                "/api/v1/agent/runtime".into(),
-                Method::GET,
-                None,
-            ),
+            Self::GetRuntime {} => ("/api/v1/agent/runtime".into(), Method::GET, None),
             Self::SendMessage { id, body } => (
                 format!("/api/v1/agent/sessions/{id}/messages"),
                 Method::POST,
@@ -361,6 +357,20 @@ fn reject_sensitive(bytes: &[u8], secrets: &[&str]) -> Result<(), ForwardError> 
     Ok(())
 }
 
+fn reject_sensitive_value(value: &Value, secrets: &[&str]) -> Result<(), ForwardError> {
+    match value {
+        Value::String(text) => reject_sensitive(text.as_bytes(), secrets),
+        Value::Array(items) => items
+            .iter()
+            .try_for_each(|item| reject_sensitive_value(item, secrets)),
+        Value::Object(fields) => fields.iter().try_for_each(|(key, item)| {
+            reject_sensitive(key.as_bytes(), secrets)?;
+            reject_sensitive_value(item, secrets)
+        }),
+        _ => Ok(()),
+    }
+}
+
 // Shared only by the two fixed domain forwarders, never exposed as an IPC proxy.
 pub(crate) fn forward_http(
     identity: &Handshake,
@@ -370,6 +380,20 @@ pub(crate) fn forward_http(
     sse: bool,
     secrets: &[&str],
 ) -> Result<Value, ForwardError> {
+    forward_http_scoped(identity, url, method, body, sse, (secrets, &[]))
+}
+
+// Project paths must be visible in successful settings responses. They remain
+// forbidden in error envelopes; credentials keep the stronger all-response rule.
+pub(crate) fn forward_http_scoped(
+    identity: &Handshake,
+    url: Url,
+    method: Method,
+    body: Option<Value>,
+    sse: bool,
+    protected: (&[&str], &[&str]),
+) -> Result<Value, ForwardError> {
+    let (secrets, error_secrets) = protected;
     let client = Client::builder()
         .no_proxy()
         .redirect(reqwest::redirect::Policy::none())
@@ -418,6 +442,12 @@ pub(crate) fn forward_http(
     }
     let secrets: Vec<&str> = std::iter::once(identity.token())
         .chain(secrets.iter().copied())
+        .chain(
+            error_secrets
+                .iter()
+                .copied()
+                .filter(|_| !status.is_success()),
+        )
         .collect();
     reject_sensitive(&bytes, &secrets)?;
     let value = if sse && status.is_success() {
@@ -429,6 +459,7 @@ pub(crate) fn forward_http(
         serde_json::from_slice(&bytes)
             .map_err(|_| ForwardError::new("INVALID_BODY", "响应不是有效JSON"))?
     };
+    reject_sensitive_value(&value, &secrets)?;
     reject_sensitive(
         &serde_json::to_vec(&value)
             .map_err(|_| ForwardError::new("INVALID_BODY", "响应无法序列化"))?,

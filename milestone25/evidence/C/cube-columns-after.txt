@@ -1,0 +1,9 @@
+src-python/spectrumagent/annotation/migrations.py:51:  cube_id         TEXT NOT NULL,
+src-python/spectrumagent/annotation/migrations.py:70:  cube_id     TEXT NOT NULL,
+src-python/spectrumagent/annotation/migrations.py:89:  cube_id     TEXT NOT NULL,
+src-python/spectrumagent/preprocess/migrations.py:35:  cube_id      TEXT NOT NULL,                -- 输入数据集（dataset_registry.id）
+src-python/spectrumagent/modeling/migrations.py:4: id TEXT PRIMARY KEY, cube_ids TEXT NOT NULL, annotation_version_ids TEXT NOT NULL,
+src-python/spectrumagent/modeling/migrations.py:33: cube_id TEXT NOT NULL REFERENCES dataset_registry(id),
+src-python/spectrumagent/modeling/migrations.py:50: cube_id TEXT NOT NULL REFERENCES dataset_registry(id),
+src-python/spectrumagent/agent/migrations.py:84:  cube_id            TEXT PRIMARY KEY REFERENCES dataset_registry(id),
+src-python/spectrumagent/agent/migrations.py:101:  cube_id               TEXT NOT NULL,                        -- 服务端：confirm 入参

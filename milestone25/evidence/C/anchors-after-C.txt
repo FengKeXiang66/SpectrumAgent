@@ -1,0 +1,92 @@
+src/App.tsx:56:  const [records, setRecords] = useState<CatalogRecord[]>([]);
+src/App.tsx:111:    setWorkspace({}); setRecords([]); setRefreshVersions({}); setNavigation(null); setWorkspaceName(''); setPreviewCandidates({});
+src/components/datasets/actions.ts:47:          await callbacks.imported(result.datasets);
+src/components/datasets/types.ts:15:  all_datasets: DatasetRecord[];
+src/components/datasets/types.ts:38:export type DatasetTransport = {
+src/components/datasets/types.ts:51:export function mergeRecords(previous: DatasetRecord[], incoming: DatasetRecord[]): DatasetRecord[] {
+src/components/datasets/types.ts:52:  const merged = new Map(previous.map(record => [record.id, record]));
+src/components/datasets/types.ts:53:  for (const record of incoming) merged.set(record.id, record);
+src/components/datasets/types.ts:54:  return [...merged.values()];
+src-python/spectrumagent/api/schemas.py:36:    all_datasets: list[DatasetRecord]
+src/components/datasets/display_names.test.ts:14:test('G2 all_datasets refreshes a previously unique name without duplicating records', () => {
+src-python/spectrumagent/api/registry.py:121:            db.execute("CREATE TABLE IF NOT EXISTS dataset_registry (id TEXT PRIMARY KEY, header_key TEXT NOT NULL, raw INTEGER NOT NULL, payload TEXT NOT NULL, UNIQUE(header_key,raw))")
+src-python/spectrumagent/api/registry.py:177:            active = db.execute('SELECT id,payload FROM dataset_registry WHERE header_key=? AND raw=?',
+src-python/spectrumagent/api/registry.py:199:            db.execute('INSERT INTO dataset_registry (id,header_key,raw,payload,project_id) VALUES (?,?,?,?,?)',
+src-python/spectrumagent/api/registry.py:231:            all_records = [batch_records.get(identifier) or DatasetRecord(id=identifier,
+src-python/spectrumagent/api/registry.py:258:    def readable(self, identifier, raw=None):
+src-python/spectrumagent/api/registry.py:262:            current = read_header(Path(stored.header_path), Path(stored.data_path), raw=mode)
+src/components/datasets/api.ts:7:export type Request = { op: 'import'; path: string; raw: boolean; confirm_new?: boolean } | ({ op: 'preview'; id: string } & PreviewOptions)
+src/components/datasets/api.ts:45:  const result = await open({ directory: true, multiple: true, filters: [{ name: 'Hyperspectral', extensions: ['hdr', 'img', 'raw', 'bin', 'json', 'txt'] }] });
+src-tauri/src/datasets_dev.rs:51:#[serde(tag = "op", rename_all = "snake_case", deny_unknown_fields)]
+src-tauri/src/datasets_dev.rs:52:pub enum DatasetRequest {
+backend/database.py:10:    connection.execute("PRAGMA foreign_keys=ON")
+backend/paths.py:8:NAS_SOURCE_ROOT: Path | None = None
+backend/paths.py:9:NAS_OUTPUT_ROOT: Path | None = None
+backend/paths.py:40:    def database(self) -> Path:
+backend/paths.py:44:    def snapshots(self) -> Path:
+backend/paths.py:48:    def preprocessed(self) -> Path:
+backend/paths.py:52:    def exports(self) -> Path:
+src-python/spectrumagent/agent/state.py:166:        return json.loads(self.session(session_id)["context_json"])
+src-python/spectrumagent/agent/state.py:173:            db.execute("UPDATE agent_session SET context_json=? WHERE id=?", (value, session_id))
+src-python/spectrumagent/agent/llm.py:136:_DENY_TEXT = re.compile(r"[a-z]:|\\|/[^\s/]+|\.(?:img|hdr|mat)\b|\blabel_map\b", re.I)
+src-python/spectrumagent/agent/mat.py:52:                if not path.resolve().is_relative_to(self.paths.exports.resolve()):
+src-python/spectrumagent/agent/mat.py:88:        if relative.is_absolute() or ".." in relative.parts or "\\" in row["relative_path"] or ":" in row["relative_path"] or not path.resolve().is_relative_to(self.paths.exports.resolve()):
+src-python/spectrumagent/agent/mat.py:190:            if not temporary.resolve().is_relative_to(self.paths.exports.resolve()):
+src-python/spectrumagent/annotation/session.py:387:                        db.execute("DELETE FROM annotation WHERE version_id=?", (version_id,))
+src-python/spectrumagent/annotation/session.py:388:                        db.execute("DELETE FROM sample_spectrum WHERE version_id=?", (version_id,))
+src-python/spectrumagent/annotation/session.py:389:                        db.execute("DELETE FROM training_mat WHERE annotation_version_id=?", (version_id,))
+src-python/spectrumagent/annotation/session.py:405:                    storage.rmtree(directory)
+src-python/spectrumagent/modeling/migrations.py:68:    deferred = db.execute("PRAGMA defer_foreign_keys").fetchone()[0]
+src-python/spectrumagent/modeling/migrations.py:69:    db.execute("SAVEPOINT modeling_132")
+src-python/spectrumagent/modeling/migrations.py:81:                db.execute(f"INSERT INTO {name}_132 ({fields}) SELECT {fields} FROM {name}")
+src-python/spectrumagent/modeling/migrations.py:82:            db.execute("PRAGMA defer_foreign_keys=ON")
+src-python/spectrumagent/modeling/migrations.py:84:                db.execute(f"DROP TABLE {name}")
+src-python/spectrumagent/modeling/migrations.py:86:                db.execute(f"ALTER TABLE {name}_132 RENAME TO {name}")
+src-python/spectrumagent/modeling/migrations.py:97:            db.execute("PRAGMA defer_foreign_keys=ON")
+src-python/spectrumagent/modeling/migrations.py:98:        db.execute("RELEASE modeling_132")
+src-python/spectrumagent/modeling/migrations.py:101:        db.execute("RELEASE modeling_132")
+src-python/spectrumagent/modeling/migrations.py:102:        db.execute(f"PRAGMA defer_foreign_keys={int(deferred)}")
+src-python/spectrumagent/annotation/projection_io.py:21:    return paths.root / "projects" / str(UUID(str(project_id))) / "projection.json"
+src-python/spectrumagent/annotation/projection_io.py:73:    root = paths.exports.resolve()
+src-python/spectrumagent/annotation/projection_io.py:74:    folder = root / cube_id
+src-python/spectrumagent/api/registry.py:219:                        db.execute("UPDATE dataset_registry SET payload=? WHERE id=?", (json.dumps(stored.as_dict(), ensure_ascii=False), row[0]))
+backend/paths.py:56:    def trash(self) -> Path:
+src-python/spectrumagent/storage/guard.py:329:def resolve_write(path, *, kind):
+src-python/spectrumagent/storage/guard.py:333:def resolve_delete(path):
+src-python/spectrumagent/storage/guard.py:337:def mkdir(path, *, parents=False, exist_ok=False):
+src-python/spectrumagent/storage/guard.py:341:def unlink(path, *, missing_ok=False):
+src-python/spectrumagent/storage/guard.py:345:def rmtree(path):
+src-python/spectrumagent/storage/guard.py:349:def replace(source, destination):
+src-tauri/src/settings.rs:12:#[serde(tag = "op", rename_all = "snake_case", deny_unknown_fields)]
+src-tauri/src/settings.rs:13:pub enum SettingsRequest {
+src-tauri/src/settings.rs:69:    pub fn destination(&self, port: u16) -> Result<(Url, Method, Option<Value>), ForwardError> {
+src-tauri/src/settings.rs:107:        let paths: Vec<&str> = [fields.source_path.as_str(), fields.output_root.as_str()]
+src-tauri/src/settings.rs:113:    let secrets = match request {
+src-tauri/src/settings.rs:114:        SettingsRequest::PutKey { key } => vec![key.as_str()],
+src/components/settings/settings-forward.ts:8:export type SettingsRequest = { op: 'get_llm' } | { op: 'put_llm'; body: LLMConfig } | { op: 'put_key'; key: string }
+src/components/settings/settings-forward.ts:28:  const forward = <T>(request: SettingsRequest) => send<T>('settings_forward', { request });
+src-python/spectrumagent/api/settings.py:14:def make_router(paths):
+src-python/spectrumagent/api/settings.py:16:    router = APIRouter(prefix="/api/v1/settings", tags=["settings"])
+src-python/spectrumagent/api/settings.py:22:    @router.get("/llm")
+src-python/spectrumagent/api/settings.py:26:    @router.put("/llm")
+src-python/spectrumagent/api/settings.py:31:    @router.put("/llm/key")
+src-python/spectrumagent/app.py:54:    app.include_router(make_settings_router(paths))
+src-python/spectrumagent/app.py:93:        if request.url.path.startswith("/api/v1/settings") or request.url.path.startswith("/api/v1/agent"):
+src-python/spectrumagent/app.py:110:        if (request.url.path in LABEL_PATHS or request.url.path == "/api/v1/datasets" or request.url.path.startswith("/api/v1/datasets/") or request.url.path.startswith('/api/v1/recycle') or request.url.path.startswith("/api/v1/preprocess") or request.url.path.startswith("/api/v1/settings") or request.url.path.startswith("/api/v1/agent") or request.url.path.startswith("/api/v1/annotations/") or request.url.path.startswith("/api/v1/models")) and response.status_code != 401:
+src-python/spectrumagent/api/openapi.json:644:    "/api/v1/settings/projects/{project_id}/paths": {
+src-python/spectrumagent/api/openapi.json:738:    "/api/v1/settings/llm": {
+src-python/spectrumagent/api/openapi.json:794:    "/api/v1/settings/llm/key": {
+src/components/datasets/types.ts:11:};
+src/components/datasets/types.ts:17:};
+src/components/datasets/types.ts:38:export type DatasetTransport = {
+src/components/datasets/types.ts:39:  get: (id: string) => Promise<DatasetRecord>;
+src/components/datasets/types.ts:40:  chooseDirectories: () => Promise<string[] | null>;
+src/components/datasets/types.ts:41:  importDirectory: (path: string, raw: boolean, confirmNew?: boolean) => Promise<ImportResponse>;
+src/components/datasets/types.ts:42:  catalog: (limit?: number, offset?: number) => Promise<CatalogPage>;
+src/components/datasets/types.ts:43:  deletePreview: (id: string) => Promise<DeletePreview>;
+src/components/datasets/types.ts:44:  delete: (id: string, previewToken: string, confirm: boolean) => Promise<DeleteResult>;
+src/components/datasets/types.ts:45:  recycleList: () => Promise<RecycleList>;
+src/components/datasets/types.ts:46:  restore: (deletionId: string, confirm: boolean) => Promise<{ deletion_id: string; cube_id: string; restored: boolean }>;
+src/components/datasets/types.ts:47:  preview: (id: string, selection: number | PreviewOptions) => Promise<Preview>;
+src/components/datasets/types.ts:48:  spectraMean: (id: string, region: SpectrumRegion) => Promise<MeanSpectrum>;
+src/components/datasets/types.ts:49:};

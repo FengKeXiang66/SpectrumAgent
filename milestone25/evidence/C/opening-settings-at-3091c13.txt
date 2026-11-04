@@ -1,0 +1,15 @@
+settings-forward.ts at 3091c13:5:export type SettingsRequest = { op: 'get_llm' } | { op: 'put_llm'; body: LLMConfig } | { op: 'put_key'; key: string };
+settings-forward.ts at 3091c13:13:  getLLM: (): SettingsRequest => ({ op: 'get_llm' }),
+settings-forward.ts at 3091c13:14:  putLLM: (body: LLMConfig): SettingsRequest => ({ op: 'put_llm', body: configFields(body) }),
+settings-forward.ts at 3091c13:15:  putKey: (key: string): SettingsRequest => ({ op: 'put_key', key }),
+settings-forward.ts at 3091c13:20:  const forward = <T>(request: SettingsRequest) => send<T>('settings_forward', { request });
+api/settings.py at 3091c13:13:def make_router(database):
+api/settings.py at 3091c13:14:    router = APIRouter(prefix="/api/v1/settings", tags=["settings"])
+api/settings.py at 3091c13:19:    @router.get("/llm")
+api/settings.py at 3091c13:23:    @router.put("/llm")
+api/settings.py at 3091c13:28:    @router.put("/llm/key")
+settings.rs at 3091c13:12:#[serde(tag = "op", rename_all = "snake_case", deny_unknown_fields)]
+settings.rs at 3091c13:13:pub enum SettingsRequest {
+settings.rs at 3091c13:46:    pub fn destination(&self, port: u16) -> Result<(Url, Method, Option<Value>), ForwardError> {
+settings.rs at 3091c13:63:    let secrets = match request {
+settings.rs at 3091c13:64:        SettingsRequest::PutKey { key } => vec![key.as_str()],

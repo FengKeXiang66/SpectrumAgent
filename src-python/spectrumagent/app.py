@@ -51,7 +51,7 @@ def create_app(paths, identity):
     app.state.recycle = registry.recycle
     app.include_router(make_recycle_router(registry.recycle))
     app.add_middleware(RecycleJobsMiddleware, coordinator=registry.recycle.coordinator, token=identity.token)
-    app.include_router(make_settings_router(paths.database))
+    app.include_router(make_settings_router(paths))
     app.state.superpixel_engine = SuperpixelEngine(registry)
     app.state.annotation_sessions = SessionStore(registry, paths)
     app.state.diffusion_engine = DiffusionEngine(app.state.superpixel_engine, app.state.annotation_sessions)

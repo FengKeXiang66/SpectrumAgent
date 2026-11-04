@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import type { DatasetRecord, DatasetTransport, MeanSpectrum, Preview, SpectrumRegion } from '../datasets/types.ts';
+import type { DatasetRecord, DatasetReference, DatasetTransport, MeanSpectrum, Preview, SpectrumRegion } from '../datasets/types.ts';
 import { displayName } from '../datasets/types.ts';
 import { annotations } from './api.ts';
 import { describeAnnotationError, type AnnotationApi, type CatalogItem, type ExportResult, type Geometry, type LabelBody, type LabelSchema, type Png, type Quality, type Seed, type SegmentsMap, type SuperpixelReport, type Version, type Working } from './types.ts';
@@ -19,8 +19,8 @@ import './annotation-skin.css';
 import type { WorkspaceContext } from '../assistant/api.ts';
 import { candidatePreviewKey } from '../assistant/presentation.ts';
 
-type Props = { record: DatasetRecord; records: DatasetRecord[]; datasets: DatasetTransport;
-  api?: AnnotationApi; onNavigate(record: DatasetRecord): void; onClose(): void;
+type Props = { record: DatasetRecord; records: DatasetReference[]; datasets: DatasetTransport;
+  api?: AnnotationApi; onNavigate(record: DatasetReference): void; onClose(): void;
   onWorkspaceChange?(context: WorkspaceContext): void; refreshVersion?: number; previewCandidateRef?: string };
 const preferenceKey = 'spectrum.annotation.shortcuts.v1';
 const seenKey = 'spectrum.annotation.shortcuts.seen.v1';

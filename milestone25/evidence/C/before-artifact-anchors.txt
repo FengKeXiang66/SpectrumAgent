@@ -1,0 +1,9 @@
+src-python/spectrumagent/annotation/session.py:361:            directory = self.paths.snapshots / cube_id / f"v{version_no}"
+src-python/spectrumagent/annotation/session.py:478:            directory = self.paths.snapshots.joinpath(*relative.parts)
+src-python/spectrumagent/preprocess/run.py:165:        directory = self.paths.snapshots.joinpath(*relative.parts)
+src-python/spectrumagent/preprocess/run.py:245:        directory = self.paths.preprocessed / str(cube_id) / identifier
+src-python/spectrumagent/modeling/run.py:123:        relative, base = PurePosixPath(row[0]), (self.paths.root / "models").resolve()
+src-python/spectrumagent/modeling/run.py:176:        folder = self.paths.root / "models" / identifier
+src-python/spectrumagent/modeling/inference.py:225:        folder = self.paths.root / "inferences" / identifier
+src-python/spectrumagent/agent/mat.py:71:        return self.paths.snapshots.joinpath(*relative.parts)
+src-python/spectrumagent/agent/mat.py:122:        directory = self.paths.exports / cube_id / version_id

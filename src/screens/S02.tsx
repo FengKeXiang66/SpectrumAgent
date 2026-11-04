@@ -1,4 +1,4 @@
-import type { DatasetRecord } from '../components/datasets/types';
+import type { DatasetReference } from '../components/datasets/types';
 import type { Snapshot, Phase } from '../status';
 import '../components/modeling/modeling.css';
 import './light-screens.css';
@@ -6,7 +6,7 @@ import './light-screens.css';
 const PHASE_TITLE: Record<Phase, string> = { Starting: '正在启动', Ready: '已就绪', Failed: '失败', Stopping: '正在关闭' };
 
 export default function S02({ records, runs, loading, error, status, onOpenData, onOpenRun, onContinueAnnotation }: {
-  records: DatasetRecord[]; runs: { id: string; task: string; status: string }[]; loading: boolean; error: string;
+  records: DatasetReference[]; runs: { id: string; task: string; status: string }[]; loading: boolean; error: string;
   status: Pick<Snapshot, 'phase' | 'generation_id'>;
   onOpenData(): void; onOpenRun(id: string): void; onContinueAnnotation(): void;
 }) {

@@ -1,0 +1,108 @@
+- text: 合成 IPC 验收环境：不会读写真实数据。
+- button "模拟引擎换代"
+- complementary:
+  - generic: 光谱数据 AI Agent
+  - navigation "主导航":
+    - region "主入口":
+      - heading "主入口" [level=2]
+      - button "智能助手":
+        - generic: ◈
+        - text: 智能助手
+    - region "我的工作":
+      - heading "我的工作" [level=2]
+      - button "工作台":
+        - generic: ◧
+        - text: 工作台
+    - region "分析流程":
+      - heading "分析流程" [level=2]
+      - button "数据":
+        - generic: ▤
+        - text: 数据
+      - button "标注":
+        - generic: ✎
+        - text: 标注
+      - button "预处理":
+        - generic: ⚗
+        - text: 预处理
+      - button "建模":
+        - generic: ⊞
+        - text: 建模
+      - button "结果":
+        - generic: ◫
+        - text: 结果
+    - region "沉淀与复用":
+      - heading "沉淀与复用" [level=2]
+      - button "实验台账":
+        - generic: ☰
+        - text: 实验台账
+      - button "检索":
+        - generic: ⌕
+        - text: 检索
+    - region "本机":
+      - heading "本机" [level=2]
+      - button "设置与出域记录":
+        - generic: ⚙
+        - text: 设置与出域记录
+- main:
+  - generic "当前位置": 光谱数据 AI Agent / 设置与出域记录
+  - searchbox "搜索（后续批次启用）" [disabled]
+  - generic "产品版本": 版本 0.4.0
+  - button "设置" [active]
+  - region "设置与出域记录":
+    - heading "设置与出域记录" [level=2]
+    - paragraph: 在设置中管理模型连接与出域开关，出域记录用于查看相关操作。
+    - region "LLM 设置":
+      - heading "LLM 设置" [level=2]
+      - paragraph: 空值表示未配置。API key 仅由引擎内存持有，重启后需重新输入。
+      - status "key 配置状态": key 未配置
+      - text: base_url
+      - textbox "base_url"
+      - text: model
+      - textbox "model"
+      - text: temperature
+      - spinbutton "temperature"
+      - text: max_tokens
+      - spinbutton "max_tokens"
+      - text: timeout_ms
+      - spinbutton "timeout_ms"
+      - checkbox "允许 LLM 外发（关闭后对话与结果解读不可用，核心分析不受影响）"
+      - text: 允许 LLM 外发（关闭后对话与结果解读不可用，核心分析不受影响）
+      - text: API key（留空保留已配置 key）
+      - textbox "API key（留空保留已配置 key）"
+      - button "保存"
+      - button "取消"
+    - region "当前项目路径":
+      - heading "当前项目路径" [level=2]
+      - paragraph: 项目：默认项目
+      - paragraph: 输出根当前仅保存、不生效。产物仍写入本机数据根；未检查 NAS 连通性或挂载状态。
+      - term: 数据源（程序只读）
+      - definition: \\qa-nas\prefilled
+      - term: 产物输出根（未启用）
+      - definition: \\qa-nas\future
+      - paragraph:
+        - text: 实际产物数据根：
+        - code: C:\QA\SpectrumAgent
+    - region "回收站占用":
+      - heading "回收站占用" [level=3]
+      - paragraph: 1 个条目 · 3,234 B。回收站内仍占本机磁盘空间。
+      - list:
+        - listitem: 样品 1：3,234 B；预计释放日期 2026/12/5 08:00:00
+      - paragraph: 到期后在引擎启动清理时释放；运行中的长任务会推迟清理。
+    - button "刷新回收站占用"
+    - region "出域禁运清单":
+      - heading "出域禁运清单" [level=3]
+      - list:
+        - listitem: NAS 路径与文件名
+        - listitem: 凭据与访问密钥
+        - listitem: 原始光谱文件与像素数据
+    - region "出域记录":
+      - heading "出域记录" [level=3]
+      - paragraph: 出域记录在阶段二提供
+  - generic "常驻对话条":
+    - generic "当前数据：未选择 · 视图「设置与出域记录」"
+    - generic: 对话
+    - textbox "对话":
+      - /placeholder: 输入需要编排的任务
+    - button "展开助手页"
+    - button "发送" [disabled]
+- generic "合成 IPC 操作记录（测试夹具）"

@@ -1,0 +1,5 @@
+
+> spectrum-agent@0.1.0 build
+> tsc --noEmit && vite build
+
+src/components/datasets/catalog.test.ts(27,51): error TS2339: Property 'id' does not exist on type 'never'.
