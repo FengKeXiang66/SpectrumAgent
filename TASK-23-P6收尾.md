@@ -116,10 +116,13 @@ cargo clippy --all-targets -- -D warnings
 // src/screens/S11.tsx 改后（示意，文案与 aria-label 不变）
 <section className="model-panel settings-screen" aria-label="设置与出域记录">
   <h2>设置与出域记录</h2>
+  <p>在设置中管理模型连接与出域开关，出域记录用于查看相关操作。</p>
   <SettingsPanel onClose={onBack} />
   <section aria-label="出域记录"><h3>出域记录</h3><p>出域记录在阶段二提供</p></section>
 </section>
 ```
+
+- `:4` 那句说明文字**原样保留**（与 `:2` 的 aria-label、`:6` 的出域记录空态一起，构成"文案不变"的三处锚）；只有 `:5` 的「打开设置」按钮消失。
 
 - `settings.css` 的选择器一律 `.settings-screen` 前缀 → 只管 S11，不碰其它 `.model-panel` 宿主。
 - **S11 自身新增 0 颗按钮**：返回由 View 内既有的「取消」承担（`SettingsPanel.ts:41`，文案不改），侧边导航也随时可离开。这条是 §2.4 #5 等值断言成立的前提。
@@ -128,7 +131,7 @@ cargo clippy --all-targets -- -D warnings
 | 项 | 现值 | 改后 |
 |---|---|---|
 | View 根节点 | `h('dialog', { ref, 'aria-labelledby': 'llm-settings-title', style…, onKeyDown, onCancel })` | `h('section', { 'aria-labelledby': 'llm-settings-title' })`——**不带 className**，样式全部挂在外层 `.settings-screen` 上 |
-| `dialogRef` prop | `SettingsPanelViewProps.dialogRef?`（`:5-8`，可选） | **保留可选类型，实现里不再创建 ref**；`SettingsPanel.ts:56` 的 `dialogRef: dialog` 传参删除。理由：类型可选，删它要连带改 `SettingsPanelViewProps`，对断言零收益；测试的 `props()` 工厂（`SettingsPanel.test.ts:32`）**本来就没传它** |
+| `dialogRef` prop | `SettingsPanelViewProps.dialogRef?`（`:5-8`，可选） | **保留可选类型，实现里不再创建 ref**：删 `SettingsPanel.ts:46` `const dialog = useRef<HTMLDialogElement>(null)`、删 `:55` 的 `showModal` effect、删 `:56` 的 `dialogRef: dialog` 传参。**三处必须一起删**——`tsconfig.json:7` 有 `noUnusedLocals: true`，只删后两处会让 `:46` 变成孤儿变量，`tsc --noEmit` 直接报错（A7 假红）。理由：类型可选，删类型要连带改 `SettingsPanelViewProps`，对断言零收益；测试的 `props()` 工厂（`SettingsPanel.test.ts:32`）**本来就没传它** |
 | `onCancel` | 拦截 Esc 关模态 | **删除**（全屏没有 Esc 语义） |
 | 关闭动作 | 模态「取消」按钮 → `onClose` | 不变：View 内「取消」→ `onClose`；App 传 `() => openScreen('s02')` |
 | 保存后 | 留在模态 | **保存成功后不自动跳屏**（保持现值语义，避免新增行为） |
@@ -186,7 +189,7 @@ cargo clippy --all-targets -- -D warnings
 
 ```ts
 const GUARDS = [
-  { file: '../../components/annotation/annotation-skin.css', media: ['(max-width: 720px)'] },
+  { file: '../../components/annotation/annotation-skin.css', media: ['@media (max-width: 720px)'] },
   { file: '../../components/preprocess/preprocess-skin.css', media: [] },
   { file: '../../components/modeling/modeling-skin.css', media: [], bareModelPanel: true },
 ];
@@ -198,9 +201,12 @@ const GUARDS = [
 |---|---|---|
 | ① | `doesNotMatch(/position:\s*fixed\|100vh\|z-index/)` | 任一出现即红（`panel.test.ts:63` 只守 `preprocess.css`，三个 skin 无人守） |
 | ② | `doesNotMatch(/!important/)` | 出现即红（P3/P4 卡里都写了"`!important` 一律停手"） |
-| ③ | `assert.deepEqual(source.match(/@media[^{]*/g) ?? [], media)` | **精确集合**：preprocess/modeling 必须为 `[]`，annotation 必须**恰好等于** `['@media (max-width: 720px)']`——多一个断点即红 |
+| ③ | **`assert.deepEqual((source.match(/@media\s*[^{]*/g) ?? []).map(s => s.trim()), media)`** | **精确集合**：preprocess/modeling 必须为 `[]`，annotation 必须**恰好等于** `['@media (max-width: 720px)']`——多一个断点即红 |
 | ④ | `modeling-skin.css` 额外：`doesNotMatch(/^\s*\.model-panel[^[]/m)` | 出现裸 `.model-panel` 作用域即红（8 宿主污染） |
 
+> **③ 必须 `.trim()`，否则这条门天生红**。实测（node 直跑真实文件）：
+> `annotation-skin.css` 的 `source.match(/@media[^{]*/g)` 返回 **`["@media (max-width: 720px) "]`——带尾随空格**（`[^{]*` 把 `{` 前的空白也吃了）。不做 `trim()` 时，`deepEqual(["@media (max-width: 720px) "], ["@media (max-width: 720px)"])` 必然失败，codex 会误判成 annotation-skin 违规。`preprocess` / `modeling` 两个返回 `null`，`?? []` 处理正确。
+> 本卡早先的两种写法（`['(max-width: 720px)']` 与 `['@media (max-width: 720px)']`）都与实际捕获串不等，已统一为上表这一种。
 > 路径以测试文件为基准（`src/shell/` → `../../components/...`），落地时按实际 import 方式写，别照抄相对深度。
 > `annotation-skin.css:51` 的 `@media (max-width: 720px)` 是**既存且有意**的（P3 的 720 窄屏降级），所以它在 allowlist 里；这条不是例外条款，是**精确值**。
 
@@ -211,7 +217,7 @@ const GUARDS = [
 | 文件 | 改动 |
 |---|---|
 | `src/screens/S11.tsx` | 全屏化：根节点 `className="model-panel settings-screen"`（**叠加，不替换**）；渲染 `SettingsPanel`；删「打开设置」按钮；保留「出域记录」空态 section |
-| `src/components/settings/SettingsPanel.ts` | `dialog` → `section`（无 className）；删 `onCancel` / `showModal` / `dialogRef` 传参；4 处 `style:` 改 class |
+| `src/components/settings/SettingsPanel.ts` | `dialog` → `section`（无 className）；删 `:46` `const dialog = useRef…`、`:55` `showModal` effect、`:56` `dialogRef: dialog` 传参（**三处必须同删**，`noUnusedLocals` 见 `tsconfig.json:7`）；4 处 `style:` 改 class |
 | `src/components/settings/settings.css`（新增） | `.settings-screen` 前缀的全部样式 |
 | `src/App.tsx` | 删 `settingsOpen`（`:54`）与模态挂载（`:235`）；顶栏入口改 `openScreen('s11')`（`:230`）；S11 prop 改 `onBack`（`:220`） |
 | `src/components/settings/SettingsPanel.test.ts` | 迁移 #1–#4（4 处） |
