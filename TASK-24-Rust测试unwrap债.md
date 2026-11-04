@@ -2,7 +2,7 @@
 
 > 目标：让 `cargo clippy --all-targets -- -D warnings` **真正零 error**，把 TASK-23 的 A10 从"相对基线零新增"恢复成"绝对零告警"。
 > 前置：TASK-23（P6）已收口。**只改测试代码，生产段一条 lint 不放宽。**
-> **三道闸门**：① `git status` 干净；② 开工前 `cargo test` 全绿、`cargo clippy --all-targets -- -D warnings` 的 error 数 = **38**；③ 开工第一步 `grep -n` 复核本卡行号，漂移即停。
+> **三道闸门**：① `git status` 干净；② 开工前 `cargo test` 全绿、`cargo clippy --all-targets -- -D warnings` 的**双口径**计数吻合：`^error: used` = **38**、`^error` = **40**（= 38 条诊断 + 2 条 `error: could not compile …` 汇总）；③ 开工第一步 `grep -n` 复核本卡行号，漂移即停。
 
 ---
 
@@ -110,7 +110,7 @@ mod tests {
 
 | # | 断言 | 判据 |
 |---|---|---|
-| A1 | **clippy 绝对零 error** | `cd src-tauri && cargo clippy --all-targets -- -D warnings; echo "exit=$?"` → **exit=0**，且同一条命令输出里 `grep -c "^error"` = **0** |
+| A1 | **clippy 绝对零 error** | `cd src-tauri && cargo clippy --all-targets -- -D warnings; echo "exit=$?"` → **exit=0**，且同一条命令输出里 `grep -c "^error"` = **0**。⚠️ 开工基线是 `^error` = **40**（38 诊断 + 2 汇总），不是 38——闸门② 已按双口径写明；收工的 0 无歧义，不受此影响 |
 | A2 | **不再有 `unwrap_used` 诊断** | `cargo clippy --all-targets -- -D warnings 2>&1 \| grep -c "unwrap_used"` = **0** |
 | A3 | **生产段零放宽 + allow 不扩散（双向机验）** | 正向：① `sed -n '1,287p' src-tauri/src/models.rs \| grep -c "allow(clippy"` = **0**；② `sed -n '1,287p' src-tauri/src/models.rs \| grep -c "\.unwrap()"` = **0**；③ `grep -rn "allow(clippy" src-tauri/src/*.rs` 的命中**只允许**出现在 `models.rs` 的 `mod tests` 内。反向：④ `grep -c "allow(clippy" src/models.rs` = **1** 且 `grep -c "allow(clippy" tests/models_forward.rs` = **1**——**allow 恰好各一处，不许第二个蔓延**（开工实测：两文件改前均为 **0**，所以"=1"是干净判据） |
 | A4 | **测试全绿** | `cargo test` → **95 passed / 0 failed**（数字现场重取；与开工基线一致） |
