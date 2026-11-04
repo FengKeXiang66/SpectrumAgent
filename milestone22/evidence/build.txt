@@ -1,0 +1,14 @@
+
+> spectrum-agent@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v8.3.4 building client environment for production...
+transforming...
+✓ 83 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.37 kB │ gzip:   0.29 kB
+dist/assets/index-C-DuwE0-.css   24.48 kB │ gzip:   5.30 kB
+dist/assets/index-BLLqfP8S.js   384.60 kB │ gzip: 121.60 kB
+
+✓ built in 137ms

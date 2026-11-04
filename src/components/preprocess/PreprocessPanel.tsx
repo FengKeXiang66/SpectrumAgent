@@ -9,6 +9,7 @@ import { describePreprocessError, PHASE_TWO, type CompareResult, type Metrics, t
 import CompareChart from './CompareChart';
 import PipelineEditor from './PipelineEditor';
 import './preprocess.css';
+import './preprocess-skin.css';
 
 function MetricsView({ metrics }: { metrics: Metrics }) {
   return <section aria-label="后端指标"><h3>后端逐像素指标</h3><dl className="pp-metrics">

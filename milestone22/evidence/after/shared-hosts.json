@@ -1,0 +1,51 @@
+[
+  {
+    "color": "rgb(34, 34, 34)",
+    "display": "block",
+    "fontSize": "16px",
+    "host": "结果屏",
+    "trainingScopeMatches": false
+  },
+  {
+    "color": "rgb(34, 34, 34)",
+    "display": "block",
+    "fontSize": "16px",
+    "host": "模型注册",
+    "trainingScopeMatches": false
+  },
+  {
+    "color": "rgb(34, 34, 34)",
+    "display": "block",
+    "fontSize": "16px",
+    "host": "批量含量推理",
+    "trainingScopeMatches": false
+  },
+  {
+    "color": "rgb(34, 34, 34)",
+    "display": "block",
+    "fontSize": "16px",
+    "host": "工作台",
+    "trainingScopeMatches": false
+  },
+  {
+    "color": "rgb(34, 34, 34)",
+    "display": "block",
+    "fontSize": "16px",
+    "host": "实验台账",
+    "trainingScopeMatches": false
+  },
+  {
+    "color": "rgb(34, 34, 34)",
+    "display": "block",
+    "fontSize": "16px",
+    "host": "检索",
+    "trainingScopeMatches": false
+  },
+  {
+    "color": "rgb(34, 34, 34)",
+    "display": "block",
+    "fontSize": "16px",
+    "host": "设置与出域记录",
+    "trainingScopeMatches": false
+  }
+]

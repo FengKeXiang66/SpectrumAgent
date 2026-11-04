@@ -1,0 +1,38 @@
+[
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "pattern": "position:\\s*fixed|100vh|z-index",
+    "stdout": "0\n",
+    "exit_code": 1,
+    "count": 0
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "pattern": "!important",
+    "stdout": "0\n",
+    "exit_code": 1,
+    "count": 0
+  },
+  {
+    "file": "src/components/modeling/modeling-skin.css",
+    "pattern": "position:\\s*fixed|100vh|z-index",
+    "stdout": "0\n",
+    "exit_code": 1,
+    "count": 0
+  },
+  {
+    "file": "src/components/modeling/modeling-skin.css",
+    "pattern": "!important",
+    "stdout": "0\n",
+    "exit_code": 1,
+    "count": 0
+  },
+  {
+    "file": "src/components/modeling/modeling-skin.css",
+    "pattern": "^\\s*\\.model-panel[^[]",
+    "engine": "PCRE2",
+    "stdout": "",
+    "exit_code": 1,
+    "count": 0
+  }
+]

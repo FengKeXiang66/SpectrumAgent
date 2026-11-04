@@ -1,0 +1,268 @@
+{
+  "product_source_files": [
+    "src/components/preprocess/PreprocessPanel.tsx",
+    "src/components/modeling/ModelPanel.tsx",
+    "src/components/preprocess/preprocess-skin.css",
+    "src/components/modeling/modeling-skin.css"
+  ],
+  "product_source_file_count": 4,
+  "only_one_import_each": true,
+  "panel_sha256_unchanged": "5f481501725e3edc05d5a9d092395aabaca25b658e9a53953f9d157d608c751b",
+  "panel_assertions": 27,
+  "all_existing_tests_unchanged": true,
+  "tests": {
+    "baseline": 215,
+    "existing_pass": 215,
+    "new": 0,
+    "total": 215,
+    "fail": 0
+  },
+  "build": "passed (tsc --noEmit + vite build)",
+  "prefix_counts": {
+    ".preprocess-panel": 28,
+    ".model-panel[aria-label=\"PLS 回归工作台\"]": 22
+  },
+  "before": {
+    "S06": {
+      "version_no": 2,
+      "status": "succeeded",
+      "submitted_run_id": "103fc274-5b9b-41db-a5b1-033e60cddf4b",
+      "compare_runs": [
+        "20236539-8cb6-4ff4-b1f0-60ee46ba25ce"
+      ],
+      "curve_source_run": "20236539-8cb6-4ff4-b1f0-60ee46ba25ce",
+      "curve_source_matches": true
+    },
+    "S07": {
+      "status": "succeeded",
+      "selected_lv": 3,
+      "rmse": 0.3877278749721029,
+      "training_run_id": "33c1b773-6bb7-492e-a7f8-3708ee0da773",
+      "S08_runId": "33c1b773-6bb7-492e-a7f8-3708ee0da773",
+      "S08_id_matches": true
+    }
+  },
+  "after": {
+    "S06": {
+      "version_no": 2,
+      "status": "succeeded",
+      "submitted_run_id": "db3b69cf-b1d8-4b58-b358-161955c4c7e4",
+      "compare_runs": [
+        "069f5484-09d8-48b0-bf69-d0fb66c05a60"
+      ],
+      "curve_source_run": "069f5484-09d8-48b0-bf69-d0fb66c05a60",
+      "curve_source_matches": true
+    },
+    "S07": {
+      "status": "succeeded",
+      "selected_lv": 3,
+      "rmse": 0.3877278749721029,
+      "training_run_id": "f1e3fbd0-edfa-436d-a43c-0d21d8c00b4a",
+      "S08_runId": "f1e3fbd0-edfa-436d-a43c-0d21d8c00b4a",
+      "S08_id_matches": true
+    }
+  },
+  "equal_before_after_fields": [
+    "version_no",
+    "preprocess status",
+    "pipeline",
+    "preprocess metrics",
+    "curves",
+    "training request",
+    "training metrics",
+    "Result.status",
+    "selected_lv",
+    "metrics.rmse"
+  ],
+  "S06_sidebar_width": 236,
+  "S06_sidebar_source": "prototype HTML:1748",
+  "S07_layout": {
+    "normal": {
+      "controlOverflow": [],
+      "crossColumn": [
+        {
+          "column": "1 / -1",
+          "tag": "HEADER"
+        },
+        {
+          "column": "1 / -1",
+          "tag": "NAV"
+        },
+        {
+          "column": "1 / -1",
+          "tag": "P"
+        }
+      ],
+      "fieldsets": [
+        {
+          "clientWidth": 299,
+          "legend": "样品连续量",
+          "scrollWidth": 299,
+          "width": 300,
+          "x": 234,
+          "y": 221.70834350585935
+        },
+        {
+          "clientWidth": 675,
+          "legend": "训练配置",
+          "scrollWidth": 675,
+          "width": 676.6666870117188,
+          "x": 550,
+          "y": 221.70834350585935
+        }
+      ],
+      "panel": {
+        "columns": "300px 676.667px",
+        "display": "grid",
+        "gap": "16px",
+        "maxWidth": "1216px"
+      },
+      "viewport": {
+        "height": 820,
+        "scrollWidth": 1280,
+        "width": 1280
+      }
+    },
+    "min": {
+      "controlOverflow": [],
+      "crossColumn": [
+        {
+          "column": "1 / -1",
+          "tag": "HEADER"
+        },
+        {
+          "column": "1 / -1",
+          "tag": "NAV"
+        },
+        {
+          "column": "1 / -1",
+          "tag": "P"
+        }
+      ],
+      "fieldsets": [
+        {
+          "clientWidth": 299,
+          "legend": "样品连续量",
+          "scrollWidth": 299,
+          "width": 300,
+          "x": 234,
+          "y": 221.70834350585935
+        },
+        {
+          "clientWidth": 575,
+          "legend": "训练配置",
+          "scrollWidth": 575,
+          "width": 576.6666870117188,
+          "x": 550,
+          "y": 221.70834350585935
+        }
+      ],
+      "panel": {
+        "columns": "300px 576.667px",
+        "display": "grid",
+        "gap": "16px",
+        "maxWidth": "1216px"
+      },
+      "viewport": {
+        "height": 720,
+        "scrollWidth": 1180,
+        "width": 1180
+      }
+    }
+  },
+  "shared_hosts": [
+    {
+      "color": "rgb(34, 34, 34)",
+      "display": "block",
+      "fontSize": "16px",
+      "host": "结果屏",
+      "trainingScopeMatches": false
+    },
+    {
+      "color": "rgb(34, 34, 34)",
+      "display": "block",
+      "fontSize": "16px",
+      "host": "模型注册",
+      "trainingScopeMatches": false
+    },
+    {
+      "color": "rgb(34, 34, 34)",
+      "display": "block",
+      "fontSize": "16px",
+      "host": "批量含量推理",
+      "trainingScopeMatches": false
+    },
+    {
+      "color": "rgb(34, 34, 34)",
+      "display": "block",
+      "fontSize": "16px",
+      "host": "工作台",
+      "trainingScopeMatches": false
+    },
+    {
+      "color": "rgb(34, 34, 34)",
+      "display": "block",
+      "fontSize": "16px",
+      "host": "实验台账",
+      "trainingScopeMatches": false
+    },
+    {
+      "color": "rgb(34, 34, 34)",
+      "display": "block",
+      "fontSize": "16px",
+      "host": "检索",
+      "trainingScopeMatches": false
+    },
+    {
+      "color": "rgb(34, 34, 34)",
+      "display": "block",
+      "fontSize": "16px",
+      "host": "设置与出域记录",
+      "trainingScopeMatches": false
+    }
+  ],
+  "grep": [
+    {
+      "file": "src/components/preprocess/preprocess-skin.css",
+      "pattern": "position:\\s*fixed|100vh|z-index",
+      "stdout": "0\n",
+      "exit_code": 1,
+      "count": 0
+    },
+    {
+      "file": "src/components/preprocess/preprocess-skin.css",
+      "pattern": "!important",
+      "stdout": "0\n",
+      "exit_code": 1,
+      "count": 0
+    },
+    {
+      "file": "src/components/modeling/modeling-skin.css",
+      "pattern": "position:\\s*fixed|100vh|z-index",
+      "stdout": "0\n",
+      "exit_code": 1,
+      "count": 0
+    },
+    {
+      "file": "src/components/modeling/modeling-skin.css",
+      "pattern": "!important",
+      "stdout": "0\n",
+      "exit_code": 1,
+      "count": 0
+    },
+    {
+      "file": "src/components/modeling/modeling-skin.css",
+      "pattern": "^\\s*\\.model-panel[^[]",
+      "engine": "PCRE2",
+      "stdout": "",
+      "exit_code": 1,
+      "count": 0
+    }
+  ],
+  "A9_anchors": {
+    "panel.test.ts:61": "passed",
+    "panel.test.ts:62": "passed"
+  },
+  "line_drift": [],
+  "resolved_design_question": "User authorized scoped CSS grid; revised local TASK-22 card and assertion inventory were preserved."
+}

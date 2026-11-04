@@ -1,0 +1,30 @@
+/* Dimensions: prototype :1748 (sidebar), :221/225/237 (type/buttons/cards),
+   :266-267 (tables), :276-284 (fields); preprocess.css:4-12 (grid/form spacing). */
+.preprocess-panel { color: #16202a; background: #f7f9fc; border-color: #e2e7ed; font-size: 12.4px; }
+.preprocess-panel .pp-layout { grid-template-columns: 236px minmax(0, 1fr); }
+.preprocess-panel h2 { color: #16202a; font-size: 16.5px; }
+.preprocess-panel h3,
+.preprocess-panel legend { color: #455260; font-size: 12.8px; }
+.preprocess-panel .pp-layout aside > section { border-color: #e2e7ed; border-radius: 9px; padding: 14px 16px; }
+.preprocess-panel fieldset { background: white; border-color: #e2e7ed; border-radius: 9px; padding: 14px 16px; min-width: 0; }
+.preprocess-panel button { font: inherit; border: 1px solid #e2e7ed; border-radius: 7px; padding: 6.5px 13px; background: white; color: #455260; }
+.preprocess-panel button:hover:not(:disabled) { border-color: #b9dbe6; color: #0a5670; background: #e7f3f7; }
+.preprocess-panel button:disabled { opacity: .6; background: #f2f5f8; }
+.preprocess-panel .pp-main > fieldset:first-of-type > button:last-of-type,
+.preprocess-panel .pp-main > fieldset:last-of-type > button:first-of-type { background: #0e6e8c; border-color: #0e6e8c; color: white; }
+.preprocess-panel .pp-main > fieldset:first-of-type > button:last-of-type:hover:not(:disabled),
+.preprocess-panel .pp-main > fieldset:last-of-type > button:first-of-type:hover:not(:disabled) { background: #0a5670; border-color: #0a5670; color: white; }
+.preprocess-panel input,
+.preprocess-panel select { font: inherit; color: #16202a; background: white; border: 1px solid #e2e7ed; border-radius: 7px; }
+.preprocess-panel input:focus-visible,
+.preprocess-panel select:focus-visible,
+.preprocess-panel button:focus-visible { outline-color: #0e6e8c; }
+.preprocess-panel input[type=checkbox] { min-width: 0; padding: 0; accent-color: #0e6e8c; }
+.preprocess-panel .pp-editor li { border: 1px solid #e2e7ed; border-radius: 9px; }
+.preprocess-panel .pp-main > section { background: white; border: 1px solid #e2e7ed; border-radius: 9px; padding: 14px 16px; margin: .8rem 0; }
+.preprocess-panel .pp-metrics div { border: 1px solid #e2e7ed; border-radius: 9px; }
+.preprocess-panel .pp-metrics dd { color: #0a5670; font-variant-numeric: tabular-nums; }
+.preprocess-panel table { border-collapse: collapse; text-align: left; }
+.preprocess-panel th { background: #f7f9fc; color: #455260; padding: 8px 11px; border-bottom: 1px solid #e2e7ed; }
+.preprocess-panel td { padding: 7.5px 11px; border-bottom: 1px solid #eef2f6; }
+.preprocess-panel tbody tr:hover { background: #f7fbfd; }

@@ -1,0 +1,94 @@
+{
+  "normal": {
+    "controlOverflow": [],
+    "crossColumn": [
+      {
+        "column": "1 / -1",
+        "tag": "HEADER"
+      },
+      {
+        "column": "1 / -1",
+        "tag": "NAV"
+      },
+      {
+        "column": "1 / -1",
+        "tag": "P"
+      }
+    ],
+    "fieldsets": [
+      {
+        "clientWidth": 299,
+        "legend": "样品连续量",
+        "scrollWidth": 299,
+        "width": 300,
+        "x": 234,
+        "y": 221.70834350585935
+      },
+      {
+        "clientWidth": 675,
+        "legend": "训练配置",
+        "scrollWidth": 675,
+        "width": 676.6666870117188,
+        "x": 550,
+        "y": 221.70834350585935
+      }
+    ],
+    "panel": {
+      "columns": "300px 676.667px",
+      "display": "grid",
+      "gap": "16px",
+      "maxWidth": "1216px"
+    },
+    "viewport": {
+      "height": 820,
+      "scrollWidth": 1280,
+      "width": 1280
+    }
+  },
+  "min": {
+    "controlOverflow": [],
+    "crossColumn": [
+      {
+        "column": "1 / -1",
+        "tag": "HEADER"
+      },
+      {
+        "column": "1 / -1",
+        "tag": "NAV"
+      },
+      {
+        "column": "1 / -1",
+        "tag": "P"
+      }
+    ],
+    "fieldsets": [
+      {
+        "clientWidth": 299,
+        "legend": "样品连续量",
+        "scrollWidth": 299,
+        "width": 300,
+        "x": 234,
+        "y": 221.70834350585935
+      },
+      {
+        "clientWidth": 575,
+        "legend": "训练配置",
+        "scrollWidth": 575,
+        "width": 576.6666870117188,
+        "x": 550,
+        "y": 221.70834350585935
+      }
+    ],
+    "panel": {
+      "columns": "300px 576.667px",
+      "display": "grid",
+      "gap": "16px",
+      "maxWidth": "1216px"
+    },
+    "viewport": {
+      "height": 720,
+      "scrollWidth": 1180,
+      "width": 1180
+    }
+  }
+}

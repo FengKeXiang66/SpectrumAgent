@@ -1,0 +1,302 @@
+[
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel .pp-layout",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel h2",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel h3",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel legend",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel .pp-layout aside > section",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel fieldset",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel button",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel button:hover:not(:disabled)",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel button:disabled",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel .pp-main > fieldset:first-of-type > button",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel .pp-main > fieldset:last-of-type > button:first-of-type",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel .pp-main > fieldset:first-of-type > button:hover:not(:disabled)",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel .pp-main > fieldset:last-of-type > button:first-of-type:hover:not(:disabled)",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel input",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel select",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel input:focus-visible",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel select:focus-visible",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel button:focus-visible",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel input[type=checkbox]",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel .pp-editor li",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel .pp-main > section",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel .pp-metrics div",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel .pp-metrics dd",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel table",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel th",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel td",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/preprocess/preprocess-skin.css",
+    "selector": ".preprocess-panel tbody tr:hover",
+    "prefix": ".preprocess-panel",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/modeling/modeling-skin.css",
+    "selector": ".model-panel[aria-label=\"PLS 回归工作台\"]",
+    "prefix": ".model-panel[aria-label=\"PLS 回归工作台\"]",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/modeling/modeling-skin.css",
+    "selector": ".model-panel[aria-label=\"PLS 回归工作台\"] > header",
+    "prefix": ".model-panel[aria-label=\"PLS 回归工作台\"]",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/modeling/modeling-skin.css",
+    "selector": ".model-panel[aria-label=\"PLS 回归工作台\"] > nav",
+    "prefix": ".model-panel[aria-label=\"PLS 回归工作台\"]",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/modeling/modeling-skin.css",
+    "selector": ".model-panel[aria-label=\"PLS 回归工作台\"] > p",
+    "prefix": ".model-panel[aria-label=\"PLS 回归工作台\"]",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/modeling/modeling-skin.css",
+    "selector": ".model-panel[aria-label=\"PLS 回归工作台\"] > pre",
+    "prefix": ".model-panel[aria-label=\"PLS 回归工作台\"]",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/modeling/modeling-skin.css",
+    "selector": ".model-panel[aria-label=\"PLS 回归工作台\"] > p:empty",
+    "prefix": ".model-panel[aria-label=\"PLS 回归工作台\"]",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/modeling/modeling-skin.css",
+    "selector": ".model-panel[aria-label=\"PLS 回归工作台\"] h2",
+    "prefix": ".model-panel[aria-label=\"PLS 回归工作台\"]",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/modeling/modeling-skin.css",
+    "selector": ".model-panel[aria-label=\"PLS 回归工作台\"] > fieldset",
+    "prefix": ".model-panel[aria-label=\"PLS 回归工作台\"]",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/modeling/modeling-skin.css",
+    "selector": ".model-panel[aria-label=\"PLS 回归工作台\"] legend",
+    "prefix": ".model-panel[aria-label=\"PLS 回归工作台\"]",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/modeling/modeling-skin.css",
+    "selector": ".model-panel[aria-label=\"PLS 回归工作台\"] > fieldset label input",
+    "prefix": ".model-panel[aria-label=\"PLS 回归工作台\"]",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/modeling/modeling-skin.css",
+    "selector": ".model-panel[aria-label=\"PLS 回归工作台\"] > fieldset label select",
+    "prefix": ".model-panel[aria-label=\"PLS 回归工作台\"]",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/modeling/modeling-skin.css",
+    "selector": ".model-panel[aria-label=\"PLS 回归工作台\"] input",
+    "prefix": ".model-panel[aria-label=\"PLS 回归工作台\"]",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/modeling/modeling-skin.css",
+    "selector": ".model-panel[aria-label=\"PLS 回归工作台\"] select",
+    "prefix": ".model-panel[aria-label=\"PLS 回归工作台\"]",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/modeling/modeling-skin.css",
+    "selector": ".model-panel[aria-label=\"PLS 回归工作台\"] input[type=file]",
+    "prefix": ".model-panel[aria-label=\"PLS 回归工作台\"]",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/modeling/modeling-skin.css",
+    "selector": ".model-panel[aria-label=\"PLS 回归工作台\"] button",
+    "prefix": ".model-panel[aria-label=\"PLS 回归工作台\"]",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/modeling/modeling-skin.css",
+    "selector": ".model-panel[aria-label=\"PLS 回归工作台\"] button:hover:not(:disabled)",
+    "prefix": ".model-panel[aria-label=\"PLS 回归工作台\"]",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/modeling/modeling-skin.css",
+    "selector": ".model-panel[aria-label=\"PLS 回归工作台\"] button:disabled",
+    "prefix": ".model-panel[aria-label=\"PLS 回归工作台\"]",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/modeling/modeling-skin.css",
+    "selector": ".model-panel[aria-label=\"PLS 回归工作台\"] > fieldset:last-of-type > button",
+    "prefix": ".model-panel[aria-label=\"PLS 回归工作台\"]",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/modeling/modeling-skin.css",
+    "selector": ".model-panel[aria-label=\"PLS 回归工作台\"] > fieldset:last-of-type > button:hover:not(:disabled)",
+    "prefix": ".model-panel[aria-label=\"PLS 回归工作台\"]",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/modeling/modeling-skin.css",
+    "selector": ".model-panel[aria-label=\"PLS 回归工作台\"] input:focus-visible",
+    "prefix": ".model-panel[aria-label=\"PLS 回归工作台\"]",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/modeling/modeling-skin.css",
+    "selector": ".model-panel[aria-label=\"PLS 回归工作台\"] select:focus-visible",
+    "prefix": ".model-panel[aria-label=\"PLS 回归工作台\"]",
+    "prefixed": true
+  },
+  {
+    "file": "src/components/modeling/modeling-skin.css",
+    "selector": ".model-panel[aria-label=\"PLS 回归工作台\"] button:focus-visible",
+    "prefix": ".model-panel[aria-label=\"PLS 回归工作台\"]",
+    "prefixed": true
+  }
+]

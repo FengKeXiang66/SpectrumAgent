@@ -8,6 +8,7 @@ import { modeling, type ImportResult, type Target } from './api.ts';
 import RegistryPanel from './RegistryPanel.tsx';
 import InferencePanel from './InferencePanel.tsx';
 import './modeling.css';
+import './modeling-skin.css';
 
 export default function ModelPanel({ records, onClose, onOpenResults }: { records: DatasetRecord[]; onClose(): void; onOpenResults(run: string): void }) {
   const [view, setView] = useState<'training' | 'registry' | 'inference'>('training');
