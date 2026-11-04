@@ -112,7 +112,7 @@ mod tests {
 |---|---|---|
 | A1 | **clippy 绝对零 error** | `cd src-tauri && cargo clippy --all-targets -- -D warnings; echo "exit=$?"` → **exit=0**，且同一条命令输出里 `grep -c "^error"` = **0** |
 | A2 | **不再有 `unwrap_used` 诊断** | `cargo clippy --all-targets -- -D warnings 2>&1 \| grep -c "unwrap_used"` = **0** |
-| A3 | **生产段零放宽（机验门）** | ① `sed -n '1,287p' src-tauri/src/models.rs \| grep -c "allow(clippy"` = **0**；② `sed -n '1,287p' src-tauri/src/models.rs \| grep -c "\.unwrap()"` = **0**；③ `grep -rn "allow(clippy" src-tauri/src/*.rs` 的命中**只允许**出现在 `models.rs` 的 `mod tests` 内（贴出 grep 结果供核对） |
+| A3 | **生产段零放宽 + allow 不扩散（双向机验）** | 正向：① `sed -n '1,287p' src-tauri/src/models.rs \| grep -c "allow(clippy"` = **0**；② `sed -n '1,287p' src-tauri/src/models.rs \| grep -c "\.unwrap()"` = **0**；③ `grep -rn "allow(clippy" src-tauri/src/*.rs` 的命中**只允许**出现在 `models.rs` 的 `mod tests` 内。反向：④ `grep -c "allow(clippy" src/models.rs` = **1** 且 `grep -c "allow(clippy" tests/models_forward.rs` = **1**——**allow 恰好各一处，不许第二个蔓延**（开工实测：两文件改前均为 **0**，所以"=1"是干净判据） |
 | A4 | **测试全绿** | `cargo test` → **95 passed / 0 failed**（数字现场重取；与开工基线一致） |
 | A5 | **改动面** | `git diff --stat src-tauri` 恰好 **2 files**，每个文件 **+2 行**（一条 attribute + 一行注释）；`git diff` 里不出现任何 `.unwrap()` 行的增删 |
 | A6 | **环境噪声不误判** | 回报里必须区分：`error: used unwrap()`（代码）= 0；`warning: error deleting lock file … os error 5`（环境）允许存在，**不得**为消它改配置 |
