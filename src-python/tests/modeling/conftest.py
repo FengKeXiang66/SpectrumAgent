@@ -1,4 +1,5 @@
 """Isolated real databases and confirmed snapshots for modeling tests."""
+from storage_paths import runtime_path
 from types import SimpleNamespace
 from unittest.mock import patch
 import json
@@ -16,7 +17,7 @@ from spectrumagent.preprocess.run import RunEngine
 
 @pytest.fixture
 def legacy_case(tmp_path):
-    paths = AppPaths(tmp_path / "legacy")
+    paths = AppPaths(runtime_path(tmp_path, tmp_path / "legacy"))
     with patch("spectrumagent.api.registry.migrate_modeling", lambda db: None):
         registry = DatasetRegistry(paths.database)
     runner = RunEngine(registry, paths)
@@ -35,7 +36,7 @@ def insert_run():
 
 @pytest.fixture(params=["scale", "passthrough"])
 def reflectance_cube(tmp_path, request):
-    registry = DatasetRegistry(tmp_path / "equivalence.sqlite3")
+    registry = DatasetRegistry(runtime_path(tmp_path, tmp_path / "equivalence.sqlite3"))
     branch = request.param
     values = np.arange(1, 97).reshape(3, 4, 8)
     values = values.astype(np.uint16) if branch == "scale" else values.astype(np.float32) / 128
@@ -50,7 +51,7 @@ def reflectance_cube(tmp_path, request):
 
 @pytest.fixture
 def model_case(tmp_path):
-    paths = AppPaths(tmp_path / "model-app")
+    paths = AppPaths(runtime_path(tmp_path, tmp_path / "model-app"))
     registry = DatasetRegistry(paths.database)
     runner = RunEngine(registry, paths)
     pipeline = {"steps": [{"op": "standardize", "version": 1, "params": {"method": "standard"}}]}
@@ -92,7 +93,7 @@ def regression_factory(tmp_path):
     def make(n=12):
         from spectrumagent.modeling.dataset import SampleTargets
         from spectrumagent.annotation.labels import LabelStore, SchemaRequest
-        paths = AppPaths(tmp_path / str(uuid4()))
+        paths = AppPaths(runtime_path(tmp_path, tmp_path / str(uuid4())))
         registry = DatasetRegistry(paths.database)
         runner = RunEngine(registry, paths)
         project = LabelStore(paths.database).projects()[0]["id"]

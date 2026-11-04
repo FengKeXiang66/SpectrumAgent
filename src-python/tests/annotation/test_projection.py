@@ -238,14 +238,14 @@ def test_atomic_publish_failure_preserves_previous_generation(annotation_case, m
     folder = Path(path).parent
     (folder / "existing-training.mat").write_bytes(b"untouched")
     before = {p.name: p.read_bytes() for p in folder.iterdir()}
-    original = projection_io.os.replace
+    original = projection_io.storage.replace
     injected = []
     def fail_publish(source, target):
         if Path(target).name == "sample.meta.json" and not injected:
             injected.append(True)
             raise OSError("publish failed")
         return original(source, target)
-    monkeypatch.setattr(projection_io.os, "replace", fail_publish)
+    monkeypatch.setattr(projection_io.storage, "replace", fail_publish)
     with pytest.raises(OSError, match="publish failed"):
         changed = labels.copy()
         changed[0, 0] = -1

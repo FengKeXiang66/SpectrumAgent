@@ -1,0 +1,268 @@
+.........................................................F.FFFF.....F..F [100%]
+================================== FAILURES ===================================
+____________ test_import_idempotency_raw_persistence_and_overrides ____________
+
+api = (<starlette.testclient.TestClient object at 0x00000262853BEC90>, AppPaths(root=WindowsPath('C:/Users/Administrator/App...cal/Temp/t25ag/pytest-of-Administrator/pytest-0/test_import_idempotency_raw_pe0/app')), SafeIdentity(token=<redacted>))
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25ag/pytest-of-Administrator/pytest-0/test_import_idempotency_raw_pe0')
+
+    def test_import_idempotency_raw_persistence_and_overrides(api, tmp_path):
+        client, paths, _ = api
+        header, _, dn = cube(tmp_path / "source")
+>       first = imported(client, header, raw=True)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src-python\tests\data\test_api.py:56: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+client = <starlette.testclient.TestClient object at 0x00000262853BEC90>
+path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25ag/pytest-of-Administrator/pytest-0/test_import_idempotency_raw_pe0/source/sample.hdr')
+extra = {'raw': True}
+
+    def imported(client, path, **extra):
+        result = client.post("/api/v1/datasets/import", json={"path": str(path), **extra})
+>       assert result.status_code == 200, result.text
+E       AssertionError: {"error":"STORAGE_SELF_CHECK_FAILED","detail":"����ԴĿ¼���д���ص�","context":{}}
+E       assert 400 == 200
+E        +  where 400 = <Response [400 Bad Request]>.status_code
+
+src-python\tests\data\test_api.py:49: AssertionError
+____________ test_directory_names_unrelated_text_and_metadata_only ____________
+
+api = (<starlette.testclient.TestClient object at 0x00000262855BDF70>, AppPaths(root=WindowsPath('C:/Users/Administrator/App...cal/Temp/t25ag/pytest-of-Administrator/pytest-0/test_directory_names_unrelated0/app')), SafeIdentity(token=<redacted>))
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25ag/pytest-of-Administrator/pytest-0/test_directory_names_unrelated0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000262855E05F0>
+
+    def test_directory_names_unrelated_text_and_metadata_only(api, tmp_path, monkeypatch):
+        client, _, _ = api
+        source = tmp_path / "source"
+        cube(source / "a"); cube(source / "b")
+        (source / "README.txt").write_text("unrelated readme", "utf-8")
+        monkeypatch.setattr("spectral.io.bilfile.BilFile.asarray", lambda *_a, **_k: pytest.fail("import read data values"))
+>       result = imported(client, source)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+
+src-python\tests\data\test_api.py:104: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+client = <starlette.testclient.TestClient object at 0x00000262855BDF70>
+path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25ag/pytest-of-Administrator/pytest-0/test_directory_names_unrelated0/source')
+extra = {}
+
+    def imported(client, path, **extra):
+        result = client.post("/api/v1/datasets/import", json={"path": str(path), **extra})
+>       assert result.status_code == 200, result.text
+E       AssertionError: {"error":"STORAGE_SELF_CHECK_FAILED","detail":"����ԴĿ¼���д���ص�","context":{}}
+E       assert 400 == 200
+E        +  where 400 = <Response [400 Bad Request]>.status_code
+
+src-python\tests\data\test_api.py:49: AssertionError
+_________ test_existing_entries_also_get_unambiguous_directory_names __________
+
+api = (<starlette.testclient.TestClient object at 0x0000026285632FF0>, AppPaths(root=WindowsPath('C:/Users/Administrator/App...cal/Temp/t25ag/pytest-of-Administrator/pytest-0/test_existing_entries_also_get0/app')), SafeIdentity(token=<redacted>))
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25ag/pytest-of-Administrator/pytest-0/test_existing_entries_also_get0')
+
+    def test_existing_entries_also_get_unambiguous_directory_names(api, tmp_path):
+        client, _, _ = api
+        first = cube(tmp_path / "source/a")[0]
+        second = cube(tmp_path / "source/b")[0]
+>       ids = {imported(client, path)["datasets"][0]["id"] for path in (first, second)}
+               ^^^^^^^^^^^^^^^^^^^^^^
+
+src-python\tests\data\test_api.py:113: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+client = <starlette.testclient.TestClient object at 0x0000026285632FF0>
+path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25ag/pytest-of-Administrator/pytest-0/test_existing_entries_also_get0/source/a/sample.hdr')
+extra = {}
+
+    def imported(client, path, **extra):
+        result = client.post("/api/v1/datasets/import", json={"path": str(path), **extra})
+>       assert result.status_code == 200, result.text
+E       AssertionError: {"error":"STORAGE_SELF_CHECK_FAILED","detail":"����ԴĿ¼���д���ص�","context":{}}
+E       assert 400 == 200
+E        +  where 400 = <Response [400 Bad Request]>.status_code
+
+src-python\tests\data\test_api.py:49: AssertionError
+_________________ test_concurrent_retries_create_only_one_id __________________
+
+api = (<starlette.testclient.TestClient object at 0x00000262856EBEF0>, AppPaths(root=WindowsPath('C:/Users/Administrator/App...cal/Temp/t25ag/pytest-of-Administrator/pytest-0/test_concurrent_retries_create0/app')), SafeIdentity(token=<redacted>))
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25ag/pytest-of-Administrator/pytest-0/test_concurrent_retries_create0')
+
+    def test_concurrent_retries_create_only_one_id(api, tmp_path):
+        client, _, _ = api
+        header = cube(tmp_path / "source")[0]
+        with ThreadPoolExecutor(3) as pool:
+>           results = list(pool.map(lambda _: imported(client, header), range(3)))
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src-python\tests\data\test_api.py:124: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\Administrator\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\concurrent\futures\_base.py:619: in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Administrator\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\concurrent\futures\_base.py:317: in _result_or_cancel
+    return fut.result(timeout)
+           ^^^^^^^^^^^^^^^^^^^
+C:\Users\Administrator\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\concurrent\futures\_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Users\Administrator\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+C:\Users\Administrator\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\concurrent\futures\thread.py:59: in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src-python\tests\data\test_api.py:124: in <lambda>
+    results = list(pool.map(lambda _: imported(client, header), range(3)))
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+client = <starlette.testclient.TestClient object at 0x00000262856EBEF0>
+path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25ag/pytest-of-Administrator/pytest-0/test_concurrent_retries_create0/source/sample.hdr')
+extra = {}
+
+    def imported(client, path, **extra):
+        result = client.post("/api/v1/datasets/import", json={"path": str(path), **extra})
+>       assert result.status_code == 200, result.text
+E       AssertionError: {"error":"STORAGE_SELF_CHECK_FAILED","detail":"����ԴĿ¼���д���ص�","context":{}}
+E       assert 400 == 200
+E        +  where 400 = <Response [400 Bad Request]>.status_code
+
+src-python\tests\data\test_api.py:49: AssertionError
+________________ test_preview_png_pixel_orientation_and_bounds ________________
+
+api = (<starlette.testclient.TestClient object at 0x00000262857CF530>, AppPaths(root=WindowsPath('C:/Users/Administrator/App...cal/Temp/t25ag/pytest-of-Administrator/pytest-0/test_preview_png_pixel_orienta0/app')), SafeIdentity(token=<redacted>))
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25ag/pytest-of-Administrator/pytest-0/test_preview_png_pixel_orienta0')
+
+    def test_preview_png_pixel_orientation_and_bounds(api, tmp_path):
+        client, _, _ = api
+        header, _, dn = cube(tmp_path / "source")
+>       identifier = imported(client, header)["datasets"][0]["id"]
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+
+src-python\tests\data\test_api.py:132: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+client = <starlette.testclient.TestClient object at 0x00000262857CF530>
+path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25ag/pytest-of-Administrator/pytest-0/test_preview_png_pixel_orienta0/source/sample.hdr')
+extra = {}
+
+    def imported(client, path, **extra):
+        result = client.post("/api/v1/datasets/import", json={"path": str(path), **extra})
+>       assert result.status_code == 200, result.text
+E       AssertionError: {"error":"STORAGE_SELF_CHECK_FAILED","detail":"����ԴĿ¼���д���ص�","context":{}}
+E       assert 400 == 200
+E        +  where 400 = <Response [400 Bad Request]>.status_code
+
+src-python\tests\data\test_api.py:49: AssertionError
+___________________ test_three_imports_do_not_block_health ____________________
+
+api = (<starlette.testclient.TestClient object at 0x0000026285C1A720>, AppPaths(root=WindowsPath('C:/Users/Administrator/App...cal/Temp/t25ag/pytest-of-Administrator/pytest-0/test_three_imports_do_not_bloc0/app')), SafeIdentity(token=<redacted>))
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25ag/pytest-of-Administrator/pytest-0/test_three_imports_do_not_bloc0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000026285BD0260>
+
+    def test_three_imports_do_not_block_health(api, tmp_path, monkeypatch):
+        client, _, _ = api
+        import spectrumagent.api.registry as registry
+        original = registry.read_header
+        entered = Barrier(4); release = Event()
+        def slow(*args, **kwargs):
+            entered.wait(timeout=10)
+            assert release.wait(10)
+            return original(*args, **kwargs)
+        monkeypatch.setattr(registry, "read_header", slow)
+        paths = [cube(tmp_path / str(i))[0] for i in range(3)]
+        with ThreadPoolExecutor(3) as pool:
+            futures = [pool.submit(imported, client, p) for p in paths]
+            try:
+                entered.wait(timeout=10)
+                assert client.get("/health").status_code == 200
+            finally:
+                release.set()
+>           assert all(f.result()["summary"]["imported"] == 1 for f in futures)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src-python\tests\data\test_api.py:190: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src-python\tests\data\test_api.py:190: in <genexpr>
+    assert all(f.result()["summary"]["imported"] == 1 for f in futures)
+               ^^^^^^^^^^
+C:\Users\Administrator\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\concurrent\futures\_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Users\Administrator\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+C:\Users\Administrator\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\concurrent\futures\thread.py:59: in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+client = <starlette.testclient.TestClient object at 0x0000026285C1A720>
+path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25ag/pytest-of-Administrator/pytest-0/test_three_imports_do_not_bloc0/0/sample.hdr')
+extra = {}
+
+    def imported(client, path, **extra):
+        result = client.post("/api/v1/datasets/import", json={"path": str(path), **extra})
+>       assert result.status_code == 200, result.text
+E       AssertionError: {"error":"STORAGE_SELF_CHECK_FAILED","detail":"����ԴĿ¼���д���ص�","context":{}}
+E       assert 400 == 200
+E        +  where 400 = <Response [400 Bad Request]>.status_code
+
+src-python\tests\data\test_api.py:49: AssertionError
+_ test_import_refreshes_prior_display_names_without_changing_batch_or_payload _
+
+api = (<starlette.testclient.TestClient object at 0x0000026286DFD9D0>, AppPaths(root=WindowsPath('C:/Users/Administrator/App...cal/Temp/t25ag/pytest-of-Administrator/pytest-0/test_import_refreshes_prior_di0/app')), SafeIdentity(token=<redacted>))
+tmp_path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25ag/pytest-of-Administrator/pytest-0/test_import_refreshes_prior_di0')
+
+    def test_import_refreshes_prior_display_names_without_changing_batch_or_payload(api, tmp_path):
+        client, paths, _ = api
+        header, _, _ = cube(tmp_path / "source")
+>       first = imported(client, header, raw=False)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src-python\tests\data\test_api.py:220: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+client = <starlette.testclient.TestClient object at 0x0000026286DFD9D0>
+path = WindowsPath('C:/Users/Administrator/AppData/Local/Temp/t25ag/pytest-of-Administrator/pytest-0/test_import_refreshes_prior_di0/source/sample.hdr')
+extra = {'raw': False}
+
+    def imported(client, path, **extra):
+        result = client.post("/api/v1/datasets/import", json={"path": str(path), **extra})
+>       assert result.status_code == 200, result.text
+E       AssertionError: {"error":"STORAGE_SELF_CHECK_FAILED","detail":"����ԴĿ¼���д���ص�","context":{}}
+E       assert 400 == 200
+E        +  where 400 = <Response [400 Bad Request]>.status_code
+
+src-python\tests\data\test_api.py:49: AssertionError
+============================== warnings summary ===============================
+.venv\Lib\site-packages\fastapi\testclient.py:1
+  E:\AI_Agent\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+backend/tests/test_foundation.py::test_http_contract_and_real_envi_snv
+backend/tests/test_foundation.py::test_http_contract_and_real_envi_snv
+backend/tests/test_foundation.py::test_cancel_after_first_running_block_keeps_partial_metrics
+  E:\AI_Agent\.venv\Lib\site-packages\spectral\io\spyfile.py:217: DeprecationWarning: Setting the shape on a NumPy array has been deprecated in NumPy 2.5.
+  As an alternative, you can create a new view using np.reshape (with copy=False if needed).
+    npArray.shape = (self.nrows, self.ncols, self.nbands)
+
+backend/tests/test_foundation.py::test_http_contract_and_real_envi_snv
+backend/tests/test_foundation.py::test_http_contract_and_real_envi_snv
+backend/tests/test_foundation.py::test_http_contract_and_real_envi_snv
+backend/tests/test_foundation.py::test_http_contract_and_real_envi_snv
+backend/tests/test_foundation.py::test_cancel_after_first_running_block_keeps_partial_metrics
+backend/tests/test_foundation.py::test_cancel_after_first_running_block_keeps_partial_metrics
+  E:\AI_Agent\.venv\Lib\site-packages\spectral\image.py:24: DeprecationWarning: Setting the dtype on a NumPy array has been deprecated in NumPy 2.5.
+  Instead of changing the dtype on an array x, create a new array with x.view(new_dtype)
+    self.dtype = params.dtype
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED src-python/tests/data/test_api.py::test_import_idempotency_raw_persistence_and_overrides
+FAILED src-python/tests/data/test_api.py::test_directory_names_unrelated_text_and_metadata_only
+FAILED src-python/tests/data/test_api.py::test_existing_entries_also_get_unambiguous_directory_names
+FAILED src-python/tests/data/test_api.py::test_concurrent_retries_create_only_one_id
+FAILED src-python/tests/data/test_api.py::test_preview_png_pixel_orientation_and_bounds
+FAILED src-python/tests/data/test_api.py::test_three_imports_do_not_block_health
+FAILED src-python/tests/data/test_api.py::test_import_refreshes_prior_display_names_without_changing_batch_or_payload
+7 failed, 65 passed, 10 warnings in 18.74s

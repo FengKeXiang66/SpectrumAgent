@@ -1,4 +1,5 @@
 """Reference-only SQLite ledger, with atomic batches and persisted default raw."""
+from spectrumagent.storage import guard as storage
 from collections import Counter
 from dataclasses import replace
 import json
@@ -113,7 +114,8 @@ class DatasetRegistry:
     def __init__(self, database: Path):
         self.database = database
         self.lock = RLock()
-        database.parent.mkdir(parents=True, exist_ok=True)
+        self.storage_guard = storage.for_database(database)
+        storage.mkdir(database.parent, parents=True, exist_ok=True)
         with connect_database(database) as db:
             db.execute("CREATE TABLE IF NOT EXISTS dataset_registry (id TEXT PRIMARY KEY, header_key TEXT NOT NULL, raw INTEGER NOT NULL, payload TEXT NOT NULL, UNIQUE(header_key,raw))")
             migrate(db)
@@ -143,6 +145,10 @@ class DatasetRegistry:
                 errors.append({"path": str(path), **error.as_dict()})
         if errors:
             raise DataError("IMPORT_BATCH_INVALID", "整批导入未登记；请修复所有无效项", items=errors)
+        source_directories = ({root} if root.is_dir() else set())
+        for _, dataset in prepared:
+            source_directories.update((Path(dataset.header_path).parent, Path(dataset.data_path).parent))
+        self.storage_guard.add_sources(source_directories)
         records = []
         with self.lock, connect_database(self.database, timeout=10) as db:
             db.execute("BEGIN IMMEDIATE")

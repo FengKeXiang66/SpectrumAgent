@@ -1,4 +1,5 @@
 """Temporary ENVI/SNV smoke demonstration; deliberately not an operator API."""
+from spectrumagent.storage import guard as storage
 
 import asyncio
 import time
@@ -13,12 +14,12 @@ _sample_lock = Lock()
 
 
 def ensure_sample(directory: Path) -> Path:
-    directory.mkdir(parents=True, exist_ok=True)
+    storage.mkdir(directory, parents=True, exist_ok=True)
     header = directory / "smoke-8x8x8.hdr"
     with _sample_lock:
         if not header.exists():
             cube = np.linspace(0.05, 0.95, 8 * 8 * 8, dtype=np.float32).reshape(8, 8, 8)
-            envi.save_image(str(header), cube, dtype=np.float32, interleave="bip", ext=".dat")
+            envi.save_image(str(storage.resolve_write(header, kind="ARTIFACT_WRITE")), cube, dtype=np.float32, interleave="bip", ext=".dat")
     return header
 
 

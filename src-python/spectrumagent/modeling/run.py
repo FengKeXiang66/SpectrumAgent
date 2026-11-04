@@ -1,4 +1,5 @@
 """Classification preflight and synchronous sample-level PLS run lifecycle."""
+from spectrumagent.storage import guard as storage
 from datetime import datetime, timezone
 import json
 import sqlite3
@@ -199,14 +200,14 @@ class TrainingRuns:
             predicted = {int(i): float(v) for indices, values in ((train, calibration), (test, prediction)) for i, v in zip(indices, values)}
             predictions = [{"cube_id": str(groups[i]), "set": "calibration" if i in train else "prediction",
                             "y_true": float(y[i]), "y_pred": predicted[i], "residual": predicted[i]-float(y[i])} for i in range(len(y))]
-            folder.mkdir(parents=True)
+            storage.mkdir(folder, parents=True)
             artifacts = {"lv_sweep": sweep, "predictions": predictions,
                          "model": {"kind": "PLSRegression", "selected_lv": selected, "coef": model.coef_.tolist(),
                                    "intercept": model.intercept_.tolist(), "x_mean": model._x_mean.tolist()}}
             records = []
             for kind, value in artifacts.items():
                 raw = _json(value).encode("utf-8")
-                (folder / (kind+".json")).write_bytes(raw)
+                (storage.resolve_write(folder / (kind+".json"), kind="WRITE_BYTES")).write_bytes(raw)
                 records.append((str(uuid4()), identifier, kind, f"{identifier}/{kind}.json", hashlib.sha256(raw).hexdigest(), _now()))
             params.update(selected_lv=selected, best_lv=best["n_components"], by_elbow=elbow)
             with connect_database(self.database) as db:
@@ -222,7 +223,7 @@ class TrainingRuns:
             # only the exception type reaches the message, never its text.
             for kind in ("model", "predictions", "lv_sweep"):
                 try:
-                    (folder / (kind+".json")).unlink(missing_ok=True)
+                    storage.unlink(folder / (kind+".json"), missing_ok=True)
                 except OSError:
                     pass
             if folder.exists():

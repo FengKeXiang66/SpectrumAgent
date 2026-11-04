@@ -1,3 +1,4 @@
+from storage_paths import runtime_path
 from dataclasses import asdict
 from types import SimpleNamespace
 
@@ -18,7 +19,7 @@ def mat_case(tmp_path, request):
     header.with_suffix(".img").write_bytes(values.astype(">u2").tobytes())
     header.write_text("ENVI\nsamples=4\nlines=6\nbands=3\ndata type=12\ninterleave=bip\nbyte order=1\nreflectance scale factor=10000\n" +
                       ("wavelength={450,550,650}\n" if request.param else ""), "utf-8")
-    paths = AppPaths(tmp_path / "app")
+    paths = AppPaths(runtime_path(tmp_path, tmp_path / "app"))
     registry = DatasetRegistry(paths.database)
     cube = str(registry.import_path(str(header), raw=False).datasets[0].id)
     store = SessionStore(registry, paths)

@@ -26,6 +26,7 @@ def main(argv=None) -> int:
         arguments = []
     else:
         paths = AppPaths.from_environment()
+    paths.create_directories()
     configure_logging(paths.logs)
     logger = structlog.get_logger("engine")
     try:
@@ -55,6 +56,9 @@ def main(argv=None) -> int:
         else:
             logger.exception("engine_failed")
         return 1
+    finally:
+        from spectrumagent.storage.guard import for_database
+        for_database(paths.database).close()
 
 
 if __name__ == "__main__":

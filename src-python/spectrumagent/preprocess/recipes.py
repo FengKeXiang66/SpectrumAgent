@@ -1,4 +1,5 @@
 """B07 append-only recipe library and R3 pure input fingerprint, no run execution."""
+from spectrumagent.storage import guard as storage
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -50,7 +51,8 @@ class RecipeStore:
         self.database = Path(database)
         self.lock = RLock()
         self.registry = registry if registry is not None else builtin_registry()
-        self.database.parent.mkdir(parents=True, exist_ok=True)
+        storage.for_database(self.database)
+        storage.mkdir(self.database.parent, parents=True, exist_ok=True)
         with connect_database(self.database) as db:
             migrate(db)
 

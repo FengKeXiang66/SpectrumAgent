@@ -1,3 +1,4 @@
+from storage_paths import runtime_path
 import base64
 from concurrent.futures import ThreadPoolExecutor
 import json
@@ -37,7 +38,7 @@ class SafeIdentity:
 @pytest.fixture
 def api(tmp_path):
     identity = EngineIdentity()
-    paths = AppPaths(tmp_path / "app")
+    paths = AppPaths(runtime_path(tmp_path, tmp_path / "app"))
     app = create_app(paths, identity)
     with TestClient(app) as client:
         client.headers["Authorization"] = "Bearer " + identity.token

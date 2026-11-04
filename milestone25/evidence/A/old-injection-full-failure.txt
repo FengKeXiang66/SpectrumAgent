@@ -1,0 +1,159 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.13, pytest-9.1.1, pluggy-1.7.0
+rootdir: E:\AI_Agent
+plugins: anyio-4.15.1
+collected 1460 items
+
+src-python\tests\agent\test_agent_api.py ............................... [  2%]
+.............                                                            [  3%]
+src-python\tests\agent\test_annotation_tools.py ..................       [  4%]
+src-python\tests\agent\test_context_references.py ...................... [  5%]
+......................                                                   [  7%]
+src-python\tests\agent\test_conversation_workflows.py .................. [  8%]
+..............                                                           [  9%]
+src-python\tests\agent\test_dataset_display_names.py ..                  [  9%]
+src-python\tests\agent\test_e2e_task10_seeds.py ...............          [ 10%]
+src-python\tests\agent\test_llm.py ..................................... [ 13%]
+....................                                                     [ 14%]
+src-python\tests\agent\test_migrations.py ........                       [ 15%]
+src-python\tests\agent\test_probes.py .........                          [ 15%]
+src-python\tests\agent\test_settings.py ................................ [ 17%]
+...                                                                      [ 18%]
+src-python\tests\agent\test_skill.py ...........................         [ 19%]
+src-python\tests\agent\test_stages.py ......................             [ 21%]
+src-python\tests\agent\test_state.py ................................... [ 23%]
+..................                                                       [ 25%]
+src-python\tests\agent\test_task.py .................................... [ 27%]
+                                                                         [ 27%]
+src-python\tests\agent\test_tools.py ................................... [ 29%]
+                                                                         [ 29%]
+src-python\tests\agent\test_workflow_gateway.py ................         [ 31%]
+src-python\tests\agent\test_workflows.py .................               [ 32%]
+src-python\tests\annotation\test_confirm_routes.py ...........           [ 32%]
+src-python\tests\annotation\test_diffusion.py .......................... [ 34%]
+.......                                                                  [ 35%]
+src-python\tests\annotation\test_diffusion_acceptance.py .               [ 35%]
+src-python\tests\annotation\test_draft.py .............................. [ 37%]
+.                                                                        [ 37%]
+src-python\tests\annotation\test_draft_routes.py ....................... [ 38%]
+...............                                                          [ 40%]
+src-python\tests\annotation\test_gestures.py ........................... [ 41%]
+..                                                                       [ 41%]
+src-python\tests\annotation\test_labels_api.py ......................... [ 43%]
+...............................                                          [ 45%]
+src-python\tests\annotation\test_projection.py ss..................F..   [ 47%]
+src-python\tests\annotation\test_quality.py ........                     [ 47%]
+src-python\tests\annotation\test_raster.py .........                     [ 48%]
+src-python\tests\annotation\test_routes.py ............................. [ 50%]
+........................                                                 [ 52%]
+src-python\tests\annotation\test_routes_acceptance.py .                  [ 52%]
+src-python\tests\annotation\test_session.py ..........................F. [ 54%]
+...                                                                      [ 54%]
+src-python\tests\annotation\test_source_changed_r14.py ......            [ 54%]
+src-python\tests\annotation\test_storage.py .....................        [ 56%]
+src-python\tests\annotation\test_superpixels.py ........................ [ 57%]
+....                                                                     [ 58%]
+src-python\tests\data\test_api.py ...............                        [ 59%]
+src-python\tests\data\test_binary.py .........................           [ 60%]
+src-python\tests\data\test_display_names.py ...                          [ 61%]
+src-python\tests\data\test_envi.py ..................................... [ 63%]
+.                                                                        [ 63%]
+src-python\tests\data\test_fallback.py .................                 [ 64%]
+src-python\tests\data\test_model.py ........                             [ 65%]
+src-python\tests\mat\test_mat.py ......                                  [ 65%]
+src-python\tests\modeling\test_cv.py ............                        [ 66%]
+src-python\tests\modeling\test_dataset.py .............                  [ 67%]
+src-python\tests\modeling\test_inference.py ................             [ 68%]
+src-python\tests\modeling\test_leak.py ....                              [ 68%]
+src-python\tests\modeling\test_metrics.py ........                       [ 69%]
+src-python\tests\modeling\test_migrations.py .                           [ 69%]
+src-python\tests\modeling\test_model_routes.py ...................       [ 70%]
+src-python\tests\modeling\test_registry.py ............................. [ 72%]
+.........................                                                [ 74%]
+src-python\tests\modeling\test_regression.py ..................          [ 75%]
+src-python\tests\preprocess\test_axis_contract.py ................       [ 76%]
+src-python\tests\preprocess\test_compare.py .....                        [ 77%]
+src-python\tests\preprocess\test_continuum.py ....                       [ 77%]
+src-python\tests\preprocess\test_curves.py ....                          [ 77%]
+src-python\tests\preprocess\test_decomposition.py .....................  [ 79%]
+src-python\tests\preprocess\test_migrations.py ....                      [ 79%]
+src-python\tests\preprocess\test_recipes.py ..........                   [ 80%]
+src-python\tests\preprocess\test_reflectance.py ...................      [ 81%]
+src-python\tests\preprocess\test_registry.py .....................       [ 82%]
+src-python\tests\preprocess\test_resample.py .....................       [ 84%]
+src-python\tests\preprocess\test_routes.py ............................. [ 86%]
+...............                                                          [ 87%]
+src-python\tests\preprocess\test_run.py ................................ [ 89%]
+.                                                                        [ 89%]
+src-python\tests\preprocess\test_savgol.py ............................. [ 91%]
+.......                                                                  [ 92%]
+src-python\tests\preprocess\test_scatter.py ..................           [ 93%]
+src-python\tests\preprocess\test_standardize.py ........................ [ 94%]
+.                                                                        [ 95%]
+src-python\tests\storage\test_guard.py ................                  [ 96%]
+src-python\tests\test_display_falsecolor.py ............................ [ 98%]
+.............................                                            [100%]
+
+================================== FAILURES ===================================
+__________ test_atomic_publish_failure_preserves_previous_generation __________
+
+annotation_case = namespace(store=<spectrumagent.annotation.session.SessionStore object at 0x000002448935B2C0>, registry=<spectrumagent....s/Administrator/AppData/Local/Temp/t25af/pytest-of-Administrator/pytest-0/test_atomic_publish_failure_pr0/sample.hdr'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000244897A43B0>
+
+    def test_atomic_publish_failure_preserves_previous_generation(annotation_case, monkeypatch):
+        c = annotation_case
+        configure_project(c.paths, c.project, {"PE": "PE_W0"})
+        labels = np.zeros((3, 7), dtype=np.int32)
+        path, _ = write_projection(c.paths, c.identifier, c.project, c.header, 1, labels, {"0": "PE"})
+        folder = Path(path).parent
+        (folder / "existing-training.mat").write_bytes(b"untouched")
+        before = {p.name: p.read_bytes() for p in folder.iterdir()}
+>       original = projection_io.os.replace
+                   ^^^^^^^^^^^^^^^^
+E       AttributeError: module 'spectrumagent.annotation.projection_io' has no attribute 'os'
+
+src-python\tests\annotation\test_projection.py:241: AttributeError
+_________ test_save_reads_before_write_transaction_and_publishes_tmp __________
+
+annotation_case = namespace(store=<spectrumagent.annotation.session.SessionStore object at 0x0000024484479280>, registry=<spectrumagent....s/Administrator/AppData/Local/Temp/t25af/pytest-of-Administrator/pytest-0/test_save_reads_before_write_t0/sample.hdr'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000244870C3470>
+
+    def test_save_reads_before_write_transaction_and_publishes_tmp(annotation_case, monkeypatch):
+        c = annotation_case
+        manual_state(c)
+        original_read = SpectrumDataSet.read_region
+        reads = []
+        def no_write_lock(dataset, *args):
+            with connect_database(c.paths.database, timeout=0) as db:
+                db.execute("BEGIN IMMEDIATE")  # Would fail if save held its write txn.
+                db.rollback()
+            reads.append(args)
+            return original_read(dataset, *args)
+        monkeypatch.setattr(SpectrumDataSet, "read_region", no_write_lock)
+        from spectrumagent.annotation import session
+>       original_replace = session.os.replace
+                           ^^^^^^^^^^
+E       AttributeError: module 'spectrumagent.annotation.session' has no attribute 'os'
+
+src-python\tests\annotation\test_session.py:381: AttributeError
+============================== warnings summary ===============================
+.venv\Lib\site-packages\fastapi\testclient.py:1
+  E:\AI_Agent\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+src-python/tests/modeling/test_registry.py::test_all_fitted_calibrations_saved_and_block_invariant[ica-params4]
+  E:\AI_Agent\.venv\Lib\site-packages\sklearn\decomposition\_fastica.py:132: ConvergenceWarning: FastICA did not converge. Consider increasing tolerance or the maximum number of iterations.
+    warnings.warn(
+
+src-python/tests/modeling/test_regression.py::test_undefined_scores_persist_null_not_zero
+src-python/tests/modeling/test_regression.py::test_undefined_scores_persist_null_not_zero
+src-python/tests/modeling/test_regression.py::test_undefined_scores_persist_null_not_zero
+src-python/tests/modeling/test_regression.py::test_undefined_scores_persist_null_not_zero
+  E:\AI_Agent\.venv\Lib\site-packages\sklearn\cross_decomposition\_pls.py:308: UserWarning: y residual is constant at iteration 0
+    warnings.warn(f"y residual is constant at iteration {k}")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED src-python/tests/annotation/test_projection.py::test_atomic_publish_failure_preserves_previous_generation
+FAILED src-python/tests/annotation/test_session.py::test_save_reads_before_write_transaction_and_publishes_tmp
+====== 2 failed, 1456 passed, 2 skipped, 6 warnings in 540.69s (0:09:00) ======

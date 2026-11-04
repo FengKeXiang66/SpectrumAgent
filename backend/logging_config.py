@@ -1,4 +1,5 @@
 """One JSON formatter for structlog, uvicorn and standard-library logging."""
+from spectrumagent.storage import guard as storage
 
 import json
 import logging
@@ -15,7 +16,7 @@ class DailyJsonFile(logging.Handler):
     def __init__(self, directory: Path) -> None:
         super().__init__()
         self.stream = None
-        directory.mkdir(parents=True, exist_ok=True)
+        storage.mkdir(directory, parents=True, exist_ok=True)
         self.directory = directory
         self.day = ""
 
@@ -25,10 +26,11 @@ class DailyJsonFile(logging.Handler):
             if self.stream is None or day != self.day:
                 if self.stream is not None:
                     self.stream.close()
-                self.stream = (self.directory / f"engine-{day}.jsonl").open(
+                self.stream = (storage.resolve_write(self.directory / f"engine-{day}.jsonl", kind="FILE_OPEN")).open(
                     "a", encoding="utf-8"
                 )
                 self.day = day
+            storage.resolve_write(self.directory / f"engine-{day}.jsonl", kind="LOG_APPEND")
             self.stream.write(self.format(record) + "\n")
             self.stream.flush()
         except Exception:

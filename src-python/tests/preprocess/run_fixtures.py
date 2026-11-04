@@ -1,4 +1,5 @@
 """Explicit pixel/annotation fixture; no historical sample spectrum is consumed."""
+from storage_paths import runtime_path
 import json
 from types import SimpleNamespace
 from uuid import uuid4
@@ -18,7 +19,7 @@ def run_case(tmp_path):
     header = tmp_path/"pixels.hdr"
     header.with_suffix(".bil").write_bytes(values.transpose(0, 2, 1).tobytes())
     header.write_text("ENVI\nlines=24\nsamples=5\nbands=8\ndata type=12\ninterleave=bil\nreflectance scale factor=65535\n", "utf-8")
-    paths = AppPaths(tmp_path/"app")
+    paths = AppPaths(runtime_path(tmp_path, tmp_path/"app"))
     registry = DatasetRegistry(paths.database)
     cube = str(registry.import_path(str(header), raw=True).datasets[0].id)
     runner = RunEngine(registry, paths)

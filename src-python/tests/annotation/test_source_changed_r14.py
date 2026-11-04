@@ -1,4 +1,5 @@
 """R14: six acceptance cases; readers/import classification remain unchanged."""
+from storage_paths import runtime_path
 from uuid import uuid4
 
 import numpy as np
@@ -16,7 +17,7 @@ def registered_source(tmp_path):
     binary.write_bytes(values.transpose(0, 2, 1).tobytes())
     header = tmp_path / "source.hdr"
     header.write_text("ENVI\nsamples=24\nlines=16\nbands=6\ndata type=12\ninterleave=bil\nbyte order=0\nreflectance scale factor=65535\n", "utf-8")
-    registry = DatasetRegistry(tmp_path / "registry.sqlite3")
+    registry = DatasetRegistry(runtime_path(tmp_path, tmp_path / "registry.sqlite3"))
     identifier = registry.import_path(str(header)).datasets[0].id
     return registry, identifier, header, binary
 

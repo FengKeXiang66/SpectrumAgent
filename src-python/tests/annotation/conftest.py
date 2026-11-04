@@ -1,3 +1,4 @@
+from storage_paths import runtime_path
 from dataclasses import asdict
 from types import SimpleNamespace
 
@@ -16,7 +17,7 @@ from spectrumagent.annotation.session import SessionStore
 
 @pytest.fixture
 def label_api(tmp_path):
-    paths = AppPaths(tmp_path / "app")
+    paths = AppPaths(runtime_path(tmp_path, tmp_path / "app"))
     identity = EngineIdentity()
     app = create_app(paths, identity)
     with TestClient(app) as client:
@@ -35,7 +36,7 @@ def annotation_case(tmp_path):
     header.with_suffix(".img").write_bytes(values.transpose(0, 2, 1).tobytes())
     header.write_text("ENVI\nsamples=12\nlines=40\nbands=200\ndata type=12\n"
                       "interleave=bil\nbyte order=0\nreflectance scale factor=65535\n", "utf-8")
-    paths = AppPaths(tmp_path / "app")
+    paths = AppPaths(runtime_path(tmp_path, tmp_path / "app"))
     registry = DatasetRegistry(paths.database)
     identifier = str(registry.import_path(str(header), raw=True).datasets[0].id)
     segments = (np.indices((40, 12))[0] // 20 * 3 + np.indices((40, 12))[1] // 4).astype(np.int32)

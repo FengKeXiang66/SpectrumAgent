@@ -1,10 +1,10 @@
 """Packaging checks only; these are not data-ingestion or task-pool features."""
+from spectrumagent.storage import guard as storage
 
 import json
 import multiprocessing
 import os
 import sys
-import tempfile
 from pathlib import Path
 
 from backend.paths import AppPaths
@@ -16,7 +16,7 @@ def check_geotiff(paths: AppPaths) -> None:
     from rasterio.crs import CRS
     from rasterio.transform import from_origin
 
-    paths.testdata.mkdir(parents=True, exist_ok=True)
+    storage.mkdir(paths.testdata, parents=True, exist_ok=True)
     expected_transform = from_origin(500000, 4000000, 30, 30)
     profile = dict(
         driver="GTiff", height=10, width=12, count=3,
@@ -28,9 +28,9 @@ def check_geotiff(paths: AppPaths) -> None:
     gdal_schema = package / "gdal_data" / "gdalvrt.xsd"
     if not proj_db.is_file() or not gdal_schema.is_file():
         raise RuntimeError("冻结包缺少 rasterio proj.db 或 gdalvrt.xsd。")
-    with tempfile.TemporaryDirectory(prefix="geotiff-check-", dir=paths.testdata) as temporary:
+    with storage.temporary_directory(prefix="geotiff-check-", dir=paths.testdata) as temporary:
         sample = Path(temporary) / "generated.tif"
-        with rasterio.open(sample, "w", **profile) as dataset:
+        with rasterio.open(storage.resolve_write(sample, kind="ARTIFACT_WRITE"), "w", **profile) as dataset:
             dataset.write(values)
         with rasterio.open(sample) as dataset:
             assert dataset.crs == CRS.from_epsg(32650), str(dataset.crs)

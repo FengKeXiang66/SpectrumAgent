@@ -1,0 +1,7 @@
+verified_ended_fixture_root=C:\Users\Administrator\AppData\Local\Temp\t25af
+old_fixture_root_exists=False
+
+Name  FreeBytes FreeGiB
+----  --------- -------
+C    4348317696    4.05
+

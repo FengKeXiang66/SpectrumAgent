@@ -1,7 +1,7 @@
 """Project-scoped configuration and atomic publication under data_root/exports."""
+from spectrumagent.storage import guard as storage
 from collections import Counter
 import json
-import os
 from pathlib import Path
 from threading import RLock
 from uuid import UUID, uuid4
@@ -26,13 +26,13 @@ def configure_project(paths, project_id, mapping, *, filenames=None):
     value = {"mapping": mapping, "filenames": filenames or {}}
     _validate_config(value)
     path = project_config_path(paths, project_id)
-    path.parent.mkdir(parents=True, exist_ok=True)
+    storage.mkdir(path.parent, parents=True, exist_ok=True)
     temporary = path.with_name(path.name + f".{uuid4().hex}.tmp")
     try:
-        temporary.write_text(_json(value), encoding="utf-8")
-        os.replace(temporary, path)
+        storage.resolve_write(temporary, kind="WRITE_TEXT").write_text(_json(value), encoding="utf-8")
+        storage.replace(temporary, path)
     finally:
-        temporary.unlink(missing_ok=True)
+        storage.unlink(temporary, missing_ok=True)
     return path
 
 
@@ -82,7 +82,7 @@ def write_projection(paths, cube_id, project_id, source_hdr, version_no, label_m
                                      "confidence_count": len(confidence)}
     meta["confidence_counts"] = dict(Counter(confidence))
     with _EXPORT_LOCK:
-        root.mkdir(parents=True, exist_ok=True)
+        storage.mkdir(root, parents=True, exist_ok=True)
         owned = folder / "manifest.json"
         previous = json.loads(owned.read_text("utf-8")) if owned.exists() else {}
         filename = previous["filename"] if previous.get("requested_filename") == requested else requested
@@ -95,7 +95,7 @@ def write_projection(paths, cube_id, project_id, source_hdr, version_no, label_m
             raise ValueError("投影文件名追加 cube_id 前 8 位后仍冲突")
         manifest = {"cube_id": cube_id, "source_hdr": str(source), "generated_at": generated,
                     "filename": filename, "requested_filename": requested, "version_no": version_no}
-        folder.mkdir(parents=True, exist_ok=True)
+        storage.mkdir(folder, parents=True, exist_ok=True)
         values = {folder / filename: text,
                   folder / (filename[:-5] + ".meta.json"): _json(meta),
                   folder / "manifest.json": _json(manifest)}
@@ -109,28 +109,28 @@ def write_projection(paths, cube_id, project_id, source_hdr, version_no, label_m
         published = []
         try:
             for path, value in values.items():
-                temporary[path].write_text(value, encoding="utf-8")
+                storage.resolve_write(temporary[path], kind="WRITE_TEXT").write_text(value, encoding="utf-8")
             # Only our JSON files are replaced. Existing training MATs belong to
             # another service even when they share the cube's export directory.
             for path in values:
-                os.replace(temporary[path], path)
+                storage.replace(temporary[path], path)
                 published.append(path)
             # A configured rename must still leave one current JSON per cube.
             # Only the old manifest's owned JSON and sidecar are retired.
             for path in obsolete:
                 if path.exists():
-                    path.unlink()
+                    storage.unlink(path)
                     published.append(path)
         except BaseException:
             for path in reversed(published):
                 old = previous_bytes[path]
                 if old is None:
-                    path.unlink(missing_ok=True)
+                    storage.unlink(path, missing_ok=True)
                 else:
-                    temporary[path].write_bytes(old)
-                    os.replace(temporary[path], path)
+                    storage.resolve_write(temporary[path], kind="WRITE_BYTES").write_bytes(old)
+                    storage.replace(temporary[path], path)
             raise
         finally:
             for path in temporary.values():
-                path.unlink(missing_ok=True)
+                storage.unlink(path, missing_ok=True)
     return str(folder / filename), meta

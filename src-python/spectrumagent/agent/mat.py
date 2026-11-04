@@ -5,11 +5,11 @@ public savemat API, including its unavoidable O(n*B) byte copy.
 The requested float32 export can lose precision for float64 DN; source_dtype
 retains the original dtype and byte order for downstream provenance.
 """
+from spectrumagent.storage import guard as storage
 import json
 import logging
 import os
 from pathlib import Path, PurePosixPath
-import shutil
 import sqlite3
 from threading import RLock
 from uuid import UUID, uuid4
@@ -51,7 +51,7 @@ class MatStore:
                 path = self.paths.exports / str(UUID(str(cube_id))) / str(UUID(str(version_id))) / "training_mat.mat"
                 if not path.resolve().is_relative_to(self.paths.exports.resolve()):
                     raise ValueError("导出物清理越界")
-                path.unlink(missing_ok=True)
+                storage.unlink(path, missing_ok=True)
         except Exception as error:
             # No local paths, credentials or exception text in cleanup logs.
             logging.getLogger(__name__).warning("MAT_CLEANUP_FAILED version_id=%s reason=%s", version_id, type(error).__name__)
@@ -121,8 +121,8 @@ class MatStore:
         fingerprint = input_fingerprint(cube_id, hashes, version_id, count)
         directory = self.paths.exports / cube_id / version_id
         temporary = directory / ".tmp"
-        directory.mkdir(parents=True, exist_ok=True)
-        temporary.mkdir()
+        storage.mkdir(directory, parents=True, exist_ok=True)
+        storage.mkdir(temporary)
         maps = {}
         target = directory / "training_mat.mat"
         backup = temporary / "previous.mat"
@@ -132,7 +132,7 @@ class MatStore:
             for key, dtype, shape in [("spectra", np.float32, (count, bands)),
                                       ("labels", np.int32, (count,)), ("rows", np.int32, (count,)),
                                       ("cols", np.int32, (count,))]:
-                maps[key] = np.lib.format.open_memmap(temporary / f"{key}.npy", mode="w+", dtype=dtype, shape=shape) if count else np.empty(shape, dtype=dtype)
+                maps[key] = np.lib.format.open_memmap(storage.resolve_write(temporary / f"{key}.npy", kind="ARTIFACT_WRITE"), mode="w+", dtype=dtype, shape=shape) if count else np.empty(shape, dtype=dtype)
             position, source_dtype = 0, None
             # A single row is an algorithmic bound, including tiny test cubes.
             for l0, l1, block in row_blocks(dataset, 1):
@@ -148,7 +148,7 @@ class MatStore:
                         "input_fingerprint": fingerprint, "n_spectra": count, "n_bands": bands,
                         "n_classes": len(label_index), "dtype_note": "raw_dn_pre_b01",
                         "schema_version": 1, "created_at": timestamp}
-            savemat(temporary / "training_mat.mat", {**maps, "source_dtype": source_dtype,
+            savemat(storage.resolve_write(temporary / "training_mat.mat", kind="ARTIFACT_WRITE"), {**maps, "source_dtype": source_dtype,
                     # Numeric JSON object keys cannot be MATLAB struct fields.
                     "label_index": json.dumps(label_index, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
                     "wavelengths": np.asarray(dataset.wavelengths, dtype=np.float64),
@@ -164,8 +164,8 @@ class MatStore:
                        "n_bands": bands, "n_classes": len(label_index), "input_fingerprint": fingerprint,
                        "created_at": timestamp}
                 if target.exists():
-                    os.replace(target, backup)
-                os.replace(temporary / "training_mat.mat", target)
+                    storage.replace(target, backup)
+                storage.replace(temporary / "training_mat.mat", target)
                 published = True
                 if previous:
                     db.execute("UPDATE training_mat SET cube_id=:cube_id,relative_path=:relative_path,sha256=:sha256,"
@@ -177,9 +177,9 @@ class MatStore:
             return row
         except BaseException:
             if published:
-                target.unlink()
+                storage.unlink(target)
             if backup.exists():
-                os.replace(backup, target)
+                storage.replace(backup, target)
             raise
         finally:
             for array in maps.values():
@@ -189,4 +189,4 @@ class MatStore:
             # Validated UUID children of exports, never caller-composed cleanup.
             if not temporary.resolve().is_relative_to(self.paths.exports.resolve()):
                 raise ValueError("临时目录越界")
-            shutil.rmtree(temporary)
+            storage.rmtree(temporary)

@@ -1,4 +1,5 @@
 """TASK-06: independent pixel/PNG/API checks, using the project BIL reader."""
+from storage_paths import runtime_path
 import base64
 import math
 from itertools import permutations
@@ -20,7 +21,7 @@ from spectrumagent.display.falsecolor import compose_rgb, select_feature_bands
 @pytest.fixture
 def display_api(tmp_path):
     identity = EngineIdentity()
-    paths = AppPaths(tmp_path / 'app')
+    paths = AppPaths(runtime_path(tmp_path, tmp_path / 'app'))
     with TestClient(create_app(paths, identity)) as client:
         client.headers['Authorization'] = 'Bearer ' + identity.token
 
@@ -336,7 +337,7 @@ def test_real_pe_feature_determinism_dispersion_corr_and_candidate_shape(tmp_pat
     header = Path((Path(__file__).resolve().parents[2]/'milestone04/evidence/calibration/cubes_11.txt').read_text('utf-8').splitlines()[0])
     if not header.is_file():
         pytest.skip('real pe cube from cubes_11.txt is unavailable')
-    registry = DatasetRegistry(tmp_path/'real.sqlite')
+    registry = DatasetRegistry(runtime_path(tmp_path, tmp_path/'real.sqlite'))
     record = registry.import_path(str(header)).datasets[0]
     ds, _ = registry.readable(record.id, raw=False)
     shapes = []

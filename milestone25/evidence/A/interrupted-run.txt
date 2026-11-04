@@ -1,0 +1,22 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.13, pytest-9.1.1, pluggy-1.7.0
+rootdir: E:\AI_Agent
+plugins: anyio-4.15.1
+collected 1456 items
+
+src-python\tests\agent\test_agent_api.py ............................... [  2%]
+.............                                                            [  3%]
+src-python\tests\agent\test_annotation_tools.py ..................       [  4%]
+src-python\tests\agent\test_context_references.py ...................... [  5%]
+......................                                                   [  7%]
+src-python\tests\agent\test_conversation_workflows.py .................. [  8%]
+..............                                                           [  9%]
+src-python\tests\agent\test_dataset_display_names.py ..                  [  9%]
+src-python\tests\agent\test_e2e_task10_seeds.py ...............          [ 10%]
+src-python\tests\agent\test_llm.py ..................................... [ 13%]
+....................                                                     [ 14%]
+src-python\tests\agent\test_migrations.py ........                       [ 15%]
+src-python\tests\agent\test_probes.py .........                          [ 15%]
+src-python\tests\agent\test_settings.py ................................ [ 17%]
+...                                                                      [ 18%]
+src-python\tests\agent\test_skill.py ...........................         [ 19%]

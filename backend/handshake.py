@@ -1,4 +1,5 @@
 """Fail-closed startup ownership checks and best-effort generation cleanup."""
+from spectrumagent.storage import guard as storage
 
 import json
 import os
@@ -96,7 +97,7 @@ def _delete_unchanged(path: Path, snapshot: Snapshot, *, phase: str) -> None:
     if reread != snapshot.raw:
         _fail("HANDSHAKE_CHANGED_BEFORE_DELETE", phase=phase, payload=snapshot.payload)
     try:
-        path.unlink()
+        storage.unlink(path)
     except OSError:
         _fail("HANDSHAKE_DELETE_FAILED", phase=phase, payload=snapshot.payload)
 
@@ -114,17 +115,17 @@ def sweep_stale(path: Path, *, probe=None) -> None:
 
 
 def publish(path: Path, payload: dict) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
+    storage.mkdir(path.parent, parents=True, exist_ok=True)
     temporary = path.with_suffix(".json.tmp")
     try:
-        with temporary.open("w", encoding="utf-8", newline="\n") as stream:
+        with storage.resolve_write(temporary, kind="FILE_OPEN").open("w", encoding="utf-8", newline="\n") as stream:
             json.dump(payload, stream, ensure_ascii=False, allow_nan=False)
             stream.write("\n")
             stream.flush()
             os.fsync(stream.fileno())
-        os.replace(temporary, path)
+        storage.replace(temporary, path)
     finally:
-        temporary.unlink(missing_ok=True)
+        storage.unlink(temporary, missing_ok=True)
 
 
 def remove_if_owned(path: Path, boot_id: str, *, phase: str = "finally") -> bool:

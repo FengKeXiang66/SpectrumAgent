@@ -1,0 +1,113 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.13, pytest-9.1.1, pluggy-1.7.0
+rootdir: E:\AI_Agent
+plugins: anyio-4.15.1
+collected 1444 items
+
+src-python\tests\agent\test_agent_api.py ............................... [  2%]
+.............                                                            [  3%]
+src-python\tests\agent\test_annotation_tools.py ..................       [  4%]
+src-python\tests\agent\test_context_references.py ...................... [  5%]
+......................                                                   [  7%]
+src-python\tests\agent\test_conversation_workflows.py .................. [  8%]
+..............                                                           [  9%]
+src-python\tests\agent\test_dataset_display_names.py ..                  [  9%]
+src-python\tests\agent\test_e2e_task10_seeds.py ...............          [ 10%]
+src-python\tests\agent\test_llm.py ..................................... [ 13%]
+....................                                                     [ 14%]
+src-python\tests\agent\test_migrations.py ........                       [ 15%]
+src-python\tests\agent\test_probes.py .........                          [ 15%]
+src-python\tests\agent\test_settings.py ................................ [ 18%]
+...                                                                      [ 18%]
+src-python\tests\agent\test_skill.py ...........................         [ 20%]
+src-python\tests\agent\test_stages.py ......................             [ 21%]
+src-python\tests\agent\test_state.py ................................... [ 24%]
+..................                                                       [ 25%]
+src-python\tests\agent\test_task.py .................................... [ 27%]
+                                                                         [ 27%]
+src-python\tests\agent\test_tools.py ................................... [ 30%]
+                                                                         [ 30%]
+src-python\tests\agent\test_workflow_gateway.py ................         [ 31%]
+src-python\tests\agent\test_workflows.py .................               [ 32%]
+src-python\tests\annotation\test_confirm_routes.py ...........           [ 33%]
+src-python\tests\annotation\test_diffusion.py .......................... [ 35%]
+.......                                                                  [ 35%]
+src-python\tests\annotation\test_diffusion_acceptance.py .               [ 35%]
+src-python\tests\annotation\test_draft.py .............................. [ 37%]
+.                                                                        [ 37%]
+src-python\tests\annotation\test_draft_routes.py ....................... [ 39%]
+...............                                                          [ 40%]
+src-python\tests\annotation\test_gestures.py ........................... [ 42%]
+..                                                                       [ 42%]
+src-python\tests\annotation\test_labels_api.py ......................... [ 44%]
+...............................                                          [ 46%]
+src-python\tests\annotation\test_projection.py ss.....................   [ 47%]
+src-python\tests\annotation\test_quality.py ........                     [ 48%]
+src-python\tests\annotation\test_raster.py .........                     [ 49%]
+src-python\tests\annotation\test_routes.py ............................. [ 51%]
+........................                                                 [ 52%]
+src-python\tests\annotation\test_routes_acceptance.py .                  [ 52%]
+src-python\tests\annotation\test_session.py ............................ [ 54%]
+...                                                                      [ 54%]
+src-python\tests\annotation\test_source_changed_r14.py ......            [ 55%]
+src-python\tests\annotation\test_storage.py .....................        [ 56%]
+src-python\tests\annotation\test_superpixels.py ........................ [ 58%]
+....                                                                     [ 58%]
+src-python\tests\data\test_api.py ...............                        [ 59%]
+src-python\tests\data\test_binary.py .........................           [ 61%]
+src-python\tests\data\test_display_names.py ...                          [ 61%]
+src-python\tests\data\test_envi.py ..................................... [ 64%]
+.                                                                        [ 64%]
+src-python\tests\data\test_fallback.py .................                 [ 65%]
+src-python\tests\data\test_model.py ........                             [ 66%]
+src-python\tests\mat\test_mat.py ......                                  [ 66%]
+src-python\tests\modeling\test_cv.py ............                        [ 67%]
+src-python\tests\modeling\test_dataset.py .............                  [ 68%]
+src-python\tests\modeling\test_inference.py ................             [ 69%]
+src-python\tests\modeling\test_leak.py ....                              [ 69%]
+src-python\tests\modeling\test_metrics.py ........                       [ 70%]
+src-python\tests\modeling\test_migrations.py .                           [ 70%]
+src-python\tests\modeling\test_model_routes.py ...................       [ 71%]
+src-python\tests\modeling\test_registry.py ............................. [ 73%]
+.........................                                                [ 75%]
+src-python\tests\modeling\test_regression.py ..................          [ 76%]
+src-python\tests\preprocess\test_axis_contract.py ................       [ 77%]
+src-python\tests\preprocess\test_compare.py .....                        [ 78%]
+src-python\tests\preprocess\test_continuum.py ....                       [ 78%]
+src-python\tests\preprocess\test_curves.py ....                          [ 78%]
+src-python\tests\preprocess\test_decomposition.py .....................  [ 80%]
+src-python\tests\preprocess\test_migrations.py ....                      [ 80%]
+src-python\tests\preprocess\test_recipes.py ..........                   [ 81%]
+src-python\tests\preprocess\test_reflectance.py ...................      [ 82%]
+src-python\tests\preprocess\test_registry.py .....................       [ 83%]
+src-python\tests\preprocess\test_resample.py .....................       [ 85%]
+src-python\tests\preprocess\test_routes.py ............................. [ 87%]
+...............                                                          [ 88%]
+src-python\tests\preprocess\test_run.py ................................ [ 90%]
+.                                                                        [ 90%]
+src-python\tests\preprocess\test_savgol.py ............................. [ 92%]
+.......                                                                  [ 93%]
+src-python\tests\preprocess\test_scatter.py ..................           [ 94%]
+src-python\tests\preprocess\test_standardize.py ........................ [ 95%]
+.                                                                        [ 96%]
+src-python\tests\test_display_falsecolor.py ............................ [ 97%]
+.............................                                            [100%]
+
+============================== warnings summary ===============================
+.venv\Lib\site-packages\fastapi\testclient.py:1
+  E:\AI_Agent\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+src-python/tests/modeling/test_registry.py::test_all_fitted_calibrations_saved_and_block_invariant[ica-params4]
+  E:\AI_Agent\.venv\Lib\site-packages\sklearn\decomposition\_fastica.py:132: ConvergenceWarning: FastICA did not converge. Consider increasing tolerance or the maximum number of iterations.
+    warnings.warn(
+
+src-python/tests/modeling/test_regression.py::test_undefined_scores_persist_null_not_zero
+src-python/tests/modeling/test_regression.py::test_undefined_scores_persist_null_not_zero
+src-python/tests/modeling/test_regression.py::test_undefined_scores_persist_null_not_zero
+src-python/tests/modeling/test_regression.py::test_undefined_scores_persist_null_not_zero
+  E:\AI_Agent\.venv\Lib\site-packages\sklearn\cross_decomposition\_pls.py:308: UserWarning: y residual is constant at iteration 0
+    warnings.warn(f"y residual is constant at iteration {k}")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========== 1442 passed, 2 skipped, 6 warnings in 334.50s (0:05:34) ===========

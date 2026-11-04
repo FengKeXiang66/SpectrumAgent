@@ -1,4 +1,5 @@
 """Real SLIC/IPCA and bounded I/O; fixtures and basetemp stay on E:."""
+from storage_paths import runtime_path
 import base64
 import importlib.util
 from io import BytesIO
@@ -26,7 +27,7 @@ def source(tmp_path):
     data.write_bytes(values.transpose(0, 2, 1).tobytes())
     header = tmp_path / "cube.hdr"
     header.write_text("ENVI\nsamples=48\nlines=40\nbands=6\ndata type=12\ninterleave=bil\nbyte order=0\nreflectance scale factor=65535\n", "utf-8")
-    registry = DatasetRegistry(tmp_path / "registry.sqlite3")
+    registry = DatasetRegistry(runtime_path(tmp_path, tmp_path / "registry.sqlite3"))
     # Persist raw=True deliberately; engine must request reflectance explicitly.
     identifier = registry.import_path(str(header), raw=True).datasets[0].id
     return registry, identifier, header, values.astype(np.float64)/65535
@@ -206,7 +207,7 @@ def test_http_parameters_reject_unexposed_or_invalid(label_api, source, body):
 
 @pytest.mark.parametrize("components", [3, 5])
 def test_real_baseline_default_parameters(tmp_path, components):
-    registry = DatasetRegistry(tmp_path / "registry.sqlite3")
+    registry = DatasetRegistry(runtime_path(tmp_path, tmp_path / "registry.sqlite3"))
     header = Path("E:/高光谱数据集/plastic/pe/20260804205214_64.hdr")
     identifier = registry.import_path(str(header)).datasets[0].id
     result = SuperpixelEngine(registry).generate(identifier, Parameters(pca_components=components))

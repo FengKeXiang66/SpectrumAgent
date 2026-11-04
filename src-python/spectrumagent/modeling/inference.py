@@ -1,4 +1,5 @@
 """Bounded pixel inference with frozen, registration-reconstructed calibration."""
+from spectrumagent.storage import guard as storage
 import base64
 from copy import deepcopy
 import json
@@ -224,10 +225,10 @@ class InferenceRuns:
         folder = self.paths.root / "inferences" / identifier
         arrays = []
         try:
-            folder.mkdir(parents=True)
-            prediction = np.lib.format.open_memmap(folder / "prediction.npy", mode="w+", dtype=np.float64, shape=shape[:2])
+            storage.mkdir(folder, parents=True)
+            prediction = np.lib.format.open_memmap(storage.resolve_write(folder / "prediction.npy", kind="ARTIFACT_WRITE"), mode="w+", dtype=np.float64, shape=shape[:2])
             arrays.append(prediction)
-            applicability = np.lib.format.open_memmap(folder / "applicability.npy", mode="w+", dtype=np.float64, shape=shape[:2])
+            applicability = np.lib.format.open_memmap(storage.resolve_write(folder / "applicability.npy", kind="ARTIFACT_WRITE"), mode="w+", dtype=np.float64, shape=shape[:2])
             arrays.append(applicability)
             total, count = np.zeros(shape[2]), int(np.count_nonzero(state == 2))
             for first, last, block in row_blocks(ReadableRows(self.registry, cube_id, shape), block_rows):
@@ -258,12 +259,12 @@ class InferenceRuns:
             rgb[state == 0], rgb[state == 1] = [225, 225, 225], [85, 85, 85]
             domain = np.where((applicability > 0)[..., None], [215, 48, 39], [35, 139, 69]).astype(np.uint8)
             domain[state == 0], domain[state == 1] = [225, 225, 225], [85, 85, 85]
-            (folder / "map.json").write_text(encode({
+            (storage.resolve_write(folder / "map.json", kind="WRITE_TEXT")).write_text(encode({
                 "width": shape[1], "height": shape[0], "mime": "image/png", "png_base64": png_rgb(rgb),
                 "applicability_png_base64": png_rgb(domain), "low": low, "high": high,
                 "palette": CONCENTRATION_PALETTE, "stats": stats,
             }), "utf-8")
-            np.save(folder / "state.npy", state, allow_pickle=False)
+            np.save(storage.resolve_write(folder / "state.npy", kind="ARTIFACT_WRITE"), state, allow_pickle=False)
             for array in arrays:
                 array.flush(); array._mmap.close()
             arrays.clear()
@@ -281,7 +282,7 @@ class InferenceRuns:
                 array._mmap.close()
             for name in ("prediction.npy", "applicability.npy", "state.npy", "map.json"):
                 try:
-                    (folder / name).unlink(missing_ok=True)
+                    storage.unlink(folder / name, missing_ok=True)
                 except OSError:
                     pass
             if folder.exists():

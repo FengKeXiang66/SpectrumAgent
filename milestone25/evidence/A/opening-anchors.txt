@@ -1,0 +1,52 @@
+src/App.tsx:54:  const [records, setRecords] = useState<DatasetRecord[]>([]);
+src/App.tsx:60:  const [selected, setSelected] = useState<DatasetRecord | null>(null);
+src/App.tsx:85:    setWorkspace({}); setRecords([]); setRefreshVersions({}); setNavigation(null); setWorkspaceName(''); setPreviewCandidates({});
+src/components/datasets/DatasetPanel.tsx:48:        setRecords(previous => mergeRecords(previous, result.all_datasets));
+src/components/datasets/types.ts:15:  all_datasets: DatasetRecord[];
+src/components/datasets/types.ts:27:export type DatasetTransport = {
+src/components/datasets/types.ts:35:export function mergeRecords(previous: DatasetRecord[], incoming: DatasetRecord[]): DatasetRecord[] {
+src/components/datasets/types.ts:36:  const merged = new Map(previous.map(record => [record.id, record]));
+src/components/datasets/types.ts:37:  for (const record of incoming) merged.set(record.id, record);
+src/components/datasets/types.ts:38:  return [...merged.values()];
+src-python/spectrumagent/api/schemas.py:35:    all_datasets: list[DatasetRecord]
+src/components/datasets/display_names.test.ts:14:test('G2 all_datasets refreshes a previously unique name without duplicating records', () => {
+src-python/spectrumagent/api/registry.py:118:            db.execute("CREATE TABLE IF NOT EXISTS dataset_registry (id TEXT PRIMARY KEY, header_key TEXT NOT NULL, raw INTEGER NOT NULL, payload TEXT NOT NULL, UNIQUE(header_key,raw))")
+src-python/spectrumagent/api/registry.py:150:                row = db.execute("SELECT id,payload FROM dataset_registry WHERE header_key=? AND raw=?", (key, int(raw))).fetchone()
+src-python/spectrumagent/api/registry.py:159:                    db.execute("INSERT INTO dataset_registry (id,header_key,raw,payload,project_id) VALUES (?,?,?,?,?)", (identifier, key, int(raw), json.dumps(dataset.as_dict(), ensure_ascii=False), default_project_id(db)))
+src-python/spectrumagent/api/registry.py:168:            all_records = [batch_records.get(identifier) or DatasetRecord(id=identifier,
+src-python/spectrumagent/api/registry.py:194:    def readable(self, identifier, raw=None):
+src-python/spectrumagent/api/registry.py:198:            current = read_header(Path(stored.header_path), Path(stored.data_path), raw=mode)
+src/components/datasets/api.ts:6:export type Request = { op: 'import'; path: string; raw: boolean } | ({ op: 'preview'; id: string } & PreviewOptions)
+src/components/datasets/api.ts:35:  const result = await open({ directory: true, multiple: true, filters: [{ name: 'Hyperspectral', extensions: ['hdr', 'img', 'raw', 'bin', 'json', 'txt'] }] });
+src-tauri/src/datasets_dev.rs:51:#[serde(tag = "op", rename_all = "snake_case", deny_unknown_fields)]
+src-tauri/src/datasets_dev.rs:52:pub enum DatasetRequest {
+backend/database.py:8:    connection.execute("PRAGMA foreign_keys=ON")
+backend/paths.py:8:NAS_SOURCE_ROOT: Path | None = None
+backend/paths.py:9:NAS_OUTPUT_ROOT: Path | None = None
+backend/paths.py:40:    def database(self) -> Path:
+backend/paths.py:44:    def snapshots(self) -> Path:
+backend/paths.py:48:    def preprocessed(self) -> Path:
+backend/paths.py:52:    def exports(self) -> Path:
+src-python/spectrumagent/agent/state.py:166:        return json.loads(self.session(session_id)["context_json"])
+src-python/spectrumagent/agent/state.py:173:            db.execute("UPDATE agent_session SET context_json=? WHERE id=?", (value, session_id))
+src-python/spectrumagent/agent/llm.py:136:_DENY_TEXT = re.compile(r"[a-z]:|\\|/[^\s/]+|\.(?:img|hdr|mat)\b|\blabel_map\b", re.I)
+src-python/spectrumagent/agent/mat.py:52:                if not path.resolve().is_relative_to(self.paths.exports.resolve()):
+src-python/spectrumagent/agent/mat.py:88:        if relative.is_absolute() or ".." in relative.parts or "\\" in row["relative_path"] or ":" in row["relative_path"] or not path.resolve().is_relative_to(self.paths.exports.resolve()):
+src-python/spectrumagent/agent/mat.py:190:            if not temporary.resolve().is_relative_to(self.paths.exports.resolve()):
+src-python/spectrumagent/annotation/session.py:388:                        db.execute("DELETE FROM annotation WHERE version_id=?", (version_id,))
+src-python/spectrumagent/annotation/session.py:389:                        db.execute("DELETE FROM sample_spectrum WHERE version_id=?", (version_id,))
+src-python/spectrumagent/annotation/session.py:390:                        db.execute("DELETE FROM training_mat WHERE annotation_version_id=?", (version_id,))
+src-python/spectrumagent/annotation/session.py:406:                    shutil.rmtree(directory)
+src-python/spectrumagent/modeling/migrations.py:68:    deferred = db.execute("PRAGMA defer_foreign_keys").fetchone()[0]
+src-python/spectrumagent/modeling/migrations.py:69:    db.execute("SAVEPOINT modeling_132")
+src-python/spectrumagent/modeling/migrations.py:81:                db.execute(f"INSERT INTO {name}_132 ({fields}) SELECT {fields} FROM {name}")
+src-python/spectrumagent/modeling/migrations.py:82:            db.execute("PRAGMA defer_foreign_keys=ON")
+src-python/spectrumagent/modeling/migrations.py:84:                db.execute(f"DROP TABLE {name}")
+src-python/spectrumagent/modeling/migrations.py:86:                db.execute(f"ALTER TABLE {name}_132 RENAME TO {name}")
+src-python/spectrumagent/modeling/migrations.py:97:            db.execute("PRAGMA defer_foreign_keys=ON")
+src-python/spectrumagent/modeling/migrations.py:98:        db.execute("RELEASE modeling_132")
+src-python/spectrumagent/modeling/migrations.py:101:        db.execute("RELEASE modeling_132")
+src-python/spectrumagent/modeling/migrations.py:102:        db.execute(f"PRAGMA defer_foreign_keys={int(deferred)}")
+src-python/spectrumagent/annotation/projection_io.py:21:    return paths.root / "projects" / str(UUID(str(project_id))) / "projection.json"
+src-python/spectrumagent/annotation/projection_io.py:73:    root = paths.exports.resolve()
+src-python/spectrumagent/annotation/projection_io.py:74:    folder = root / cube_id

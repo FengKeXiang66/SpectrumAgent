@@ -1,4 +1,5 @@
 """10.1 acceptance against real sqlite3; no database or HTTP stubs."""
+from storage_paths import runtime_path
 import colorsys
 from pathlib import Path
 import re
@@ -28,7 +29,7 @@ def ledger(tmp_path):
 
 
 def test_two_startups_backfill_existing_registry_without_replacing_payload(tmp_path):
-    paths = AppPaths(tmp_path / "app")
+    paths = AppPaths(runtime_path(tmp_path, tmp_path / "app"))
     paths.database.parent.mkdir(parents=True)
     with connect_database(paths.database) as db:
         db.execute("CREATE TABLE dataset_registry (id TEXT PRIMARY KEY, header_key TEXT NOT NULL, raw INTEGER NOT NULL, payload TEXT NOT NULL, UNIQUE(header_key,raw))")
@@ -102,7 +103,7 @@ def test_every_application_connection_enables_foreign_keys(tmp_path, monkeypatch
         return db
     monkeypatch.setattr(connections, "open_database", checked)
     monkeypatch.setattr("backend.app.open_database", checked)
-    paths = AppPaths(tmp_path / "app")
+    paths = AppPaths(runtime_path(tmp_path, tmp_path / "app"))
     identity = EngineIdentity()
     with TestClient(create_app(paths, identity)) as client:
         client.headers["Authorization"] = "Bearer " + identity.token

@@ -378,7 +378,7 @@ def test_save_reads_before_write_transaction_and_publishes_tmp(annotation_case, 
         return original_read(dataset, *args)
     monkeypatch.setattr(SpectrumDataSet, "read_region", no_write_lock)
     from spectrumagent.annotation import session
-    original_replace = session.os.replace
+    original_replace = session.storage.replace
     publications = []
     def replace(source, target):
         if target.is_relative_to(c.paths.snapshots):
@@ -386,7 +386,7 @@ def test_save_reads_before_write_transaction_and_publishes_tmp(annotation_case, 
             assert source.name.endswith(".tmp") and target.name == "v1"
             assert {p.name for p in source.iterdir()} == {"label_map.npz", "label_index.json", "spectra.npz", "annotation.json"}
         return original_replace(source, target)
-    monkeypatch.setattr(session.os, "replace", replace)
+    monkeypatch.setattr(session.storage, "replace", replace)
     c.store.save(c.identifier)
     assert len(reads) == 4 and len(publications) == 1
 

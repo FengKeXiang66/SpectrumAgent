@@ -3,14 +3,13 @@
 The pixel map is authoritative. SQLite holds one aggregate per present label,
 never editing history; snapshots own their immutable label-index mapping.
 """
+from spectrumagent.storage import guard as storage
 from collections import deque
 from dataclasses import dataclass, field, replace
 from copy import deepcopy
 import json
 import logging
-import os
 from pathlib import PurePosixPath
-import shutil
 from threading import RLock
 from time import perf_counter
 from uuid import uuid4
@@ -360,10 +359,10 @@ class SessionStore:
                 cube_id, version_id, state, aggregates, dataset.name, timestamp)
             relative = PurePosixPath(cube_id, f"v{version_no}").as_posix()
             directory = self.paths.snapshots / cube_id / f"v{version_no}"
-            directory.parent.mkdir(parents=True, exist_ok=True)
+            storage.mkdir(directory.parent, parents=True, exist_ok=True)
             temporary = directory.with_name(directory.name + f".{uuid4().hex}.tmp")
             backup = directory.with_name(directory.name + f".{uuid4().hex}.backup.tmp")
-            temporary.mkdir()
+            storage.mkdir(temporary)
             published = False
             try:
                 self._write_snapshot(temporary, state, aggregates)
@@ -379,8 +378,8 @@ class SessionStore:
                         if (current_draft[0] if current_draft else 0) != frozen[2]:
                             raise conflict()
                     if directory.exists():
-                        os.replace(directory, backup)
-                    os.replace(temporary, directory)
+                        storage.replace(directory, backup)
+                    storage.replace(temporary, directory)
                     published = True
                     values = (relative, int(state.label_map.size), int(np.count_nonzero(state.label_map >= 0)),
                               0, json.dumps(state.params), note)
@@ -403,15 +402,15 @@ class SessionStore:
                 transaction_seconds = perf_counter() - transaction_started
             except BaseException:
                 if published:
-                    shutil.rmtree(directory)
+                    storage.rmtree(directory)
                 if backup.exists():
-                    os.replace(backup, directory)
+                    storage.replace(backup, directory)
                 raise
             finally:
                 if temporary.exists():
-                    shutil.rmtree(temporary)
+                    storage.rmtree(temporary)
             if backup.exists():
-                shutil.rmtree(backup)
+                storage.rmtree(backup)
             if overwrite:
                 from spectrumagent.agent.mat import MatStore
                 MatStore(self.registry, self.paths).discard_invalidated(cube_id, version_id)
@@ -440,15 +439,15 @@ class SessionStore:
     @staticmethod
     def _write_snapshot(directory, state, aggregates):
         # A sibling .tmp directory is published with os.replace before DB commit.
-        np.savez_compressed(directory / "label_map.npz", label_map=state.label_map)
-        (directory / "label_index.json").write_text(json.dumps(
+        np.savez_compressed(storage.resolve_write(directory / "label_map.npz", kind="ARTIFACT_WRITE"), label_map=state.label_map)
+        (storage.resolve_write(directory / "label_index.json", kind="WRITE_TEXT")).write_text(json.dumps(
             {str(i): label_id for i, label_id in enumerate(state.label_ids)}), encoding="utf-8")
         spectra = {}
         for i, moments in aggregates.labels.items():
             spectra[f"mean_{i}"] = moments.mean.astype(np.float64)
             spectra[f"std_{i}"] = moments.std.astype(np.float64)
-        np.savez_compressed(directory / "spectra.npz", **spectra)
-        (directory / "annotation.json").write_text(state.document_json, encoding="utf-8")
+        np.savez_compressed(storage.resolve_write(directory / "spectra.npz", kind="ARTIFACT_WRITE"), **spectra)
+        (storage.resolve_write(directory / "annotation.json", kind="WRITE_TEXT")).write_text(state.document_json, encoding="utf-8")
 
     @staticmethod
     def _aggregate_rows(cube_id, version_id, state, aggregates, sample_code, timestamp):

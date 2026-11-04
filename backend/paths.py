@@ -52,6 +52,14 @@ class AppPaths:
     def exports(self) -> Path:
         return self.root / "exports"
 
+    @property
+    def trash(self) -> Path:
+        return self.root / "trash"
+
     def create_directories(self) -> None:
-        for directory in (self.run, self.logs, self.testdata, self.database.parent, self.exports):
+        from spectrumagent.storage.guard import initialize, validate_bootstrap
+        validate_bootstrap(self)
+        # Explicit bootstrap exception: create trash before the storage self-check.
+        for directory in (self.run, self.logs, self.testdata, self.database.parent, self.exports, self.trash):
             directory.mkdir(parents=True, exist_ok=True)
+        initialize(self)

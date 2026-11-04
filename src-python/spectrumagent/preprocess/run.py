@@ -1,11 +1,11 @@
 """R12 synchronous run: preflight, bounded raw reads, global fits, two artifacts."""
+from spectrumagent.storage import guard as storage
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from hashlib import sha256
 import json
 import os
 from pathlib import Path, PurePosixPath
-import shutil
 import sqlite3
 from uuid import uuid4
 
@@ -42,7 +42,7 @@ def remove_directory(path, root):
     if resolved == boundary or not resolved.is_relative_to(boundary):
         raise ValueError("拒绝清理输出根以外的目录")
     if resolved.exists():
-        shutil.rmtree(resolved)
+        storage.rmtree(resolved)
 
 
 def file_sha256(path):
@@ -247,7 +247,7 @@ class RunEngine:
         temp_bytes, temp_peak_bytes, rss = 0, 0, peak_rss()
         try:
             self._transition(identifier, "running")
-            directory.mkdir(parents=True, exist_ok=False)
+            storage.mkdir(directory, parents=True, exist_ok=False)
             fits = {}
             for i, step in enumerate(pipeline.steps):
                 entry = self.operators.resolve(step.op, step.version)
@@ -268,9 +268,9 @@ class RunEngine:
                         bands = block.shape[1]
                     if not count:
                         raise PreprocessError("DECOMPOSITION_DEGENERATE", "ICA 没有有限谱")
-                    temporary.mkdir(exist_ok=True)
+                    storage.mkdir(temporary, exist_ok=True)
                     path = temporary / f"ica-{i}.dat"
-                    mapped = np.memmap(path, dtype=np.float64, mode="w+", shape=(count, bands))
+                    mapped = np.memmap(storage.resolve_write(path, kind="ARTIFACT_WRITE"), dtype=np.float64, mode="w+", shape=(count, bands))
                     try:
                         offset = 0
                         for block in factory():
@@ -284,7 +284,7 @@ class RunEngine:
                         rss = max(rss, peak_rss())
                     finally:
                         mapped._mmap.close()
-                        path.unlink(missing_ok=True)
+                        storage.unlink(path, missing_ok=True)
                     fits[i] = (lambda x, mean=mean, loadings=loadings: transform(x, mean, loadings), meta)
             metrics = PixelMetrics()
             unlabeled_after = {"count": 0, "sum": None}
@@ -342,13 +342,13 @@ class RunEngine:
             row = {"id": identifier, "recipe_version_id": str(recipe_version_id), "status": "succeeded", "metrics": measured}
             report["ranking"] = ranking([row])
             arrays = {f"{kind}_{index}": value[kind].astype(np.float64) for index, value in moments.items() for kind in ("mean", "std")}
-            with (directory/"sample_spectra.npz.tmp").open("wb") as stream:
+            with (storage.resolve_write(directory/"sample_spectra.npz.tmp", kind="FILE_OPEN")).open("wb") as stream:
                 np.savez_compressed(stream, **arrays)
-            (directory/"report.json.tmp").write_text(json.dumps(json_safe(report), ensure_ascii=False, allow_nan=False), "utf-8")
+            (storage.resolve_write(directory/"report.json.tmp", kind="WRITE_TEXT")).write_text(json.dumps(json_safe(report), ensure_ascii=False, allow_nan=False), "utf-8")
             artifacts = []
             for kind, filename in (("sample_spectra", "sample_spectra.npz"), ("report", "report.json")):
                 target = directory/filename
-                os.replace(directory/(filename+".tmp"), target)
+                storage.replace(directory/(filename+".tmp"), target)
                 artifacts.append((str(uuid4()), identifier, kind, target.relative_to(self.paths.preprocessed).as_posix(), file_sha256(target), timestamp()))
             with connect_database(self.database) as db:
                 db.executemany("INSERT INTO preprocess_artifact (id,run_id,kind,relative_path,sha256,created_at) VALUES (?,?,?,?,?,?)", artifacts)

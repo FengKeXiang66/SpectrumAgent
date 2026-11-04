@@ -1,4 +1,5 @@
 """G1 fixtures: isolated SQLite, process credentials, synthetic HTTP only."""
+from storage_paths import runtime_path
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock
@@ -31,7 +32,7 @@ def isolated_key(monkeypatch):
 
 @pytest.fixture
 def gateway_case(tmp_path):
-    paths = AppPaths(tmp_path)
+    paths = AppPaths(runtime_path(tmp_path, tmp_path))
     DatasetRegistry(paths.database)
     settings = llm.LLMSettings(base_url="https://provider.invalid/v1", model="mock-model",
                                temperature="0.25", max_tokens="128", timeout_ms="2500")

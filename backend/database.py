@@ -4,7 +4,9 @@ import sqlite3
 
 
 def open_database(path, *, timeout=5):
-    connection = sqlite3.connect(path, timeout=timeout)
+    from spectrumagent.storage.guard import for_database
+    guard = for_database(path)
+    connection = sqlite3.connect(guard.resolve_write(path, kind="DATABASE_OPEN"), timeout=timeout)
     connection.execute("PRAGMA foreign_keys=ON")
     return connection
 
