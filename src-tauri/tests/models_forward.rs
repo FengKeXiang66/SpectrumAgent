@@ -1,3 +1,5 @@
+// 测试代码用 unwrap 直接暴露失败；三条 clippy deny 只针对生产路径。
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 use serde_json::{Value, json};
 use spectrum_agent::{
     handshake,

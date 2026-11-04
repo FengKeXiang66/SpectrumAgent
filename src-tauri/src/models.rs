@@ -287,6 +287,8 @@ pub fn forward(identity: &Handshake, request: &ModelRequest) -> Result<Value, Fo
 
 #[cfg(test)]
 mod tests {
+    // 测试代码用 unwrap 直接暴露失败；三条 clippy deny 只针对生产路径。
+    #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
     use super::*;
     const ID: &str = "00000000-0000-0000-0000-000000000001";
     #[test]
