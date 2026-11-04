@@ -175,9 +175,11 @@ cargo clippy --all-targets -- -D warnings
 "csp": "default-src 'self'; img-src 'self' data:; connect-src ipc: http://ipc.localhost; style-src 'self'"
 ```
 
-`style-src 'self'` **不含 `'unsafe-inline'`**，`style` 属性属于 inline style，打包版会被拦。`SettingsPanel.ts` 现有 4 处 `style:`（`:13` / `:20` / `:27` / `:33`）在打包版大概率**没有生效**（对话框宽度/内边距/grid 间距丢失）。
+`style-src 'self'` **不含 `'unsafe-inline'`**，`style` 属性属于 inline style，按 CSP3 应当被拦。`SettingsPanel.ts` 现有 4 处 `style:`（`:13` / `:20` / `:27` / `:33`）。
 
-- **开工第一步实测**：dev 与打包版各看一眼设置屏，确认这 4 处样式是否真的丢失，**把结论写进回报**。
+> **实测结论（2026-11-04，推翻了本卡的初始推测）**：dev、生产 CSP 对照页、真实打包窗口三处，**4 处内联样式均未丢失**。即"打包版会被拦"**不成立**——具体机制未查证（Tauri 对 `style-src` 的处理很可能注入了兼容项）。因此本项从"修 bug"降级为"补历史欠账"：迁移到 class 仍然要做（house style、可维护、与 P3/P4 的 skin 纪律一致），但**不构成功能缺陷**，回报里不得写成"修复了打包版样式丢失"。
+
+- **开工第一步实测**：dev 与打包版各看一眼设置屏，确认这 4 处样式是否真的丢失，**把结论写进回报**（已实测：未丢失）。
 - **无论结论如何都要落 class**：`settings.css` 一个文件，选择器全部 `.settings-screen` 前缀（与 P3/P4 同纪律）。
 - 参照 `session-shell.test.ts:59` 的既有强度：S01/Composer 被断言 `doesNotMatch(/var\(--|style=\{/)`。本卡**不要求**给 S11 加同样的门（会与 `SettingsPanelView` 的 `h()` 写法打架），但**新写的代码不得再出现 `style:`**。
 
@@ -225,7 +227,7 @@ const GUARDS = [
 > **③ 必须 `.trim()`，否则这条门天生红**。实测（node 直跑真实文件）：
 > `annotation-skin.css` 的 `source.match(/@media[^{]*/g)` 返回 **`["@media (max-width: 720px) "]`——带尾随空格**（`[^{]*` 把 `{` 前的空白也吃了）。不做 `trim()` 时，`deepEqual(["@media (max-width: 720px) "], ["@media (max-width: 720px)"])` 必然失败，codex 会误判成 annotation-skin 违规。`preprocess` / `modeling` 两个返回 `null`，`?? []` 处理正确。
 > 本卡早先的两种写法（`['(max-width: 720px)']` 与 `['@media (max-width: 720px)']`）都与实际捕获串不等，已统一为上表这一种。
-> 路径以测试文件为基准（`src/shell/` → `../../components/...`），落地时按实际 import 方式写，别照抄相对深度。
+> 路径以测试文件为基准：测试在 `src/shell/`，CSS 在 `src/components/`，所以是 **`../components/…`**（本卡初版误写 `../../components/…`，那个路径指向仓库根，不存在）。落地时按实际 import 方式写。
 > `annotation-skin.css:51` 的 `@media (max-width: 720px)` 是**既存且有意**的（P3 的 720 窄屏降级），所以它在 allowlist 里；这条不是例外条款，是**精确值**。
 
 ---
@@ -260,7 +262,7 @@ const GUARDS = [
 | A7 | **构建** | `npm run build`（含 `tsc --noEmit`） |
 | A8 | **node 全量** | `node --test "src/**/*.test.ts"` → 215 + 新增数，`fail = 0` |
 | A9 | **python 全量** | §0.4 两段命令，`fail = 0`，collected 数与开工基线一致（数字现场重取并贴出） |
-| A10 | **rust 全量** | `cargo test` 全绿 + `cargo clippy --all-targets -- -D warnings` 零告警 |
+| A10 | **rust 全量（相对基线，不是绝对零）** | `cargo test` 全绿；`cargo clippy --all-targets -- -D warnings` 的告警集合**与开工基线逐条一致（零新增）**。基线实测：**18 errors + 1 warning**，全部落在 `src-tauri/src/models.rs` 的**测试代码**（如 `:320` / `:459` / `:461` / `:462` 的 `.unwrap()`），触发源是 `src-tauri/Cargo.toml:45` 的 `unwrap_used = "deny"`，只出现在 `(lib test)` target。**零新增的硬证据 = `git diff --stat src-tauri` 为空**。存量债见 §6 |
 | A11 | **P3 手测悬账（必须真人按键）** | `TASK-21-S05换皮.md:123`：空格平移、中键平移——**两轮未验，本轮必须实测**；同时验数字键选标签 / `Z` / `C` / `Enter` / `←→` / `Ctrl+S` 仍可用 |
 | A12 | **P3 1180 副作用（必须拖窗口）** | `TASK-21-S05换皮.md:164`：窗口从 1280 拖到 **1180**，看 S05 中栏是否仍三栏、有无横向溢出；再拖到 S06/S07 各看一眼（P4 只在两个固定尺寸验过，拖动过程未验） |
 
@@ -278,3 +280,15 @@ const GUARDS = [
 6. 断言迁移必须逐条写"能红的理由"，禁空断言。
 7. A5 的"故意改坏验证"必须还原，`git diff` 确认无残留。
 8. 行号与实物不符按即停条款停止并在回报中显式说明，**不得自行改写本卡**。
+
+---
+
+## 6. 遗留债（本轮发现，不在 P6 授权面内）
+
+| # | 债 | 事实 | 处置 |
+|---|---|---|---|
+| **D1** | **Rust 测试代码 18 处 `unwrap()`** | `cargo clippy --all-targets -- -D warnings` 报 18 errors + 1 warning，全在 `src-tauri/src/models.rs` 的 `#[test]` 块（`:320` / `:459` / `:461` / `:462` …），触发源 `src-tauri/Cargo.toml:45` `unwrap_used = "deny"`。只在 `(lib test)` target 出现——`cargo clippy`（不带 `--all-targets`）不报 | **新立 TASK-24**。两条修法：① 测试里 `.unwrap()` → `.expect("…")`（推荐，保住 lint 强度）；② 测试模块加 `#![allow(clippy::unwrap_used)]`（**放宽 lint，须科祥单独裁定**）。修完 `cargo clippy --all-targets -- -D warnings` 才可能真正零告警 |
+| **D2** | CSP 与内联样式的关系未查证 | 实测 4 处内联样式在 dev / 对照页 / 打包窗口**均未丢失**，与本卡初版推测相反 | 不列 bug。迁移到 class 已做（house style）；机制（Tauri 是否向 `style-src` 注入兼容项）**未查证**，不得在文档里写成结论 |
+| **D3** | P3/P4 手测悬账 | `TASK-21:123` 空格/中键平移、`TASK-21:164` 1180 拖窗，两轮未验 | 本卡 A11 / A12，**只能真人执行** |
+
+> D1 的意义：P6 是七张卡里**第一次**把 `cargo clippy --all-targets -- -D warnings` 写进验收门，第一次跑就撞出存量债。**这是门的成功，不是本批的失败**——但也意味着在 D1 修完前，任何后续卡的 A10 都必须写成"相对基线零新增"，不能写"零告警"。
