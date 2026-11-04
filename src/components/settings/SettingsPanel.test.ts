@@ -47,7 +47,7 @@ function harness(send?: InvokeSettings, hasKey = false) {
   };
 }
 
-test('settings modal starts with five empty text fields, an enabled egress switch, a password input and an unknown key status', () => {
+test('settings screen starts with five empty text fields, an enabled egress switch, a password input and an unknown key status', () => {
   const h = harness();
   for (const name of Object.keys(config).filter(name => name !== 'egress_enabled')) assert.equal(find(h.tree(), 'input', name).props.value, '');
   assert.equal(find(h.tree(), 'input', 'egress_enabled').props.type, 'checkbox');
@@ -57,7 +57,7 @@ test('settings modal starts with five empty text fields, an enabled egress switc
   assert.equal(password.props.type, 'password');
   assert.equal(password.props.autoComplete, 'new-password');
   assert.equal(password.props.value, '');
-  assert.match(h.render(), /<dialog[^>]*aria-labelledby="llm-settings-title"/);
+  assert.match(h.render(), /<section[^>]*aria-labelledby="llm-settings-title"/);
   assert.match(h.render(), /正在读取 key 配置状态/);
   assert.equal(find(h.tree(), 'button', 'submit').props.disabled, true);
 });
@@ -180,11 +180,11 @@ test('saving prevents duplicate submits and disposing ignores an in-flight GET',
   assert.equal(updates, 0);
 });
 
-test('App settings entry imports and opens SettingsPanel, preserving UI-to-configuration reachability', () => {
+test('App settings entry opens S11 with its embedded form, preserving UI-to-configuration reachability', () => {
   const source = readFileSync(new URL('../../App.tsx', import.meta.url), 'utf8');
-  assert.match(source, /import SettingsPanel from '\.\/components\/settings\/SettingsPanel'/);
-  assert.match(source, /onClick=\{\(\) => setSettingsOpen\(true\)\}>设置<\/button>/);
-  assert.match(source, /settingsOpen && status.phase === 'Ready' && <SettingsPanel/);
+  assert.match(readFileSync(new URL('../../screens/S11.tsx', import.meta.url), 'utf8'), /import SettingsPanel from '\.\.\/components\/settings\/SettingsPanel'/);
+  assert.match(source, /<button onClick=\{\(\) => openScreen\('s11'\)\}>设置<\/button>/);
+  assert.doesNotMatch(source, /settingsOpen/);
 });
 
 test('egress checkbox reflects the false value returned by GET', async () => {

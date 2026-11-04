@@ -15,7 +15,6 @@ import S10 from './screens/S10';
 import S11 from './screens/S11';
 import { modeling } from './components/modeling/api';
 import { failureMessage } from './components/modeling/chart';
-import SettingsPanel from './components/settings/SettingsPanel';
 import type { DatasetRecord } from './components/datasets/types';
 import { describeError, mergeRecords } from './components/datasets/types';
 import AnnotationWorkbench from './components/annotation/AnnotationWorkbench';
@@ -51,7 +50,6 @@ export default function App() {
   const [message, setMessage] = useState('输入“运行冒烟测试”，或点击发送。');
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [busy, setBusy] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [workspace, setWorkspace] = useState<WorkspaceContext>({});
   const [records, setRecords] = useState<DatasetRecord[]>([]);
   const [refreshVersions, setRefreshVersions] = useState<Record<string, number>>({});
@@ -217,7 +215,7 @@ export default function App() {
         onOpenData={() => openScreen('s03')} onOpenRun={id => openScreen('s08', undefined, id)} onContinueAnnotation={() => openScreen('s05')} />;
       case 's09': return <S09 records={records} />;
       case 's10': return <S10 onOpenData={() => openScreen('s03')} />;
-      case 's11': return <S11 onOpenSettings={() => setSettingsOpen(true)} />;
+      case 's11': return <S11 onBack={() => openScreen('s02')} />;
       default: return <section className="screen-placeholder" data-screen={screen} aria-label={`${SCREEN_TITLE[screen]}（后续批次启用）`}>
         <p>本屏在后续批次启用。</p>
         <button onClick={() => setScreen('s03')}>返回数据屏</button>
@@ -227,12 +225,11 @@ export default function App() {
   return <div className="app" data-phase={status.phase}>
     <AppShell screen={screen} onNavigate={next => openScreen(next)} topActions={<>
       <span aria-label="产品版本">版本 {__SPECTRUM_PRODUCT_VERSION__}</span>
-      <button onClick={() => setSettingsOpen(true)}>设置</button>
+      <button onClick={() => openScreen('s11')}>设置</button>
     </>} assistant={screen === 's01' ? null : <Composer session={session} screen={screen} inputRef={composerInput} onExpand={() => setScreen('s01')} />}>
       {navigationError && <pre role="alert">{navigationError}</pre>}
       {renderScreen()}
     </AppShell>
-    {settingsOpen && status.phase === 'Ready' && <SettingsPanel key={status.generation_id} onClose={() => setSettingsOpen(false)} />}
   </div>;
 }
 

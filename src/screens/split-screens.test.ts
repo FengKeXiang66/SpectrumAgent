@@ -53,8 +53,8 @@ test('P2 S07 keeps training and internal views while results and source anchors 
   assert.match(app, /<PreprocessPanel/);
   assert.match(datasets, /onOpen\('s06', record\)/);
   assert.match(app, /<Composer/);
-  assert.ok(app.includes("import SettingsPanel from './components/settings/SettingsPanel'"));
-  assert.ok(app.includes('onClick={() => setSettingsOpen(true)}>设置</button>'));
-  assert.ok(app.includes("settingsOpen && status.phase === 'Ready' && <SettingsPanel"));
+  assert.ok(source('./S11.tsx').includes("import SettingsPanel from '../components/settings/SettingsPanel'"));
+  assert.ok(app.includes("onClick={() => openScreen('s11')}>设置</button>"));
+  assert.ok(app.includes('<S11 onBack={'));
   assert.doesNotMatch(viewer + results, /var\(--brand/);
 });

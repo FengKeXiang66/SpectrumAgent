@@ -55,16 +55,18 @@ test('P5 S09 preprocess reads only the selected dataset and preserves real time 
   assert.doesNotMatch(ledger, /Promise.all\(records.map/);
 });
 
-test('P5 S10 has a data-screen action and S11 opens the existing settings modal without fake controls', () => {
+test('P5 S10 has a data-screen action and S11 embeds the settings form without fake controls', () => {
   assert.match(search, /<h2>检索<\/h2>/);
   assert.match(search, /检索在阶段二提供。/);
   assert.match(search, /<button onClick=\{onOpenData\}>返回数据屏<\/button>/);
   assert.doesNotMatch(search, /后续批次启用|<input|useEffect|invoke/);
-  assert.match(settings, /<button onClick=\{onOpenSettings\}>打开设置<\/button>/);
+  assert.doesNotMatch(settings, /onOpenSettings|打开设置/);
   assert.match(settings, /出域记录在阶段二提供/);
-  assert.equal((settings.match(/<button/g) ?? []).length, 1);
-  assert.doesNotMatch(settings, /<table|SettingsPanel|role="dialog"/);
-  assert.match(app, /<S11 onOpenSettings=\{\(\) => setSettingsOpen\(true\)\}/);
+  assert.equal((settings.match(/<button/g) ?? []).length, 0);
+  assert.match(settings, /<SettingsPanel/);
+  assert.doesNotMatch(settings, /<table|role="dialog"/);
+  assert.match(app, /<S11 onBack=\{/);
+  assert.doesNotMatch(app, /onOpenSettings/);
 });
 
 test('P5 inserts four screen cases while preserving source anchors S03 debug text and theme boundary', () => {
@@ -76,6 +78,6 @@ test('P5 inserts four screen cases while preserving source anchors S03 debug tex
   assert.ok(app.includes('<PreprocessPanel'));
   assert.ok(read('../components/datasets/DatasetPanel.tsx').includes("onOpen('s06', record)"));
   assert.ok(app.includes('<Composer'));
-  for (const anchor of ["import SettingsPanel from './components/settings/SettingsPanel'", 'onClick={() => setSettingsOpen(true)}>设置</button>', "settingsOpen && status.phase === 'Ready' && <SettingsPanel"]) assert.ok(app.includes(anchor));
+  for (const anchor of ["onClick={() => openScreen('s11')}>设置</button>", '<S11 onBack={', "case 's11'"]) assert.ok(app.includes(anchor));
   assert.doesNotMatch(dashboard + ledger + search + settings, /var\(--brand/);
 });

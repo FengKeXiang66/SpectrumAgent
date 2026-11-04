@@ -1,0 +1,14 @@
+.settings-screen > section[aria-labelledby="llm-settings-title"] {
+  box-sizing: border-box;
+  width: min(568px, 100%);
+  padding: 24px;
+}
+.settings-screen .settings-form { display: grid; gap: 12px; }
+.settings-screen .settings-form > label { margin: 0; }
+.settings-screen .settings-field { display: grid; gap: 4px; }
+.settings-screen .settings-field input {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
+}
