@@ -1,16 +1,18 @@
-# TASK-25 · 数据集列表、回收站删除与统一写入守卫
+# TASK-25 · 数据集列表、回收站与统一写入守卫
 
 > 目标：修掉「冷启动列表为空」「导入部分数据却铺出全库」，并交付「删除进回收站 → 30 天内可恢复 → 到期物理删」，同路径重新导入固定走「全新数据集、新建 id、从头标注」。同时把「所有文件写入/删除收口到一个出口」的地基打起来。
 > 前置：TASK-24 已收口；**出卡时 HEAD = `b5d4c25` 仅为事实记录、不作闸门**（闸门①只查 `git status` 干净；本卡提交入库后 HEAD 前进不影响开工），`git status` 干净。
 > 事实源：需求 v2.7（`E:/中达瑞和公司/光谱数据AI-Agent处理平台_需求分析与设计.html`）+ UI ui-v2.3（同目录 `光谱数据AI-Agent处理平台_第一阶段UI设计与高保真原型.html`）+ 技术选型定稿 v1.1 + 开发手册。**用户 @ 的 `10月15日/` 两份是归档副本（v2.6 / ui-v2.2），不得作为基线。**
-> **三道闸门**：① `git status` 干净；② 开工前复跑 §0.1 全部基线并贴原文，**前端口径固定 `node --test "src/**/*.test.ts"` = 218，禁用裸跑 `node --test`**；③ 开工第一步 `grep -n` 复核本卡 §0.2 全部行号，漂移即停上报。
+> **三道闸门**：① `git status` 干净；② 每段开工前复跑 §0.1 **该段当前基线**并贴原文（历史 1489 / 13 文件仅作溯源、**不作闸门**），**前端口径固定 `node --test "src/**/*.test.ts"` = 218，禁用裸跑 `node --test`**；③ 每段开工第一步 `grep -n` 复核本卡 §0.2 全部行号，漂移即停上报。
 > **即停条款**：行号与实物不符须在回报中显式说明，不得自行改写本卡；卡内未写死的口径一律停下问，不许自造。
 
 ---
 
-## 0. 事实底座（2026-11-04 18:00 前后实测）
+## 0. 事实底座（历史基线 18:00 实测；A 段后当前基线 21:55 实测）
 
-### 0.1 开工基线（数量类全部本次实跑）
+### 0.1 基线（历史值保留 + 当前值；数量类全部实跑）
+
+> **下表为出卡时（A 段开工前，HEAD `b5d4c25`）的历史基线，永久保留作事实记录，不作后续闸门**；执行方不得把 1489 / 13 文件 / 出卡时行号当成 B/C/D 段的开工判据。
 
 | 项 | 实测值 | 取数命令 |
 |---|---|---|
@@ -27,7 +29,25 @@
 
 > **防再犯记录（2026-11-04 18:45 复核修订）**：裸跑 `node --test` 实测 **222**，其中只有 **218** 属于源码（`src/` 下 30 个 `*.test.ts`）；多出的 4 个来自两个**归档快照**：`milestone13/evidence/finishing/before/projection.test.ts`（2 个）与 `artifacts/step3/checkpoint-3/frontend-state.test.mjs`（2 个），`218 + 2 + 2 = 222` 已逐个单跑复现；`.runtime/` 下隐藏目录的快照不进发现域。若沿用旧卡口径 `node --test "src/**/*.test.ts"` → 218，与裸跑 222 不符会「开工即停」；若用裸跑 → 两个无人维护的旧快照被当回归对象，且本卡执行时往 `milestone25/evidence/` 归档 before 快照会**让收工数自我膨胀**。故全卡前端口径统一为源码 glob。**这是「数字带出处」教训的新形态：数字实测过、命令也写了，但命令的发现域没人查过——实测面窄于主张面的第三种变体。**
 
-### 0.2 行号锚点（全部 `grep -n` 直取，禁区间目测）
+**当前基线（A 段收口后，HEAD `9ad8268`，2026-11-04 21:55 备卡方实测）**
+
+| 项 | 实测值 | 取数命令 |
+|---|---|---|
+| HEAD / 工作区 | `9ad8268` / 干净 | `git log -1 --oneline`；`git status --short`（空） |
+| 前端（源码口径） | **218 / 218 pass，fail 0**（未变） | `node --test "src/**/*.test.ts"` |
+| Python | **collected 1506**（A 段新增 `storage/guard.py` 及其测试；本次仅 collect，未跑全量） | 同 §0.1 历史表 `--collect-only -q` 命令 |
+| Rust | 以 A 段已归档原文 `milestone25/evidence/A/Rust-after.txt` 与 `clippy-after.txt` 为准；**备卡方本轮复跑遇 `os error 5`（资源占用）未取得新数，不编数字**；B 段开工按闸门②复跑并贴当段原文 | `cd src-tauri && cargo test`；`cargo clippy --all-targets -- -D warnings` |
+| 生产写盘出口 | **14 个文件** = 原 13 个（内容已全部改为走守卫）+ 新增 `src-python/spectrumagent/storage/guard.py` | 同 §0.1 历史表 `grep -rln` 命令 |
+| 关联 `cube_id` 列定义 | **9 行**（DDL 未改，历史值仍成立） | `grep -rn -E "cube_ids? +TEXT" src-python/spectrumagent/*/migrations.py` |
+
+> **后续基线规则（B/C/D 段，不得自行简化）**：
+> 1. 历史 **1489 collected / 13 文件 / 出卡时行号** 是 A 段前的事实记录，**永久保留、仅供溯源，不作任何闸门**；不得用它判断 B/C/D 是否退化，也不得要求退回该数值。
+> 2. B/C/D **每段开工前**复跑「该段开工时」的当前基线（node 源码 glob / Python collected / cargo / clippy）并贴原文；**终值与该段开工值比较**，不得把 1489 或 1506 当跨段固定阈值。
+> 3. 段内新增用例另计（沿用 TASK-17 的 A6 裁定：「原有 N 项全过，新增用例另计 N+M，M≥1，fail=0」）；**禁止为凑总数删改现有测试**。
+> 4. 每段开工前按闸门③ `grep -n` 复核 §0.2 全部锚点；源码一改即可能漂移，**漂移继续即停上报**，由备卡方统一校准，执行方不得自行改卡。
+> 5. `1489 → 1506` 的增量来自 A 段新增测试（含 `storage/guard.py` 相关），是正常增长，不是回归退化。
+
+### 0.2 行号锚点（全部 `grep -n` 直取；**2026-11-04 21:55 按 HEAD `9ad8268` 全量校准，A 段改造后**）
 
 | 事实 | 路径:行 | 判定行要点 |
 |---|---|---|
@@ -37,23 +57,25 @@
 | 合并函数只加不删 | `src/components/datasets/types.ts:35` | `Map` set 后 `[...merged.values()]` |
 | 全库字段声明 | `src/components/datasets/types.ts:15`；`src-python/spectrumagent/api/schemas.py:35` | `all_datasets: ...` |
 | 已有断言依赖该字段 | `src/components/datasets/display_names.test.ts:14` | `G2 all_datasets refreshes a previously unique name...` |
-| 表内唯一约束 | `src-python/spectrumagent/api/registry.py:118` | `UNIQUE(header_key,raw)` |
-| 导入查重 | `src-python/spectrumagent/api/registry.py:150` | `SELECT id,payload ... WHERE header_key=? AND raw=?` |
-| 导入插入 | `src-python/spectrumagent/api/registry.py:159` | `INSERT INTO dataset_registry (...)` |
-| 全库记录生成 | `src-python/spectrumagent/api/registry.py:168` | `all_records = [...]` |
-| 读时重新打开源文件 | `src-python/spectrumagent/api/registry.py:194` / `:198` | `def readable` / `read_header(Path(stored.header_path), ...)`；失败抛 `SOURCE_CHANGED` |
+| 表内唯一约束 | `src-python/spectrumagent/api/registry.py:120` | `CREATE TABLE ... UNIQUE(header_key,raw)`（原 `:118`） |
+| 导入查重 | `src-python/spectrumagent/api/registry.py:156` | `SELECT id,payload ... WHERE header_key=? AND raw=?`（原 `:150`） |
+| 导入插入 | `src-python/spectrumagent/api/registry.py:165` | `INSERT INTO dataset_registry (...)`（原 `:159`） |
+| 全库记录生成 | `src-python/spectrumagent/api/registry.py:174` | `all_records = [...]`（原 `:168`） |
+| 读时重新打开源文件 | `src-python/spectrumagent/api/registry.py:200` / `:204` | `def readable` / `read_header(Path(stored.header_path), ...)`；失败抛 `SOURCE_CHANGED`（原 `:194`/`:198`） |
+| `payload` 整列重写 | `src-python/spectrumagent/api/registry.py:161` | `UPDATE dataset_registry SET payload=? WHERE id=?`（原 `:155`） |
 | 前端 IPC 请求联合类型 | `src/components/datasets/api.ts:6` | `export type Request = ...` |
 | 目录选择对话框 | `src/components/datasets/api.ts:35` | `open({ directory: true, multiple: true, filters: [...] })` |
 | Rust 请求枚举 | `src-tauri/src/datasets_dev.rs:51` / `:52` | `#[serde(tag = "op", ..., deny_unknown_fields)]` / `pub enum DatasetRequest` |
-| 外键开关 | `backend/database.py:8` | `PRAGMA foreign_keys=ON` |
-| NAS 占位常量 | `backend/paths.py:8` / `:9` | `NAS_SOURCE_ROOT`/`NAS_OUTPUT_ROOT` = `None`，注释 `no NAS access or guard in this milestone` |
-| 数据根属性 | `backend/paths.py:40/44/48/52` | `database` / `snapshots` / `preprocessed` / `exports` |
+| 外键开关 | `backend/database.py:10` | `PRAGMA foreign_keys=ON`（原 `:8`） |
+| NAS 占位常量 | `backend/paths.py:8` / `:9` | `NAS_SOURCE_ROOT`/`NAS_OUTPUT_ROOT` = `None` |
+| 数据根属性 | `backend/paths.py:40/44/48/52/56` | `database` / `snapshots` / `preprocessed` / `exports` / **`trash`（A 段新增）** |
 | 会话上下文读写 | `src-python/spectrumagent/agent/state.py:166` / `:173` | `json.loads(...["context_json"])` / `UPDATE agent_session SET context_json=?` |
 | 出域禁运兜底 | `src-python/spectrumagent/agent/llm.py:136` | `_DENY_TEXT`（注释声明 fallback, not primary boundary） |
 | 删除前路径归属校验（可复用） | `src-python/spectrumagent/agent/mat.py:52` / `:88` / `:190` | `resolve().is_relative_to(self.paths.exports.resolve())` |
-| 覆写已有的级联清理 | `src-python/spectrumagent/annotation/session.py:388-390` / `:406` | `DELETE FROM annotation / sample_spectrum / training_mat` + `shutil.rmtree(directory)` |
+| 覆写已有的级联清理 | `src-python/spectrumagent/annotation/session.py:387-389` / `:405` | `DELETE FROM annotation / sample_spectrum / training_mat` + **`storage.rmtree(directory)`（A 段已收口，原 `shutil.rmtree` 在 `:406`）** |
+| A 段守卫实际接口 | `src-python/spectrumagent/storage/guard.py:329/333/345` | `resolve_write` / `resolve_delete` / `rmtree`（另有 `:337 mkdir`、`:341 unlink`、`:349 replace`）；**B 段直接调用，不另造出口** |
 | 父表重建迁移手法 | `src-python/spectrumagent/modeling/migrations.py:68-102` | `PRAGMA defer_foreign_keys` + `SAVEPOINT` + create-copy-drop-rename |
-| 项目级 projection 配置 | `src-python/spectrumagent/annotation/projection_io.py:21` / `:73` / `:74` | `:21` `return paths.root / "projects"/.../"projection.json"`；`:73` `root = paths.exports.resolve()`（映射相对 `paths.root` 的佐证）；`:74` `folder = root / cube_id`。**旧稿把 `folder` 误记 `:73`，2026-11-04 20:08 实测修正为 `:73`/`:74` 双行** |
+| 项目级 projection 配置 | `src-python/spectrumagent/annotation/projection_io.py:21` / `:73` / `:74` | `:21` `return paths.root / "projects"/.../"projection.json"`；`:73` `root = paths.exports.resolve()`；`:74` `folder = root / cube_id`（A 段未改，仍吻合） |
 
 ### 0.3 科祥 2026-11-04 拍板口径（五条，不得自行改写）
 
@@ -85,17 +107,17 @@
 
 ---
 
-## 2. A 段 · 统一写入出口与审计（先于 UI，最先做）
+## 2. A 段 · 统一写入出口与审计（**已于 `9ad8268` 交付收口**）
 
-### 2.1 新增 `src-python/spectrumagent/storage/guard.py`
+### 2.1 `src-python/spectrumagent/storage/guard.py`
 
 - 单一出口 `resolve_write(path, *, kind)` 与 `resolve_delete(path)`：路径 `resolve()` 归一 → 判是否落在**三个可写根**内 → 判是否落在任一数据源目录（含子目录）内 → 越界抛 `WRITE_TO_SOURCE_DENIED` 并写审计。
 - 三个可写根（需求 8.1 / 开发手册 `:51` / 技术选型 v1.1 `:24`）：**本地数据根** `paths.root`（DB / 日志 / 握手 / 缓存，以及 `annotations`（快照）、`preprocessed`、`exports`、`models`、`inferences`、`projects`（项目级配置）、`trash` 等产物目录）、**产物输出根**（本卡为配置项，默认不启用）、**系统临时目录**。**目录名一律以 `backend/paths.py` 实测为准，禁止按属性名推断**（`AppPaths.snapshots` 的实际目录名是 `annotations`，见 `backend/paths.py:44-45`）。漏掉本地根或 temp 会拦掉程序自身数据库与日志。
-- **`unlink` / `rmtree` / `rename` 同为写操作，必须一并收口**——否则删除功能就是绕过只读红线的后门。可复用 `src-python/spectrumagent/agent/mat.py:52/88/190` 的 `is_relative_to` 校验模式。
-- 逐文件改造 §0.1 实测的 **13 个**生产写点，`grep -rln` 取数命令同上，**一个不漏**；每个文件在回报里写「本文件的写入目标属于哪个根」。
+- **`unlink` / `rmtree` / `rename` 同为写操作，一并收口**；`src-python/spectrumagent/agent/mat.py:52/88/190` 的 `is_relative_to` 校验模式继续保留作纵深校验。
+- **A 段已完成**：§0.1 历史基线记录的 **13 个**生产写点已全部改为走守卫；同一 grep 现为 **14 个文件**（新增 `storage/guard.py` 本身）。**B 段新写点一律调用 `storage.resolve_write` / `resolve_delete` / `rmtree`，不得绕过守卫**。
 - ALLOW / DENY **全量留痕**（不只记 DENY），对应 UI 6.4 #13「被拒写入尝试均完整留痕」。
 
-### 2.2 新增审计表（append-only）
+### 2.2 审计表（append-only）
 
 `write_audit(id, ts, action, target_path, decision, reason, deletion_id, actor)` 与 `deletion_audit(deletion_id, action, cube_id, summary_json, confirmed_by, created_at)`。
 **写路径覆盖**：逐列写明每条 `NOT NULL` 在 INSERT 时由谁供值（`id`=uuid4、`ts`=服务端 UTC 时间、`action`=枚举常量、`target_path`=守卫入参、`decision`=ALLOW/DENY 常量、`reason`=结构化错误码或空串禁 NULL、`deletion_id`=删除批次或空串、`actor`=固定 `local`），**禁靠 DEFAULT 兜底**。审计表只允许 INSERT，不提供 UPDATE/DELETE 路径，并在测试里反证。
@@ -130,9 +152,9 @@
 
 ### 3.3 文件回收区
 
-- `backend/paths.py` 增 `trash` 属性 = `root / "trash"`；本次目录 `trash/<deletion_id>/`，保留原相对结构。
-- 删除用**同盘 move**（`Path.rename` / `shutil.move`），**不 unlink**；映射写进 `recycle_item.file_src/file_dst`。DB 事务提交成功后才算删除完成，失败则整体回滚（含文件移回）。
-- 要移走（**2026-11-04 20:50 实测路径，全部相对 `paths.root`**）：`annotations/<cube_id>/vN/`（`annotation.json`、`label_index.json`、`label_map.npz`、`spectra.npz`；`annotation/session.py:362` 用 `self.paths.snapshots / cube_id / f"v{version_no}"`，而 `AppPaths.snapshots` = `root/annotations`，`backend/paths.py:44-45`）、`exports/<cube_id>/`（labelme `.json` / `.meta.json` / `manifest.json`，`projection_io.py:73-74`）、`exports/<cube_id>/<version_id>/training_mat.mat`（`agent/mat.py:51`）、`preprocessed/<cube_id>/<run_id>/`（`preprocess/run.py:245`）、`models/<run_id>/`（`modeling/run.py:175`）、`inferences/<run_id>/`（`modeling/inference.py:224`）。`annotation_version.snapshot_ref` 是相对 `paths.snapshots` 的 POSIX 路径（`preprocess/run.py:165` 用 `paths.snapshots.joinpath` 消费），解析时必须以 `root/annotations` 为基，**不得当成 `root/snapshots`**。
+- `backend/paths.py` 的 `trash` 属性已由 A 段落地（`:56`）= `root / "trash"`；本次目录 `trash/<deletion_id>/`，保留原相对结构。
+- 删除用**同盘 move**（`Path.rename` / `storage.replace`），**不 unlink**；映射写进 `recycle_item.file_src/file_dst`。DB 事务提交成功后才算删除完成，失败则整体回滚（含文件移回）。
+- 要移走（**2026-11-04 21:55 行号已按 A 段后校准，全部相对 `paths.root`**）：`annotations/<cube_id>/vN/`（`annotation.json`、`label_index.json`、`label_map.npz`、`spectra.npz`；`annotation/session.py:361` 用 `self.paths.snapshots / cube_id / f"v{version_no}"`，而 `AppPaths.snapshots` = `root/annotations`，`backend/paths.py:44-45`）、`exports/<cube_id>/`（labelme `.json` / `.meta.json` / `manifest.json`，`projection_io.py:73-74`）、`exports/<cube_id>/<version_id>/training_mat.mat`（`agent/mat.py:51`）、`preprocessed/<cube_id>/<run_id>/`（`preprocess/run.py:245`）、`models/<run_id>/`（`modeling/run.py:176`）、`inferences/<run_id>/`（`modeling/inference.py:225`）。`annotation_version.snapshot_ref` 是相对 `paths.snapshots` 的 POSIX 路径（`preprocess/run.py:165` 用 `paths.snapshots.joinpath` 消费），解析时必须以 `root/annotations` 为基，**不得当成 `root/snapshots`**。
 - **绝不碰**：源目录任何内容；`projects/<project_id>/projection.json`（**项目级共用，位于 `paths.root/projects/`，不在 `exports/` 下**，`projection_io.py:20-21`）；`project` / `label_schema` / `label` / `preprocess_recipe*` / `project_recipe`（项目级资产）；`llm_call` 与 `agent_*` 审计出域记录（FR-I03 不可改，S11 原型写明不可删）。
 - 按 `annotation_version.snapshot_ref` 精确解析目标，**禁一刀切 `rmtree(annotations/<cube_id>)`**。
 
@@ -148,7 +170,7 @@
 | Tauri | `src-tauri/src/datasets_dev.rs:52` 的 `DatasetRequest` 增 `Catalog {limit,offset}` / `DeletePreview {id}` / `Delete {id,confirm,preview_token}` / `RecycleList {}` / `Restore {deletion_id,confirm}`；`destination` 与 `forward` 同步；`deny_unknown_fields` 的契约测试逐 op 覆盖。 |
 | 前端 | `src/components/datasets/api.ts:6` 的 `Request` 与 `src/components/datasets/types.ts:26-33` 的 `DatasetTransport` 同步新增方法。 |
 
-**重新导入分支（科祥拍板固定新建 id）**：`POST /api/v1/datasets/import` 增 `confirm_new: bool = False`。若 `recycle_bin` 存在同 `header_key+raw` 且未带 `confirm_new=true` → 返回结构化 `REIMPORT_CONFIRMATION_REQUIRED`（409），前端弹确认框（默认选中「作为全新数据集导入」、写清新 id + 旧那份留回收站 30 天 + 期内占双份空间）；带上后按 `registry.py:159` 正常 **INSERT 新 id**。`DatasetRequest::Import` 加 `#[serde(default)] confirm_new`。**禁止静默新建，也禁止静默复用旧 id。**
+**重新导入分支（科祥拍板固定新建 id）**：`POST /api/v1/datasets/import` 增 `confirm_new: bool = False`。若 `recycle_bin` 存在同 `header_key+raw` 且未带 `confirm_new=true` → 返回结构化 `REIMPORT_CONFIRMATION_REQUIRED`（409），前端弹确认框（默认选中「作为全新数据集导入」、写清新 id + 旧那份留回收站 30 天 + 期内占双份空间）；带上后按 `registry.py:165` 正常 **INSERT 新 id**。`DatasetRequest::Import` 加 `#[serde(default)] confirm_new`。**禁止静默新建，也禁止静默复用旧 id。**
 
 ### 3.6 崩溃窗口与启动恢复（复核补充裁定）
 
@@ -180,7 +202,7 @@
 
 **C 组 · 列表与重新导入**：冷启动（含引擎换代次）列表自动出现；导入 3 个已登记文件时提示「新增 0 / 已有 3」且列表不被全库撑大；`display_names.test.ts:14` G2 仍绿；同路径重新导入必须新建 id、新数据集下查不到任何旧标注/版本/run；未带 `confirm_new` 时返回 409。
 
-**D 组 · 全量回归**：`node --test "src/**/*.test.ts"` 全绿且 pass ≥ 218（贴开工与终值两段原文，**禁用裸跑 `node --test`，见 §0.1 防再犯记录**）；Python 按 §0.1 分段跑法全绿并贴 collected 与开工基线（1489，collected 口径，非 pass 口径）；`cargo test` 13 组全绿、`cargo clippy --all-targets -- -D warnings` 零 error；`npm run build`（含 `tsc --noEmit`）。新增测试须写明「什么情况下会红」，空断言 0 条。
+**D 组 · 全量回归**：`node --test "src/**/*.test.ts"` 全绿且 pass ≥ 218（贴**本段开工与终值**两段原文，**禁用裸跑 `node --test`，见 §0.1 防再犯记录**）；Python 按 §0.1 分段跑法全绿并贴 collected 与**本段开工基线**（历史 1489 / A 段后 1506 均为溯源值，**不作跨段固定阈值**；collected 口径，非 pass 口径）；`cargo test` 全绿、`cargo clippy --all-targets -- -D warnings` 零 error（组数以当段原文为准，禁写死 13 组）；`npm run build`（含 `tsc --noEmit`）。新增测试须写明「什么情况下会红」，空断言 0 条。
 
 **孤儿检查**：按 `cube_id` / `version_id` / `run_id` 扫全部业务表，断言无指向已删除对象的行；`agent_session.context_json` 无已删 id。
 
@@ -196,7 +218,7 @@
 6. NAS 路径 / 文件名 / 凭据不进 LLM 上下文、不进日志；工具出参只准标量。
 7. `catalog` 只返摘要，不回灌完整 payload（8MiB forward 红线）。
 8. 锁：SQLite WAL 单 writer，删除/恢复为短事务，事务内不跑长计算；**禁给 `DraftStore` 加锁**（锁序反转）。
-9. `dataset_registry.payload` 重导入整列重写（`src-python/spectrumagent/api/registry.py:155` `UPDATE dataset_registry SET payload=? WHERE id=?`），**任何新增元数据不得塞 payload**，一律独立列/独立表。
+9. `dataset_registry.payload` 重导入整列重写（`src-python/spectrumagent/api/registry.py:161` `UPDATE dataset_registry SET payload=? WHERE id=?`），**任何新增元数据不得塞 payload**，一律独立列/独立表。
 10. **逐文件提交**，禁 `git add -A` / `git add .`；每段提交带对应测试。
 11. **行号与实物不符须在回报中显式说明，不得自行改写本卡。**
 
@@ -204,7 +226,7 @@
 
 ## 7. 交付与提交顺序
 
-按 A → B → C → D 四段推进，**一次一段、每段独立提交并贴该段回归原文**；每段开工前复跑 §0.1 基线与 §0.2 行号。回报格式沿用 TASK-23/24：改动文件清单、每条验收的取数命令与原文输出、未决项、遗留债。
+按 A → B → C → D 四段推进，**一次一段、每段独立提交并贴该段回归原文**；**A 段已于 `9ad8268` 收口**。每段开工前复跑 §0.1 **该段当前基线**与 §0.2 行号：历史 1489 / 13 文件 / 出卡时行号仅作溯源、不作闸门；段内新增用例另计，禁为凑总数删改测试；数值一律带执行模式与取数命令。回报格式沿用 TASK-23/24：改动文件清单、每条验收的取数命令与原文输出、未决项、遗留债。
 
 ## 8. 遗留债（本卡发现，不在授权面内）
 
@@ -215,6 +237,7 @@
 | D3 | S03 输出根只存配置不落盘、NAS 只读挂载/凭据/产物写 NAS 未做 | 另立 FR-A12 卡；本卡界面须明示，不做假入口 |
 | D4 | `agent_session.context_json` 无 schema 校验 | 本卡只清理本 cube 引用；整体 schema 化另立卡 |
 | D5 | 出域记录页（S11）仍是空态、检索 S10 仍是占位 | 属阶段一断点，另立卡，不并入本卡 |
+| D6 | C 盘可用空间 0 字节（2026-11-04 21:55 实测），Bash 输出与 Edit 备份受影响；pytest 临时目录实测仅 0 MB，清不出空间 | 本轮卡修订改走直接写 E 盘；**执行方需自行处理磁盘**（本机环境问题，不属产品缺陷），并在回报里注明所用跑法 |
 
 ---
 
@@ -225,4 +248,5 @@
 | 2026-11-04 18:06 | **初版（201 行）**：四段 A 守卫与审计 → B 回收站删除链路 → C 列表与 S03 UI → D 验收；§0 事实底座（行号锚点全 `grep -n` 直取）；§0.4 方案 B（独立回收站表）定稿并保留方案 A 探针备查；§0.3 五条拍板口径；明确不做清单与 5 条遗留债 |
 | 2026-11-04 18:45 | **复核轮一（217 行）**：① 前端基线 222 → **218**、命令改 `node --test "src/**/*.test.ts"`、闸门②与 D 组同步、新增防再犯记录（222 = 218 + 2 + 2 的解剖）；② Python 分段注记按实测 collected 分布重写、删陈旧段数、改由执行方按 hook 现场定；③ `cube_id` 换精确取数命令 `cube_ids? +TEXT`；④ §0.4 措辞消歧为「以 §3.2 顺序清单为准」；⑤ §2.3 重写（审计独立通道不递归 / 启动顺序 / DB 未就绪环形缓冲）；⑥ 新增 §3.6 崩溃窗口三态对账；⑦ A/B/D 组验收补对应断言 |
 | 2026-11-04 20:08 | **定稿（217 行 + 本节）**：§0.2 `projection_io.py:73` 实测 off-by-one，改为 `:73`/`:74` 双行并留痕；整表锚点复核无第二处漂移；卡头「前置 HEAD」标注为出卡时事实记录、不作闸门（防闸门自指变体）；补 §9 修订记录。本卡随后由备卡方**单文件提交入库，远程推送归负责人** |
-| 2026-11-04 20:50 | **即停后路径裁定（228 行）**：执行方按即停条款报出 §3.3 两处路径与实物不符，备卡方实测后裁定「**先修订卡、再继续 B 段**」：① `AppPaths.snapshots` 实际目录名是 `annotations`（`backend/paths.py:44-45`；`annotation/session.py:362` 在其下建 `vN`），全卡 `snapshots/...` 统一改为 `annotations/...`；② 项目级配置实为 `paths.root/projects/<project_id>/projection.json`（`projection_io.py:20-21`），**不在 `exports/` 下**，修正 §3.3「绝不碰」清单（原写法有误删项目级配置风险）与 §2.1 可写根目录枚举；③ §0.2 对 `:21` 的描述原本即正确，属卡内自相矛盾，一并消歧；④ 提示词对应两处同步替换。其余产物根（`exports/<cube>/`、`preprocessed/<cube>/<run>/`、`models/<run>/`、`inferences/<run>/`）实测无误 |
+| 2026-11-04 20:50 | **即停后路径裁定（228 行）**：执行方报 §3.3 两处路径与实物不符，实测裁定「先修卡再继续 B 段」：① `AppPaths.snapshots` 实际目录名 `annotations`（当时 `backend/paths.py:44-45`、`annotation/session.py:362`），全卡 `snapshots/...` 改为 `annotations/...`；② 项目级配置实为 `paths.root/projects/<project_id>/projection.json`（`projection_io.py:20-21`），**不在 `exports/` 下**，修正「绝不碰」清单与 §2.1 枚举；③ §0.2 的 `:21` 描述原本即正确，属卡内自相矛盾；④ 提示词两处同步替换。其余产物根实测无误。（**本行行号为 20:50 时点实测，A 段后以 §0.2 校准表为准**） |
+| 2026-11-04 21:55 | **A 段后全量校准（即停后修订）**：执行方报 A 段 `9ad8268` 改造造成锚点漂移，备卡方独立实测后裁定「**修订卡后继续 B 段**」。① §0.2 全表按 HEAD `9ad8268` 重取：`registry.py` 118/150/159/168/194/198/155 → **120/156/165/174/200/204/161**、`database.py` 8 → **10**、`session.py` 388-390/406 → **387-389/405** 且删除出口改为 `storage.rmtree`、`paths.py` 新增 **:56 `trash`**、新增「A 段守卫实际接口」锚点行；② §3.3 三处（`session.py:362`→**361**、`modeling/run.py:175`→**176**、`modeling/inference.py:224`→**225**）、§3.5 `:159`→**165**、§6 红线 9 `:155`→**161** 同步；③ §0.1 保留历史基线（1489 / 13 文件）并新增「当前基线」（HEAD `9ad8268`、collected **1506**、写点 **14** 文件含新增 `storage/guard.py`、node 218/218）与**五条后续基线规则**；闸门②/§2.1/§5 D 组/§7 同步口径；④ §8 新增 D6（C 盘 0 字节的本机环境债，不属产品缺陷）。**裁定选 1，不拆段、不中断 B** |
