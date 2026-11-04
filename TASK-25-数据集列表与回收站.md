@@ -44,7 +44,7 @@
 > 1. 历史 **1489 collected / 13 文件 / 出卡时行号** 是 A 段前的事实记录，**永久保留、仅供溯源，不作任何闸门**；不得用它判断 B/C/D 是否退化，也不得要求退回该数值。
 > 2. B/C/D **每段开工前**复跑「该段开工时」的当前基线（node 源码 glob / Python collected / cargo / clippy）并贴原文；**终值与该段开工值比较**，不得把 1489 或 1506 当跨段固定阈值。
 > 3. 段内新增用例另计（沿用 TASK-17 的 A6 裁定：「原有 N 项全过，新增用例另计 N+M，M≥1，fail=0」）；**禁止为凑总数删改现有测试**。
-> 4. 每段开工前按闸门③ `grep -n` 复核 §0.2 全部锚点；源码一改即可能漂移，**漂移继续即停上报**，由备卡方统一校准，执行方不得自行改卡。
+> 4. 每段开工前按闸门③ `grep -n` 复核 §0.2 全部锚点；源码一改即可能漂移，**漂移继续即停上报**，由备卡方统一校准，执行方不得自行改卡。**2026-11-04 23:06 状态补充**：B 段代码与测试已准备但**尚未提交**，其改动会再次推动 `registry.py` / `datasets.py` / `schemas.py` / `recycle.py` 等行号；§0.2 当前锚点锁定的是 HEAD `9ad8268`（A 段后、B 段前）。**B 段收口提交后由备卡方统一重取校准**；执行方在 B 段回报里列出全部新行号并即停上报，**不得在 B 段未定稿期间按工作区未提交代码改卡**，也不得自行改卡。
 > 5. `1489 → 1506` 的增量来自 A 段新增测试（含 `storage/guard.py` 相关），是正常增长，不是回归退化。
 
 ### 0.2 行号锚点（全部 `grep -n` 直取；**2026-11-04 21:55 按 HEAD `9ad8268` 全量校准，A 段改造后**）
@@ -81,7 +81,7 @@
 
 1. **删除一律进回收站**，软删 **30 天**内可恢复，回收站内占用仍计入本机磁盘占用（回到 UI 4.3 `:808` 原文，**不改文档**；此前「物理删除、不可恢复」的中间口径作废）。
 2. **原始 ENVI 文件不真删**，源目录全程零改动；标注 JSON 等程序产物从工作区移走，**30 天到期才物理删**。
-3. **重新导入固定走「作为全新数据集导入（新建 id、从头标注）」**；仍须人点确认框、默认选中该项，不静默决定。
+3. **重新导入固定走「作为全新数据集导入（新建 id、从头标注）」**；仍须人点确认框、默认选中该项，不静默决定。**适用范围限定**：本条指「原数据集已进回收站、当前同 `(header_key,raw)` 无活跃记录」的重新导入；若同键已有活跃记录（例如已新建过 B），按 §3.5 第一行**正常返回已有**（幂等），不新建 id、不弹该确认框。此为 23:06 即停裁定的消歧，不改变「删后重来走新 id」的原意。
 4. **恢复 = 文件移回 + 清删除状态 + id 不变**，历史标注/版本/台账全在。
 5. **列表 = 已登记的全部活跃数据**，冷启动自动加载；导入只追加本次选中批次，不再把全库铺出来。
 
@@ -170,7 +170,18 @@
 | Tauri | `src-tauri/src/datasets_dev.rs:52` 的 `DatasetRequest` 增 `Catalog {limit,offset}` / `DeletePreview {id}` / `Delete {id,confirm,preview_token}` / `RecycleList {}` / `Restore {deletion_id,confirm}`；`destination` 与 `forward` 同步；`deny_unknown_fields` 的契约测试逐 op 覆盖。 |
 | 前端 | `src/components/datasets/api.ts:6` 的 `Request` 与 `src/components/datasets/types.ts:26-33` 的 `DatasetTransport` 同步新增方法。 |
 
-**重新导入分支（科祥拍板固定新建 id）**：`POST /api/v1/datasets/import` 增 `confirm_new: bool = False`。若 `recycle_bin` 存在同 `header_key+raw` 且未带 `confirm_new=true` → 返回结构化 `REIMPORT_CONFIRMATION_REQUIRED`（409），前端弹确认框（默认选中「作为全新数据集导入」、写清新 id + 旧那份留回收站 30 天 + 期内占双份空间）；带上后按 `registry.py:165` 正常 **INSERT 新 id**。`DatasetRequest::Import` 加 `#[serde(default)] confirm_new`。**禁止静默新建，也禁止静默复用旧 id。**
+**重新导入分支（2026-11-04 23:06 即停裁定，取代原字面规则）**：`POST /api/v1/datasets/import` 保留 `confirm_new: bool = False`，判定键一律为 **`(header_key, raw)` 二元组**（与 `UNIQUE(header_key,raw)` 及查重 SQL 一致）。**先查活跃记录、再查回收站**；整批预检 → 整批执行，保持批次原子：
+
+| 活跃记录 | 回收站同键 | 行为 |
+|---|---|---|
+| **有** | 任意 | **正常返回已有**（`existing=true`），**不弹确认框、不要求 `confirm_new`、不新建 id**；界面提示「该路径已有数据集」 |
+| 无 | **有**（`restored_at IS NULL AND purged_at IS NULL`） | 未带 `confirm_new=true` → 结构化 `REIMPORT_CONFIRMATION_REQUIRED`（**409**），确认框默认选中「作为全新数据集导入」并写清新 id + 旧那份留回收站 30 天 + 期内占双份空间；带 `confirm_new=true` → **`INSERT` 新 id** |
+| 无 | 无 | 首次导入，`INSERT` 新 id |
+
+- **根因**：原实现预检只查 `recycle_bin`、确认后仍走 `dataset_registry` 查重，在「活跃 B 已存在 + A 留回收站」时先 409、确认后却复用 B（`existing=true`），与「新建 id」提示冲突；实测证据 `milestone25/evidence/B/reimport-active-ambiguity.txt`（`old_id` / `active_id` / `same_active_id: true`）。
+- **竞态 fail-closed**：`confirm_new=true` 执行 `INSERT` 前必须**二次校验活跃记录**；若此时已出现活跃记录（并发导入 / 恢复），返回结构化 `REIMPORT_ACTIVE_EXISTS`（409）并提示重新决策，**不得静默复用、也不得静默新建**；`UNIQUE` 冲突同样按结构化错误处理，不吞异常。
+- **文案一致**：确认框「作为全新数据集导入（新建 id、从头标注）」**只在第二行场景出现**；有活跃记录时不得弹该框、不得显示「新建 id」字样。响应里的 `existing` / `summary.imported` 必须与实际行为一致。
+- `DatasetRequest::Import` 加 `#[serde(default)] confirm_new`（保持）。**禁止静默新建，也禁止静默复用旧 id。**
 
 ### 3.6 崩溃窗口与启动恢复（复核补充裁定）
 
@@ -200,7 +211,7 @@
 
 **B 组 · 回收站**：删除后主表无该行、工作区原位置无 JSON、`trash/<deletion_id>/` 文件齐全；恢复后 id 不变且标注版本 / 预处理 run / 训练台账全在；有同路径活跃记录时恢复被拒并留痕；到期后物理删除且 `PURGE` 审计可查、审计行不可改；注入「move 之后、commit 之前杀进程」，重启后按 §3.6 断言无半完成删除、`ORPHAN_ROLLBACK` / `ORPHAN_QUARANTINE` 审计可查、对账完成前该 cube 的写任务被拒。
 
-**C 组 · 列表与重新导入**：冷启动（含引擎换代次）列表自动出现；导入 3 个已登记文件时提示「新增 0 / 已有 3」且列表不被全库撑大；`display_names.test.ts:14` G2 仍绿；同路径重新导入必须新建 id、新数据集下查不到任何旧标注/版本/run；未带 `confirm_new` 时返回 409。
+**C 组 · 列表与重新导入**：冷启动（含引擎换代次）列表自动出现；导入 3 个已登记文件时提示「新增 0 / 已有 3」且列表不被全库撑大；`display_names.test.ts:14` G2 仍绿。**按 §3.5 四象限逐格断言**：① 有活跃记录（无论回收站是否有同键）→ 返回 `existing=true`、**不弹确认框、不新建 id**；② 无活跃 + 回收站有同键 → 未带 `confirm_new` 返回 409 `REIMPORT_CONFIRMATION_REQUIRED`、带后 `INSERT` 新 id 且新数据集下查不到任何旧标注/版本/run；③ 两者皆无 → 首次导入新 id；④ 并发出现活跃记录 → `REIMPORT_ACTIVE_EXISTS`（409）。另断言确认框文案只在场景 ② 出现、响应 `existing` / `summary.imported` 与实际行为一致。
 
 **D 组 · 全量回归**：`node --test "src/**/*.test.ts"` 全绿且 pass ≥ 218（贴**本段开工与终值**两段原文，**禁用裸跑 `node --test`，见 §0.1 防再犯记录**）；Python 按 §0.1 分段跑法全绿并贴 collected 与**本段开工基线**（历史 1489 / A 段后 1506 均为溯源值，**不作跨段固定阈值**；collected 口径，非 pass 口径）；`cargo test` 全绿、`cargo clippy --all-targets -- -D warnings` 零 error（组数以当段原文为准，禁写死 13 组）；`npm run build`（含 `tsc --noEmit`）。新增测试须写明「什么情况下会红」，空断言 0 条。
 
@@ -237,7 +248,7 @@
 | D3 | S03 输出根只存配置不落盘、NAS 只读挂载/凭据/产物写 NAS 未做 | 另立 FR-A12 卡；本卡界面须明示，不做假入口 |
 | D4 | `agent_session.context_json` 无 schema 校验 | 本卡只清理本 cube 引用；整体 schema 化另立卡 |
 | D5 | 出域记录页（S11）仍是空态、检索 S10 仍是占位 | 属阶段一断点，另立卡，不并入本卡 |
-| D6 | C 盘可用空间 0 字节（2026-11-04 21:55 实测），Bash 输出与 Edit 备份受影响；pytest 临时目录实测仅 0 MB，清不出空间 | 本轮卡修订改走直接写 E 盘；**执行方需自行处理磁盘**（本机环境问题，不属产品缺陷），并在回报里注明所用跑法 |
+| D6 | C 盘可用空间 0 字节（2026-11-04 21:55 实测），Bash 输出与 Edit 备份受影响；pytest 临时目录实测仅 0 MB，清不出空间 | 21:55 那轮卡修订改走直接写 E 盘；**23:06 复测 C 盘已恢复 7.92 GB**，Edit / Bash 恢复正常，本轮按常规工具修订。环境问题不属产品缺陷，执行方仍在回报里注明所用跑法 |
 
 ---
 
@@ -250,3 +261,4 @@
 | 2026-11-04 20:08 | **定稿（217 行 + 本节）**：§0.2 `projection_io.py:73` 实测 off-by-one，改为 `:73`/`:74` 双行并留痕；整表锚点复核无第二处漂移；卡头「前置 HEAD」标注为出卡时事实记录、不作闸门（防闸门自指变体）；补 §9 修订记录。本卡随后由备卡方**单文件提交入库，远程推送归负责人** |
 | 2026-11-04 20:50 | **即停后路径裁定（228 行）**：执行方报 §3.3 两处路径与实物不符，实测裁定「先修卡再继续 B 段」：① `AppPaths.snapshots` 实际目录名 `annotations`（当时 `backend/paths.py:44-45`、`annotation/session.py:362`），全卡 `snapshots/...` 改为 `annotations/...`；② 项目级配置实为 `paths.root/projects/<project_id>/projection.json`（`projection_io.py:20-21`），**不在 `exports/` 下**，修正「绝不碰」清单与 §2.1 枚举；③ §0.2 的 `:21` 描述原本即正确，属卡内自相矛盾；④ 提示词两处同步替换。其余产物根实测无误。（**本行行号为 20:50 时点实测，A 段后以 §0.2 校准表为准**） |
 | 2026-11-04 21:55 | **A 段后全量校准（即停后修订）**：执行方报 A 段 `9ad8268` 改造造成锚点漂移，备卡方独立实测后裁定「**修订卡后继续 B 段**」。① §0.2 全表按 HEAD `9ad8268` 重取：`registry.py` 118/150/159/168/194/198/155 → **120/156/165/174/200/204/161**、`database.py` 8 → **10**、`session.py` 388-390/406 → **387-389/405** 且删除出口改为 `storage.rmtree`、`paths.py` 新增 **:56 `trash`**、新增「A 段守卫实际接口」锚点行；② §3.3 三处（`session.py:362`→**361**、`modeling/run.py:175`→**176**、`modeling/inference.py:224`→**225**）、§3.5 `:159`→**165**、§6 红线 9 `:155`→**161** 同步；③ §0.1 保留历史基线（1489 / 13 文件）并新增「当前基线」（HEAD `9ad8268`、collected **1506**、写点 **14** 文件含新增 `storage/guard.py`、node 218/218）与**五条后续基线规则**；闸门②/§2.1/§5 D 组/§7 同步口径；④ §8 新增 D6（C 盘 0 字节的本机环境债，不属产品缺陷）。**裁定选 1，不拆段、不中断 B** |
+| 2026-11-04 23:06 | **§3.5 重新导入语义即停裁定**：执行方实测「删 A → 新建 B → A 留回收站时再次导入活跃 B」按卡字面先 409、确认后却复用 B（`existing=true`），与「新建 id」提示冲突（证据 `milestone25/evidence/B/reimport-active-ambiguity.txt`）。裁定**采纳「先查活跃记录」**：按 `(header_key,raw)` 判定，有活跃 → 正常返回已有、不弹框不新建；无活跃 + 回收站有同键 → 才要求 `confirm_new`、确认后 `INSERT` 新 id；两者皆无 → 首次导入。补四条细化：整批预检保原子、`INSERT` 前二次校验活跃记录且竞态返回 `REIMPORT_ACTIVE_EXISTS`（409）、`UNIQUE` 冲突结构化报错、确认框文案只在「无活跃+有回收站」场景出现且响应字段一致。§0.3 口径 3 补适用范围限定、§0.1 规则 4 补 B 段未提交代码的锚点漂移预告、§5 C 组改四象限断言、§8 D6 更新磁盘复测结论。**B 段代码与测试未提交，本轮只提交卡；§0.2 锚点仍锁定 HEAD `9ad8268`，B 段收口后由备卡方统一重取** |
