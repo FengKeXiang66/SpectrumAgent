@@ -3,7 +3,10 @@ import BandCanvas from '../components/datasets/BandCanvas';
 import { describeError, displayName, type DatasetRecord, type DatasetTransport, type Preview } from '../components/datasets/types';
 
 export default function S04({ record, api, onClose }: { record: DatasetRecord; api: DatasetTransport; onClose(): void }) {
-  const [band, setBand] = useState(0);
+  // 默认波段：需求方 2026-11-05 指定固定 100——仅限 ≥200 波段主流形态（面阵 200 / 推扫 224）；
+  // 其余形态退中带防越界（API 只校验非负，越界由 model._indices 抛 INVALID_INDEX）
+  const defaultBand = Math.max(0, record.dataset.shape[2] >= 200 ? 100 : Math.floor((record.dataset.shape[2] - 1) / 2));
+  const [band, setBand] = useState(defaultBand);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [previewBusy, setPreviewBusy] = useState(false);
   const [error, setError] = useState('');
@@ -23,7 +26,7 @@ export default function S04({ record, api, onClose }: { record: DatasetRecord; a
   }, [api, record.id]);
   useEffect(() => {
     live.current = true;
-    void loadPreview(0);
+    void loadPreview(defaultBand);
     return () => { live.current = false; sequence.current++; };
   }, [loadPreview]);
   return <section aria-label="单波段预览">

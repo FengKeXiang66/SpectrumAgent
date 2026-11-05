@@ -30,6 +30,8 @@ test('P2 S04 and S03 thumbnails share BandCanvas and viewing updates workspace',
   assert.doesNotMatch(datasets, /selectedRecord|loadPreview|单波段预览/);
   assert.match(viewer, /api.preview\(record.id, index\)/);
   assert.match(viewer, /request === sequence.current/);
+  assert.match(viewer, /Math\.max\(0, record\.dataset\.shape\[2\] >= 200 \? 100 : Math\.floor\(\(record\.dataset\.shape\[2\] - 1\) \/ 2\)\)/);
+  assert.match(viewer, /void loadPreview\(defaultBand\)/);
   assert.match(app, /case 's04':[\s\S]*?<S04[\s\S]*?onClose=\{\(\) => setScreen\('s03'\)\}/);
 });
 
