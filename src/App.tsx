@@ -28,7 +28,6 @@ import type { WorkspaceContext } from './components/assistant/api';
 import { selectWorkspace } from './components/assistant/presentation';
 import type { WorkspaceEventData } from './components/assistant/sse';
 
-type Metrics = { nan_ratio: number; reflectance_range: [number, number]; bands: number; shape: [number, number, number]; elapsed_ms: number };
 const reasons: Record<string, string> = {
   SpawnFailed: '无法启动引擎，请检查程序文件是否完整。',
   JobSetupFailed: '无法建立引擎进程保护。', ResumeFailed: '无法恢复引擎主线程。',
@@ -48,10 +47,7 @@ function reasonCode(reason: ExitReason): string {
 
 export default function App() {
   const [status, setStatus] = useState<Snapshot>(initial);
-  const [text, setText] = useState('');
-  const [message, setMessage] = useState('输入“运行冒烟测试”，或点击发送。');
-  const [metrics, setMetrics] = useState<Metrics | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [shellError, setShellError] = useState('');
   const [workspace, setWorkspace] = useState<WorkspaceContext>({});
   const [records, setRecords] = useState<CatalogRecord[]>([]);
   const [catalog, setCatalog] = useState(emptyCatalog);
@@ -106,8 +102,7 @@ export default function App() {
     finally { if (current()) setOpening(false); }
   }, [catalogController, changeWorkspace]);
   useEffect(() => {
-    setBusy(false); setMetrics(null); setText('');
-    setMessage('输入“运行冒烟测试”，或点击发送。');
+    setShellError('');
     setWorkspace({}); setRecords([]); setRefreshVersions({}); setNavigation(null); setWorkspaceName(''); setPreviewCandidates({});
     setScreen('s03'); setSelected(null); setNavigationError('');
     openingTicket.current++; setOpening(false); catalogController.reset(status.generation_id);
@@ -133,7 +128,7 @@ export default function App() {
     // Subscribe before snapshot to cover the startup/registration race.
     const subscription = listen<Snapshot>('engine-status', event => accept(event.payload));
     void subscription.then(() => invoke<Snapshot>('engine_status')).then(accept)
-      .catch(() => { if (!disposed) setMessage('无法读取外壳状态，请查看日志。'); });
+      .catch(() => { if (!disposed) setShellError('无法读取外壳状态，请查看日志。'); });
     return () => { disposed = true; void subscription.then(unlisten => unlisten()); };
   }, []);
   useEffect(() => {
@@ -149,25 +144,6 @@ export default function App() {
       .finally(() => { if (live) setDashboardLoading(false); });
     return () => { live = false; };
   }, [screen, status.phase, status.generation_id]);
-  const send = async () => {
-    if (status.phase !== 'Ready' || busy) return;
-    if (text.trim() && text.trim() !== '运行冒烟测试') {
-      setMessage('当前地基演示仅支持冒烟测试');
-      return;
-    }
-    const generation = status.generation_id;
-    setBusy(true); setMetrics(null); setMessage('正在运行冒烟测试…');
-    try {
-      const result = await invoke<Metrics>('run_smoke');
-      if (statusRef.current.generation_id === generation && statusRef.current.phase === 'Ready') {
-        setMetrics(result); setMessage('冒烟测试完成。'); setText('');
-      }
-    } catch {
-      if (statusRef.current.generation_id === generation) setMessage('冒烟测试未完成，请检查引擎状态与日志。');
-    } finally {
-      if (statusRef.current.generation_id === generation) setBusy(false);
-    }
-  };
   useEffect(() => {
     const shortcut = (event: KeyboardEvent) => {
       if (screen === 's01' || !event.ctrlKey || status.phase !== 'Ready') return;
@@ -193,8 +169,9 @@ export default function App() {
           <p>日志路径：<code>{failure.log_path}</code></p>
           <p>数据目录：<code>{failure.data_directory}</code></p>
         </>}
-        <button disabled={!status.cleanup_complete} onClick={() => { setMetrics(null); void invoke('retry_engine').catch(() => setMessage('重试未执行，请查看日志。')); }}>重试</button>
-        <button onClick={() => { void invoke('open_data_directory').catch(() => setMessage('无法打开数据目录。')); }}>打开数据目录</button>
+        <button disabled={!status.cleanup_complete} onClick={() => { void invoke('retry_engine').catch(() => setShellError('重试未执行，请查看日志。')); }}>重试</button>
+        <button onClick={() => { void invoke('open_data_directory').catch(() => setShellError('无法打开数据目录。')); }}>打开数据目录</button>
+        {shellError && <p role="alert">{shellError}</p>}
         {!status.cleanup_complete && <p>上一代引擎尚未完成清理，暂不能重试。</p>}
       </section>
     </main>
@@ -214,7 +191,7 @@ export default function App() {
   };
   const renderScreen = () => {
     switch (screen) {
-      case 's01': return <S01 session={session} smoke={{ text, setText, message, busy, metrics, send }} />;
+      case 's01': return <S01 session={session} />;
       case 's03': return <>
         <p role="status">引擎已就绪</p>
         <p>选择数据目录，查看数据集与单波段预览。</p>
@@ -227,7 +204,7 @@ export default function App() {
             if (workspace.cube_id === id) { changeWorkspace({}); session.startNew(); }
             setSelected(current => current?.id === id ? null : current);
             await catalogController.refreshNames();
-          }} onRestored={id => catalogController.refreshNames([id])} onOpen={openScreen} />
+          }} onOpen={openScreen} />
       </>;
       case 's04': return selected ? <S04 key={selected.id} record={selected} api={datasets} onClose={() => setScreen('s03')} />
         : <section aria-label="S04 数据查看器"><p>请先在数据屏选择数据集。</p><button onClick={() => setScreen('s03')}>返回数据屏</button></section>;
@@ -257,7 +234,7 @@ export default function App() {
       <span aria-label="产品版本">版本 {__SPECTRUM_PRODUCT_VERSION__}</span>
       <button onClick={() => openScreen('s11')}>设置</button>
     </>} assistant={screen === 's01' ? null : <Composer session={session} screen={screen} inputRef={composerInput} onExpand={() => setScreen('s01')} />}>
-      {navigationError && <pre role="alert">{navigationError}</pre>}
+      {(navigationError || shellError) && <pre role="alert">{navigationError || shellError}</pre>}
       {opening && <p role="status">正在核验源文件并读取数据详情…</p>}
       {renderScreen()}
     </AppShell>

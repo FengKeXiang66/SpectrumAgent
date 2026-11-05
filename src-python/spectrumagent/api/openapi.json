@@ -482,7 +482,7 @@
     "/api/v1/datasets/{identifier}/delete/preview": {
       "get": {
         "tags": [
-          "recycle"
+          "deletion"
         ],
         "summary": "Preview",
         "operationId": "preview_api_v1_datasets__identifier__delete_preview_get",
@@ -523,7 +523,7 @@
     "/api/v1/datasets/{identifier}/delete": {
       "post": {
         "tags": [
-          "recycle"
+          "deletion"
         ],
         "summary": "Delete",
         "operationId": "delete_api_v1_datasets__identifier__delete_post",
@@ -545,76 +545,6 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/DeleteRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/recycle": {
-      "get": {
-        "tags": [
-          "recycle"
-        ],
-        "summary": "Recycle",
-        "operationId": "recycle_api_v1_recycle_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/recycle/{deletion_id}/restore": {
-      "post": {
-        "tags": [
-          "recycle"
-        ],
-        "summary": "Restore",
-        "operationId": "restore_api_v1_recycle__deletion_id__restore_post",
-        "parameters": [
-          {
-            "name": "deletion_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Deletion Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RestoreRequest"
               }
             }
           }
@@ -4773,20 +4703,6 @@
           "target_schema_id"
         ],
         "title": "RegressionRequest"
-      },
-      "RestoreRequest": {
-        "properties": {
-          "confirm": {
-            "type": "boolean",
-            "title": "Confirm"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "confirm"
-        ],
-        "title": "RestoreRequest"
       },
       "SAMParameters": {
         "properties": {

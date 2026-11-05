@@ -1,19 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { importMessage, newDatasetConfirmation } from './importDecision.ts';
+import { readFileSync } from 'node:fs';
+import { importMessage } from './importDecision.ts';
 import type { ImportResponse } from './types.ts';
 
-test('only the absent-active recycled-key error promises a new dataset id', () => {
-  const copy = newDatasetConfirmation({ error: 'REIMPORT_CONFIRMATION_REQUIRED' });
-  assert.ok(copy);
-  for (const text of ['新建 id', '从头标注', '30 天', '双份空间']) assert.ok(copy.includes(text));
-});
-
-test('active records and concurrent active conflicts never open the fresh-id confirmation', () => {
-  for (const response of [{ error: 'REIMPORT_ACTIVE_EXISTS' }, { error: 'IMPORT_CONFLICT' },
-    { datasets: [], summary: { total: 1, imported: 0, existing: 1 } }, null, 'REIMPORT_CONFIRMATION_REQUIRED']) {
-    assert.equal(newDatasetConfirmation(response), null);
-  }
+test('permanent deletion removes the recycled-key new-id confirmation path', () => {
+  const source = readFileSync(new URL('./importDecision.ts', import.meta.url), 'utf8');
+  assert.doesNotMatch(source, /REIMPORT_CONFIRMATION_REQUIRED/);
+  assert.doesNotMatch(source, /newDatasetConfirmation/);
+  assert.doesNotMatch(source, /回收站/);
 });
 
 test('existing and newly imported messages agree with actual response counts', () => {

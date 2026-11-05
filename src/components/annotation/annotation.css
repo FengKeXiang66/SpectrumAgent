@@ -17,6 +17,12 @@
 .annotation-levels li { padding:9px 10px; border:1px solid var(--ann-line); border-radius:6px; color:var(--ann-muted); background:#f1f4f6; }
 .annotation-levels [aria-current] { background:#e5f0f7; color:var(--ann-brand); border-color:#9abbd1; font-weight:bold; }
 .annotation-note { border:1px solid #c6dce9; padding:10px 12px; border-radius:7px; background:#f0f7fb; color:#35566b; }
+.annotation-json-status { display:flex; align-items:baseline; flex-wrap:wrap; gap:4px 18px; margin:12px 0 10px; padding:11px 16px; border:1px solid; border-left-width:6px; border-radius:9px; }
+.annotation-json-status-label { font-size:21px; font-weight:700; letter-spacing:.02em; line-height:1.4; }
+.annotation-json-status-detail { font-size:11px; line-height:1.6; opacity:.9; }
+.annotation-json-status-present { background:#eaf7f0; border-color:#a9d9c0; border-left-color:#0f7a52; color:#0b6845; }
+.annotation-json-status-absent { background:#fff4e2; border-color:#e8c88d; border-left-color:#b06b00; color:#8a5200; }
+.annotation-json-status-pending,.annotation-json-status-unknown { background:#f1f4f6; border-color:#dce3e8; border-left-color:#7b8794; color:#5b6b78; }
 .annotation-status { display:flex; gap:8px; align-items:center; margin:10px 0; flex-wrap:wrap; }
 .annotation-status p { margin-right:auto; }
 .annotation-error { background:#fff0ee; border:1px solid #e7b6b0; border-radius:6px; padding:12px; font-size:12px; }
@@ -83,4 +89,4 @@
 .annotation-quality { border-top:1px solid var(--ann-line); margin-top:12px; font-size:11px; }
 .annotation-quality ul { max-height:180px; overflow:auto; }
 @media (max-width:1180px) { .annotation-columns { grid-template-columns:210px minmax(0,1fr); } .annotation-right { grid-column:1/-1; display:grid; grid-template-columns:1fr 1fr; gap:14px; } }
-@media (max-width:720px) { .annotation-columns { grid-template-columns:minmax(0,1fr); } .annotation-right { display:block; grid-column:auto; } .annotation-levels { flex-wrap:wrap; } .annotation-navigation { flex-wrap:wrap; } }
+@media (max-width:720px) { .annotation-columns { grid-template-columns:minmax(0,1fr); } .annotation-right { display:block; grid-column:auto; } .annotation-levels { flex-wrap:wrap; } .annotation-navigation { flex-wrap:wrap; } .annotation-json-status-label { font-size:17px; } }

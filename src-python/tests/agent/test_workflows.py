@@ -78,7 +78,7 @@ def test_missing_seed_never_creates_pp_or_background(workflow_case):
     assert context["revision"] == 0 and context["n_classes"] == 4 and context["labeled_pixels"] == 0
     assert "last_gesture_ref" not in context
     prepared = invoke(c, "annotations.prepare", cube_id=c.cube_id)
-    assert prepared["pca_components"] == 5 and prepared["n_segments"] == 800
+    assert prepared["pca_components"] == 5 and prepared["n_segments"] == 200
     assert invoke(c, "annotations.propose", cube_id=c.cube_id, class_code="PP")["status"] == "need_seed"
     assert invoke(c, "annotations.set_background", cube_id=c.cube_id, revision=0)["status"] == "need_seed"
     assert c.sessions.drafts.get(c.cube_id) is None

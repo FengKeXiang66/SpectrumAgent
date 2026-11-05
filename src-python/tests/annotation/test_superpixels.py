@@ -212,8 +212,9 @@ def test_real_baseline_default_parameters(tmp_path, components):
     identifier = registry.import_path(str(header)).datasets[0].id
     result = SuperpixelEngine(registry).generate(identifier, Parameters(pca_components=components))
     report = result.report
-    assert 689 <= report["n_before"] <= 842
-    assert report["area_cv"] >= .10 and report["R"] >= 1.5
+    # 2026-11-05 默认 n_segments 800→200（用户要求）；基线为同日实测：comp=3 → n_before 216 / R 1.4727；comp=5 → 212 / 1.6938。
+    assert 190 <= report["n_before"] <= 240
+    assert report["area_cv"] >= .10 and report["R"] >= 1.4
     assert len(report["subdivided_ids"]) >= 1
     assert report["feature_bytes"] == 231*640*components*4
     assert report["normalized_min"] == 0 and report["normalized_max"] == 1

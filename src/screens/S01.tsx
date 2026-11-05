@@ -3,28 +3,20 @@ import type { AssistantSession } from '../components/assistant/useSession';
 import { displayName as datasetDisplayName } from '../components/datasets/types';
 import '../components/assistant/assistant.css';
 
-export type SmokeMetrics = { nan_ratio: number; reflectance_range: [number, number]; bands: number; shape: [number, number, number]; elapsed_ms: number };
-export default function S01({ session, smoke }: { session: AssistantSession; smoke: {
-  text: string; setText(value: string): void; message: string; busy: boolean;
-  metrics: SmokeMetrics | null; send(): Promise<void>;
-} }) {
+export default function S01({ session }: { session: AssistantSession }) {
   const { enabled, state, startNew, runtime, workspace, selected, selectedChoice, displayName, choices, onWorkspaceChange, request } = session;
   return <section className="assistant-s01" aria-label="S01 全屏助手">
     <aside className="assistant-s01-left" aria-label="当前会话">
-      <p aria-current="true">当前会话</p>
-      <button disabled={!enabled || state.busy || !!state.pending} onClick={startNew}>开始新对话</button>
+      <h3 className="agent-side-title">会话</h3>
+      <div className="agent-session-item" aria-current="page">
+        <span className="agent-session-name">当前会话</span>
+        <small>{state.entries.length ? `${state.entries.length} 条消息` : '尚未开始'}</small>
+      </div>
+      <button className="agent-primary" disabled={!enabled || state.busy || !!state.pending} onClick={startNew}>开始新对话</button>
+      <p className="agent-side-hint">底部对话条在每一屏常驻；这里展开后是同一条会话的完整视图。</p>
     </aside>
     <div className="assistant-s01-mid">
       <AssistantBar session={session} />
-      <section aria-label="引擎冒烟测试">
-        <p role="status">{smoke.message}</p>
-        <form onSubmit={event => { event.preventDefault(); void smoke.send(); }}>
-          <label htmlFor="agent-input">冒烟测试</label>
-          <input id="agent-input" value={smoke.text} onChange={event => smoke.setText(event.target.value)} disabled={smoke.busy} placeholder="运行冒烟测试" />
-          <button type="submit" disabled={smoke.busy}>{smoke.busy ? '运行中' : '发送'}</button>
-        </form>
-        {smoke.metrics && <pre aria-label="冒烟测试真实结果">{JSON.stringify(smoke.metrics, null, 2)}</pre>}
-      </section>
     </div>
     <aside className="assistant-s01-right" aria-label="会话上下文">
       <p className="assistant-context" aria-label="当前对话对象">{workspace.cube_id

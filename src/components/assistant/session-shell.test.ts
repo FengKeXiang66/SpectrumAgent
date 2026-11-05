@@ -36,15 +36,19 @@ test('P1 A2 A3 composer hiding and global shortcuts leave S01 input independent'
   assert.match(bar, /<button type="submit" disabled=\{!enabled \|\| state.busy \|\| !content.trim\(\)\}>发送<\/button>/);
 });
 
-test('P1 A4 A5 smoke stays in S01 and the three columns use current session context', () => {
+test('P1 A4 A5 smoke lives in S11 diagnostics and the three columns use current session context', () => {
   const s01 = read('../../screens/S01.tsx'), css = read('./assistant.css'), hook = read('./useSession.ts');
+  const smoke = read('../settings/SmokePanel.tsx'), s11 = read('../../screens/S11.tsx');
   assert.match(s01, /<AssistantBar session=\{session\}/);
-  assert.match(s01, /<label htmlFor="agent-input">冒烟测试<\/label>/);
-  assert.match(s01, /placeholder="运行冒烟测试"/);
-  assert.match(s01, /void smoke.send\(\)/);
-  assert.match(s01, /aria-label="冒烟测试真实结果"/);
+  assert.doesNotMatch(s01, /冒烟|smoke/);
+  assert.match(s11, /<SmokePanel \/>/);
+  assert.match(smoke, /aria-label="引擎自检"/);
+  assert.match(smoke, /invoke<SmokeMetrics>\('run_smoke'\)/);
+  assert.match(smoke, /placeholder="运行冒烟测试"/);
+  assert.match(smoke, /aria-label="冒烟测试真实结果"/);
   assert.doesNotMatch(read('./Composer.tsx'), /运行冒烟测试|smoke/);
   assert.match(css, /grid-template-columns: 172px minmax\(0, 1fr\) 236px/);
+  assert.doesNotMatch(css, /引擎冒烟测试/);
   assert.match(s01, /onClick=\{startNew\}>开始新对话/);
   assert.match(hook, /sessionId.current = null; dispatch\(\{ type: 'reset' \}\); setContent\(''\)/);
   for (const name of ['assistant-context', 'assistant-runtime', 'assistant-datasets']) assert.match(s01, new RegExp('className="' + name + '"'));

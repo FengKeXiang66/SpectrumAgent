@@ -64,7 +64,12 @@ export type Quality = {
 export type VersionNote = { event: 'save' | 'overwrite'; at: string; text?: string };
 export type Version = { id: string; cube_id: string; version_no: number; snapshot_ref: string; n_pixels: number;
   labeled_pixels: number; auto_ratio: number; params: Parameters; note: VersionNote | null; created_at: string };
-export type Versions = { versions: Version[]; working: Working };
+// Disk truth for exports/<cube_id>/manifest.json; optional for older engines.
+export type JsonProjectionStatus = {
+  exists: boolean; path: string | null; filename: string | null;
+  generated_at: string | null; version_no: number | null; reason: string | null;
+};
+export type Versions = { versions: Version[]; working: Working; json_projection?: JsonProjectionStatus | null };
 export type ExportResult = { ok: boolean; path: string | null; error: string | null; warning: string | null };
 export type Saved = { id: string; cube_id: string; snapshot_ref: string; created_at: string; note: string | null; export: ExportResult;
   quality: Quality; elapsed_seconds: number; transaction_seconds: number };

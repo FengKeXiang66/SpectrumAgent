@@ -134,3 +134,37 @@ def write_projection(paths, cube_id, project_id, source_hdr, version_no, label_m
             for path in temporary.values():
                 storage.unlink(path, missing_ok=True)
     return str(folder / filename), meta
+
+
+def read_projection_status(paths, cube_id):
+    """Read-only disk truth for this cube's published JSON annotation file.
+
+    The manifest is the only pointer to the current filename; a stale or
+    hand-edited manifest must never turn into a path outside exports/<cube>.
+    Never raises: a broken projection is reported as absent, not as a 500
+    that would take the whole versions listing (and the workbench) down.
+    """
+    absent = {"exists": False, "path": None, "filename": None,
+              "generated_at": None, "version_no": None, "reason": None}
+    try:
+        cube = str(UUID(str(cube_id)))
+    except (ValueError, TypeError, AttributeError):
+        return {**absent, "reason": "invalid_cube_id"}
+    folder = paths.exports.resolve() / cube
+    manifest_path = folder / "manifest.json"
+    if not manifest_path.is_file():
+        return {**absent, "reason": "no_manifest"}
+    try:
+        manifest = json.loads(manifest_path.read_text("utf-8"))
+        if not isinstance(manifest, dict) or manifest.get("cube_id") != cube:
+            return {**absent, "reason": "invalid_manifest"}
+        # _filename rejects separators, drive letters and reserved stems.
+        filename = _filename(manifest["filename"])
+    except (OSError, ValueError, KeyError, TypeError):
+        return {**absent, "reason": "invalid_manifest"}
+    target = folder / filename
+    if not target.is_file():
+        return {**absent, "filename": filename, "reason": "missing_json"}
+    return {"exists": True, "path": str(target), "filename": filename,
+            "generated_at": manifest.get("generated_at"),
+            "version_no": manifest.get("version_no"), "reason": None}

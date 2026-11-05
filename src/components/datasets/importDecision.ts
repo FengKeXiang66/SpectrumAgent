@@ -1,11 +1,7 @@
 import type { ImportResponse } from './types.ts';
 
-export function newDatasetConfirmation(error: unknown): string | null {
-  if (typeof error !== 'object' || error === null || !('error' in error)
-      || error.error !== 'REIMPORT_CONFIRMATION_REQUIRED') return null;
-  return '作为全新数据集导入（新建 id、从头标注）。旧数据仍留回收站 30 天，期内占双份空间。';
-}
-
+// Permanent deletion leaves no recycle-bin key behind. An absent active record
+// is always a first import, so there is no new-id confirmation decision here.
 export function importMessage(result: ImportResponse): string {
   const { total, imported, existing } = result.summary;
   const existingMessage = total > 0 && imported === 0 ? '该路径已有数据集。' : '';

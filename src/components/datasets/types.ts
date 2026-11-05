@@ -31,10 +31,10 @@ export type CatalogPage = { datasets: CatalogRecord[]; total: number; limit: num
 export type DeletePreview = { cube_id: string; annotation_versions: number; preprocess_runs: number;
   training_runs: number; inference_runs: number; directories: { path: string; bytes: number }[];
   total_bytes: number; preview_token: string; expires_at: string };
-export type DeleteResult = Omit<DeletePreview, 'preview_token'> & { deletion_id: string };
-export type RecycleRecord = { deletion_id: string; cube_id: string; display_name: string; source_path: string;
-  created_at: string; expires_at: string; total_bytes: number; status: 'READY' | 'INCOMPLETE' };
-export type RecycleList = { items: RecycleRecord[]; count: number; total_bytes: number };
+export type DeleteResult = { deletion_id: string; deleted_at: string; permanent: true;
+  pending_directories: string[]; cube_id: string; annotation_versions: number; preprocess_runs: number;
+  training_runs: number; inference_runs: number; directories: { path: string; bytes: number }[];
+  total_bytes: number };
 export type DatasetTransport = {
   get: (id: string) => Promise<DatasetRecord>;
   chooseDirectories: () => Promise<string[] | null>;
@@ -42,8 +42,6 @@ export type DatasetTransport = {
   catalog: (limit?: number, offset?: number) => Promise<CatalogPage>;
   deletePreview: (id: string) => Promise<DeletePreview>;
   delete: (id: string, previewToken: string, confirm: boolean) => Promise<DeleteResult>;
-  recycleList: () => Promise<RecycleList>;
-  restore: (deletionId: string, confirm: boolean) => Promise<{ deletion_id: string; cube_id: string; restored: boolean }>;
   preview: (id: string, selection: number | PreviewOptions) => Promise<Preview>;
   spectraMean: (id: string, region: SpectrumRegion) => Promise<MeanSpectrum>;
 };

@@ -11,7 +11,7 @@ test('chat-selected registered cubes load through the existing fixed get operati
   assert.deepEqual(calls, [{ op: 'get', id: record.id }]);
 });
 
-test('catalog and recycle operations use fixed typed requests with explicit confirmation', async () => {
+test('catalog and permanent deletion use fixed typed requests with explicit confirmation', async () => {
   const calls: Request[] = [];
   const client = datasetClient(async () => null, async <T>(request: Request) => {
     calls.push(request); return {} as T;
@@ -20,13 +20,10 @@ test('catalog and recycle operations use fixed typed requests with explicit conf
   await client.catalog(20, 40);
   await client.deletePreview('cube-id');
   await client.delete('cube-id', 'preview-token', true);
-  await client.recycleList();
-  await client.restore('deletion-id', true);
   assert.deepEqual(calls, [
     { op: 'catalog', limit: 100, offset: 0 }, { op: 'catalog', limit: 20, offset: 40 },
     { op: 'delete_preview', id: 'cube-id' },
     { op: 'delete', id: 'cube-id', confirm: true, preview_token: 'preview-token' },
-    { op: 'recycle_list' }, { op: 'restore', deletion_id: 'deletion-id', confirm: true },
   ]);
 });
 

@@ -97,7 +97,7 @@ def create_app(paths, identity):
         if request.url.path in LABEL_PATHS:
             fields = [{"field": ".".join(map(str, e["loc"])), "message": e["msg"]} for e in error.errors()]
             return JSONResponse(DataError("INVALID_LABEL", "标签登记参数不合法", fields=fields).as_dict(), status_code=422)
-        if request.url.path.startswith("/api/v1/datasets") or request.url.path.startswith("/api/v1/preprocess") or request.url.path.startswith('/api/v1/recycle'):
+        if request.url.path.startswith("/api/v1/datasets") or request.url.path.startswith("/api/v1/preprocess"):
             if (request.url.path.endswith("/annotations/save")
                     and any(e["loc"] == ("body", "note") for e in error.errors())):
                 return JSONResponse(DataError("INVALID_VERSION_NOTE", "版本备注须为不超过 2000 字符的文本").as_dict(), status_code=400)
@@ -107,7 +107,7 @@ def create_app(paths, identity):
     @app.middleware("http")
     async def dataset_identity(request, call_next):
         response = await call_next(request)
-        if (request.url.path in LABEL_PATHS or request.url.path == "/api/v1/datasets" or request.url.path.startswith("/api/v1/datasets/") or request.url.path.startswith('/api/v1/recycle') or request.url.path.startswith("/api/v1/preprocess") or request.url.path.startswith("/api/v1/settings") or request.url.path.startswith("/api/v1/agent") or request.url.path.startswith("/api/v1/annotations/") or request.url.path.startswith("/api/v1/models")) and response.status_code != 401:
+        if (request.url.path in LABEL_PATHS or request.url.path == "/api/v1/datasets" or request.url.path.startswith("/api/v1/datasets/") or request.url.path.startswith("/api/v1/preprocess") or request.url.path.startswith("/api/v1/settings") or request.url.path.startswith("/api/v1/agent") or request.url.path.startswith("/api/v1/annotations/") or request.url.path.startswith("/api/v1/models")) and response.status_code != 401:
             response.headers["X-SpectrumAgent-Boot-Id"] = identity.boot_id
             response.headers["X-SpectrumAgent-Pid"] = str(identity.pid)
         return response

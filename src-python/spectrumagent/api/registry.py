@@ -176,16 +176,12 @@ class DatasetRegistry:
             self.recycle.coordinator.check(key=(key, int(raw)))
             active = db.execute('SELECT id,payload FROM dataset_registry WHERE header_key=? AND raw=?',
                                 (key, int(raw))).fetchone()
-            if active:
-                if confirm_new is True and planned is not None and planned[key] is None:
-                    raise self._import_conflict('REIMPORT_ACTIVE_EXISTS',
-                        '确认后该路径已出现活跃数据集，请重新查看已有数据集并决策')
-            elif confirm_new is not True and db.execute(
-                    'SELECT 1 FROM recycle_bin WHERE header_key=? AND raw=? '
-                    'AND restored_at IS NULL AND purged_at IS NULL', (key, int(raw))).fetchone():
-                raise self._import_conflict('REIMPORT_CONFIRMATION_REQUIRED',
-                    '该路径无活跃记录且在回收站中；请确认作为全新数据集导入（新建 id、从头标注），'
-                    '旧数据保留 30 天，期内占双份空间')
+            # Permanent deletion leaves no recycle-bin key behind, so an absent
+            # active row is always a first import. Only the confirmed-race case
+            # still needs a structured 409.
+            if active and confirm_new is True and planned is not None and planned[key] is None:
+                raise self._import_conflict('REIMPORT_ACTIVE_EXISTS',
+                    '确认后该路径已出现活跃数据集，请重新查看已有数据集并决策')
             decisions[key] = active
         return decisions
 

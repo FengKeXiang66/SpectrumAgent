@@ -73,7 +73,10 @@ def test_working_empty_versions_empty_and_single_registry_assembly(http_annotati
                                "project_id": h.case.project, "queue": [],
                                "blocks": {"label": [], "purity": [], "label_count": []}}
     listing = h.client.get(h.base+"/annotations").json()
-    assert listing == {"versions": [], "working": response.json()}
+    assert set(listing) == {"versions", "working", "json_projection"}
+    assert listing["versions"] == [] and listing["working"] == response.json()
+    assert listing["json_projection"] == {"exists": False, "path": None, "filename": None,
+                                          "generated_at": None, "version_no": None, "reason": "no_manifest"}
     assert h.app.state.diffusion_engine.superpixels is h.engine
     assert h.app.state.diffusion_engine.sessions is h.sessions
     assert h.engine.registry is h.sessions.registry

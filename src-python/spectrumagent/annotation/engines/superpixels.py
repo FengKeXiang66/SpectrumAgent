@@ -26,7 +26,7 @@ DEFAULT_COMPACTNESS = 0.5  # §5.2 single-cube initial default; calibration deci
 
 @dataclass(frozen=True)
 class Parameters:
-    n_segments: int = 800
+    n_segments: int = 200
     compactness: float = DEFAULT_COMPACTNESS
     pca_components: int = 5
     k: float = 3

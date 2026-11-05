@@ -21,6 +21,7 @@ from spectrumagent.annotation.labels import LabelRequest, LabelStore, plastic_ca
 from spectrumagent.annotation.engines.superpixels import DEFAULT_COMPACTNESS, Parameters, SuperpixelEngine, segments_png
 from spectrumagent.annotation.engines.diffusion import DEFAULT_THRESHOLD, DEFAULT_QUEUE_MIN_SIMILARITY, DiffusionEngine
 from spectrumagent.annotation.session import AnnotationConflict, SessionStore
+from spectrumagent.annotation.projection_io import read_projection_status
 from spectrumagent.annotation.raster import polygon_mask
 from spectrumagent.annotation.draft import Polygon
 from spectrumagent.annotation.gestures import region_from_gesture, select_candidates
@@ -370,7 +371,10 @@ def make_router(store: LabelStore, engine: SuperpixelEngine, sessions: SessionSt
         for record in records:
             record["params"] = json.loads(record["params"])
             record["note"] = json.loads(record["note"]) if record["note"] is not None else None
-        return {"versions": records, "working": working}
+        # Disk truth, not a UI-side guess: the workbench shows whether this
+        # cube already has a published JSON annotation file.
+        return {"versions": records, "working": working,
+                "json_projection": read_projection_status(sessions.paths, identifier)}
 
     @router.get("/datasets/{identifier}/annotations/{version}/overlay")
     def version_overlay(identifier: UUID, version: UUID):

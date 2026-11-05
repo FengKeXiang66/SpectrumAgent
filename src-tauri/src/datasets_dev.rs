@@ -73,11 +73,6 @@ pub enum DatasetRequest {
         confirm: bool,
         preview_token: String,
     },
-    RecycleList {},
-    Restore {
-        deletion_id: String,
-        confirm: bool,
-    },
     Preview {
         id: String,
         #[serde(default)]
@@ -164,16 +159,6 @@ impl DatasetRequest {
                 format!("/api/v1/datasets/{}/delete", dataset_id(id)?),
                 Method::POST,
                 Some(json!({"confirm":confirm,"preview_token":preview_token})),
-                None,
-            ),
-            Self::RecycleList {} => ("/api/v1/recycle".to_owned(), Method::GET, None, None),
-            Self::Restore {
-                deletion_id,
-                confirm,
-            } => (
-                format!("/api/v1/recycle/{}/restore", dataset_id(deletion_id)?),
-                Method::POST,
-                Some(json!({"confirm":confirm})),
                 None,
             ),
             Self::Preview { id, band, .. } => (
@@ -576,32 +561,18 @@ mod tests {
     }
 
     #[test]
-    fn recycle_list_contract() -> Result<(), Box<dyn std::error::Error>> {
-        let value = json!({"op":"recycle_list"});
-        let request: DatasetRequest = serde_json::from_value(value.clone())?;
-        let (url, method, body) = request.destination(4321)?;
-        assert_eq!(url.path(), "/api/v1/recycle");
-        assert_eq!(method, Method::GET);
-        assert!(body.is_none());
-        reject_extra(value);
-        Ok(())
-    }
-
-    #[test]
-    fn restore_contract() -> Result<(), Box<dyn std::error::Error>> {
-        let id = "00000000-0000-0000-0000-000000000001";
-        let value = json!({"op":"restore","deletion_id":id,"confirm":true});
-        let request: DatasetRequest = serde_json::from_value(value.clone())?;
-        let (url, method, body) = request.destination(4321)?;
-        assert_eq!(url.path(), format!("/api/v1/recycle/{id}/restore"));
-        assert_eq!(method, Method::POST);
-        assert_eq!(body, Some(json!({"confirm":true})));
-        reject_extra(value);
-        let invalid: DatasetRequest = serde_json::from_value(
-            json!({"op":"restore","deletion_id":"../health","confirm":true}),
-        )?;
-        assert!(invalid.destination(4321).is_err());
-        Ok(())
+    fn retired_recycle_ops_are_rejected() {
+        // Permanent deletion has no recycle bin: the two retired IPC operations
+        // must not silently deserialize into a different, still-live operation.
+        for value in [
+            json!({"op":"recycle_list"}),
+            json!({"op":"restore","deletion_id":"00000000-0000-0000-0000-000000000001","confirm":true}),
+        ] {
+            assert!(
+                serde_json::from_value::<DatasetRequest>(value.clone()).is_err(),
+                "retired operation accepted: {value}"
+            );
+        }
     }
 
     #[test]

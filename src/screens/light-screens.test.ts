@@ -62,9 +62,10 @@ test('P5 S10 has a data-screen action and S11 embeds the settings form without f
   assert.doesNotMatch(search, /后续批次启用|<input|useEffect|invoke/);
   assert.doesNotMatch(settings, /onOpenSettings|打开设置/);
   assert.match(settings, /出域记录在阶段二提供/);
-  assert.equal((settings.match(/<button/g) ?? []).length, 1);
-  assert.match(settings, /onClick=\{\(\) => setReload\(current => current \+ 1\)\}>刷新回收站占用/);
-  assert.match(settings, /datasets.recycleList\(\)/);
+  assert.equal((settings.match(/<button/g) ?? []).length, 0);
+  assert.match(settings, /删除口径/);
+  assert.match(settings, /永久删除/);
+  assert.doesNotMatch(settings, /回收站|recycleList|useEffect|invoke/);
   assert.match(settings, /<SettingsPanel/);
   assert.doesNotMatch(settings, /<table|role="dialog"/);
   assert.match(app, /<S11 onBack=\{/);

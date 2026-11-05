@@ -16,10 +16,12 @@ export default function Composer({ session, screen, inputRef, onExpand }: {
         if (event.key.toLowerCase() === 'k') event.preventDefault();
         if (event.key === 'Enter') { event.preventDefault(); void request({ content }); }
       }}>
+      <span className="agent-composer-icon" aria-hidden="true">◈</span>
       <span className="composer-context" title={`当前数据：${context} · 视图「${SCREEN_TITLE[screen]}」`}>当前数据：{context} · 视图「{SCREEN_TITLE[screen]}」</span>
       <label htmlFor="composer-message">对话</label>
       <input ref={inputRef} id="composer-message" value={content} onChange={event => setContent(event.target.value)}
         disabled={!enabled || state.busy} placeholder={state.pending ? '可输入批准、确认保存或拒绝' : '输入需要编排的任务'} />
+      <span className="agent-composer-kb">Ctrl+Enter 发送</span>
       <button type="button" onClick={onExpand}>展开助手页</button>
       <button type="submit" disabled={!enabled || state.busy || !content.trim()}>发送</button>
     </form>
