@@ -32,7 +32,7 @@ def validate(registry, cube_id, label_map, segments, label_ids, params, *, thres
     for (segment, label), moments in sorted(aggregates.parts.items()):
         comparisons.append({"superpixel_id": segment, "label_index": label,
                             "pixel_count": moments.count,
-                            "cos": cosine(moments.mean, aggregates.labels[label].mean)})
+                            "cos": cosine(moments.mean, aggregates.labels[label].mean), "mean": moments.mean})
     suspicious = [item for item in comparisons if item["cos"] < threshold]
     dataset, _ = registry.readable(cube_id, raw=False)
     shape = dataset.shape
@@ -40,11 +40,28 @@ def validate(registry, cube_id, label_map, segments, label_ids, params, *, thres
     counts, _, std = spectral_statistics(ReadableRows(registry, cube_id, shape), segments, params["block_size"])
     d_s = std.mean(axis=1)
     tau = float(params["k"] * np.median(d_s))
-    return {"threshold": float(threshold), "threshold_level": "实现层默认、可调",
+    return _json_safe({"threshold": float(threshold), "threshold_level": "实现层默认、可调",
             "reference": "当前工作态原谱反射率均值；(超像素∩label) vs label",
             "suspicious": suspicious, "comparisons": comparisons,
             "high_variance": {"d_s": d_s.tolist(), "tau": tau,
                               "superpixel_ids": np.flatnonzero((d_s > tau) & (counts >= 8)).tolist()},
             "completeness": map_statistics(label_map, label_ids),
             "not_applicable": {"标签与聚类中心冲突": "无模型阶段不适用",
-                               "类间重叠": "无模型阶段不适用"}}
+                               "类间重叠": "无模型阶段不适用"},
+            "references": [{"label_index": label, "mean": moments.mean}
+                           for label, moments in sorted(aggregates.labels.items())]})
+
+
+def _json_safe(value):
+    """Convert output values only; original reflectance calculations stay intact."""
+    if isinstance(value, np.ndarray):
+        return _json_safe(value.tolist())
+    if isinstance(value, np.generic):
+        return _json_safe(value.item())
+    if isinstance(value, dict):
+        return {key: _json_safe(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(item) for item in value]
+    if isinstance(value, float) and not np.isfinite(value):
+        return None
+    return value

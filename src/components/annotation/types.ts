@@ -54,10 +54,11 @@ export type DiffuseReport = {
   not_queued_reasons: { below_queue_min_similarity: number }; params: Required<DiffuseOptions>;
   feature_bytes: number; mean_spectra_bytes: number; peak_rss_bytes: number; elapsed_seconds: number;
 };
-export type Comparison = { superpixel_id: number; label_index: number; pixel_count: number; cos: number };
+export type Comparison = { superpixel_id: number; label_index: number; pixel_count: number; cos: number | null; mean: (number | null)[] };
 export type Quality = {
   threshold: number; threshold_level: string; reference: string; suspicious: Comparison[]; comparisons: Comparison[];
-  high_variance: { d_s: number[]; tau: number; superpixel_ids: number[] }; completeness: Statistics;
+  references: { label_index: number; mean: (number | null)[] }[];
+  high_variance: { d_s: (number | null)[]; tau: number | null; superpixel_ids: number[] }; completeness: Statistics;
   not_applicable: Record<string, string>;
 };
 export type VersionNote = { event: 'save' | 'overwrite'; at: string; text?: string };

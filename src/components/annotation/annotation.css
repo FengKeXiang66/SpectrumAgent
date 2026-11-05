@@ -1,4 +1,11 @@
 .annotation-workbench { --ann-brand:#24638b; --ann-line:#dce3e8; --ann-muted:#61717e; position:relative; isolation:isolate; margin:22px 0; color:#263743; font-size:13px; }
+.annotation-review-heading { display:flex; justify-content:space-between; align-items:center; gap:12px; margin:14px 0; }
+.annotation-review-heading h3 { margin:0; }
+.annotation-review-legend { display:flex; gap:14px; flex-wrap:wrap; margin:12px 0; }
+.annotation-review-chart { display:block; width:100%; height:auto; margin:14px 0; font-size:11px; }
+.annotation-review-table { max-height:340px; overflow:auto; margin-top:12px; }
+.annotation-review-table table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+.annotation-review-table th,.annotation-review-table td { padding:7px; text-align:left; border-bottom:1px solid var(--ann-line); }
 .annotation-workbench * { box-sizing:border-box; }
 .annotation-workbench h2 { margin:0 0 6px; font-size:22px; } .annotation-workbench h3 { margin:0 0 12px; font-size:14px; } .annotation-workbench h4 { margin:12px 0 6px; }
 .annotation-workbench small,.annotation-hint { color:var(--ann-muted); font-size:11px; line-height:1.65; }

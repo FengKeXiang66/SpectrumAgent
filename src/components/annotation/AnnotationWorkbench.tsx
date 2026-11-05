@@ -4,6 +4,8 @@ import type { DatasetRecord, DatasetReference, DatasetTransport, MeanSpectrum, P
 import { displayName } from '../datasets/types.ts';
 import { annotations } from './api.ts';
 import { describeAnnotationError, type AnnotationApi, type CatalogItem, type ExportResult, type Geometry, type LabelBody, type LabelSchema, type Png, type Quality, type Seed, type SegmentsMap, type SuperpixelReport, type Version, type Working } from './types.ts';
+import SpectrumReview from './SpectrumReview.tsx';
+import { eraseAndRefresh, formatReviewCos, formatReviewNumber } from './spectrumReview.ts';
 import { candidateKey, editThenRead, estimateRemaining, orderedLabels, readWorking, recoverSelection, selectedCandidate, statistics } from './working.ts';
 import { overwriteSummary } from './overwrite.ts';
 import { catalogCode, folderName, matchLabel } from './folder-label.ts';
@@ -59,7 +61,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
   const labelTouched = useRef(false), askedFolders = useRef(new Set<string>());
   const labelsCube = useRef<string | null>(null), folderCreation = useRef<string | null>(null);
   const [missingFolder, setMissingFolder] = useState<string | null>(null);
-  const [tool, setTool] = useState<Tool>('diffuse'), [tab, setTab] = useState<'superpixels' | 'diffuse' | 'prompt'>('superpixels');
+  const [tool, setTool] = useState<Tool>('diffuse'), [tab, setTab] = useState<'superpixels' | 'diffuse' | 'prompt' | 'review'>('superpixels');
   const [prompt, setPrompt] = useState<PromptMode>('point'), [draft, setDraft] = useState<Geometry | null>(null);
   // Display defaults with provenance: TASK-04 §5.2, calibrated compactness.
   const [parameters, setParameters] = useState({ n_segments: 800, compactness: .5, pca_components: 5 });
@@ -153,6 +155,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
     const isLive = () => !disposed && alive.current;
     alive.current = true;
     setSegments(null); setSegmentation(null);
+    setQuality(null);
     setExportResult(null); setExportStale(true);
     void (async () => {
       try {
@@ -244,13 +247,24 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
     }, '已同步助手执行后的标注状态。', true);
   }, [refreshVersion, busy, id]);
   const edit = async (action: 'confirm' | 'uncertain' | 'erase', target = geometry) => {
-    if (!ready || !target) { setError('先生成超像素并选中候选，或完成一个多边形。'); return; }
-    if (action === 'confirm' && !selectedId) { setError('请先选择一个已登记标签。'); return; }
+    if (!ready || !target) { setError('先生成超像素并选中候选，或完成一个多边形。'); return false; }
+    if (action === 'confirm' && !selectedId) { setError('请先选择一个已登记标签。'); return false; }
     setExportStale(true);
     setQuality(null);
-    if (await execute(() => api.regions(id, target, action, action === 'confirm' ? selectedId! : undefined),
-      action === 'confirm' ? '区域已确认；工作图与统计已读回。' : action === 'uncertain' ? '区域已记为不确定（-2）。' : '区域已擦除；候选队列由 sidecar 保留。')) { setDraft(null); setQuality(null); }
+    const succeeded = await execute(() => api.regions(id, target, action, action === 'confirm' ? selectedId! : undefined),
+      action === 'confirm' ? '区域已确认；工作图与统计已读回。' : action === 'uncertain' ? '区域已记为不确定（-2）。' : '区域已擦除；候选队列由 sidecar 保留。');
+    if (succeeded) { setDraft(null); setQuality(null); }
+    return succeeded;
   };
+  const refreshReview = async () => {
+    if (!ready) return false;
+    return execute(async () => {
+      const result = await api.validate(id);
+      if (alive.current) setQuality(result);
+    }, '质量校验与谱线复核已刷新。');
+  };
+  const reviewBlockErase = (blockId: number) => eraseAndRefresh(blockId,
+    block => edit('erase', { superpixels: [block] }), refreshReview);
   const generate = async () => {
     setQuality(null);
     if (await execute(async () => {
@@ -374,8 +388,10 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
       </aside>
       <div className="annotation-center">
         <section className="annotation-card">
-          <div className="annotation-tabs" role="tablist" aria-label="标注分段">{([['superpixels', '超像素'], ['diffuse', '扩散'], ['prompt', '提示分割']] as const).map(([value, title]) =>
-            <button role="tab" key={value} aria-selected={tab === value} onClick={() => { setTab(value); setDraft(null); if (value !== 'superpixels') { setTool('diffuse'); setPrompt(value === 'diffuse' ? 'point' : 'box'); } }}>{title}</button>)}</div>
+          <div className="annotation-tabs" role="tablist" aria-label="标注分段">{([['superpixels', '超像素'], ['diffuse', '扩散'], ['prompt', '提示分割'], ['review', '谱线复核']] as const).map(([value, title]) =>
+            <button role="tab" key={value} aria-selected={tab === value} disabled={value === 'review' && (busy || !ready)} onClick={() => { setTab(value); setDraft(null); if (value === 'review') { void refreshReview(); } else if (value !== 'superpixels') { setTool('diffuse'); setPrompt(value === 'diffuse' ? 'point' : 'box'); } }}>{title}</button>)}</div>
+          {tab === 'review' ? <SpectrumReview quality={quality} labels={labels} bands={record.dataset.shape[2]} wavelengths={record.dataset.wavelengths}
+            disabled={busy || !ready} onRefresh={() => { void refreshReview(); }} onBlockErase={blockId => { void reviewBlockErase(blockId); }} /> : <>
           <p className="annotation-hint">{tab === 'superpixels' ? '先生成超像素；参数变化后重新生成，已有像素标注保留。' : tab === 'diffuse' ? '单击种子区域，按当前阈值扩散；候选由人工确认标签。' : '选择单击、半开框选或涂鸦提示，生成一个候选。多边形也可直接选区编辑。'}</p>
           <div className="annotation-parameters">
             <label>SLIC n<input type="number" min={1} step={1} disabled={busy} value={parameters.n_segments} onChange={event => setParameters({ ...parameters, n_segments: Number(event.target.value) })} /></label>
@@ -420,6 +436,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
             <button disabled={busy} onClick={() => { void undo(); }}>撤销一步</button>
           </div>
           <nav className="annotation-navigation" aria-label="切换数据集"><button disabled={busy || position <= 0} onClick={() => navigate(-1)}>← 上一张</button><span>{position + 1} / {records.length} · {displayName(record)}</span><button disabled={busy || position >= records.length - 1} onClick={() => navigate(1)}>下一张 →</button></nav>
+          </>}
         </section>
         <section className="annotation-card" aria-label="保存与版本">
           <h3>保存与版本</h3><label>版本备注（可选，≤2000 字符）<textarea value={note} onChange={event => setNote(event.target.value)} /></label>
@@ -436,10 +453,10 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
             <button disabled={busy} onClick={() => { void execute(async () => { const png = await api.versionOverlay(id, version.id); if (alive.current) { setHistory(png); setHistoryId(version.id); } }, '历史叠加图已读取；当前工作态不变。'); }}>查看叠加图</button></li>)}</ul>
             {history && <div className="annotation-history"><p>历史版本 UUID：{historyId} · 只读叠加图</p><img alt="历史版本标注叠加图" src={`data:image/png;base64,${history.png_base64}`} /><button onClick={() => setHistory(null)}>关闭历史图</button></div>}
           </details>
-          <button disabled={busy || !ready} onClick={() => { void execute(async () => { const result = await api.validate(id); if (alive.current) setQuality(result); }, '质量校验已完成。'); }}>校验当前工作态</button>
+          <button disabled={busy || !ready} onClick={() => { void refreshReview(); }}>校验当前工作态</button>
           {quality && <div className="annotation-quality"><h4>质量校验 · 当前原谱均值</h4><p>余弦阈值 {quality.threshold}（{quality.threshold_level}）· 可疑 {quality.suspicious.length} 项 · 高方差 {quality.high_variance.superpixel_ids.length} 项</p>
-            <p className="annotation-hint">{quality.reference}</p><ul>{quality.suspicious.map(item => <li key={`${item.superpixel_id}:${item.label_index}`}>#{item.superpixel_id} · {labels[item.label_index]?.code} · {item.pixel_count} px · cos {item.cos.toFixed(6)}</li>)}</ul>
-            <p>高方差超像素：{quality.high_variance.superpixel_ids.join('、') || '无'}；τ={quality.high_variance.tau}</p>
+            <p className="annotation-hint">{quality.reference}</p><ul>{quality.suspicious.map(item => <li key={`${item.superpixel_id}:${item.label_index}`}>#{item.superpixel_id} · {labels[item.label_index]?.code} · {item.pixel_count} px · cos {formatReviewCos(item.cos)}</li>)}</ul>
+            <p>高方差超像素：{quality.high_variance.superpixel_ids.join('、') || '无'}；τ={formatReviewNumber(quality.high_variance.tau)}</p>
             {Object.entries(quality.not_applicable).map(([name, reason]) => <p key={name}>{name}：{reason}</p>)}
           </div>}
         </section>
