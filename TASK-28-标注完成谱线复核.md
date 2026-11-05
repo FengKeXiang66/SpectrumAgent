@@ -3,6 +3,7 @@
 > **状态**：备卡入库，待发提示词。**本卡是执行阶段唯一权威口径**；`需求总结-标注完成谱线复核.md` v2.2（`3059c45`）是需求输入材料，执行方以本卡为准，不得回去按需求总结自行解释或重开已定案项。
 > **修订 v1.1（2026-11-05，独立复核后）**：把「大 n_segments 的 Python 侧封顶」明确写为**本卡不做、延后另立卡、执行方不得自行发挥**（见 §3.4 / §6 门 13 / §7 条款 10 / §8）；补记本卡顺带修复现状潜在 HTTP 500 缺陷；修正两处引用行号。**D1–D8、v2.2 四项口径、FR-E23、基线数字一律不重开。**
 > **修订 v1.2（2026-11-05，开工闸门首触即停后）**：修正 §0.1 Python 基线命令——原固定名 `sa-gate-28-annotation` / `sa-gate-28-data` 加 `New-Item -Force` 会复用备卡方实跑遗留的**非空**目录，与「全新临时根」口径冲突。改为 **GUID 唯一根 + 去掉 `-Force` + 存在性断言**；明确已有同名目录属已知状态、不复用不删除、不构成即停项；明确**耗时是记录值不是断言值**、`.config/git/ignore` 权限 warning 属环境噪声。D1–D8、四项口径、FR-E23、17 道门、基线计数一律不变。
+> **修订 v1.3（2026-11-05，Python 基线失败即停后）**：**v1.2 的 C 盘 GUID 唯一根口径作废**。根因经对照实验坐实为 **Windows MAX_PATH 260 路径长度限制**，非代码回归：C 盘 `%TEMP%`（41 字符）+ 32 位 GUID 后缀（+33）把 `.../app/annotations/<uuid>/v1.<GUID>.tmp` 推到 262 字符，`os.mkdir` 报 `FileNotFoundError: [WinError 3]`。改为 **E 盘 `.runtime/` 下短根（8 位随机后缀，根长约 34 字符）**，保留「全新 + 独立进程 + 无 -Force + 存在性断言」。42 项失败判为环境假失败，不计入收工门、不得据此改测试或放宽断言。D1–D8、四项口径、FR-E23、接口契约、17 道门、基线计数（249 / 391+2 / 106）一律不变。
 > **事实源**：需求 v2.7 `artifacts/step3/requirements-v2.7.txt`；ui-v2.3 `.runtime/docs/光谱数据AI-Agent处理平台_第一阶段UI设计与高保真原型.txt`。归档 v2.6 / ui-v2.2 禁止引用。
 > **行号时效**：本卡全部行号为 2026-11-05 **工作区在途状态**（34 M + 7 untracked）实测值。提交或回滚都会漂移，**开工第一步逐条 grep 复核 §0.2，漂移即停上报**。
 
@@ -17,17 +18,21 @@
 1. **工作区快照闸门**（本卡特设，替代「干净」闸门）：开工前 `git status --short` 全文贴回报。当前实测 **34 M + 7 untracked = 41 项**，其中 `src/components/annotation/types.ts`、`AnnotationWorkbench.tsx`、`annotation.css` 有未提交改动（JSON 投影状态徽章），`src/components/annotation/annotationStatus.ts` 为未跟踪新增。本卡**在这些在途改动之上追加**，禁止 `reset` / `checkout` / 覆盖 / 回滚任何在途改动；出现 §4 清单外文件改动即停。清单内「in-flight 禁触碰」文件出现**回滚或内容丢失**即停。
 2. **基线闸门（2026-11-05 实测，带出处）**：
    - 前端（逐字双层 glob）：`node --test "src/**/*.test.ts"` = **249 tests / 249 pass / 0 fail**（1809.68 ms）。**防呆**：单层 glob `node --test "src/*/.test.ts"` 实测 **0 tests**（0 用例假绿），用错即验收无效，禁用。
-   - Python 两分区，各自**独立 python 进程 + 全新唯一临时根**（PowerShell 5.1 逐字，v1.2 已经备卡方实跑验证）：
+   - Python 两分区，各自**独立 python 进程 + 全新 E 盘短根**（PowerShell 5.1 逐字；v1.3 经长短根对照实验与 `test_confirm_routes.py` 单文件 11 passed 验证，**全分区计数由执行方在其独立回合实跑**）：
      ```
-     $tmp = Join-Path $env:TEMP ("sa-gate-28-annotation-" + [guid]::NewGuid().ToString("N")); if (Test-Path -LiteralPath $tmp) { throw "临时根已存在: $tmp" }; New-Item -ItemType Directory -Path $tmp | Out-Null; $env:PYTEST_DEBUG_TEMPROOT = $tmp; & .venv\Scripts\python.exe -m pytest src-python/tests/annotation -q
-     $tmp = Join-Path $env:TEMP ("sa-gate-28-data-" + [guid]::NewGuid().ToString("N")); if (Test-Path -LiteralPath $tmp) { throw "临时根已存在: $tmp" }; New-Item -ItemType Directory -Path $tmp | Out-Null; $env:PYTEST_DEBUG_TEMPROOT = $tmp; & .venv\Scripts\python.exe -m pytest src-python/tests/data -q
+     $tmp = Join-Path 'E:\AI_Agent\.runtime' ("t28a-" + [guid]::NewGuid().ToString("N").Substring(0,8)); if (Test-Path -LiteralPath $tmp) { throw "临时根已存在: $tmp" }; New-Item -ItemType Directory -Path $tmp | Out-Null; $env:PYTEST_DEBUG_TEMPROOT = $tmp; & .venv\Scripts\python.exe -m pytest src-python/tests/annotation -q
+     $tmp = Join-Path 'E:\AI_Agent\.runtime' ("t28d-" + [guid]::NewGuid().ToString("N").Substring(0,8)); if (Test-Path -LiteralPath $tmp) { throw "临时根已存在: $tmp" }; New-Item -ItemType Directory -Path $tmp | Out-Null; $env:PYTEST_DEBUG_TEMPROOT = $tmp; & .venv\Scripts\python.exe -m pytest src-python/tests/data -q
      ```
-     **两条命令逐字使用，每次执行生成新 GUID 根；不得加 `-Force`（会复用已有目录）、不得把两个分区写进同一条 pytest 命令**（safe-delete 钩子 unlink 预算耗尽会杀 anyio portal）。备卡方实跑基线：**annotation 391 passed + 2 skipped**（313.82 s）、**data 106 passed**（10.29 s），合计 **497 passed / 2 skipped**；改用唯一根复跑 `data` 分区同样 **106 passed**（EXIT=0，20.37 s）。
-     **临时根口径（v1.2 定案）**：
-     - 「全新」= 该次运行前目录不存在、创建时为空（由 `Test-Path` 断言 + 去掉 `-Force` 保证）。备卡方实跑遗留的 `sa-gate-28-annotation` / `sa-gate-28-data` 两个目录**确实存在且非空**，属已知状态，**不构成即停项**：执行方**不复用、不删除、不清空、不改名**，也不得用它们作 `PYTEST_DEBUG_TEMPROOT`；按上述唯一名命令新建根即可继续。若 `throw` 命中（GUID 碰撞），换一次 GUID 重跑即可，不算失败。
-     - **禁用 `PYTEST_DEBUG_TEMPROOT=` 空值**：临时根必须真实存在（先 New-Item 再赋值），占位符照抄会破坏隔离。
-     - **耗时是记录值，不是断言值**：卡内 1809.68 ms / 313.82 s / 10.29 s 均为备卡方当日实测记录，机器负载会造成波动（已出现 1657 ms、800.669 ms、20.37 s 等不同读数）。**唯一断言是 pass / fail / skip 计数**（249 / 0、391 / 2、106），耗时不参与「与卡不符」判定，不得因耗时差异即停。
-     - `warning: unable to access 'C:\Users\Administrator/.config/git/ignore': Permission denied` 属已知环境噪声，与代码错误分开陈述，不计入失败。
+     **两条命令逐字使用；不得加 `-Force`、不得把两个分区写进同一条 pytest 命令**（safe-delete 钩子 unlink 预算耗尽会杀 anyio portal）。备卡方实跑基线：**annotation 391 passed + 2 skipped**、**data 106 passed**，合计 **497 passed / 2 skipped**。
+     **临时根口径（v1.3 定案；v1.2 的 C 盘 GUID 唯一根作废）**：
+     - **根路径长度硬约束**：Windows MAX_PATH = 260，annotation 测试会创建 `.../pytest-of-Administrator/pytest-0/<test>-runtime/app/annotations/<uuid>/v1.<GUID>.tmp` 深层目录。实测旧 C 盘固定根下该路径 **229 字符**（安全）；v1.2 的 C 盘 GUID 根下 **262 字符**（加 `label_map.npz` 达 276），`os.mkdir` 抛 `FileNotFoundError: [WinError 3]`。对照实验：长根（96 字符）跑 `test_confirm_routes.py::test_overlap_locations_and_four_arbitrations[erase]` = **1 failed / WinError 3**；**E 盘短根（34 字符）跑同一测试 = 1 passed / EXIT=0**。因此临时根必须落在 `E:\AI_Agent\.runtime\` 下、**根路径总长 ≤ 40 字符**；超 40 即停上报。
+     - 「全新」= 运行前目录不存在、创建时为空（`Test-Path` 断言 + 无 `-Force` + 8 位随机后缀）。两分区前缀分别 `t28a-` / `t28d-`，各自独立进程。若 `throw` 命中（随机碰撞），换一次重跑即可，不算失败。
+     - **v1.2 造成的 42 项失败判为环境假失败**：`annotation` 分区 349 passed / 42 failed / 2 skipped（EXIT=1）全部源于路径超长，失败项集中在 save / snapshot / projection 类深层目录创建；`data` 分区 106 passed 不受影响。**不计入收工门、不得据此改源码、改测试或放宽断言**；基线计数仍为 391+2 / 106。
+     - 备卡方实跑遗留的 C 盘 `sa-gate-28-annotation` / `sa-gate-28-data` 两目录（非空）及 v1.2 生成的 C 盘 GUID 目录均属已知状态，**不构成即停项**：不复用、不删除、不清空、不改名，也不得用作 `PYTEST_DEBUG_TEMPROOT`。`.runtime/` 已被 gitignore，新建根不污染工作区。
+     - **禁用 `PYTEST_DEBUG_TEMPROOT=` 空值**；临时根必须真实存在（先 New-Item 再赋值）。
+     - **耗时是记录值，不是断言值**：卡内 1809.68 ms / 313.82 s / 10.29 s 均为备卡方当日实测记录，机器负载会造成波动（已出现 1657 ms、800.669 ms、250.32 s、9.06 s、20.37 s 等读数）。**唯一断言是 pass / fail / skip 计数**（249 / 0、391 / 2、106），耗时不参与「与卡不符」判定。
+     - `warning: unable to access 'C:\Users\Administrator/.config/git/ignore': Permission denied` 与 `StarletteDeprecationWarning` 属已知环境噪声，与代码错误分开陈述，不计入失败。
+     - **safe-delete 预算（备卡方本回合实测）**：`PYTHONPATH` 注入的 safe-delete 钩子有 **50 次 unlink / 回合**预算，同一对话回合内累计多次 pytest 会触发 `[safe-delete][SAFE_DELETE_BULK_CONFIRM_REQUIRED] {"count":50,"threshold":50,"scope":"turn"}`，使后续 fixture setup 变成大量 `E`（典型目标是 `pytest-of-Administrator/pytest-0/.lock`）。这是**验证环境的回合预算耗尽，不是代码回归、不是基线失败**：出现时应换一个干净的回合 / 进程重跑，不得据此改源码、改测试或放宽断言。执行方在其独立回合按本卡命令实跑不受备卡方回合计数影响。
    - **收工门**：既有用例不得变红变少，新增另计（`249+Nf` / `497+Np` / `2 skipped` 不变）；任何既有用例变红即停，禁止为凑数删改现有测试。环境噪声（`StarletteDeprecationWarning`、文件锁 warning）与代码错误分开陈述。
 3. **行号锚点闸门**：开工第一步 `grep -n` 复核 §0.2 全部锚点，漂移即停上报，禁止按偏移推算。
 
@@ -243,4 +248,14 @@
 
 ---
 
-> 备卡 v1.2，未发提示词、未落码；开工闸门首触即停已裁定，待执行方按 §0.1 新命令继续。
+**v1.3 修订记录（2026-11-05，Python 基线失败即停后）**：执行方按 §7 条款 2 停工，报告 `annotation` **349 passed / 42 failed / 2 skipped**（EXIT=1）、`data` **106 passed**（EXIT=0），首个失败 `test_confirm_routes.py::test_overlap_locations_and_four_arbitrations[erase]` 的 `session.py:365 → guard.py:338 → os.mkdir` 抛 `FileNotFoundError: [WinError 3]`。备卡方独立复核：
+- **根因 = Windows MAX_PATH 260**，非代码回归。失败路径 `.../app/annotations/<uuid>/v1.<GUID>.tmp` 在旧 C 盘固定根下 229 字符（安全），v1.2 的 C 盘 GUID 根下 **262 字符**（加 `label_map.npz` 达 276）。对照实验：长 C 盘 GUID 根（96 字符）跑该测试 = **1 failed / WinError 3**；E 盘短根（34 字符）跑同一测试 = **1 passed / EXIT=0**；E 盘短根跑 `test_confirm_routes.py` 全文件 = **11 passed / EXIT=0**。
+- **裁定**：v1.2 的 C 盘 GUID 唯一根口径作废；42 项失败判为**环境路径长度导致的假失败**，不计入收工门，不得据此改源码 / 改测试 / 放宽断言；基线计数仍为 249 / 391+2 / 106。
+- **修订**：§0.1 两分区命令改为 `E:\AI_Agent\.runtime\` 下短根（`t28a-` / `t28d-` + 8 位随机，根路径 ≤ 40 字符），保留全新 / 独立进程 / 无 `-Force` / `Test-Path` 断言；新增 MAX_PATH 硬约束与 safe-delete 回合预算说明。
+- **如实记录**：备卡方在同一对话回合内累计多次 pytest，触发 `[safe-delete][SAFE_DELETE_BULK_CONFIRM_REQUIRED] {"count":50,"threshold":50,"scope":"turn"}`，其自身发起的全分区复跑出现大量 `E`（setup error），**属备卡方验证环境的回合预算耗尽**，不作为 v1.3 的失败证据，也不宣称「全分区已复跑验证」。全分区计数由执行方在其独立回合按 v1.3 命令实跑确认。
+
+**D1–D8、v2.2 四项实现口径、FR-E23 / P1、§3 接口契约、§4 文件清单、§5 实现步骤、§6 17 道门、§7 即停条款、§8 流程与提交、基线计数全部未改动。**
+
+---
+
+> 备卡 v1.3，未发提示词、未落码；两次开工闸门停工均已裁定，待执行方按 §0.1 v1.3 命令继续。
