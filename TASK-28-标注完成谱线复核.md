@@ -2,6 +2,7 @@
 
 > **状态**：备卡入库，待发提示词。**本卡是执行阶段唯一权威口径**；`需求总结-标注完成谱线复核.md` v2.2（`3059c45`）是需求输入材料，执行方以本卡为准，不得回去按需求总结自行解释或重开已定案项。
 > **修订 v1.1（2026-11-05，独立复核后）**：把「大 n_segments 的 Python 侧封顶」明确写为**本卡不做、延后另立卡、执行方不得自行发挥**（见 §3.4 / §6 门 13 / §7 条款 10 / §8）；补记本卡顺带修复现状潜在 HTTP 500 缺陷；修正两处引用行号。**D1–D8、v2.2 四项口径、FR-E23、基线数字一律不重开。**
+> **修订 v1.2（2026-11-05，开工闸门首触即停后）**：修正 §0.1 Python 基线命令——原固定名 `sa-gate-28-annotation` / `sa-gate-28-data` 加 `New-Item -Force` 会复用备卡方实跑遗留的**非空**目录，与「全新临时根」口径冲突。改为 **GUID 唯一根 + 去掉 `-Force` + 存在性断言**；明确已有同名目录属已知状态、不复用不删除、不构成即停项；明确**耗时是记录值不是断言值**、`.config/git/ignore` 权限 warning 属环境噪声。D1–D8、四项口径、FR-E23、17 道门、基线计数一律不变。
 > **事实源**：需求 v2.7 `artifacts/step3/requirements-v2.7.txt`；ui-v2.3 `.runtime/docs/光谱数据AI-Agent处理平台_第一阶段UI设计与高保真原型.txt`。归档 v2.6 / ui-v2.2 禁止引用。
 > **行号时效**：本卡全部行号为 2026-11-05 **工作区在途状态**（34 M + 7 untracked）实测值。提交或回滚都会漂移，**开工第一步逐条 grep 复核 §0.2，漂移即停上报**。
 
@@ -16,12 +17,17 @@
 1. **工作区快照闸门**（本卡特设，替代「干净」闸门）：开工前 `git status --short` 全文贴回报。当前实测 **34 M + 7 untracked = 41 项**，其中 `src/components/annotation/types.ts`、`AnnotationWorkbench.tsx`、`annotation.css` 有未提交改动（JSON 投影状态徽章），`src/components/annotation/annotationStatus.ts` 为未跟踪新增。本卡**在这些在途改动之上追加**，禁止 `reset` / `checkout` / 覆盖 / 回滚任何在途改动；出现 §4 清单外文件改动即停。清单内「in-flight 禁触碰」文件出现**回滚或内容丢失**即停。
 2. **基线闸门（2026-11-05 实测，带出处）**：
    - 前端（逐字双层 glob）：`node --test "src/**/*.test.ts"` = **249 tests / 249 pass / 0 fail**（1809.68 ms）。**防呆**：单层 glob `node --test "src/*/.test.ts"` 实测 **0 tests**（0 用例假绿），用错即验收无效，禁用。
-   - Python 两分区，各自**独立进程 + 全新临时根**（PowerShell 逐字）：
+   - Python 两分区，各自**独立 python 进程 + 全新唯一临时根**（PowerShell 5.1 逐字，v1.2 已经备卡方实跑验证）：
      ```
-     $tmp = Join-Path $env:TEMP "sa-gate-28-annotation"; New-Item -ItemType Directory -Path $tmp -Force | Out-Null; $env:PYTEST_DEBUG_TEMPROOT = $tmp; .venv\Scripts\python.exe -m pytest src-python/tests/annotation -q
-     $tmp = Join-Path $env:TEMP "sa-gate-28-data"; New-Item -ItemType Directory -Path $tmp -Force | Out-Null; $env:PYTEST_DEBUG_TEMPROOT = $tmp; .venv\Scripts\python.exe -m pytest src-python/tests/data -q
+     $tmp = Join-Path $env:TEMP ("sa-gate-28-annotation-" + [guid]::NewGuid().ToString("N")); if (Test-Path -LiteralPath $tmp) { throw "临时根已存在: $tmp" }; New-Item -ItemType Directory -Path $tmp | Out-Null; $env:PYTEST_DEBUG_TEMPROOT = $tmp; & .venv\Scripts\python.exe -m pytest src-python/tests/annotation -q
+     $tmp = Join-Path $env:TEMP ("sa-gate-28-data-" + [guid]::NewGuid().ToString("N")); if (Test-Path -LiteralPath $tmp) { throw "临时根已存在: $tmp" }; New-Item -ItemType Directory -Path $tmp | Out-Null; $env:PYTEST_DEBUG_TEMPROOT = $tmp; & .venv\Scripts\python.exe -m pytest src-python/tests/data -q
      ```
-     实测 **annotation 391 passed + 2 skipped**（313.82 s）、**data 106 passed**（10.29 s），合计 **497 passed / 2 skipped**。**禁用 `PYTEST_DEBUG_TEMPROOT=` 空值**：临时根必须真实存在（先 New-Item 再赋值），占位符照抄会破坏隔离；两个分区不得合并进同一进程（safe-delete 钩子 unlink 预算耗尽会杀 anyio portal）。
+     **两条命令逐字使用，每次执行生成新 GUID 根；不得加 `-Force`（会复用已有目录）、不得把两个分区写进同一条 pytest 命令**（safe-delete 钩子 unlink 预算耗尽会杀 anyio portal）。备卡方实跑基线：**annotation 391 passed + 2 skipped**（313.82 s）、**data 106 passed**（10.29 s），合计 **497 passed / 2 skipped**；改用唯一根复跑 `data` 分区同样 **106 passed**（EXIT=0，20.37 s）。
+     **临时根口径（v1.2 定案）**：
+     - 「全新」= 该次运行前目录不存在、创建时为空（由 `Test-Path` 断言 + 去掉 `-Force` 保证）。备卡方实跑遗留的 `sa-gate-28-annotation` / `sa-gate-28-data` 两个目录**确实存在且非空**，属已知状态，**不构成即停项**：执行方**不复用、不删除、不清空、不改名**，也不得用它们作 `PYTEST_DEBUG_TEMPROOT`；按上述唯一名命令新建根即可继续。若 `throw` 命中（GUID 碰撞），换一次 GUID 重跑即可，不算失败。
+     - **禁用 `PYTEST_DEBUG_TEMPROOT=` 空值**：临时根必须真实存在（先 New-Item 再赋值），占位符照抄会破坏隔离。
+     - **耗时是记录值，不是断言值**：卡内 1809.68 ms / 313.82 s / 10.29 s 均为备卡方当日实测记录，机器负载会造成波动（已出现 1657 ms、800.669 ms、20.37 s 等不同读数）。**唯一断言是 pass / fail / skip 计数**（249 / 0、391 / 2、106），耗时不参与「与卡不符」判定，不得因耗时差异即停。
+     - `warning: unable to access 'C:\Users\Administrator/.config/git/ignore': Permission denied` 属已知环境噪声，与代码错误分开陈述，不计入失败。
    - **收工门**：既有用例不得变红变少，新增另计（`249+Nf` / `497+Np` / `2 skipped` 不变）；任何既有用例变红即停，禁止为凑数删改现有测试。环境噪声（`StarletteDeprecationWarning`、文件锁 warning）与代码错误分开陈述。
 3. **行号锚点闸门**：开工第一步 `grep -n` 复核 §0.2 全部锚点，漂移即停上报，禁止按偏移推算。
 
@@ -233,6 +239,8 @@
 
 **v1.1 修订记录（2026-11-05，独立复核后）**：① §3.4 新增「大 n_segments 的 Python 侧封顶」定案——本卡不做、延后另立卡、执行方禁止自行加封顶 / 截断 / 分页；② §6 门 13 与 §7 条款 10 同步收紧；③ §8 明确「发提示词时不另加口头口径」，把复核方原建议的「口头带一句」改为卡内固化；④ §6 门 8 补「新增用例、补丁前必红」以免 500 被误归为基线噪声；⑤ §9 补记上述缺陷；⑥ 修正两处引用：`json_safe` `:40-55` → `:40-56`、`SpectrumReadout:45-47` → `DisplayToolbar.tsx:44-48`。**D1–D8、v2.2 四项口径、FR-E23 / P1、三处收口、基线数字均未改动。**
 
+**v1.2 修订记录（2026-11-05，执行方开工闸门首触即停后）**：执行方按首触即停纪律报告——卡 §0.1 要求「全新临时根」，但备卡方实跑基线遗留的 `sa-gate-28-annotation` / `sa-gate-28-data` 两目录已存在且非空，`New-Item -Force` 会复用，卡未规定处置口径。核实属实（两目录分别含 5687 / 673 个条目）。修订：① §0.1 Python 两分区命令改为 **GUID 唯一根 + 去掉 `-Force` + `Test-Path` 存在性断言 + `&` 调用**，备卡方已用新命令实跑 `data` 分区验证（106 passed / EXIT=0）；② 明确旧目录属已知状态、**不复用不删除不改名、不构成即停项**，GUID 碰撞换一次即可；③ 明确**耗时仅记录、pass/fail/skip 才是唯一断言**，避免 800.669 ms / 20.37 s 一类波动触发误停；④ 明确 `.config/git/ignore` 权限 warning 属环境噪声。**D1–D8、v2.2 四项口径、FR-E23 / P1、§3 接口契约、§4 文件清单、§6 17 道门、§7 即停条款、基线计数（249 / 391+2 / 106）全部未改动。**
+
 ---
 
-> 备卡 v1.1，未发提示词、未落码。
+> 备卡 v1.2，未发提示词、未落码；开工闸门首触即停已裁定，待执行方按 §0.1 新命令继续。
