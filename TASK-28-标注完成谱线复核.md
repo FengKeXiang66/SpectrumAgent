@@ -3,6 +3,7 @@
 > **状态**：功能提交 `b41bf10` 已落（仅 §4 清单内 8 文件），门 1–16 通过，门 17 按 v1.5 判据裁定后可关闭；未 push / tag / 打包。**本卡是执行阶段唯一权威口径**；`需求总结-标注完成谱线复核.md` v2.2（`3059c45`）是需求输入材料，执行方以本卡为准，不得回去按需求总结自行解释或重开已定案项。
 > **修订 v1.1（2026-11-05，独立复核后）**：把「大 n_segments 的 Python 侧封顶」明确写为**本卡不做、延后另立卡、执行方不得自行发挥**（见 §3.4 / §6 门 13 / §7 条款 10 / §8）；补记本卡顺带修复现状潜在 HTTP 500 缺陷（**此补记已由 v1.4 修正作废**：源谱 NaN 被 `row_blocks` 阻断，不存在该缺陷）；修正两处引用行号。**D1–D8、v2.2 四项口径、FR-E23、基线数字一律不重开。**
 > **修订 v1.2（2026-11-05，开工闸门首触即停后）**：修正 §0.1 Python 基线命令——原固定名 `sa-gate-28-annotation` / `sa-gate-28-data` 加 `New-Item -Force` 会复用备卡方实跑遗留的**非空**目录，与「全新临时根」口径冲突。改为 **GUID 唯一根 + 去掉 `-Force` + 存在性断言**；明确已有同名目录属已知状态、不复用不删除、不构成即停项；明确**耗时是记录值不是断言值**、`.config/git/ignore` 权限 warning 属环境噪声。D1–D8、四项口径、FR-E23、17 道门、基线计数一律不变。
+> **修订 v1.6（2026-11-05，门 17 判据④复核后）**：执行方实测 14 项中有 2 项 `git ls-files --eol` 为 `i/lf w/mixed`（`selfcheck-attempt1-output.txt` / `selfcheck-output.txt`），与 v1.5 判据④的字面 `w/crlf` 不符，未宣告门 17 关闭。备卡方字节级复核：`w/mixed` 仅是「多数行 CRLF、末行 LF」的标记（89/90 行、151/152 行），**14/14 全部**满足「工作区字节 `.replace(b"\r\n", b"\n")` == `git show HEAD:<path>` 且无孤立 CR」，`--ignore-cr-at-eol --quiet` 亦全部退出 0。裁定：`w/mixed` 与 `w/crlf` **纳入同一噪声例外**；判据④改为字节级本质判据，不再依赖 eol 字面值。其余四项判据、D1–D8、四项实现口径、FR-E23 / P1、接口契约、门 1–16、基线计数一律不重开。
 > **修订 v1.5（2026-11-05，门 17 即停后）**：功能提交 `b41bf10` 仅含 §4 清单内 8 文件，门 1–16 通过；门 17 因收工时 `artifacts/step2/` 出现 14 个 `M` 即停。备卡方只读核实：14 项**全部**满足「未进功能提交 / `git diff --cached` 为空 / `git diff --ignore-cr-at-eol --quiet` 退出 0 / `git ls-files --eol` 为 `i/lf w/crlf attr/-text` / mtime 均为 2026-10-18」，即**索引(LF)与工作区(CRLF)的固有行尾不一致在索引 stat 缓存替换后暴露**，HEAD 未变、工作区字节未变、staged = 0。裁定为**已知行尾/索引可见噪声，不计入「清单外文件改动」**，门 17 据此关闭；这 14 项**不恢复、不改写、不提交、不进本卡任何提交**，保持现状交需求方后续决定。D1–D8、四项实现口径、FR-E23 / P1、接口契约、门 1–16、基线计数一律不重开。
 > **修订 v1.4（2026-11-05，实现前 NaN 契约冲突停工后）**：明确 §6 门 8 的 NaN 输入构造口径与上游拒绝规则衔接。源谱非有限输入由 `row_blocks`（`superpixels.py:59-66`）在 yield 前抛 `NON_FINITE_SPECTRA`，经 `app.py:82-85` 映射为 **HTTP 400**，属既有设计、本卡不改不放宽；门 8 拆为 **8A**（上游拒绝规则保持，期望 400）与 **8B**（返回边界转换契约，注入非有限值验证转 `null` 且 HTTP 200）。**同时修正 v1.1 补记的错误断言**：「含 NaN 波段 → cos 为 NaN → 500」被 `row_blocks` 阻断，不成立；统一转换改定性为**防御性契约**而非「修复现状活 bug」。`cos` 为 NaN 的 UI 分支标注为当前不可达。D1–D8、v2.2 四项实现口径、FR-E23 / P1、§3 接口契约主结构、§4 清单、基线计数一律不重开。
 > **修订 v1.3（2026-11-05，Python 基线失败即停后）**：**v1.2 的 C 盘 GUID 唯一根口径作废**。根因经对照实验坐实为 **Windows MAX_PATH 260 路径长度限制**，非代码回归：C 盘 `%TEMP%`（41 字符）+ 32 位 GUID 后缀（+33）把 `.../app/annotations/<uuid>/v1.<GUID>.tmp` 推到 262 字符，`os.mkdir` 报 `FileNotFoundError: [WinError 3]`。改为 **E 盘 `.runtime/` 下短根（8 位随机后缀，根长约 34 字符）**，保留「全新 + 独立进程 + 无 -Force + 存在性断言」。42 项失败判为环境假失败，不计入收工门、不得据此改测试或放宽断言。D1–D8、四项口径、FR-E23、接口契约、17 道门、基线计数（249 / 391+2 / 106）一律不变。
@@ -208,7 +209,7 @@
 | 14 | 零版本副作用 | **单独一次 validate 请求**前后比对（不含 erase 动作） | `annotation_version` / `sample_spectrum` / 快照目录 / `annotation_draft` 无新增或变更；erase 写 draft 属 §6 门 11 的既有语义，不在本门范围 |
 | 15 | 有界读取 | 仿 `test_session.py:153` 的 monkeypatch | `read_region` 单次行块 ≤ `block_size`，无整立方体物化 |
 | 16 | 无自动剔除 | 全量 diff 审阅 | 不存在按 cos 阈值自动 erase / 自动改标签的逻辑；D1–D8 与 §2.2 四项无偏移 |
-| 17 | **清单隔离（v1.5 判定基准）** | `git show --name-only <功能提交>` + `git diff --cached --name-only` + `git diff --ignore-cr-at-eol --quiet -- <path>` + `git ls-files --eol -- <path>` + mtime | 功能提交 `b41bf10` 仅含 §4 清单内 **8** 文件；Rust / openapi / preprocess / 7 个 untracked 零改动；在途改动无回滚；**暂存区为空**。对 `git status` 显示的清单外 `M`，须同时满足五项判据才判为噪声：①未进功能提交 ②`git diff --cached` 对该路径为空 ③忽略行尾后无实质差异（`--quiet` 退出 0）④`git ls-files --eol` 显示索引与工作区仅 eol 不同（`i/lf w/crlf`）⑤mtime 早于本次开工。全部满足 → **已知行尾/索引可见噪声，不计入「清单外文件改动」，门 17 可关闭**；收据须列全路径、五项实测结果，并声明未做任何恢复操作。已实测 `artifacts/step2/` 14 项全部满足，判为噪声。**不得**对它们执行 `checkout` / `restore` / `add` / `reset --hard` / `--renormalize` |
+| 17 | **清单隔离（v1.6 判定基准）** | `git show --name-only <功能提交>` + `git diff --cached --name-only` + `git diff --ignore-cr-at-eol --quiet -- <path>` + `git ls-files --eol -- <path>` + mtime | 功能提交 `b41bf10` 仅含 §4 清单内 **8** 文件；Rust / openapi / preprocess / 7 个 untracked 零改动；在途改动无回滚；**暂存区为空**。对 `git status` 显示的清单外 `M`，须同时满足五项判据才判为噪声：①未进功能提交 ②`git diff --cached` 对该路径为空 ③忽略行尾后无实质差异（`--quiet` 退出 0）④**字节级**：`工作区字节.replace(b"\r\n", b"\n") == git show HEAD:<path>` 为真，且无孤立 CR（`CR 计数 == CRLF 计数`）；`git ls-files --eol` 为 `i/lf`，工作区允许 `w/crlf` 或 **`w/mixed`**（两者同属行尾 CR 噪声，v1.6）⑤mtime 早于本次开工。全部满足 → **已知行尾/索引可见噪声，不计入「清单外文件改动」，门 17 可关闭**；收据须列全路径、五项实测结果，并声明未做任何恢复操作。已实测 `artifacts/step2/` 14 项（12 `w/crlf` + 2 `w/mixed`）**字节级 14/14 全部满足**，判为噪声。**不得**对它们执行 `checkout` / `restore` / `add` / `reset --hard` / `--renormalize` |
 
 ---
 
@@ -283,6 +284,15 @@
 
 **D1–D8、v2.2 四项实现口径、FR-E23 / P1、§3 接口契约、§4 文件清单、§5 五步、§6 门 1–16、§8 流程、基线计数全部未改动。** 本卡的文档修订提交与功能提交 `b41bf10` 分离，门 17 的「功能提交清单」以 `b41bf10` 为准，不以最新 HEAD 为准。
 
+**v1.6 修订记录（2026-11-05，门 17 判据④复核后）**：执行方按 v1.5 五项判据逐项实测后发现 2 项 `w/mixed` 与判据④字面 `i/lf w/crlf` 不符，暂未宣告门 17 关闭；其余 12 项五项全满足、14 项均满足 ①②③⑤。备卡方独立复核：
+- eol 分布：**12 项 `w/crlf`、2 项 `w/mixed`**（`artifacts/step2/selfcheck-attempt1-output.txt` / `selfcheck-output.txt`）。
+- 两项 `git diff --ignore-cr-at-eol --quiet` 均退出 0；numstat 分别 89/89、151/151。
+- 字节级：`wt.replace(b"\r\n", b"\n") == git show HEAD:<path>` 对两项均为 **True**；CR 计数 89 / 151、CRLF 计数 89 / 151，**孤立 CR = 0**；工作区比 blob 分别多 89 / 151 字节（恰为每行一个 CR）。
+- 全量复核：**14/14** 通过同一字节级判据。`w/mixed` 只是文件内 89/90 行、151/152 行为 CRLF 而末行为 LF 导致的标记，与 `w/crlf` 同属「仅行尾 CR」噪声。
+- **裁定**：v1.5 判据④把 `w/crlf` 写成字面值属表述过窄；改为字节级本质判据（工作区去 CR 后 == HEAD blob + 无孤立 CR），并显式允许 `w/crlf` / `w/mixed`。两项**纳入同一噪声例外，门 17 可关闭**；不恢复、不改写、不提交的口径不变。
+
+**D1–D8、v2.2 四项实现口径、FR-E23 / P1、§3 接口契约、§4 文件清单、§5 五步、§6 门 1–16、§8 流程、基线计数全部未改动。** 门 17 的「功能提交清单」仍以 `b41bf10` 为准。
+
 ---
 
-> 卡 v1.5：功能提交 `b41bf10` 已落，门 1–16 通过，门 17 按 v1.5 判据可关闭；四次停工（临时根复用 / MAX_PATH / NaN 契约 / 门 17 行尾噪声）均已裁定。未 push / tag / 打包，远程推送归需求方本人。
+> 卡 v1.6：功能提交 `b41bf10` 已落，门 1–16 通过，门 17 按 v1.6 字节级判据可关闭（14/14 满足）；五次停工（临时根复用 / MAX_PATH / NaN 契约 / 门 17 行尾噪声 / `w/mixed` 判据④）均已裁定。未 push / tag / 打包，远程推送归需求方本人。
