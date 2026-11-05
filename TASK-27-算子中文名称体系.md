@@ -197,7 +197,7 @@ export const operatorName = (op: string) => OPERATOR_NAMES[op] ?? op;
      - 13 对 `(operator_{i}_id, operator_{i}_name)` 循环与卡 §3 逐字一致；**13 对 `operator_{i}_summary` 循环与卡 §3 summary 列逐字一致（必测）**；13 个 `operator_{i}_version == 1` 循环断言；
      - invoke 结果 dict 直接断言 `not _egress_blocked(result)`。
    - `run_provenance`（**tmp_path 文件库，禁用 `:memory:`**：`backend/database.py:15-21` 的 `connect_database` 每次调用都 `sqlite3.connect` 新连接，`:memory:` 每次=新空库，且 `open_database` 的守卫 `resolve_write` 也不接受内存地址形态）：
-     - `database = tmp_path / "gate.db"`，`sqlite3.connect(database)` 建表 `CREATE TABLE preprocess_recipe_version (id TEXT PRIMARY KEY, pipeline TEXT, version_no INTEGER)`，插一行 `("rv-1", json.dumps({"steps": [{"op": "snv", "version": 1, "params": {}}, {"op": "sg_derivative", "version": 1, "params": {}}]}), 1)`；
+     - `database = tmp_path / "gate.db"`，测试文件顶部 `import contextlib, sqlite3`，用 `with contextlib.closing(sqlite3.connect(database)) as db:` 建表 `CREATE TABLE preprocess_recipe_version (id TEXT PRIMARY KEY, pipeline TEXT, version_no INTEGER)` 并插一行 `("rv-1", json.dumps({"steps": [{"op": "snv", "version": 1, "params": {}}, {"op": "sg_derivative", "version": 1, "params": {}}]}), 1)`；**连接必须关闭**：`sqlite3.Connection` 的 `with` 只提交事务不关连接，不关则 Windows 下 pytest 清理 tmp_path 报 `PermissionError: [WinError 32]`（复核方实测踩到）；关闭方式二选一，卡内取 `contextlib.closing`，`db.close()` 显式调用亦可；
      - `run_provenance(SimpleNamespace(database=str(database)), {"recipe_version_id": "rv-1", "metrics": {}})`；
      - 断言 `step_1_op == "snv"` 且 `step_1_name == "SNV 标准正态变量"` 且 `step_2_op == "sg_derivative"` 且 `step_2_name == "SG 导数"`（既有键与新键并列共存，键名带下划线 `step_{i}_name`）。
    - `Workflows.recipes`（SimpleNamespace 伪造，code 必须非 `BUILTIN_CODE` 以避开内置配方特殊分支）：
@@ -259,7 +259,7 @@ export const operatorName = (op: string) => OPERATOR_NAMES[op] ?? op;
 - 实现分两段提交，均逐文件 `git add`：
   1. 后端：registry.py、workflows.py、两个新测试文件；提交信息 `feat(preprocess): 算子严格中文名常量与 AI 链路并列输出（TASK-27 §4.A/§4.B/§4.D）`；
   2. 前端：pipeline.ts、PipelineEditor.tsx、PreprocessPanel.tsx、pipeline.test.ts；提交信息 `feat(ui): S06 算子链中文名显示与映射常量（TASK-27 §4.C）`。
-- 证据归档 `milestone27/evidence/`：`node.txt`（前端全量输出原文）、`pytest-partition.txt`（分区输出原文）、`build.txt`、`grep.txt`（§0.2 锚点复核 + §6.9 键存在证明）。
+- 证据归档 `milestone27/evidence/`：`node.txt`（前端全量输出原文）、`pytest-partition.txt`（分区输出原文）、`build.txt`、`grep.txt`（§0.2 锚点复核 + §6.10 键存在证明）。
 - 不 tag、不 push、不打包；远程推送归用户本人。
 
 ## 8. 即停条款
@@ -276,5 +276,6 @@ export const operatorName = (op: string) => OPERATOR_NAMES[op] ?? op;
 |---|---|
 | 2026-11-05 | 备卡定稿：13 算子字串表锁定；常量最小接触面方案；基线实测（前端 249/249、Python 分区 768 passed）；卡单文件提交入库（caf2116） |
 | 2026-11-05（复核修订） | 用户实读复核五处硬伤修复：①注册行 `workflows.operators` → 模块级 `operators`（`Workflows` 类体无该属性，grep 0 命中，原样必 `AttributeError` 崩 v2 分区）；②handler 4 键 f-string 笔误修正（原稿 `"operator_{i}_summary"` 为普通字面量，13 循环键坍缩 53→29，且旧断言不测 summary 可全绿——测试补键数 53 与 13 对 summary 反证门）；③ready `runner is not None` → `True`（纯常量工具不依赖服务）；④run_provenance 测试改 tmp_path 文件库（database.py:15-21 每次新连接，`:memory:` 不可行）；⑤撤销 panel.test.ts 同步授权（wiring 断言实读不匹配显示文案，不会变红）。两项口径拍板：本卡定位「数据层就位」，AI 回复文案闭环（skill v3 提示词 / AssistantBar / PlanCard 渲染）另立卡；命名权威 = 卡 §3（FR-B 标题为域级术语，算子级取域名+方法消歧；「SG 导数」因 order∈{1,2} 不取 ui 的「SG 一阶导」）。验收命令统一 PowerShell 完整形态与双层 glob 防呆 |
+| 2026-11-05（复核二轮） | 用户二轮独立复跑（不采信汇报表格、直读 HEAD 4339a99 卡与实物）：卡内 6 项方案全部实测成立（handler 53 键、无服务构造 snapshot 23、tmp_path 文件库、伪造 recipes 避让 BUILTIN_CODE、双层 glob 249/249），卡可单独作为执行依据。据其复核修卡两处：①§7 交叉引用 `§6.9` → `§6.10`（验收表扩至 10 项后编号后移未跟上）；②§4.D run_provenance 测试写法补连接关闭（`contextlib.closing`，`sqlite3.Connection` 的 `with` 只提交事务不关连接，Windows 清理 tmp_path 报 `WinError 32`——复核方实测踩到）。交付形态拍板：**弃用长文转述层**，codex 提示词只保留指向卡的短导引——两轮复核各 4 处转述失真（含渲染/复制管线可能吞掉 `**`、斜体记号、HTML 标签的机制与手打转述两类来源，无论成因），结论一致：转述层是有噪信道，删除即根治；卡 §0–§9 已自足 |
 
 > AI生成
