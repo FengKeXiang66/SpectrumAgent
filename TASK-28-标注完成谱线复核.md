@@ -1,8 +1,9 @@
 # TASK-28 标注完成谱线复核卡
 
-> **状态**：备卡入库，待发提示词。**本卡是执行阶段唯一权威口径**；`需求总结-标注完成谱线复核.md` v2.2（`3059c45`）是需求输入材料，执行方以本卡为准，不得回去按需求总结自行解释或重开已定案项。
+> **状态**：功能提交 `b41bf10` 已落（仅 §4 清单内 8 文件），门 1–16 通过，门 17 按 v1.5 判据裁定后可关闭；未 push / tag / 打包。**本卡是执行阶段唯一权威口径**；`需求总结-标注完成谱线复核.md` v2.2（`3059c45`）是需求输入材料，执行方以本卡为准，不得回去按需求总结自行解释或重开已定案项。
 > **修订 v1.1（2026-11-05，独立复核后）**：把「大 n_segments 的 Python 侧封顶」明确写为**本卡不做、延后另立卡、执行方不得自行发挥**（见 §3.4 / §6 门 13 / §7 条款 10 / §8）；补记本卡顺带修复现状潜在 HTTP 500 缺陷（**此补记已由 v1.4 修正作废**：源谱 NaN 被 `row_blocks` 阻断，不存在该缺陷）；修正两处引用行号。**D1–D8、v2.2 四项口径、FR-E23、基线数字一律不重开。**
 > **修订 v1.2（2026-11-05，开工闸门首触即停后）**：修正 §0.1 Python 基线命令——原固定名 `sa-gate-28-annotation` / `sa-gate-28-data` 加 `New-Item -Force` 会复用备卡方实跑遗留的**非空**目录，与「全新临时根」口径冲突。改为 **GUID 唯一根 + 去掉 `-Force` + 存在性断言**；明确已有同名目录属已知状态、不复用不删除、不构成即停项；明确**耗时是记录值不是断言值**、`.config/git/ignore` 权限 warning 属环境噪声。D1–D8、四项口径、FR-E23、17 道门、基线计数一律不变。
+> **修订 v1.5（2026-11-05，门 17 即停后）**：功能提交 `b41bf10` 仅含 §4 清单内 8 文件，门 1–16 通过；门 17 因收工时 `artifacts/step2/` 出现 14 个 `M` 即停。备卡方只读核实：14 项**全部**满足「未进功能提交 / `git diff --cached` 为空 / `git diff --ignore-cr-at-eol --quiet` 退出 0 / `git ls-files --eol` 为 `i/lf w/crlf attr/-text` / mtime 均为 2026-10-18」，即**索引(LF)与工作区(CRLF)的固有行尾不一致在索引 stat 缓存替换后暴露**，HEAD 未变、工作区字节未变、staged = 0。裁定为**已知行尾/索引可见噪声，不计入「清单外文件改动」**，门 17 据此关闭；这 14 项**不恢复、不改写、不提交、不进本卡任何提交**，保持现状交需求方后续决定。D1–D8、四项实现口径、FR-E23 / P1、接口契约、门 1–16、基线计数一律不重开。
 > **修订 v1.4（2026-11-05，实现前 NaN 契约冲突停工后）**：明确 §6 门 8 的 NaN 输入构造口径与上游拒绝规则衔接。源谱非有限输入由 `row_blocks`（`superpixels.py:59-66`）在 yield 前抛 `NON_FINITE_SPECTRA`，经 `app.py:82-85` 映射为 **HTTP 400**，属既有设计、本卡不改不放宽；门 8 拆为 **8A**（上游拒绝规则保持，期望 400）与 **8B**（返回边界转换契约，注入非有限值验证转 `null` 且 HTTP 200）。**同时修正 v1.1 补记的错误断言**：「含 NaN 波段 → cos 为 NaN → 500」被 `row_blocks` 阻断，不成立；统一转换改定性为**防御性契约**而非「修复现状活 bug」。`cos` 为 NaN 的 UI 分支标注为当前不可达。D1–D8、v2.2 四项实现口径、FR-E23 / P1、§3 接口契约主结构、§4 清单、基线计数一律不重开。
 > **修订 v1.3（2026-11-05，Python 基线失败即停后）**：**v1.2 的 C 盘 GUID 唯一根口径作废**。根因经对照实验坐实为 **Windows MAX_PATH 260 路径长度限制**，非代码回归：C 盘 `%TEMP%`（41 字符）+ 32 位 GUID 后缀（+33）把 `.../app/annotations/<uuid>/v1.<GUID>.tmp` 推到 262 字符，`os.mkdir` 报 `FileNotFoundError: [WinError 3]`。改为 **E 盘 `.runtime/` 下短根（8 位随机后缀，根长约 34 字符）**，保留「全新 + 独立进程 + 无 -Force + 存在性断言」。42 项失败判为环境假失败，不计入收工门、不得据此改测试或放宽断言。D1–D8、四项口径、FR-E23、接口契约、17 道门、基线计数（249 / 391+2 / 106）一律不变。
 > **事实源**：需求 v2.7 `artifacts/step3/requirements-v2.7.txt`；ui-v2.3 `.runtime/docs/光谱数据AI-Agent处理平台_第一阶段UI设计与高保真原型.txt`。归档 v2.6 / ui-v2.2 禁止引用。
@@ -16,7 +17,7 @@
 
 ## 0.1 三道闸门
 
-1. **工作区快照闸门**（本卡特设，替代「干净」闸门）：开工前 `git status --short` 全文贴回报。当前实测 **34 M + 7 untracked = 41 项**，其中 `src/components/annotation/types.ts`、`AnnotationWorkbench.tsx`、`annotation.css` 有未提交改动（JSON 投影状态徽章），`src/components/annotation/annotationStatus.ts` 为未跟踪新增。本卡**在这些在途改动之上追加**，禁止 `reset` / `checkout` / 覆盖 / 回滚任何在途改动；出现 §4 清单外文件改动即停。清单内「in-flight 禁触碰」文件出现**回滚或内容丢失**即停。
+1. **工作区快照闸门**（本卡特设，替代「干净」闸门）：开工前 `git status --short` 全文贴回报。当前实测 **34 M + 7 untracked = 41 项**，其中 `src/components/annotation/types.ts`、`AnnotationWorkbench.tsx`、`annotation.css` 有未提交改动（JSON 投影状态徽章），`src/components/annotation/annotationStatus.ts` 为未跟踪新增。本卡**在这些在途改动之上追加**，禁止 `reset` / `checkout` / 覆盖 / 回滚任何在途改动；出现 §4 清单外文件改动即停。清单内「in-flight 禁触碰」文件出现**回滚或内容丢失**即停。**v1.5 收工实测为 48 M + 7 untracked**：34 项原有在途改动内容未变，新增 14 项 `artifacts/step2/` 为行尾/索引可见噪声（判定见 §6 门 17），7 个 untracked 未变。
 2. **基线闸门（2026-11-05 实测，带出处）**：
    - 前端（逐字双层 glob）：`node --test "src/**/*.test.ts"` = **249 tests / 249 pass / 0 fail**（1809.68 ms）。**防呆**：单层 glob `node --test "src/*/.test.ts"` 实测 **0 tests**（0 用例假绿），用错即验收无效，禁用。
    - Python 两分区，各自**独立 python 进程 + 全新 E 盘短根**（PowerShell 5.1 逐字；v1.3 经长短根对照实验与 `test_confirm_routes.py` 单文件 11 passed 验证，**全分区计数由执行方在其独立回合实跑**）：
@@ -207,7 +208,7 @@
 | 14 | 零版本副作用 | **单独一次 validate 请求**前后比对（不含 erase 动作） | `annotation_version` / `sample_spectrum` / 快照目录 / `annotation_draft` 无新增或变更；erase 写 draft 属 §6 门 11 的既有语义，不在本门范围 |
 | 15 | 有界读取 | 仿 `test_session.py:153` 的 monkeypatch | `read_region` 单次行块 ≤ `block_size`，无整立方体物化 |
 | 16 | 无自动剔除 | 全量 diff 审阅 | 不存在按 cos 阈值自动 erase / 自动改标签的逻辑；D1–D8 与 §2.2 四项无偏移 |
-| 17 | 清单隔离 | `git status --short` + `git diff --name-only` | 仅 §4 清单内文件；Rust / openapi / preprocess / 7 个 untracked 零改动；在途改动无回滚 |
+| 17 | **清单隔离（v1.5 判定基准）** | `git show --name-only <功能提交>` + `git diff --cached --name-only` + `git diff --ignore-cr-at-eol --quiet -- <path>` + `git ls-files --eol -- <path>` + mtime | 功能提交 `b41bf10` 仅含 §4 清单内 **8** 文件；Rust / openapi / preprocess / 7 个 untracked 零改动；在途改动无回滚；**暂存区为空**。对 `git status` 显示的清单外 `M`，须同时满足五项判据才判为噪声：①未进功能提交 ②`git diff --cached` 对该路径为空 ③忽略行尾后无实质差异（`--quiet` 退出 0）④`git ls-files --eol` 显示索引与工作区仅 eol 不同（`i/lf w/crlf`）⑤mtime 早于本次开工。全部满足 → **已知行尾/索引可见噪声，不计入「清单外文件改动」，门 17 可关闭**；收据须列全路径、五项实测结果，并声明未做任何恢复操作。已实测 `artifacts/step2/` 14 项全部满足，判为噪声。**不得**对它们执行 `checkout` / `restore` / `add` / `reset --hard` / `--renormalize` |
 
 ---
 
@@ -215,7 +216,7 @@
 
 1. §0.2 任一锚点漂移（grep 值与本卡不符）→ 停，上报，禁止按偏移推算。
 2. 基线三项任一失败或既有用例变红 / 变少 → 停。
-3. 出现 §4 清单外文件改动，或清单内 in-flight 文件发生回滚 / 在途内容丢失 → 停。
+3. 出现 §4 清单外文件改动，或清单内 in-flight 文件发生回滚 / 在途内容丢失 → 停。**但按 §6 门 17 五项判据核实为行尾/索引可见噪声的 `M` 不算「清单外文件改动」**（v1.5）；此时不得即停掩盖，也不得自行恢复。
 4. `openapi.json` 出现 diff、`src-tauri/src/**` 出现改动 → 停。
 5. validate 或 save 任一条通道出现 HTTP 500 / 非有限值未转 null → 停，不得靠前端兜底掩盖。
 6. `quality.py:36` 出现任何改动、`comparisons` 顺序发生变化、`test_quality.py:53` 被重定位 → 停。
@@ -268,6 +269,20 @@
 - **裁定**：源谱含 NaN 的用例期望 400，不得要求 200；返回边界转换是防御性契约，用「注入非有限值」的契约测试验证，**不改读取路径**。门 8 拆 8A / 8B、门 9 同步调整、§7 加条款 12、§0.2 加锚点 33 / 34（前 32 条已核验通过，只需补核这两条）；§2.2 ②、§3.2、§3.3、§5 第 3 步、§9 相关表述修正；**v1.1 的「现状 500 缺陷」断言作废**。
 - **D1–D8、v2.2 四项实现口径、FR-E23 / P1、§3 接口契约主结构（comparisons 加 `mean`、新增 `references`）、§4 文件清单、§5 五步、§6 其余 16 道门、§8 流程、基线计数（249 / 391+2 / 106）全部未改动。**
 
+**v1.5 修订记录（2026-11-05，门 17 即停后）**：功能提交 `b41bf10` = 8 个 §4 清单内文件（789 insertions / 15 deletions），门 1–16 通过（前端 **264 pass / 0 fail**、TypeScript 通过；Python annotation **400 passed + 2 skipped**、data **106 passed**；响应体积 `n_segments=200` 时 validate **1,626,440 B** / save **1,627,008 B**，`=400` 时 **2,929,463 B** / **2,930,031 B**，均低于 8,388,608 B）。门 17 因收工时新增 14 个 `artifacts/step2/` `M` 即停。
+
+备卡方只读核实（**未对索引 / 工作区做任何写操作**）：
+- `git show --name-only b41bf10` = 8 个清单内文件，与 `git diff HEAD^ HEAD --name-only` 一致；**这 14 项未进提交**。
+- `git diff --cached --name-only` = **0**，暂存区为空，无 staged 行尾变更，不会误提交。
+- 14 项逐一 `git diff --ignore-cr-at-eol --quiet -- <path>` **全部退出 0** → 仅 CRLF/LF 差异、无实质内容改动；样本 `build-output.log` numstat 170/170。
+- `git ls-files --eol` = `i/lf    w/crlf  attr/-text` → 索引 blob 为 LF、工作区为 CRLF、无 text 属性自动转换，属固有行尾不一致。
+- 14 项 mtime **全部 2026-10-18**（执行方报 10-17，实测为 10-18；均远早于 11-05 开工），工作区字节未被本次改写。
+- 最可能成因：整体导入临时索引使索引 stat 缓存被替换，Git 重新比较工作区与索引后暴露了这些历史文件固有的行尾差异；**非文件内容被改、非索引 blob 被改、非 HEAD 变化**（未逐条回溯开工前索引状态，标「最可能原因」）。
+
+**裁定**：按 §6 门 17 五项判据，14 项判为**已知行尾/索引可见噪声，不计入「清单外文件改动」**，门 17 可关闭。这 14 项**不恢复、不改写、不提交**：执行方不得执行 `checkout` / `restore` / `add` / `reset --hard` / `--renormalize`；消除这些 `M` 需改索引或改工作区行尾，超出本卡授权，且它们是 10 月历史产物，保持现状交需求方后续决定（例如统一 `.gitattributes` 或另行规范化，另立项）。收据须列全 14 路径 + 五项判据实测结果 + 「未做任何恢复操作」声明。
+
+**D1–D8、v2.2 四项实现口径、FR-E23 / P1、§3 接口契约、§4 文件清单、§5 五步、§6 门 1–16、§8 流程、基线计数全部未改动。** 本卡的文档修订提交与功能提交 `b41bf10` 分离，门 17 的「功能提交清单」以 `b41bf10` 为准，不以最新 HEAD 为准。
+
 ---
 
-> 备卡 v1.4，未发提示词、未落码；三次停工（临时根复用 / MAX_PATH / NaN 契约）均已裁定，三道闸门已通过；待执行方按 v1.4 门 8A / 8B 口径继续实现。
+> 卡 v1.5：功能提交 `b41bf10` 已落，门 1–16 通过，门 17 按 v1.5 判据可关闭；四次停工（临时根复用 / MAX_PATH / NaN 契约 / 门 17 行尾噪声）均已裁定。未 push / tag / 打包，远程推送归需求方本人。
