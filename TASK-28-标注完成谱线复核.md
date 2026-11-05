@@ -1,6 +1,7 @@
 # TASK-28 标注完成谱线复核卡
 
 > **状态**：备卡入库，待发提示词。**本卡是执行阶段唯一权威口径**；`需求总结-标注完成谱线复核.md` v2.2（`3059c45`）是需求输入材料，执行方以本卡为准，不得回去按需求总结自行解释或重开已定案项。
+> **修订 v1.1（2026-11-05，独立复核后）**：把「大 n_segments 的 Python 侧封顶」明确写为**本卡不做、延后另立卡、执行方不得自行发挥**（见 §3.4 / §6 门 13 / §7 条款 10 / §8）；补记本卡顺带修复现状潜在 HTTP 500 缺陷；修正两处引用行号。**D1–D8、v2.2 四项口径、FR-E23、基线数字一律不重开。**
 > **事实源**：需求 v2.7 `artifacts/step3/requirements-v2.7.txt`；ui-v2.3 `.runtime/docs/光谱数据AI-Agent处理平台_第一阶段UI设计与高保真原型.txt`。归档 v2.6 / ui-v2.2 禁止引用。
 > **行号时效**：本卡全部行号为 2026-11-05 **工作区在途状态**（34 M + 7 untracked）实测值。提交或回滚都会漂移，**开工第一步逐条 grep 复核 §0.2，漂移即停上报**。
 
@@ -47,7 +48,7 @@
 | 17 | `src-python/tests/annotation/test_quality.py:53` | `comparisons[0]["cos"]` 跨通道断言 | 不改、不重定位 |
 | 18 | `src-python/tests/annotation/test_session.py:153` | no-full-cube 有界读取测试先例 | 仿写新增用例 |
 | 19 | `backend/app.py:61-68` | `FastAPI` 未指定 `default_response_class` → 正常响应走 `JSONResponse`（`allow_nan=False`） | 不改 |
-| 20 | `src-python/spectrumagent/preprocess/registry.py:40-55` | `json_safe`（docstring：metadata only） | **不复用**，见 §3.3 |
+| 20 | `src-python/spectrumagent/preprocess/registry.py:40-56` | `json_safe`（docstring：metadata only，`:56` 对非白名单类型抛 TypeError） | **不复用**，见 §3.3 |
 | 21 | `src-python/spectrumagent/annotation/engines/superpixels.py:142, 261` | `sums/counts[:,None]` 空块产生 NaN；n_segments 上限 65535 | 不改 |
 | 22 | `src-tauri/src/annotation.rs:10` | `MAX_RESPONSE_BYTES = 8 MiB`（所有转发响应通用） | 不改 Rust |
 | 23 | `src-tauri/src/annotation.rs:49-50, 107` | `AnnotationRequest` `deny_unknown_fields` 严格枚举 + `Validate` 变体 | 不改 Rust |
@@ -93,7 +94,7 @@
 | ① | **非有限值统一转 `null`**：在 `quality.validate` **返回边界递归做一次**，覆盖 `comparisons[].cos`、`comparisons[].mean`、`references[].mean`、`high_variance.d_s`、`high_variance.tau`；禁止只修 `cos` 或 `mean`。验收门写「两通道均 200、不出现 500」 |
 | ② | **NaN cos 块不算可疑，不改 `quality.py:36`**：视作「余弦无法定义」而非「与类参考谱不像」；视图置于展示末尾并单独标注「余弦无法定义（含 NaN 波段）」，用户仍可目视判读与剔除 |
 | ③ | **排序放前端**：后端 `comparisons` 保持 `sorted(aggregates.parts.items())` 原序；前端展示按 cos 升序（可疑优先），`cos === null` 排末尾 |
-| ④ | **前端复用边界**：只可 import `curveRuns` 纯函数，不得改 `CompareChart.tsx:38` 的调用形态；横轴自建 band index；多曲线**共用 y 轴**以 `CompareChart.tsx:20-23` 为范本，`SpectrumReadout:45-47` 单条自缩放不可照搬 |
+| ④ | **前端复用边界**：只可 import `curveRuns` 纯函数，不得改 `CompareChart.tsx:38` 的调用形态；横轴自建 band index；多曲线**共用 y 轴**以 `CompareChart.tsx:20-23` 为范本，`DisplayToolbar.tsx:44-48` 的 `SpectrumReadout` 单条自缩放不可照搬 |
 
 ### 2.3 工程红线（继承自 v2.2 §7）
 
@@ -127,14 +128,16 @@
 
 ### 3.3 序列化与计算顺序
 
-- **在 `quality.validate` 返回边界做一次递归转换**：float 非有限 → `None`，numpy 标量/ndarray 先转 Python 值。**本卡收口为：在 quality 模块内实现同语义极小函数**，不复用 `preprocess/registry.py:40-55` 的 `json_safe`——其 docstring 明写 "Strict JSON metadata only; never replace NaNs in the spectral matrix"，用于谱线数组属扩展用途，且对非白名单类型抛 `TypeError`，未来响应加字段会 500。
+- **在 `quality.validate` 返回边界做一次递归转换**：float 非有限 → `None`，numpy 标量/ndarray 先转 Python 值。**本卡收口为：在 quality 模块内实现同语义极小函数**，不复用 `preprocess/registry.py:40-56` 的 `json_safe`——其 docstring 明写 "Strict JSON metadata only; never replace NaNs in the spectral matrix"，用于谱线数组属扩展用途，且对非白名单类型抛 `TypeError`，未来响应加字段会 500。
 - **计算顺序**：`cos` 必须用原始 float64 ndarray 计算（`quality.py:35`）；转 `null` **只作用于输出层**。禁止先转 null 再算 cos，禁止因转 null 改动 `quality.py:36`。
 - 实测依据：`JSONResponse.render` 带 `allow_nan=False`，任何非有限 float 抛 `ValueError: Out of range float values are not JSON compliant` → **HTTP 500**（`backend/app.py:61-68` 未指定 `default_response_class`）；`superpixels.py:142` 空块 → `quality.py:41-42` 的 `d_s` / `tau` 连锁 NaN，`np.median` 含 NaN 返回 NaN，只修 cos 仍会 500。
 - TS 类型同步：`Comparison.cos: number | null`、`Comparison.mean: (number | null)[]`、`Quality.references`、`high_variance.d_s: (number | null)[]`、`tau: number | null`；`Saved`（`types.ts:73-74`）引用 `Quality` 自动继承。`AnnotationWorkbench.tsx:452` 的 `item.cos.toFixed(6)` 与 `:453` 的 `τ=` 必须加兜底。
 
 ### 3.4 明确禁止
 
-新增端点 / 新增 op / 改 Rust / 加 `response_model` / 重生成 openapi / 改 `quality.py:36` / 后端重排 comparisons / 复用波长优先坐标映射 / 单条曲线自缩放 / 自动剔除 / 新增标注状态 / 改动 labelme 5.4.1 JSON 格式 / 写任何版本表或快照。
+新增端点 / 新增 op / 改 Rust / 加 `response_model` / 重生成 openapi / 改 `quality.py:36` / 后端重排 comparisons / 复用波长优先坐标映射 / 单条曲线自缩放 / 自动剔除 / 新增标注状态 / 改动 labelme 5.4.1 JSON 格式 / 写任何版本表或快照 / **新增 Python 侧曲线数或响应体积封顶**。
+
+> **大 n_segments 的口径（v1.1 定案）**：项目虽有 `datasets.py:138-139` 的 `REGION_TOO_LARGE` 前置封顶先例，本卡**不引入同类逻辑**。全精度下约 2000 条曲线逼近 8 MiB，极端 `n_segments=65535` 会在 Python 侧先构建大 JSON 产生瞬时内存尖峰，之后才被 Rust 的 8 MiB 上限拒掉——**这是 P1 功能的已知取舍，不是本卡要修的缺陷**。执行方只按 §6 门 13 实测两档、超限时按 §7 条款 10 停并上报，**禁止自行加封顶、截断曲线、分页或改动响应结构**。Python 侧显式封顶延后另立小卡。默认 200 块约 0.8 MB、对 8 MiB 有约 10 倍余量，不构成默认路径风险。
 
 ---
 
@@ -180,12 +183,12 @@
 | 5 | 数值等价 | 任取一块，响应 `mean` vs numpy 直算同区域逐波段均值 | 一致到声明容差；`len(mean) == shape[2]` |
 | 6 | 后端原序 | 扩展前后 `comparisons` 按 `(superpixel_id, label_index)` 逐项比对 | 完全一致；`test_quality.py:53` 不失效、不重定位 |
 | 7 | 双通道同构 | save 返回 `quality` vs 独立 validate 响应 | 结构一致（字段集合、顺序、类型） |
-| 8 | 不出现 500 | 构造含 NaN 波段的用例，分别请求 validate 与 save | **两条通道均 HTTP 200**；整份响应无裸 NaN；`cos` / `d_s` / `tau` / 两处 `mean` 的非有限值均为 `null` |
+| 8 | 不出现 500 | 构造含 NaN 波段的用例，分别请求 validate 与 save | **两条通道均 HTTP 200**；整份响应无裸 NaN；`cos` / `d_s` / `tau` / 两处 `mean` 的非有限值均为 `null`。**本门是新增用例**：补丁前必红、补丁后必绿；既有基线（249 / 497）不含含-NaN 用例，不得把此 500 归为环境噪声或当作「基线本来就红」 |
 | 9 | cos 与可疑语义 | 同一含 NaN 用例 | cos 由原始 ndarray 算出（未被 null 化影响）；`suspicious` 成员与扩展前完全一致；NaN cos 块不在 suspicious；`quality.py:36` 零 diff |
 | 10 | TS 空值兜底 | 前端测试构造 `cos: null` / `tau: null` | `:452` `toFixed` 与 `:453` `τ=` 不抛错，有测试覆盖 |
 | 11 | 剔除闭环 | 视图内 erase 一块 → 重拉 validate | 曲线数减一、统计与 `references` 同步、视图与质量态同步刷新；`annotation_draft` 仅按既有 edit 语义变更（validate 本身零写入） |
 | 12 | 前端口径 | `spectrumReview.test.ts` | 横轴 band index、hover 显示波长、按标签着色、前端 cos 升序且 null 末尾、多曲线共用 y 轴、`curveRuns` 断线；未复用波长优先映射 |
-| 13 | 响应体积 | 按实际 n_segments 实测（至少默认 200 与更大一档），**validate 与 save 两通道都测** | 记录实测字节并对照 8 MiB；超限时的第一缓解是限 6–8 位有效数字，不得擅自改响应结构 |
+| 13 | 响应体积 | 按实际 n_segments 实测（至少默认 200 与更大一档），**validate 与 save 两通道都测** | 记录实测字节并对照 8 MiB；超限时的第一缓解是限 6–8 位有效数字，不得擅自改响应结构；**不得自行新增 Python 侧封顶 / 截断曲线 / 分页**（见 §3.4 口径） |
 | 14 | 零版本副作用 | **单独一次 validate 请求**前后比对（不含 erase 动作） | `annotation_version` / `sample_spectrum` / 快照目录 / `annotation_draft` 无新增或变更；erase 写 draft 属 §6 门 11 的既有语义，不在本门范围 |
 | 15 | 有界读取 | 仿 `test_session.py:153` 的 monkeypatch | `read_region` 单次行块 ≤ `block_size`，无整立方体物化 |
 | 16 | 无自动剔除 | 全量 diff 审阅 | 不存在按 cos 阈值自动 erase / 自动改标签的逻辑；D1–D8 与 §2.2 四项无偏移 |
@@ -204,7 +207,7 @@
 7. 出现 per-curve `nan_bands`、自动剔除逻辑、新增标注状态、labelme JSON 格式变更 → 停。
 8. 横轴变波长优先、多曲线各自 y 轴自缩放、`CompareChart.tsx:38` 调用形态被改 → 停。
 9. 新增端点 / 新增 Rust op / 加 `response_model` → 停（本卡已定扩展 validate 路线）。
-10. 8 MiB 实测超限且无法通过限有效位数缓解 → 停，上报由需求方另拍板，不得自行改响应结构。
+10. 8 MiB 实测超限且无法通过限有效位数缓解 → 停，上报由需求方另拍板，不得自行改响应结构，**也不得自行补 Python 侧封顶 / 截断曲线 / 分页**；Python 侧显式封顶属延后另立卡的范围，执行方在这个点上零裁量权。
 11. 任何验收门无法给出真实数字或取数口径 → 停，写「未验证」，禁止空断言。
 
 ## 8. 流程与提交
@@ -213,6 +216,7 @@
 - 本卡不改历史提交（`3059c45` / `cbb6f9e`），不动 TASK-26 在途改动。
 - 测试命令逐字使用 §0.1；Python 必须 `-m pytest` 且分区独立临时根；Rust 本卡不涉及，`cargo test` / `clippy -D warnings` 不触发。
 - 收据（`.runtime/` 下）不进 git；环境噪声与代码错误分开陈述。
+- **发提示词时不另加口头口径**：卡是唯一口径来源，§3.4 的大 n_segments 取舍、§6 / §7 的验收与即停条款已写死；需要变更须另出修订版卡并入库，不得以对话补充说明替代。
 
 ## 9. 证据索引与修订记录
 
@@ -225,6 +229,10 @@
 2. `json_safe` 二选一收口为「quality 模块内实现同语义极小函数」（v2.2 给了「复用 json_safe 或本模块实现」两个选项）。
 3. 基线数字按本卡改动范围实测（前端 249 / Python 497+2 skipped），不照抄 TASK-27。
 
+**顺带修复的既有潜在缺陷（v1.1 补记，独立复核发现）**：现状未打本卡补丁时，任一已标注超像素含 NaN 波段 → `cos` 为 NaN；或存在空超像素 → `superpixels.py:142` 的 `sums / counts` 除零 → `quality.py:41-42` 的 `d_s` / `tau` 连锁 NaN。两种情况下 `JSONResponse` 的 `allow_nan=False` 都会抛 `ValueError`，**validate 与 save 直接 HTTP 500**。§3.3 的返回边界统一转换顺带修掉该缺陷，§6 门 8 即其回归门（补丁前必红、补丁后必绿）。**不改变 FR-E23 的 P1 定级**：FR 为功能编号，缺陷修复随本卡落地，不另立 FR、不提优先级。
+
+**v1.1 修订记录（2026-11-05，独立复核后）**：① §3.4 新增「大 n_segments 的 Python 侧封顶」定案——本卡不做、延后另立卡、执行方禁止自行加封顶 / 截断 / 分页；② §6 门 13 与 §7 条款 10 同步收紧；③ §8 明确「发提示词时不另加口头口径」，把复核方原建议的「口头带一句」改为卡内固化；④ §6 门 8 补「新增用例、补丁前必红」以免 500 被误归为基线噪声；⑤ §9 补记上述缺陷；⑥ 修正两处引用：`json_safe` `:40-55` → `:40-56`、`SpectrumReadout:45-47` → `DisplayToolbar.tsx:44-48`。**D1–D8、v2.2 四项口径、FR-E23 / P1、三处收口、基线数字均未改动。**
+
 ---
 
-> 备卡，未发提示词、未落码。
+> 备卡 v1.1，未发提示词、未落码。
