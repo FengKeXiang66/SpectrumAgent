@@ -245,3 +245,77 @@ def test_configured_output_root_is_checked_before_becoming_writable(tmp_path):
     configured = module.initialize(paths, output_root=output)
     assert configured is guard and configured.ready
     assert configured.resolve_write(output / 'after.json', kind='JSON') == output / 'after.json'
+
+
+def test_output_first_probe_authorizes_startup_before_publishing_availability(tmp_path, monkeypatch):
+    root, output, temporary = (tmp_path / name for name in ('app', 'output', 'temporary'))
+    for path in (root / 'trash', root / 'db', output, temporary):
+        path.mkdir(parents=True)
+    guard = WriteGuard(root, output_root=output, temp_root=temporary)
+    assert guard.output_root_available is False
+    with pytest.raises(DataError) as denied:
+        guard.resolve_write(output / 'early.json', kind='JSON')
+    assert denied.value.code == 'OUTPUT_ROOT_UNAVAILABLE'
+    original = Path.open
+    observed = []
+    def probe(path, *args, **kwargs):
+        if path.parent == output and path.name.startswith('.write-guard-'):
+            observed.append((guard.ready, guard.output_root_available))
+        return original(path, *args, **kwargs)
+    monkeypatch.setattr(Path, 'open', probe)
+    guard.self_check()
+    assert observed == [(False, False)] and guard.ready and guard.output_root_available
+    events = [row for row in rows(guard) if Path(row['target_path']).parent == output]
+    assert [(row['action'], row['decision'], row['reason']) for row in events] == [
+        ('JSON', 'DENY', 'OUTPUT_ROOT_UNAVAILABLE'), ('SELF_CHECK_WRITE', 'ALLOW', ''), ('SELF_CHECK_DELETE', 'ALLOW', '')]
+    assert all(row['flushed_at'] for row in events)
+    guard.resolve_write(output / 'after.json', kind='JSON').write_bytes(b'confirmed')
+    assert (output / 'after.json').read_bytes() == b'confirmed' and not (output / 'early.json').exists()
+    guard.close()
+
+
+def test_output_physical_probe_failure_is_local_and_cannot_hot_recover(tmp_path, monkeypatch):
+    root, output, temporary = (tmp_path / name for name in ('app', 'output', 'temporary'))
+    for path in (root / 'trash', root / 'db', output, temporary):
+        path.mkdir(parents=True)
+    guard = WriteGuard(root, output_root=output, temp_root=temporary)
+    original = Path.open
+    def readonly(path, *args, **kwargs):
+        if path.parent == output and path.name.startswith('.write-guard-'):
+            raise PermissionError('physical probe permission denied')
+        return original(path, *args, **kwargs)
+    with monkeypatch.context() as patch:
+        patch.setattr(Path, 'open', readonly)
+        guard.self_check()
+    assert guard.ready and guard.output_root_available is False
+    target = guard.resolve_write(root / 'db' / 'local.sqlite3', kind='DATABASE_OPEN')
+    with sqlite3.connect(target) as db:
+        assert db.execute('SELECT 2+3').fetchone()[0] == 5
+    with pytest.raises(DataError) as denied:
+        guard.resolve_write(output / 'business.json', kind='JSON')
+    assert denied.value.code == 'OUTPUT_ROOT_UNAVAILABLE'
+    guard.self_check()
+    assert guard.ready and guard.output_root_available is False
+    assert any(row['action'] == 'OUTPUT_ROOT_UNAVAILABLE' and row['reason'] == 'OUTPUT_ROOT_UNAVAILABLE' for row in rows(guard))
+    guard.close()
+
+
+def test_output_probe_authorization_dataerror_is_fatal(tmp_path, monkeypatch):
+    root, output, temporary = (tmp_path / name for name in ('app', 'output', 'temporary'))
+    for path in (root / 'trash', root / 'db', output, temporary):
+        path.mkdir(parents=True)
+    guard = WriteGuard(root, output_root=output, temp_root=temporary)
+    original = guard._resolve
+    def rejected(path, action, **kwargs):
+        if Path(path).parent == output:
+            raise DataError('WRITE_TO_SOURCE_DENIED', 'probe authorization rejected')
+        return original(path, action, **kwargs)
+    monkeypatch.setattr(guard, '_resolve', rejected)
+    with pytest.raises(DataError) as denied:
+        guard.self_check()
+    assert denied.value.code == 'WRITE_TO_SOURCE_DENIED'
+    assert not guard.ready and not guard.output_root_available
+    with pytest.raises(DataError) as local:
+        guard.resolve_write(root / 'local.json', kind='JSON')
+    assert local.value.code == 'STORAGE_SELF_CHECK_FAILED'
+    guard.close()

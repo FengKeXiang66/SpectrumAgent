@@ -62,6 +62,10 @@ class WriteGuard:
             raise ValueError('audit buffer must have a positive bound')
         self.root = Path(root).resolve()
         self.output_root = Path(output_root).resolve() if output_root is not None else None
+        self.output_root_available = False
+        self.output_projects = ()
+        self.output_settings_loaded = False
+        self._output_root_failed = False  # Latch failure until a new process binds its settings.
         self.temp_root = Path(temp_root or tempfile.gettempdir()).resolve()
         self.sources = {Path(path).resolve() for path in source_roots}
         self.audit_database = self.root / 'db' / 'write-audit.sqlite3'
@@ -156,18 +160,29 @@ class WriteGuard:
             if not (self.root / 'trash').is_dir():
                 raise OSError('trash missing')
             for root in self.roots:
-                if not root.is_dir():
-                    raise OSError('writable root missing')
-                probe = root / ('.write-guard-' + uuid4().hex)
-                # Root probes precede business readiness but still authorize
-                # and audit each mutation. Only this internal call may do so.
-                self._resolve(probe, 'SELF_CHECK_WRITE', startup=True)
+                if root == self.output_root and self._output_root_failed:
+                    continue
                 try:
-                    with probe.open('xb') as stream:
-                        stream.write(b'write-guard')
-                finally:
-                    self._resolve(probe, 'SELF_CHECK_DELETE', startup=True, deleting=True)
-                    probe.unlink(missing_ok=True)
+                    if not root.is_dir():
+                        raise OSError('writable root missing')
+                    probe = root / ('.write-guard-' + uuid4().hex)
+                    # Only these internal probes use startup; source checks still apply.
+                    self._resolve(probe, 'SELF_CHECK_WRITE', startup=True)
+                    try:
+                        with probe.open('xb') as stream:
+                            stream.write(b'write-guard')
+                    finally:
+                        self._resolve(probe, 'SELF_CHECK_DELETE', startup=True, deleting=True)
+                        probe.unlink(missing_ok=True)
+                except OSError:
+                    if root != self.output_root:
+                        raise
+                    self.output_root_available = False
+                    self._output_root_failed = True
+                    self._audit('OUTPUT_ROOT_UNAVAILABLE', root, 'DENY', 'OUTPUT_ROOT_UNAVAILABLE')
+                    continue
+                if root == self.output_root:
+                    self.output_root_available = True
             self.attach_database()
             self._audit('SELF_CHECK', self.audit_database, 'ALLOW')
             if not self.database_ready or self.buffer:
@@ -192,6 +207,8 @@ class WriteGuard:
                 reason = 'WRITE_TO_SOURCE_DENIED'
             if deleting and target in self.roots:
                 reason = 'WRITE_TO_SOURCE_DENIED'
+            if not startup and self.output_root is not None and target.is_relative_to(self.output_root) and not self.output_root_available:
+                reason = reason or 'OUTPUT_ROOT_UNAVAILABLE'
             if not startup and not self.ready:
                 reason = reason or 'STORAGE_SELF_CHECK_FAILED'
         except (OSError, ValueError, RuntimeError) as error:
@@ -199,6 +216,8 @@ class WriteGuard:
             raise DataError('WRITE_TO_SOURCE_DENIED', '目标路径不允许写入') from error
         self._audit(action, target, 'DENY' if reason else 'ALLOW', reason)
         if reason:
+            if reason == 'OUTPUT_ROOT_UNAVAILABLE':
+                raise DataError(reason, '输出根不可用，写入已暂停')
             raise DataError(reason, '目标路径不允许写入' if reason == 'WRITE_TO_SOURCE_DENIED' else '存储未通过自检，已拒绝写任务')
         if not self.ready and not startup:
             raise DataError('STORAGE_SELF_CHECK_FAILED', '审计不可用，已拒绝写任务')
@@ -267,6 +286,7 @@ def _prepare(paths, *, output_root=None, source_roots=(), temp_root=None):
                 if output_root is not None and guard.output_root != Path(output_root).resolve():
                     guard.ready = False
                     guard.output_root = Path(output_root).resolve()
+                    guard.output_root_available = False
                 if temp_root is not None and guard.temp_root != Path(temp_root).resolve():
                     guard.ready = False
                     guard.temp_root = Path(temp_root).resolve()
@@ -299,6 +319,43 @@ def initialize(paths, *, output_root=None, source_roots=(), temp_root=None):
     return guard
 
 
+def bootstrap_output_root(paths):
+    """Bind persisted settings once per process, using the existing guarded DB channel."""
+    from backend.database import connect_database
+    from spectrumagent.api.project_paths import normalize_path, validate_output_root
+    guard = for_database(paths.database)
+    with guard.lock:
+        if guard.output_settings_loaded:
+            return None
+        with connect_database(paths.database) as db:
+            exists = db.execute("SELECT 1 FROM sqlite_master WHERE name='project_path_settings'").fetchone()
+            rows = db.execute("SELECT project_id,output_root FROM project_path_settings WHERE output_root<>'' ORDER BY project_id").fetchall() if exists else []
+        normalized = [(project, validate_output_root(paths, normalize_path(value))) for project, value in rows]
+        roots = {value for _, value in normalized}
+        if len(roots) > 1:
+            error = DataError('OUTPUT_ROOT_CONFLICT', '多个项目的输出根不一致')
+            error.status_code = 409
+            raise error
+        guard.output_settings_loaded = True
+        if not roots:
+            return None
+        output = roots.pop()
+        guard.output_projects = tuple(project for project, _ in normalized)
+        guard.ready = guard.database_ready = False  # Startup transition; audit is buffered until self_check flushes it.
+        guard.output_root_available = False
+        guard._output_root_failed = False
+        # Explicit bootstrap exception, matching AppPaths' trash creation.
+        # Never resolve_write: the new root is not yet in the write whitelist.
+        try:
+            if not output.is_dir():
+                output.mkdir(parents=True, exist_ok=True)
+                guard._audit('OUTPUT_ROOT_CREATE', output, 'ALLOW')
+        except OSError:
+            guard._output_root_failed = True
+            guard._audit('OUTPUT_ROOT_UNAVAILABLE', output, 'DENY', 'OUTPUT_ROOT_UNAVAILABLE')
+        return output
+
+
 def for_database(database):
     from backend.paths import AppPaths
     database = Path(database).resolve()
@@ -319,8 +376,9 @@ def _guard_for(path):
             return _current  # Let _resolve record the invalid-path DENY.
         raise DataError('STORAGE_SELF_CHECK_FAILED', '存储未初始化，已拒绝写任务')
     with _registration_lock:
-        matches = [guard for root, guard in _guards.items() if target.is_relative_to(root)]
-        guard = max(matches, key=lambda item: len(item.root.parts)) if matches else _current
+        matches = [(len(root.parts), guard) for guard in _guards.values()
+                   for root in (guard.root, guard.output_root) if root is not None and target.is_relative_to(root)]
+        guard = max(matches, key=lambda item: item[0])[1] if matches else _current
     if guard is None:
         raise DataError('STORAGE_SELF_CHECK_FAILED', '存储未初始化，已拒绝写任务')
     return guard

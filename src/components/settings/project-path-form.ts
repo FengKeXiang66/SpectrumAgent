@@ -42,7 +42,7 @@ export function createPathForm(api: PathServices, changed: (state: PathFormState
       try {
         const values = await api.putProjectPaths(state.projectId, {
           source_path: normalizePath(state.values.source_path), output_root: normalizePath(state.values.output_root) });
-        update({ values, message: '已保存为该项目默认。输出根当前仅保存、不生效。' });
+        update({ values, message: '已保存为该项目默认。输出根保存后重启生效。' });
       } catch (failure) { update({ error: describeError(failure) }); }
       finally { update({ phase: 'ready' }); }
     },

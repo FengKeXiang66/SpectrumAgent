@@ -48,7 +48,7 @@ test('C rendered source and output inputs edit independently and save only the p
   const submit = find(h.tree(), 'form').props.onSubmit as (event: { preventDefault(): void }) => void;
   submit({ preventDefault() {} }); await new Promise(resolve => setImmediate(resolve));
   assert.deepEqual(h.calls, [['get', 'default'], ['put', 'default', { source_path: '\\\\nas\\prefill', output_root: '\\\\nas\\another-output' }]]);
-  for (const text of ['源目录只读', '输出根当前仅保存、不生效', 'D:', 'ENVI', '第二批验证', '阶段二支持', '保存为该项目默认']) assert.ok(h.render().includes(text));
+  for (const text of ['源目录只读', '输出根保存后重启生效', 'D:', 'ENVI', '第二批验证', '阶段二支持', '保存为该项目默认']) assert.ok(h.render().includes(text));
   assert.doesNotMatch(h.render(), /IrisCube|\.mat/);
 });
 
@@ -91,4 +91,18 @@ test('C project path IPC uses fixed ops, strips view extras, normalizes both pat
   const datasets = datasetClient(async () => [], async <T>(request: unknown) => { imports.push(request); return {} as T; });
   await datasets.importDirectory('smb://nas/source/batch', false);
   assert.deepEqual(imports, [{ op: 'import', path: '\\\\nas\\source\\batch', raw: false }]);
+});
+
+test('output root status renders the backend enabled flag and restart or paused explanations', () => {
+  for (const enabled of [false, true]) {
+    const state = { ...emptyPathForm(), phase: 'ready' as const, projectId:'project', values:{...saved,output_enabled:enabled} };
+    const html = renderToStaticMarkup(ProjectPathsView({state,summary:true,onEdit(){},onBrowse(){},onSave(){},onRetry(){}}));
+    assert.ok(html.includes(enabled ? '产物输出根（已启用）' : '产物输出根（未启用）'));
+    assert.equal(html.includes('输出根不可用、写入已暂停'), !enabled);
+    assert.ok(html.includes('输出根保存后重启生效'));
+  }
+  const state = {...emptyPathForm(),phase:'ready' as const,projectId:'project'};
+  const html = renderToStaticMarkup(ProjectPathsView({state,onEdit(){},onBrowse(){},onSave(){},onRetry(){}}));
+  assert.doesNotMatch(html,/输出根不可用、写入已暂停/);
+  assert.deepEqual(state.values,{source_path:'',output_root:'',data_root:'',output_enabled:false});
 });

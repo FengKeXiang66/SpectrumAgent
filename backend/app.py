@@ -25,7 +25,7 @@ log = structlog.get_logger("engine.http")
 def create_app(paths: AppPaths, identity: EngineIdentity) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        paths.create_directories()
+        paths.create_directories(activate_output=True)
         connection = open_database(paths.database)
         connection.execute("PRAGMA journal_mode=WAL")
         app.state.database = connection  # Shared connection for the application lifetime.

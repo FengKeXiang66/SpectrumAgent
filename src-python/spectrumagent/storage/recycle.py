@@ -219,29 +219,36 @@ class RecycleStore:
     def _owned(self, source, cube):
         path = relative(source)
         parts = path.parts
+        configured = self.guard.output_root is not None
+        product = (parts[0] == 'preprocessed' and
+                   ((not configured and len(parts) == 3 and parts[1] == cube)
+                    or (configured and len(parts) == 4 and parts[1] in self.guard.output_projects
+                        and parts[2] == cube and str(UUID(parts[3])) == parts[3])))
         valid = ((len(parts) >= 3 and parts[0] == 'annotations' and parts[1] == cube)
                  or (len(parts) == 2 and parts[0] == 'exports' and parts[1] == cube)
-                 or (len(parts) == 3 and parts[0] == 'preprocessed' and parts[1] == cube)
+                 or product
                  or (len(parts) == 2 and parts[0] in ('models', 'inferences')
                      and str(UUID(parts[1])) == parts[1]))
         if not valid:
             raise failure('INVALID_DELETE_PATH', '删除映射不属于该数据集的产物目录')
-        target = self.paths.root.joinpath(*parts)
-        if not target.resolve().is_relative_to(self.paths.root.resolve().joinpath(parts[0])):
+        base = self.paths.artifact_root if parts[0] == 'preprocessed' else self.paths.root / parts[0]
+        target = base.joinpath(*parts[1:])
+        if not target.resolve().is_relative_to(base.resolve()):
             raise failure('INVALID_DELETE_PATH', '产物目录越界')
         return target
 
     def _inventory(self, roots, *, base=None):
-        base = base or self.paths.root
         entries = []
         for source in roots:
-            folder = base.joinpath(*relative(source).parts)
+            parts = relative(source).parts
+            folder = (base.joinpath(*parts) if base is not None else
+                      self.paths.artifact_root.joinpath(*parts[1:]) if parts[0] == 'preprocessed' else self.paths.root.joinpath(*parts))
             if not folder.is_dir() or folder.is_symlink():
                 raise failure('DELETE_INVENTORY_INCOMPLETE', '产物目录缺失或包含非法链接')
             for path in [folder, *sorted(folder.rglob('*'))]:
                 if path.is_symlink() or path.is_junction():
                     raise failure('INVALID_DELETE_PATH', '产物目录包含链接，永久删除前须人工处理')
-                name = path.relative_to(base).as_posix()
+                name = (relative(source) / path.relative_to(folder).as_posix()).as_posix()
                 if path.is_dir():
                     entries.append({'path': name, 'kind': 'directory'})
                 elif path.is_file():
@@ -265,7 +272,8 @@ class RecycleStore:
                 raise failure('DELETE_INVENTORY_INCOMPLETE', '已登记标注快照目录缺失，拒绝删除')
             roots.add(source)
         for source in [f'exports/{cube}',
-                       *(f'preprocessed/{cube}/{r["id"]}' for r in selected['preprocess_run']),
+                       *('preprocessed/' + self.paths.preprocess_directory(selected['dataset_registry'][0]['project_id'], cube, r['id'])
+                         .relative_to(self.paths.artifact_root).as_posix() for r in selected['preprocess_run']),
                        *(f'models/{r["id"]}' for r in selected['training_run']),
                        *(f'inferences/{r["id"]}' for r in selected['inference_run'])]:
             if self._owned(source, cube).exists():

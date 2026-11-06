@@ -26,7 +26,7 @@ def main(argv=None) -> int:
         arguments = []
     else:
         paths = AppPaths.from_environment()
-    paths.create_directories()
+    paths.create_directories(activate_output=True)
     configure_logging(paths.logs)
     logger = structlog.get_logger("engine")
     try:

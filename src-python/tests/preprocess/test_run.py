@@ -436,3 +436,28 @@ def test_same_recipe_and_pixels_reproduce_npz_and_report_semantics_without_repor
         assert actual == artifact["sha256"]
         hashes.append(actual)
     assert hashes[0] == hashes[1]
+
+
+def test_configured_root_run_uses_project_and_cube_without_changing_numeric_artifact_contract(run_case, tmp_path):
+    c = run_case
+    output = tmp_path.parent/(tmp_path.name+'-run-output')
+    with connect_database(c.paths.database) as db:
+        project = db.execute('SELECT project_id FROM dataset_registry WHERE id=?',(c.cube,)).fetchone()[0]
+        db.execute('CREATE TABLE project_path_settings (project_id TEXT PRIMARY KEY,source_path TEXT NOT NULL,output_root TEXT NOT NULL,updated_at TEXT NOT NULL)')
+        db.execute("INSERT INTO project_path_settings VALUES (?,'',?,'fixture')",(project,str(output)))
+    c.paths.create_directories(activate_output=True)
+    row = c.runner.run(c.cube,c.version,c.recipe([]))
+    assert row['status'] == 'succeeded',row['error']
+    assert c.paths.artifact_root == output and not c.paths.preprocessed.exists()
+    for item in row['artifacts']:
+        target = output/item['relative_path']
+        assert target.parent == output/project/c.cube/row['id']
+        assert item['sha256'] == hashlib.sha256(target.read_bytes()).hexdigest()
+    sample = next(item for item in row['artifacts'] if item['kind']=='sample_spectra')
+    with np.load(output/sample['relative_path']) as archive:
+        np.testing.assert_allclose(archive['mean_0'],c.values[c.label_map==0].mean(axis=0)/65535,rtol=0,atol=1e-12)
+    report_entry = next(item for item in row['artifacts'] if item['kind']=='report')
+    report = json.loads((output/report_entry['relative_path']).read_text('utf-8'))
+    assert report['recipe_pipeline_sha256'] == c.runner.recipes.get(next(recipe['id'] for recipe in c.runner.recipes.list()
+        if any(version['id']==row['recipe_version_id'] for version in recipe['versions'])))['versions'][0]['recipe_pipeline_sha256']
+    assert report['metrics'] == row['metrics'] and len(report['outputs']['artifacts']) == 2

@@ -153,6 +153,7 @@ def test_http_permanent_delete_preserves_sources_audits_assets_and_has_no_busine
         settings_path = f'/api/v1/settings/projects/{project}/paths'
         settings = request('PUT', settings_path, json={'source_path': str(c.source), 'output_root': r'\\unreachable-d-fixture\future-output'})
         assert settings['output_enabled'] is False and settings['data_root'] == str(c.paths.root)
+        assert c.registry.storage_guard.output_root is None  # PUT persists; only a process restart binds the output root.
         with connect_database(c.paths.database) as db:
             protected = table_rows(db, protected_tables)
             scans['before'] = scan_business(db)

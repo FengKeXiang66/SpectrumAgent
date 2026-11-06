@@ -51,6 +51,33 @@ def owned(c):
             f'models/{c.ids["training"]}', f'inferences/{c.ids["inference"]}']
 
 
+def test_configured_output_delete_mapping_is_owned_and_preserves_source(case, tmp_path):
+    c = case
+    output = tmp_path/'delete-output'
+    with connect_database(c.paths.database) as db:
+        db.execute('CREATE TABLE project_path_settings (project_id TEXT PRIMARY KEY,source_path TEXT NOT NULL,output_root TEXT NOT NULL,updated_at TEXT NOT NULL)')
+        db.execute("INSERT INTO project_path_settings VALUES (?,'',?,'fixture')",(c.project,str(output)))
+        db.execute('UPDATE preprocess_artifact SET relative_path=? WHERE run_id=?',
+                   (f'{c.project}/{c.cube}/{c.ids["preprocess"]}/report.json',c.ids['preprocess']))
+    c.paths.create_directories(activate_output=True)
+    directory = output/c.project/c.cube/c.ids['preprocess']
+    storage.mkdir(directory,parents=True)
+    storage.resolve_write(directory/'report.json',kind='TEST_ARTIFACT').write_bytes(b'owned report')
+    source_before = files(c.source)
+    mapped = f'preprocessed/{c.project}/{c.cube}/{c.ids["preprocess"]}'
+    assert c.store._owned(mapped,c.cube) == directory
+    with error_code('INVALID_DELETE_PATH'):
+        c.store._owned(f'preprocessed/{uuid4()}/{c.cube}/{c.ids["preprocess"]}',c.cube)
+    with error_code('INVALID_DELETE_PATH'):
+        c.store._owned(mapped,str(uuid4()))
+    preview = c.store.preview(c.cube)
+    item = next(item for item in preview['directories'] if item['path']==mapped)
+    assert item['bytes'] == len(b'owned report')
+    result = c.store.delete(c.cube,confirm=True,preview_token=preview['preview_token'])
+    assert result['pending_directories'] == [] and not directory.exists()
+    assert files(c.source) == source_before and not pending(c)
+
+
 @pytest.fixture
 def case(tmp_path):
     source = tmp_path / 'source'

@@ -3,7 +3,7 @@ import { normalizePath } from '../datasets/paths.ts';
 
 export type LLMConfig = { base_url: string; model: string; temperature: string; max_tokens: string; timeout_ms: string; egress_enabled: boolean };
 export type LLMSettings = LLMConfig & { has_key: boolean };
-export type ProjectPaths = { source_path: string; output_root: string; data_root: string; output_enabled: false };
+export type ProjectPaths = { source_path: string; output_root: string; data_root: string; output_enabled: boolean };
 export type PathValues = Pick<ProjectPaths, 'source_path' | 'output_root'>;
 export type SettingsRequest = { op: 'get_llm' } | { op: 'put_llm'; body: LLMConfig } | { op: 'put_key'; key: string }
   | { op: 'get_project_paths'; project_id: string }

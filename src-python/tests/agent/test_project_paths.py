@@ -106,6 +106,12 @@ def test_saving_paths_does_not_change_payload_sources_files_or_guard_roots(setti
         assert db.execute('SELECT id,payload FROM dataset_registry ORDER BY id').fetchall() == payloads
         assert db.execute('SELECT key,value FROM llm_settings ORDER BY key').fetchall() == llm_settings
     assert c.app.state.dataset_registry.storage_guard.output_root is None
+    project = url.split('/')[-2]
+    restarted = _restart_output_status(c, project, output)
+    assert restarted['status'] == 200 and restarted['paths']['output_enabled'] is True
+    assert restarted['ready'] is True and restarted['available'] is True and output.is_dir()
+    assert before == {p.name: (hashlib.sha256(p.read_bytes()).hexdigest(), p.stat().st_mtime_ns)
+                      for p in header.parent.iterdir() if p.is_file()}
 
 
 def test_paths_survive_real_engine_process_restart(settings_api):
@@ -161,3 +167,93 @@ def test_paths_require_authentication_before_saving(settings_api):
     assert response.status_code == 401 and 'X-SpectrumAgent-Boot-Id' not in response.headers
     with connect_database(c.database) as db:
         assert db.execute('SELECT count(*) FROM project_path_settings').fetchone()[0] == 0
+
+
+def _restart_output_status(c, project, output, readonly=False):
+    import tempfile
+    script = '''import json,sys,sqlite3
+from pathlib import Path
+from unittest.mock import patch
+from contextlib import nullcontext
+from fastapi.testclient import TestClient
+from backend.paths import AppPaths
+from backend.identity import EngineIdentity
+from backend.database import connect_database
+from spectrumagent.app import create_app
+from spectrumagent.data import DataError
+paths=AppPaths(Path(sys.argv[1])); output=Path(sys.argv[3]); identity=EngineIdentity()
+original=Path.open
+def readonly(path,*args,**kwargs):
+    if path.parent==output and path.name.startswith('.write-guard-'):
+        raise PermissionError('read-only output probe')
+    return original(path,*args,**kwargs)
+with patch.object(Path,'open',readonly) if sys.argv[4]=='1' else nullcontext():
+    app=create_app(paths,identity)
+    with TestClient(app) as client:
+        response=client.get('/api/v1/settings/projects/'+sys.argv[2]+'/paths',headers={'Authorization':'Bearer '+identity.token})
+        guard=app.state.dataset_registry.storage_guard
+        with connect_database(paths.database) as db:
+            result=db.execute('SELECT 2+3').fetchone()[0]
+        error=None
+        try: guard.resolve_write(output/'business.json',kind='OUTPUT_TEST')
+        except DataError as caught: error=caught.as_dict()
+        with sqlite3.connect(guard.audit_database) as db:
+            events=db.execute('SELECT action,target_path,decision,reason,flushed_at FROM write_audit').fetchall()
+        print(json.dumps(dict(status=response.status_code,paths=response.json(),ready=guard.ready,available=guard.output_root_available,
+                             local_result=result,error=error,events=events,local_preprocessed_exists=paths.preprocessed.exists())))
+'''
+    root = Path(__file__).resolve().parents[3]
+    result = subprocess.run([sys.executable, '-c', script, str(c.paths.root), project, str(output), '1' if readonly else '0'],
+        cwd=root, env={**os.environ, 'PYTHONPATH': str(root/'src-python'), 'TMP': tempfile.gettempdir(), 'TEMP': tempfile.gettempdir()},
+        capture_output=True, text=True, check=True)
+    return json.loads(result.stdout)
+
+
+@pytest.mark.parametrize('readonly', [False, True])
+def test_unavailable_output_restart_keeps_local_database_and_get_available(settings_api, tmp_path, readonly):
+    c = settings_api
+    project, url = endpoint(c)
+    output = tmp_path/'readonly-output' if readonly else Path('R:/task31-unreachable-output')
+    if readonly:
+        output.mkdir()
+    saved = c.client.put(url, json={'source_path': '', 'output_root': str(output)})
+    assert saved.status_code == 200 and saved.json()['output_enabled'] is False
+    result = _restart_output_status(c, project, output, readonly)
+    assert result['status'] == 200 and result['paths'] == saved.json()
+    assert result['ready'] is True and result['available'] is False and result['local_result'] == 5
+    assert result['error']['error'] == 'OUTPUT_ROOT_UNAVAILABLE'
+    assert any(action=='DATABASE_OPEN' and Path(target)==c.paths.database and decision=='ALLOW'
+               for action,target,decision,reason,flushed in result['events'])
+    assert any(action=='OUTPUT_TEST' and decision=='DENY' and reason=='OUTPUT_ROOT_UNAVAILABLE'
+               for action,target,decision,reason,flushed in result['events'])
+    assert any(action=='OUTPUT_ROOT_UNAVAILABLE' and decision=='DENY' and reason=='OUTPUT_ROOT_UNAVAILABLE'
+               for action,target,decision,reason,flushed in result['events'])
+    assert result['local_preprocessed_exists'] is False and not (output/'business.json').exists()
+
+
+def test_output_conflict_and_source_overlap_reject_without_source_mutation(settings_api, tmp_path):
+    from spectrumagent.data import DataError
+    c = settings_api
+    header, _, _ = cube(tmp_path/'protected-source')
+    c.app.state.dataset_registry.import_path(str(header), raw=True)
+    def inventory():
+        return [(p.relative_to(header.parent).as_posix(), p.is_dir(), None if p.is_dir() else hashlib.sha256(p.read_bytes()).hexdigest(), p.stat().st_mtime_ns)
+                for p in sorted(header.parent.rglob('*'))]
+    before = inventory()
+    project, url = endpoint(c)
+    refused = c.client.put(url, json={'source_path': str(header.parent), 'output_root': str(header.parent/'forbidden-output')})
+    assert refused.status_code == 400 and refused.json()['error'] == 'WRITE_TO_SOURCE_DENIED'
+    guard = c.app.state.dataset_registry.storage_guard
+    with pytest.raises(DataError) as denied:
+        guard.resolve_write(header.parent/'forbidden-file', kind='SOURCE_TEST')
+    assert denied.value.code == 'WRITE_TO_SOURCE_DENIED' and inventory() == before
+    root = tmp_path/'first-output'
+    assert c.client.put(url, json={'source_path':'','output_root':str(root)}).status_code == 200
+    other = str(uuid4())
+    with connect_database(c.database) as db:
+        db.execute("INSERT INTO project (id,name,created_at) VALUES (?,'second','fixture')", (other,))
+    response = c.client.put(f'/api/v1/settings/projects/{other}/paths', json={'source_path':'','output_root':str(tmp_path/'second-output')})
+    assert response.status_code == 409 and response.json()['error'] == 'OUTPUT_ROOT_CONFLICT'
+    with connect_database(c.database) as db:
+        assert db.execute('SELECT project_id,output_root FROM project_path_settings').fetchall() == [(project,str(root))]
+    assert not root.exists() and inventory() == before

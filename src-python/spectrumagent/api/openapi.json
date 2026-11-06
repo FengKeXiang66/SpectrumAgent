@@ -4476,7 +4476,6 @@
           },
           "output_enabled": {
             "type": "boolean",
-            "const": false,
             "title": "Output Enabled"
           }
         },

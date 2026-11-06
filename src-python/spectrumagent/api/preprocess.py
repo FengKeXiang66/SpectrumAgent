@@ -150,7 +150,7 @@ def make_router(runner, comparison):
         relative = PurePosixPath(value)
         if relative.is_absolute() or ".." in relative.parts or "\\" in value or ":" in value:
             raise DataError("INVALID_ARTIFACT_PATH", "产物须为 POSIX 相对路径")
-        root = runner.paths.preprocessed.resolve()
+        root = runner.paths.artifact_root.resolve()
         target = root.joinpath(*relative.parts).resolve()
         if not target.is_relative_to(root):
             raise DataError("INVALID_ARTIFACT_PATH", "产物路径越出输出根")

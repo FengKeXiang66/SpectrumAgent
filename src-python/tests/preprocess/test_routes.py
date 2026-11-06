@@ -19,6 +19,88 @@ BASE = "/api/v1/preprocess"
 SUMMARY_FIELDS = {"id", "status", "b01_branch", "input_fingerprint", "created_at", "finished_at", "error_code"}
 
 
+def _restart_run(c, project, recipe):
+    import os
+    from pathlib import Path
+    import subprocess
+    import sys
+    import tempfile
+    script = '''import hashlib,json,sqlite3,sys
+from pathlib import Path
+from fastapi.testclient import TestClient
+from backend.paths import AppPaths
+from backend.identity import EngineIdentity
+from spectrumagent.app import create_app
+paths=AppPaths(Path(sys.argv[1])); identity=EngineIdentity(); app=create_app(paths,identity)
+with TestClient(app) as client:
+    client.headers['Authorization']='Bearer '+identity.token
+    settings=client.get('/api/v1/settings/projects/'+sys.argv[2]+'/paths')
+    response=client.post('/api/v1/datasets/'+sys.argv[3]+'/preprocess/runs',json=dict(annotation_version_id=sys.argv[4],recipe_version_id=sys.argv[5]))
+    assert response.status_code==200,response.text
+    row=response.json(); assert row['status']=='succeeded',row
+    downloads={}
+    for artifact in row['artifacts']:
+        value=client.get('/api/v1/preprocess/runs/'+row['id']+'/artifacts/'+artifact['kind'])
+        assert value.status_code==200,value.text
+        downloads[artifact['kind']]=hashlib.sha256(value.content).hexdigest()
+        if artifact['kind']=='report': report=value.json()
+    with sqlite3.connect(app.state.dataset_registry.storage_guard.audit_database) as db:
+        audit=db.execute('SELECT action,target_path,decision,reason,flushed_at FROM write_audit').fetchall()
+    print(json.dumps(dict(run=row,report=report,downloads=downloads,settings_status=settings.status_code,settings=settings.json(),audit=audit)))
+'''
+    root = Path(__file__).resolve().parents[3]
+    result = subprocess.run([sys.executable, '-c', script, str(c.paths.root), project, c.cube, c.version, recipe], cwd=root,
+        env={**os.environ, 'PYTHONPATH':str(root/'src-python'), 'TMP':tempfile.gettempdir(), 'TEMP':tempfile.gettempdir()},
+        capture_output=True, text=True, check=True)
+    return json.loads(result.stdout.splitlines()[-1])
+
+
+@pytest.mark.parametrize('exists', [False, True])
+def test_output_root_restart_layers_downloads_and_clear_config_restores_exact_fallback(preprocess_api, tmp_path, exists):
+    import hashlib
+    from pathlib import PurePosixPath
+    a = preprocess_api
+    c = a.c
+    output = tmp_path.parent/(tmp_path.name+'-configured-output')
+    if exists:
+        output.mkdir()
+    url = f'/api/v1/settings/projects/{a.project}/paths'
+    saved = a.client.put(url, json={'source_path':str(c.header.parent),'output_root':str(output)})
+    assert saved.status_code == 200 and saved.json()['output_enabled'] is False
+    assert output.exists() == exists
+    recipe = c.recipe([])
+    result = _restart_run(c, a.project, recipe)
+    assert result['settings_status'] == 200 and result['settings'] == {**saved.json(),'output_enabled':True}
+    row, report = result['run'], result['report']
+    assert len(row['artifacts']) == 2 and {entry['kind'] for entry in row['artifacts']} == {'report','sample_spectra'}
+    directory = output/a.project/c.cube/row['id']
+    assert directory.is_dir() and not c.paths.preprocessed.exists()
+    for entry in row['artifacts']:
+        relative = PurePosixPath(entry['relative_path'])
+        assert relative.parts[:3] == (a.project,c.cube,row['id']) and not relative.is_absolute()
+        assert entry['sha256'] == result['downloads'][entry['kind']] == hashlib.sha256((output/entry['relative_path']).read_bytes()).hexdigest()
+    assert sorted(report['outputs']['artifacts'],key=lambda x:x['kind']) == [
+        {'kind':entry['kind'],'relative_path':entry['relative_path']} for entry in row['artifacts']]
+    created = [event for event in result['audit'] if event[0]=='OUTPUT_ROOT_CREATE']
+    assert len(created) == (0 if exists else 1)
+    if not exists:
+        assert created[0][1:4] == [str(output),'ALLOW',''] and created[0][4]
+    npz = directory/'sample_spectra.npz'
+    with np.load(npz) as archive:
+        np.testing.assert_allclose(archive['mean_0'],c.values[c.label_map==0].mean(axis=0)/65535,rtol=0,atol=1e-12)
+    cleared = a.client.put(url, json={'source_path':'','output_root':''})
+    assert cleared.status_code == 200 and cleared.json()['output_enabled'] is False
+    fallback = _restart_run(c,a.project,recipe)
+    assert fallback['settings'] == cleared.json()
+    for entry in fallback['run']['artifacts']:
+        expected = f"{c.cube}/{fallback['run']['id']}/" + ('report.json' if entry['kind']=='report' else 'sample_spectra.npz')
+        assert entry['relative_path'].encode('utf-8') == expected.encode('utf-8')
+        assert (c.paths.preprocessed/expected).parent == c.paths.root/'preprocessed'/c.cube/fallback['run']['id']
+    assert result['downloads']['sample_spectra'] == fallback['downloads']['sample_spectra']
+    assert report['metrics'] == fallback['report']['metrics'] and report['steps'] == fallback['report']['steps']
+    assert len(list(output.rglob('sample_spectra.npz'))) == 1
+
+
 @pytest.fixture
 def preprocess_api(run_case):
     c = run_case

@@ -255,10 +255,12 @@ class RunEngine:
                 (str(recipe_version_id),)).fetchone()
             previous = db.execute("SELECT input_fingerprint FROM preprocess_run WHERE cube_id=? AND recipe_version_id=? "
                                   "AND status='succeeded' ORDER BY created_at DESC LIMIT 1", (str(cube_id), str(recipe_version_id))).fetchone()
+            project_id = db.execute("SELECT project_id FROM dataset_registry WHERE id=?", (str(cube_id),)).fetchone()[0]
             db.execute("INSERT INTO preprocess_run (id,cube_id,annotation_version_id,recipe_version_id,b01_branch,"
                        "input_fingerprint,status,note,created_at) VALUES (?,?,?,?,?,?,'pending',?,?)",
                        (identifier, str(cube_id), str(annotation_version_id), str(recipe_version_id), source.branch, fingerprint, note, timestamp()))
-        directory = self.paths.preprocessed / str(cube_id) / identifier
+        root = self.paths.artifact_root
+        directory = self.paths.preprocess_directory(project_id, cube_id, identifier)
         temporary = directory / ".tmp"
         temp_bytes, temp_peak_bytes, rss = 0, 0, peak_rss()
         try:
@@ -364,7 +366,7 @@ class RunEngine:
                               for i, record in enumerate(records) if "random_state" in record["params"]],
                 duration_s=perf_counter()-started,
                 recipe_pipeline_sha256=recipe_pipeline_sha256, recipe_hash_alg=recipe_hash_alg,
-                outputs={"artifacts": [{"kind": kind, "relative_path": (directory/filename).relative_to(self.paths.preprocessed).as_posix()}
+                outputs={"artifacts": [{"kind": kind, "relative_path": (directory/filename).relative_to(root).as_posix()}
                                        for kind, filename in (("sample_spectra", "sample_spectra.npz"), ("report", "report.json"))]},
                 reproducibility_assertion="同 recipe_pipeline_sha256 + 同 input_fingerprint + 同算子版本重跑：`sample_spectra.npz` 的 SHA256 必须一致；`report.json` 含 run_id / duration_s 等动态字段，不承诺文件字节一致，仅核验 `recipe_pipeline_sha256` / `input_fingerprint` / `metrics` / `steps` 语义一致")
             report["not_applicable"].extend([
@@ -382,7 +384,7 @@ class RunEngine:
             for kind, filename in (("sample_spectra", "sample_spectra.npz"), ("report", "report.json")):
                 target = directory/filename
                 storage.replace(directory/(filename+".tmp"), target)
-                artifacts.append((str(uuid4()), identifier, kind, target.relative_to(self.paths.preprocessed).as_posix(), file_sha256(target), timestamp()))
+                artifacts.append((str(uuid4()), identifier, kind, target.relative_to(root).as_posix(), file_sha256(target), timestamp()))
             with connect_database(self.database) as db:
                 db.executemany("INSERT INTO preprocess_artifact (id,run_id,kind,relative_path,sha256,created_at) VALUES (?,?,?,?,?,?)", artifacts)
                 db.execute("UPDATE preprocess_run SET status='succeeded',metrics=?,scaler_params=?,finished_at=? WHERE id=?",
@@ -390,11 +392,11 @@ class RunEngine:
         except Exception as error:
             structured = error if isinstance(error, DataError) else PreprocessError("PREPROCESS_RUN_FAILED", "预处理执行失败", reason=str(error))
             if directory.exists():
-                remove_directory(directory, self.paths.preprocessed)
+                remove_directory(directory, root)
             self._transition(identifier, "failed", error=json.dumps(structured.as_dict(), ensure_ascii=False), finished_at=timestamp())
         finally:
             if temporary.exists():
-                remove_directory(temporary, self.paths.preprocessed)
+                remove_directory(temporary, root)
         return self.get(identifier)
 
     def get(self, identifier):
