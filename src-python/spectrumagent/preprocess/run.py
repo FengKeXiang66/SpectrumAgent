@@ -7,9 +7,13 @@ import json
 import os
 from pathlib import Path, PurePosixPath
 import sqlite3
+import subprocess
+import sys
+from time import perf_counter
 from uuid import uuid4
 
 import numpy as np
+import sklearn
 
 from backend.database import connect_database
 from spectrumagent.data import DataError
@@ -35,6 +39,14 @@ def timestamp():
 
 def peak_rss():
     return memory_bytes()[1]
+
+
+def code_version():
+    try:
+        return subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=Path(__file__).resolve().parent,
+                              capture_output=True, text=True, check=True, timeout=5).stdout.strip() or None
+    except (OSError, subprocess.SubprocessError):
+        return None
 
 
 def remove_directory(path, root):
@@ -231,12 +243,16 @@ class RunEngine:
                                                                       "sha256": extra["coefficients_sha256"]})
 
     def run(self, cube_id, annotation_version_id, recipe_version_id, *, block_size=32, guard="clip", note=None):
+        started = perf_counter()
         dataset, source, pipeline, label_index, hashes, fingerprint = self._preflight(
             cube_id, annotation_version_id, recipe_version_id, block_size, guard)
         wavelengths = np.asarray(dataset.wavelengths) if dataset.wavelengths else None
         del dataset  # Release the preflight reader/mapping before bounded passes.
         identifier = str(uuid4())
         with connect_database(self.database) as db:
+            recipe_hash_alg, recipe_pipeline_sha256 = db.execute(
+                "SELECT algorithm,sha256 FROM recipe_pipeline_hash WHERE recipe_version_id=?",
+                (str(recipe_version_id),)).fetchone()
             previous = db.execute("SELECT input_fingerprint FROM preprocess_run WHERE cube_id=? AND recipe_version_id=? "
                                   "AND status='succeeded' ORDER BY created_at DESC LIMIT 1", (str(cube_id), str(recipe_version_id))).fetchone()
             db.execute("INSERT INTO preprocess_run (id,cube_id,annotation_version_id,recipe_version_id,b01_branch,"
@@ -328,6 +344,7 @@ class RunEngine:
             scaler_records = [record["meta"]["fitted"] for record in records if record["op"] == "standardize"]
             scaler = scaler_records if scaler_records else scaler
             scaler_value = scaler[0] if len(scaler) == 1 else scaler if scaler else None
+            revision = code_version()
             report = {"run_id": identifier, "cube_id": str(cube_id), "annotation_version_id": str(annotation_version_id),
                       "recipe_version_id": str(recipe_version_id), "input_fingerprint": fingerprint,
                       "source_hashes": hashes, "label_index": label_index, "metrics": measured, "steps": records,
@@ -339,6 +356,22 @@ class RunEngine:
                       "fitting_source": {"dataset_id": str(cube_id), "input_fingerprint": fingerprint,
                                          "n_spectra": int((source.label_map >= 0).sum()) if np.any(source.label_map >= 0) else int((source.label_map == -1).sum())},
                       "not_applicable": ["processed_cube/overlay：阶段一不产出；未登记临时 ICA 文件。"]}
+            report.update(
+                env={"python": sys.version, "numpy": np.__version__, "sklearn": sklearn.__version__},
+                code_version=revision, image_digest=None, seed=None, operator=None, actor="local",
+                seed_sources=[{"step_index": i, "op": record["op"], "version": record["version"],
+                               "random_state": record["params"]["random_state"]}
+                              for i, record in enumerate(records) if "random_state" in record["params"]],
+                duration_s=perf_counter()-started,
+                recipe_pipeline_sha256=recipe_pipeline_sha256, recipe_hash_alg=recipe_hash_alg,
+                outputs={"artifacts": [{"kind": kind, "relative_path": (directory/filename).relative_to(self.paths.preprocessed).as_posix()}
+                                       for kind, filename in (("sample_spectra", "sample_spectra.npz"), ("report", "report.json"))]},
+                reproducibility_assertion="同 recipe_pipeline_sha256 + 同 input_fingerprint + 同算子版本重跑：`sample_spectra.npz` 的 SHA256 必须一致；`report.json` 含 run_id / duration_s 等动态字段，不承诺文件字节一致，仅核验 `recipe_pipeline_sha256` / `input_fingerprint` / `metrics` / `steps` 语义一致")
+            report["not_applicable"].extend([
+                "image_digest：单机桌面无容器，不适用。", "seed：run 层无全局 seed；各 step 见 seed_sources。",
+                "operator：单机单用户、进程即身份；actor 为 local，不记录人名。"])
+            if revision is None:
+                report["not_applicable"].append("code_version：无法取得 git HEAD。")
             row = {"id": identifier, "recipe_version_id": str(recipe_version_id), "status": "succeeded", "metrics": measured}
             report["ranking"] = ranking([row])
             arrays = {f"{kind}_{index}": value[kind].astype(np.float64) for index, value in moments.items() for kind in ("mean", "std")}

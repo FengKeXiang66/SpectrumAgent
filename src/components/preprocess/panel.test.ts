@@ -68,3 +68,26 @@ test('unsupported operations are all marked stage two / not applicable without e
   assert.ok(PHASE_TWO.some(text => text.includes('坏波段'))); assert.ok(PHASE_TWO.some(text => text.includes('ROI')));
   assert.ok(PHASE_TWO.some(text => text.includes('Kappa'))); assert.ok(PHASE_TWO.some(text => text.includes('单独预览')));
 });
+
+test('metric provenance renders operator versions and the originating run under every metric', async () => {
+  const source = readFileSync(new URL('./PreprocessPanel.tsx', import.meta.url), 'utf8');
+  const view = source.slice(source.indexOf('function MetricsView('), source.indexOf('export default function PreprocessPanel'));
+  assert.match(view, /steps\.map\(step => `算子 \$\{step\.op\} · 版本 \$\{step\.version\}`\)/);
+  assert.match(view, /run_id \{runId\}/);
+  assert.equal((view.match(/\{provenance\}/g) ?? []).length, 2);
+  assert.match(source, /runId=\{report\?\.run_id \?\? run\.id\} steps=\{report\?\.steps\}/);
+  assert.match(source, /runId=\{row\.id\}/);
+  const { transpileModule, JsxEmit, ModuleKind } = await import('typescript');
+  const React = await import('react');
+  const { renderToStaticMarkup } = await import('react-dom/server');
+  const compiled = transpileModule(view, { compilerOptions: { jsx: JsxEmit.React, module: ModuleKind.CommonJS } }).outputText;
+  const MetricsView = new Function('React', compiled+'; return MetricsView;')(React);
+  const metrics = { snr: { mean: 3, median: 2, p10: 1, p90: 4, n_pixels: 12 }, snr_nan_count: 0,
+    nan_spectra_skipped: 0, fisher: 5, source: 'backend', variance_definition: 'population', excluded_classes: [], boundaries: [], limitations: [] };
+  const html = renderToStaticMarkup(React.createElement(MetricsView, { metrics, runId: 'origin-run',
+    steps: [{ op: 'snv', version: 1 }, { op: 'sg_derivative', version: 3 }] }));
+  // Five backend SNR entries and three present aggregate metrics each have a source footnote.
+  assert.equal((html.match(/<small>/g) ?? []).length, 8);
+  assert.equal((html.match(/算子 snv · 版本 1；算子 sg_derivative · 版本 3 · run_id origin-run/g) ?? []).length, 8);
+  assert.match(html, /SNR mean<\/dt><dd>3<\/dd>/);
+});

@@ -94,8 +94,10 @@ def test_bad_pipeline_before_write_and_duplicate_code_rollback(store):
 
 def test_concurrent_appends_get_unique_monotonic_versions(store):
     recipe = store.create("concurrent","并发",None,PIPELINE)
+    pipelines = [{"steps": [{"op": "sg_smooth", "version": 1, "params": {"window": 2*i+3, "polyorder": 1}}]}
+                 for i in range(8)]
     with ThreadPoolExecutor(max_workers=4) as pool:
-        versions = list(pool.map(lambda _:store.add_version(recipe["id"],PIPELINE),range(8)))
+        versions = list(pool.map(lambda pipeline:store.add_version(recipe["id"],pipeline),pipelines))
     assert sorted(row["version_no"] for row in versions) == list(range(2,10))
     assert [row["version_no"] for row in store.get(recipe["id"])["versions"]] == list(range(1,10))
 
@@ -135,3 +137,86 @@ def test_default_recipe_can_execute_on_another_spectral_input(store):
     x = np.arange(40,dtype=np.float64).reshape(2,20)+1
     result = store.registry.run(x,recipe["versions"][0]["pipeline"])
     assert result.spectra.shape == x.shape
+
+
+def test_pipeline_hash_uses_independent_canonical_utf8_bytes_and_recursive_key_order(store):
+    from spectrumagent.preprocess.recipes import RECIPE_HASH_ALGORITHM, pipeline_identity
+    first = {"steps": [{"op": "reflectance", "version": 1, "params": {
+        "branch": "passthrough", "hdr": {"metadata": {"材料": "谱", "b": 2, "a": 1}}}}]}
+    reordered = {"steps": [{"params": {"hdr": {"metadata": {"a": 1, "b": 2, "材料": "谱"}},
+                                      "branch": "passthrough"}, "version": 1, "op": "reflectance"}]}
+    expected_bytes = json.dumps(store.registry.parse_pipeline(first).model_dump(), sort_keys=True,
+                                separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode("utf-8")
+    expected = hashlib.sha256(expected_bytes).hexdigest()
+    assert pipeline_identity(first, store.registry) == (expected_bytes.decode("utf-8"), expected)
+    assert pipeline_identity(reordered, store.registry)[1] == expected
+    assert RECIPE_HASH_ALGORITHM == "sha256/json-canonical-v1"
+    made = store.create("unicode-hash", "规范化", None, first)
+    version = made["versions"][0]
+    assert version["recipe_pipeline_sha256"] == expected and version["recipe_hash_alg"] == RECIPE_HASH_ALGORITHM
+    with connect_database(store.database) as db:
+        assert db.execute("SELECT algorithm,sha256 FROM recipe_pipeline_hash WHERE recipe_version_id=?",
+                          (version["id"],)).fetchone() == (RECIPE_HASH_ALGORITHM, expected)
+    assert next(row for row in store.list() if row["id"] == made["id"])["versions"][0] == version
+
+
+def test_legacy_builtin_key_order_backfill_preserves_all_pipeline_bytes_and_is_idempotent(store):
+    from uuid import uuid4
+    from spectrumagent.preprocess.migrations import migrate
+    from spectrumagent.preprocess.recipes import RECIPE_HASH_ALGORITHM
+    builtin = store.list()[0]
+    # Historical plastic-snv-sg1 v1/v2 differ only in params key order (TASK-30 D3).
+    reordered = {"steps": [{"op": "snv", "version": 1, "params": {}},
+        {"op": "sg_derivative", "version": 1, "params": {"order": 1, "polyorder": 2, "window": 15}}]}
+    store.create("legacy-other", "第三个版本", None, PIPELINE)
+    with connect_database(store.database) as db:
+        db.execute("INSERT INTO preprocess_recipe_version (id,recipe_id,version_no,pipeline,note,created_at) "
+                   "VALUES (?,?,2,?,NULL,'legacy')", (str(uuid4()), builtin["id"], json.dumps(reordered, ensure_ascii=False)))
+        original = db.execute("SELECT id,CAST(pipeline AS BLOB) FROM preprocess_recipe_version ORDER BY id").fetchall()
+        assert len(original) == 3
+        db.execute("DROP TABLE recipe_pipeline_hash")
+    with connect_database(store.database) as db:
+        migrate(db)
+        hashes = db.execute("SELECT recipe_version_id,algorithm,sha256 FROM recipe_pipeline_hash ORDER BY recipe_version_id").fetchall()
+        assert len(hashes) == 3 and {row[1] for row in hashes} == {RECIPE_HASH_ALGORITHM}
+        for version_id, raw in original:
+            parsed = store.registry.parse_pipeline(raw.decode("utf-8")).model_dump()
+            expected = hashlib.sha256(json.dumps(parsed, sort_keys=True, separators=(",", ":"),
+                                                 ensure_ascii=False, allow_nan=False).encode("utf-8")).hexdigest()
+            assert next(row[2] for row in hashes if row[0] == version_id) == expected
+        assert db.execute("SELECT id,CAST(pipeline AS BLOB) FROM preprocess_recipe_version ORDER BY id").fetchall() == original
+        before = {table: db.execute(f'SELECT * FROM "{table}" ORDER BY rowid').fetchall() for (table,) in
+                  db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
+        migrate(db)
+        assert {table: db.execute(f'SELECT * FROM "{table}" ORDER BY rowid').fetchall() for table in before} == before
+    versions = store.get(builtin["id"])["versions"]
+    assert versions[0]["pipeline"] == versions[1]["pipeline"]
+    assert versions[0]["recipe_pipeline_sha256"] == versions[1]["recipe_pipeline_sha256"]
+
+
+from .run_fixtures import run_case
+from .test_routes import preprocess_api
+
+
+def test_same_content_http_400_preserves_version_and_hash_counts_and_new_code_is_allowed(preprocess_api):
+    client = preprocess_api.client
+    base = "/api/v1/preprocess/recipes"
+    pipeline = {"steps": [{"op": "sg_smooth", "version": 1, "params": {"window": 5, "polyorder": 2}}]}
+    reordered = {"steps": [{"version": 1, "params": {"polyorder": 2, "window": 5}, "op": "sg_smooth"}]}
+    made = client.post(base, json={"code": "hash-http", "name": "哈希", "pipeline": pipeline})
+    assert made.status_code == 201, made.text
+    row = made.json()
+    before = client.get(base+"/"+row["id"]).json()
+    with connect_database(preprocess_api.c.paths.database) as db:
+        counts = [db.execute(f"SELECT count(*) FROM {table}").fetchone()[0]
+                  for table in ("preprocess_recipe_version", "recipe_pipeline_hash")]
+    rejected = client.post(base+"/"+row["id"]+"/versions", json={"pipeline": reordered})
+    assert rejected.status_code == 400 and rejected.json()["error"] == "RECIPE_CONTENT_UNCHANGED"
+    assert set(rejected.json()) == {"error", "detail", "context"}
+    assert client.get(base+"/"+row["id"]).json() == before
+    with connect_database(preprocess_api.c.paths.database) as db:
+        assert [db.execute(f"SELECT count(*) FROM {table}").fetchone()[0]
+                for table in ("preprocess_recipe_version", "recipe_pipeline_hash")] == counts
+    other = client.post(base, json={"code": "hash-http-other", "name": "同内容新配方", "pipeline": reordered})
+    assert other.status_code == 201, other.text
+    assert other.json()["versions"][0]["recipe_pipeline_sha256"] == row["versions"][0]["recipe_pipeline_sha256"]

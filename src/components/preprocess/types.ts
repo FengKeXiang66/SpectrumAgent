@@ -3,7 +3,8 @@ import type { Json } from '../annotation/types.ts';
 export type Params = Record<string, Json>;
 export type Step = { op: string; version: number; params: Params };
 export type Pipeline = { steps: Step[] };
-export type RecipeVersion = { id: string; recipe_id: string; version_no: number; pipeline: Pipeline; note: string | null; created_at: string };
+export type RecipeVersion = { id: string; recipe_id: string; version_no: number; pipeline: Pipeline; note: string | null; created_at: string;
+  recipe_pipeline_sha256: string; recipe_hash_alg: string };
 export type Recipe = { id: string; code: string; name: string; description: string | null; builtin: number; created_at: string; versions: RecipeVersion[] };
 export type RecipeBody = { code: string; name: string; description?: string | null; pipeline: Pipeline; note?: string | null };
 export type VersionBody = { pipeline: Pipeline; note?: string | null };
@@ -28,7 +29,12 @@ export type Report = { run_id: string; cube_id: string; annotation_version_id: s
   input_fingerprint: string; source_hashes: Record<string, string>; label_index: Record<string, string>; metrics: Metrics;
   steps: { op: string; version: number; params: Params; meta: Params }[]; b01: Json; wavelengths: number[] | null;
   curves: Curves; temporary_bytes: number; temporary_peak_bytes: number; temporary_data: string; peak_rss_bytes: number;
-  input_fingerprint_matches_previous: boolean | null; fitting_source: Params; not_applicable: string[]; ranking: Ranking[] };
+  input_fingerprint_matches_previous: boolean | null; fitting_source: Params; not_applicable: string[]; ranking: Ranking[];
+  env: { python: string; numpy: string; sklearn: string }; code_version: string | null; image_digest: null;
+  seed: null; operator: null; actor: 'local'; duration_s: number;
+  seed_sources: { step_index: number; op: string; version: number; random_state: number }[];
+  recipe_pipeline_sha256: string; recipe_hash_alg: string;
+  outputs: { artifacts: Pick<Artifact, 'kind' | 'relative_path'>[] }; reproducibility_assertion: string };
 export type BinaryArtifact = { content_type: 'application/octet-stream'; body_base64: string; filename: string };
 export type ProjectRecipe = { project_id: string; recipe_id: string; selected_at: string };
 export type PreprocessRequest =

@@ -11,6 +11,7 @@ from uuid import uuid4
 from backend.database import connect_database
 from . import builtin_registry
 from .migrations import migrate
+from .registry import PreprocessError
 
 
 def input_fingerprint(dataset_id, source_hashes, annotation_version_id, n_pixels):
@@ -46,6 +47,17 @@ def _version(row):
     return result
 
 
+RECIPE_HASH_ALGORITHM = "sha256/json-canonical-v1"
+
+
+def pipeline_identity(pipeline, registry=None):
+    """One canonical representation for new versions and immutable-row backfill."""
+    registry = registry if registry is not None else builtin_registry()
+    parsed = registry.parse_pipeline(pipeline).model_dump()
+    encoded = json.dumps(parsed, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
+    return encoded, hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+
 class RecipeStore:
     def __init__(self, database, registry=None):
         self.database = Path(database)
@@ -57,38 +69,47 @@ class RecipeStore:
             migrate(db)
 
     def _pipeline(self, pipeline):
-        parsed = self.registry.parse_pipeline(pipeline)
-        return json.dumps(parsed.model_dump(), ensure_ascii=False, allow_nan=False)
+        return pipeline_identity(pipeline, self.registry)
 
     def create(self, code, name, description, pipeline, note=None):
         if not isinstance(code, str) or not code.strip() or not isinstance(name, str) or not name.strip():
             raise ValueError("code/name 须为非空字符串")
         if description is not None and not isinstance(description, str) or note is not None and not isinstance(note, str):
             raise ValueError("description/note 须为字符串或 None")
-        encoded = self._pipeline(pipeline)
-        identifier, timestamp = str(uuid4()), _timestamp()
+        encoded, digest = self._pipeline(pipeline)
+        identifier, version_id, timestamp = str(uuid4()), str(uuid4()), _timestamp()
         with self.lock, connect_database(self.database, timeout=10) as db:
             db.execute("BEGIN IMMEDIATE")
             db.execute("INSERT INTO preprocess_recipe (id,code,name,description,builtin,created_at) VALUES (?,?,?,?,?,?)",
                        (identifier, code, name, description, 0, timestamp))
             db.execute("INSERT INTO preprocess_recipe_version (id,recipe_id,version_no,pipeline,note,created_at) VALUES (?,?,?,?,?,?)",
-                       (str(uuid4()), identifier, 1, encoded, note, timestamp))
+                       (version_id, identifier, 1, encoded, note, timestamp))
+            db.execute("INSERT INTO recipe_pipeline_hash (recipe_version_id,algorithm,sha256) VALUES (?,?,?)",
+                       (version_id, RECIPE_HASH_ALGORITHM, digest))
         return self.get(identifier)
 
     def add_version(self, recipe_id, pipeline, note=None):
         if note is not None and not isinstance(note, str):
             raise ValueError("note 须为字符串或 None")
-        encoded = self._pipeline(pipeline)
+        encoded, digest = self._pipeline(pipeline)
         row = {"id": str(uuid4()), "recipe_id": str(recipe_id), "pipeline": encoded,
                "note": note, "created_at": _timestamp()}
         with self.lock, connect_database(self.database, timeout=10) as db:
             db.execute("BEGIN IMMEDIATE")
             if not db.execute("SELECT 1 FROM preprocess_recipe WHERE id=?", (str(recipe_id),)).fetchone():
                 raise KeyError(recipe_id)
+            latest = db.execute("SELECT h.algorithm,h.sha256 FROM preprocess_recipe_version v "
+                                "JOIN recipe_pipeline_hash h ON h.recipe_version_id=v.id "
+                                "WHERE v.recipe_id=? ORDER BY v.version_no DESC LIMIT 1", (str(recipe_id),)).fetchone()
+            if latest == (RECIPE_HASH_ALGORITHM, digest):
+                raise PreprocessError("RECIPE_CONTENT_UNCHANGED", "配方内容与最新版本相同", recipe_id=str(recipe_id))
             row["version_no"] = db.execute("SELECT coalesce(max(version_no),0)+1 FROM preprocess_recipe_version WHERE recipe_id=?",
                                            (str(recipe_id),)).fetchone()[0]
             db.execute("INSERT INTO preprocess_recipe_version (id,recipe_id,version_no,pipeline,note,created_at) "
                        "VALUES (:id,:recipe_id,:version_no,:pipeline,:note,:created_at)", row)
+            db.execute("INSERT INTO recipe_pipeline_hash (recipe_version_id,algorithm,sha256) VALUES (?,?,?)",
+                       (row["id"], RECIPE_HASH_ALGORITHM, digest))
+        row.update(recipe_hash_alg=RECIPE_HASH_ALGORITHM, recipe_pipeline_sha256=digest)
         return _version(row)
 
     def get(self, recipe_id):
@@ -99,7 +120,9 @@ class RecipeStore:
                 raise KeyError(recipe_id)
             result = dict(row)
             result["versions"] = [_version(row) for row in db.execute(
-                "SELECT * FROM preprocess_recipe_version WHERE recipe_id=? ORDER BY version_no", (str(recipe_id),))]
+                "SELECT v.*,h.algorithm AS recipe_hash_alg,h.sha256 AS recipe_pipeline_sha256 "
+                "FROM preprocess_recipe_version v JOIN recipe_pipeline_hash h ON h.recipe_version_id=v.id "
+                "WHERE v.recipe_id=? ORDER BY v.version_no", (str(recipe_id),))]
         return result
 
     def list(self):

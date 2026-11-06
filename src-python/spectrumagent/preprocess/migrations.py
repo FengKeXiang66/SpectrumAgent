@@ -81,3 +81,14 @@ def migrate(db):
                        (identifier, BUILTIN_CODE, "塑料 SNV + SG 一阶导数", "场景示例默认值、可改；需求场景 S1 第418行", 1, timestamp))
             db.execute("INSERT INTO preprocess_recipe_version (id,recipe_id,version_no,pipeline,note,created_at) VALUES (?,?,?,?,?,?)",
                        (str(uuid4()), identifier, 1, json.dumps(BUILTIN_PIPELINE, ensure_ascii=False), None, timestamp))
+        # TASK-30: independent extension; the TASK-05 DDL and pipeline text stay immutable.
+        from .recipes import RECIPE_HASH_ALGORITHM, pipeline_identity
+        db.execute("CREATE TABLE IF NOT EXISTS recipe_pipeline_hash ("
+                   "recipe_version_id TEXT PRIMARY KEY REFERENCES preprocess_recipe_version(id),"
+                   "algorithm TEXT NOT NULL, sha256 TEXT NOT NULL)")
+        for version_id, pipeline in db.execute("SELECT id,pipeline FROM preprocess_recipe_version"):
+            if db.execute("SELECT 1 FROM recipe_pipeline_hash WHERE recipe_version_id=?", (version_id,)).fetchone():
+                continue
+            _, digest = pipeline_identity(pipeline)
+            db.execute("INSERT OR IGNORE INTO recipe_pipeline_hash (recipe_version_id,algorithm,sha256) VALUES (?,?,?)",
+                       (version_id, RECIPE_HASH_ALGORITHM, digest))

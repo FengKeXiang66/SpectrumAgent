@@ -334,3 +334,105 @@ def test_b08_run_nan_fit_exclusion_and_input_provenance_count(run_case, op):
     assert row["metrics"]["nan_spectra_skipped"] == 1
     if op == "ica":
         assert report["temporary_bytes"] == 109*8*8
+
+
+def _assert_manifest_artifacts_from_db(c, row, report):
+    with connect_database(c.paths.database) as db:
+        stored = db.execute("SELECT kind,relative_path,sha256 FROM preprocess_artifact WHERE run_id=? ORDER BY kind",
+                            (row["id"],)).fetchall()
+        identity = db.execute("SELECT algorithm,sha256 FROM recipe_pipeline_hash WHERE recipe_version_id=?",
+                              (row["recipe_version_id"],)).fetchone()
+    assert len(stored) == 2 and {item[0] for item in stored} == {"sample_spectra", "report"}
+    assert sorted(report["outputs"]["artifacts"], key=lambda item: item["kind"]) == [
+        {"kind": kind, "relative_path": relative} for kind, relative, _ in stored]
+    for item in report["outputs"]["artifacts"]:
+        assert set(item) == {"kind", "relative_path"}
+        assert not PurePosixPath(item["relative_path"]).is_absolute() and "\\" not in item["relative_path"]
+    for _, relative, digest in stored:
+        assert digest == hashlib.sha256((c.paths.preprocessed/relative).read_bytes()).hexdigest()
+    assert (report["recipe_hash_alg"], report["recipe_pipeline_sha256"]) == identity
+    assert identity[0] == "sha256/json-canonical-v1" and len(identity[1]) == 64
+
+
+def test_manifest_runtime_origins_db_hash_and_independent_monotonic_duration(run_case, monkeypatch):
+    import subprocess
+    import sys
+    from pathlib import Path
+    from time import perf_counter
+    import sklearn
+    import spectrumagent.preprocess.recipes as recipes
+    import spectrumagent.preprocess.run as module
+    c = run_case
+    recipe = c.recipe([step("pca", n_components=2, random_state=17)])
+    ticks = []
+    def clock():
+        value = perf_counter()
+        ticks.append(value)
+        return value
+    monkeypatch.setattr(module, "perf_counter", clock)
+    # Unparseable timestamps prove duration is not derived from persisted time strings.
+    monkeypatch.setattr(module, "timestamp", lambda: "not-a-date")
+    monkeypatch.setattr(recipes, "pipeline_identity", lambda *_: pytest.fail("run must reference the DB hash, not recompute"))
+    before = perf_counter()
+    row = c.runner.run(c.cube, c.version, recipe)
+    elapsed = perf_counter()-before
+    assert row["status"] == "succeeded", row["error"]
+    report = c.report(row)
+    assert report["env"] == {"python": sys.version, "numpy": np.__version__, "sklearn": sklearn.__version__}
+    expected_revision = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"],
+                                               cwd=Path(__file__).resolve().parents[3], text=True).strip()
+    assert report["code_version"] == expected_revision
+    assert report["image_digest"] is report["seed"] is report["operator"] is None
+    assert report["actor"] == "local"
+    for key in ("image_digest", "seed", "operator"):
+        assert any(key+"：" in text for text in report["not_applicable"])
+    assert report["seed_sources"] == [{"step_index": 0, "op": "pca", "version": 1, "random_state": 17}]
+    assert len(ticks) == 2 and before <= ticks[0] <= ticks[1] <= before+elapsed
+    assert type(report["duration_s"]) is float and 0 < report["duration_s"] <= elapsed
+    assert report["duration_s"] == ticks[1]-ticks[0]
+    assert row["finished_at"] == "not-a-date" and not {"finished_at", "created_at", "elapsed_s"} & set(report)
+    _assert_manifest_artifacts_from_db(c, row, report)
+    assert report["reproducibility_assertion"] == (
+        "同 recipe_pipeline_sha256 + 同 input_fingerprint + 同算子版本重跑：`sample_spectra.npz` 的 SHA256 必须一致；"
+        "`report.json` 含 run_id / duration_s 等动态字段，不承诺文件字节一致，仅核验 `recipe_pipeline_sha256` / "
+        "`input_fingerprint` / `metrics` / `steps` 语义一致")
+
+
+def test_manifest_missing_git_and_global_seed_have_explanations_without_invented_values(run_case, monkeypatch):
+    import spectrumagent.preprocess.run as module
+    c = run_case
+    recipe = c.recipe([])
+    calls = []
+    def missing_git(command, **kwargs):
+        calls.append(command)
+        raise FileNotFoundError("git unavailable")
+    monkeypatch.setattr(module.subprocess, "run", missing_git)
+    row = c.runner.run(c.cube, c.version, recipe)
+    assert row["status"] == "succeeded", row["error"]
+    report = c.report(row)
+    assert calls == [["git", "rev-parse", "--short", "HEAD"]]
+    assert report["code_version"] is None and any("code_version：" in text for text in report["not_applicable"])
+    assert report["seed"] is None and report["seed_sources"] == []
+    assert report["operator"] is report["image_digest"] is None and report["actor"] == "local"
+    _assert_manifest_artifacts_from_db(c, row, report)
+
+
+def test_same_recipe_and_pixels_reproduce_npz_and_report_semantics_without_report_byte_claim(run_case):
+    c = run_case
+    recipe = c.recipe([step("standardize", method="standard")])
+    first = c.runner.run(c.cube, c.version, recipe)
+    second = c.runner.run(c.cube, c.version, recipe)
+    assert first["status"] == second["status"] == "succeeded", (first["error"], second["error"])
+    a, b = c.report(first), c.report(second)
+    assert first["id"] != second["id"] and a["run_id"] != b["run_id"]
+    assert first["input_fingerprint"] == second["input_fingerprint"] == a["input_fingerprint"] == b["input_fingerprint"]
+    assert a["recipe_pipeline_sha256"] == b["recipe_pipeline_sha256"]
+    assert a["metrics"] == b["metrics"] and a["steps"] == b["steps"]
+    hashes = []
+    for row, report in ((first, a), (second, b)):
+        _assert_manifest_artifacts_from_db(c, row, report)
+        artifact = next(item for item in row["artifacts"] if item["kind"] == "sample_spectra")
+        actual = hashlib.sha256((c.paths.preprocessed/artifact["relative_path"]).read_bytes()).hexdigest()
+        assert actual == artifact["sha256"]
+        hashes.append(actual)
+    assert hashes[0] == hashes[1]

@@ -11,11 +11,13 @@ import PipelineEditor from './PipelineEditor';
 import './preprocess.css';
 import './preprocess-skin.css';
 
-function MetricsView({ metrics }: { metrics: Metrics }) {
+function MetricsView({ metrics, runId, steps }: { metrics: Metrics; runId: string; steps?: Pick<Step, 'op' | 'version'>[] }) {
+  const provenance = <small>{steps ? steps.map(step => `算子 ${step.op} · 版本 ${step.version}`).join('；') || '无配方算子'
+    : '算子 · 版本：报告待加载'} · run_id {runId}</small>;
   return <section aria-label="后端指标"><h3>后端逐像素指标</h3><dl className="pp-metrics">
-    {Object.entries(metrics.snr).map(([key, value]) => <div key={key}><dt>SNR {key}</dt><dd>{value ?? '不适用'}</dd></div>)}
+    {Object.entries(metrics.snr).map(([key, value]) => <div key={key}><dt>SNR {key}</dt><dd>{value ?? '不适用'}</dd>{provenance}</div>)}
     {(['snr_nan_count', 'nan_spectra_skipped', 'interclass_distance', 'intraclass_variance', 'fisher'] as const).filter(key => key in metrics).map(key =>
-      <div key={key}><dt>{key}</dt><dd>{metrics[key] ?? '不适用'}</dd></div>)}
+      <div key={key}><dt>{key}</dt><dd>{metrics[key] ?? '不适用'}</dd>{provenance}</div>)}
   </dl><p>{metrics.source}</p><p>{metrics.variance_definition}</p>
     {metrics.excluded_classes.map(item => <p key={item.label_index}>label_index {item.label_index} · {item.pixel_count}：{item.reason}</p>)}
     {[...metrics.boundaries, ...metrics.limitations].map((text, i) => <p key={i}>{text}</p>)}
@@ -170,7 +172,7 @@ export default function PreprocessPanel({ record, onClose, refreshVersion = 0 }:
       <button disabled={busy} onClick={() => { void task(refresh); }}>刷新最近 run / 恢复状态</button>
       <ul>{history.map(row => <li key={row.id}><button disabled={busy} onClick={() => { void task(async () => showRun(await preprocessing.getRun(row.id))); }}>{row.id.slice(0, 8)} · {row.status}</button> {row.error_code} · {row.created_at}</li>)}</ul>
       {run && <section aria-label="run 详情"><h3>{run.status} · {run.id}</h3>{run.error && <pre role="alert">{describePreprocessError(run.error)}</pre>}
-        {run.metrics && <MetricsView metrics={run.metrics} />}</section>}
+        {run.metrics && <MetricsView metrics={run.metrics} runId={report?.run_id ?? run.id} steps={report?.steps} />}</section>}
       {report && <><CompareChart report={report} labels={labels} inputBands={record.dataset.shape[2]} />{report.steps.filter(s => ['pca', 'mnf', 'ica'].includes(s.op)).map((step, i) => <section key={i}>
         <h3>{step.op} · {step.op === 'ica' ? '分量重构能量占比' : '解释方差占比'}</h3>
         {step.op === 'ica' && <p>{String(step.meta.variance_definition ?? '')}</p>}
@@ -179,7 +181,8 @@ export default function PreprocessPanel({ record, onClose, refreshVersion = 0 }:
       {comparison && <section aria-label="配方对比"><h3>Fisher 主排序</h3><table><thead><tr><th>rank</th><th>run</th><th>recipe_version</th><th>Fisher</th></tr></thead>
         <tbody>{comparison.ranking.map(row => <tr key={row.run_id}><td>{row.rank}</td><td>{row.run_id}</td><td>{row.recipe_version_id}</td><td>{row.fisher}</td></tr>)}</tbody></table>
         {comparison.runs.map(row => <section key={row.id}><button disabled={busy} onClick={() => { void task(() => showRun(row)); }}>查看 {row.id.slice(0, 8)} · {row.status}</button>
-          {row.metrics?.fisher == null && <p>未参与排名：{row.error ? describePreprocessError(row.error) : '后端 Fisher 为 null；详见 excluded_classes / limitations。'}</p>}{row.metrics && <MetricsView metrics={row.metrics} />}</section>)}
+          {row.metrics?.fisher == null && <p>未参与排名：{row.error ? describePreprocessError(row.error) : '后端 Fisher 为 null；详见 excluded_classes / limitations。'}</p>}{row.metrics && <MetricsView metrics={row.metrics} runId={row.id}
+            steps={report?.run_id === row.id ? report.steps : recipes.flatMap(recipe => recipe.versions).find(version => version.id === row.recipe_version_id)?.pipeline.steps} />}</section>)}
         {comparison.boundaries.map(text => <p key={text}>{text}</p>)}<p>{comparison.selection}</p>
       </section>}
       <ul>{PHASE_TWO.map(text => <li key={text}>{text}</li>)}</ul>
