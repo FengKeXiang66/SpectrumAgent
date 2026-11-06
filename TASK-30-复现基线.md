@@ -1,6 +1,6 @@
 # TASK-30 复现基线卡（P0-3 · 正式卡）
 
-> **状态**：**已放行、待需求方实读后单文件提交入库**（2026-11-06）。队列零卡在途（`b811d24` TASK-26 收口 → `47826da` TASK-29 放行登记 → `fa7c4f1` TASK-29 执行），本卡入库后提示词不用排队，可由需求方直接发。**本卡不代发提示词、不代提交**；卡是执行期唯一口径，对话补充无效，变更另出修订版。
+> **状态**：**v1.1（2026-11-06 20:42 需求方放行开工自检临时根口径）**。v1 已单文件入库 `2a5f626 docs(task30): TASK-30 复现基线卡入库`（108 行）。**本卡不代发提示词、不代提交**；卡是执行期唯一口径，对话补充无效，变更另出修订版。**v1.1 只改 §3 开工自检**：后端基线统一为仓库根全路径命令，并放行仓库内全新临时根（三变量同设）；卡内 `fa7c4f1` 重锚的代码锚点在 `2a5f626` 未漂移（该提交仅新增本卡文件）。D1–D8、§4 改动清单、§5、§6 G1–G7、§7 即停、§8 **全部零改动**。修订须单文件提交入库后再发提示词。
 > **卡型**：**正式卡**，不是轻量卡。理由：① 契约改动——`report.json` 顶层加键；② 两项新口径决策——配方内容哈希的算法与落点、manifest 字段集。轻量判据（无新口径决策）不满足。
 > **事实源**：需求 v2.7 `artifacts/step3/requirements-v2.7.txt`；需求/UI 文档 `E:/中达瑞和公司/10月15日/光谱数据AI-Agent处理平台_需求分析与设计.html`、`…_第一阶段UI设计与高保真原型.html`；归档版本禁引。
 > **行号时效**：以下全部为 **HEAD `fa7c4f1`（2026-11-06 00:43 +0800）** 实读重锚。开工仍须逐条 grep §3，漂移即停，禁止按偏移推算；引用历史证据文件须标注快照时间与提交（见 §2 D6）。
@@ -51,7 +51,9 @@
 
 **影响面结论**：report 顶层加键对后端既有断言零破坏；前端只有 `types.ts` 与 `MetricsView` 需要动；`openapi.json` 与 `TASK-05-预处理.md` 保持零字节改动。
 
-**开工自检**：① `git status --short` 全文回报（现场为 14 项 `artifacts/step2/` 行尾噪声 M + 1 个 untracked `docs/AI自动标注路径分析.md`，§4 目标文件须为非 M）；② 后端 `pytest tests/preprocess tests/data/test_api.py::test_api_schema_snapshot` 与前端 `node --test "src/**/*.test.ts"` 各记基线，唯一判据「既有用例不变红变少」。
+**开工自检**：① `git status --short` 全文回报（现场为 14 项 `artifacts/step2/` 行尾噪声 M + 2 个 untracked：`TASK-31-输出根接线.md` 为已知排队卡、`docs/AI自动标注路径分析.md`；两者禁触碰；§4 目标文件须为非 M）；② 后端基线（**仓库根执行、命令逐字**）：`./.venv/Scripts/python.exe -m pytest src-python/tests/preprocess src-python/tests/data/test_api.py::test_api_schema_snapshot -q --no-header`，参照 `282 passed / 1 warning`；③ 前端基线 `node --test "src/**/*.test.ts"`（双层 glob；`src/*/.test.ts` 实测 0 tests 且 exit 0，假绿禁用），参照 `264 / 264 / 0`；④ 回报 Python 与 Node 版本（参照 Python 3.12.13，node 版本差异不作判据）。唯一判据「既有用例不变红变少」；数字与参照不符时先说明差异来源、不得继续。
+
+**v1.1 临时根口径（20:42 需求方放行，仅作用于后端基线）**：执行前在仓库内预建**本次全新**的临时根 `E:\AI_Agent\.runtime\task30-opening-temproot`（`.gitignore:43` 已忽略 `.runtime/`，不进 `git status`），并**同时**把 `PYTEST_DEBUG_TEMPROOT` / `TMP` / `TEMP` 三个环境变量指向该目录；上面的 pytest 命令本体与其余参数逐字不变。三变量必须同设（实测只设 `PYTEST_DEBUG_TEMPROOT` 仍 33 setup errors，`TMP/TEMP` 指向系统 Temp 会再次触发 WinError 5）；等价写法见 `.runtime/131-results/run_pytest.py:8-9` 的项目既有惯例。**基线仍须实测回报 282 passed，不得沿用参照数字当已通过**；禁止清理或改 `%LOCALAPPDATA%\Temp` 的目录 / ACL。前端命令、四项自检其余内容、§6 G1–G7、§7 即停零改动。
 
 ## 4. 改动清单（清单外零改动）
 
