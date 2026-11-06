@@ -2,8 +2,8 @@
 
 > **状态**：**已入库、可执行**（2026-11-06 23:58 起草方按需求方授权单文件提交；提交号以 `git log -1 --format=%h` 为准，提示词中亦给出）。队列：TASK-30 复现基线 `c59dc1d`、TASK-31 输出根接线 `974e8f4` 均已入库并 G1–G8 收口，零卡在途；本卡入库后提示词不用排队。**本卡不代发提示词**；卡是执行期唯一口径，对话补充无效，变更另出修订版。P0-4（`scaler_params` 唯一真源）与 NAS 专属语义卡继续挂账，本卡不承载。
 > **卡型**：正式卡。契约改动（新增导出端点、`kind` 枚举扩容、`api/openapi.json` 重生成）+ 多项新口径决策（导出范围、标定真源、ENVI 格式、内存红线、流式下载、manifest 关联）。轻量判据（无新口径决策）不满足。
-> **事实源**：需求 v2.7 `artifacts/step3/requirements-v2.7.txt`；需求/UI 文档 `E:/中达瑞和公司/10月15日/光谱数据AI-Agent处理平台_需求分析与设计.html`（FR-A12 `—:523`、§6 `—:1096/2852`）、`…_第一阶段UI设计与高保真原型.html`（S03 `—:1432`、S09 产物清单 `—:2074-2076`、验收项 13 `—:2517`）；`TASK-05-预处理.md:121/197`；`TASK-31-输出根接线.md:17`（D1 裁定）、`:128`（导出卡挂账）、`TASK-30-复现基线.md:110`（`test_run.py:60` 点名）。归档版本禁引。
-> **行号时效**：以下全部为 **代码基线 `974e8f4`（TASK-31 十九文件入库后）** 实读重锚；**本卡提交只新增卡文件、不含任何代码改动，故 §3 代码行号仍以 `974e8f4` 为准，不按本卡提交号推算**。开工须同时确认 HEAD 含 `974e8f4` 与本卡提交号，并逐条 grep §3，漂移即停，禁止按偏移推算；格式与键清单一律锚当前代码基线，引用历史证据须标快照时间与提交。
+> **事实源**：需求 v2.7 `artifacts/step3/requirements-v2.7.txt`；需求/UI 文档 `E:/中达瑞和公司/10月15日/光谱数据AI-Agent处理平台_需求分析与设计.html`（FR-A12 `—:523`、§6 `—:1096/2852`）、`…_第一阶段UI设计与高保真原型.html`（S03 `—:1432`、S09 产物清单 `—:2074-2076`、验收项 13 `—:2517`）；`TASK-05-预处理.md:121/197`；`TASK-31-输出根接线.md:17`（D1 裁定）、`:128`（导出卡挂账）、`TASK-30-复现基线.md:112`（`test_run.py:60` 点名）。归档版本禁引。
+> **行号时效**：以下全部为 **代码基线 `974e8f4`（TASK-31 十九文件入库后）** 实读重锚；**本卡提交只新增卡文件、不含任何代码改动，故 §3 代码行号仍以 `974e8f4` 为准，不按本卡提交号推算**。开工须同时确认 HEAD 含 `974e8f4` 与本卡提交号，并逐条 grep §3，漂移即停，禁止按偏移推算；格式与键清单一律锚当前代码基线，引用历史证据须标快照时间与提交。**锚点订正记录**：首次开工即停时发现 `TASK-30-复现基线.md:110` 为空行（该卡 §8「导出卡已知影响点」实际在 `:112`），本卡三处引用已统一改为 `:112`；同时对 `TASK-31-输出根接线.md:17/128`、`workflows.py:132-141`、`api/preprocess.py:40-46`、`types.ts:6,27-31`、`PreprocessPanel.tsx:33/85/175/185`、`panel.test.ts:48-64` 及 §3 全部代码锚点逐条复核，无其它漂移。
 > **不承载**：FR-A12 vs §6 的「默认只存参数、物化只走显式导出」裁定已由 **TASK-31 D1（`TASK-31-输出根接线.md:17`）写定一次**，本卡按行号引用、不各裁一套；`scaler_params` 双口径（P0-4）、输出根接线、配方哈希 / manifest 字段集（TASK-30）均不在本卡。
 
 ## 1. 改什么（一句话）
@@ -25,14 +25,14 @@
 | D9 | **超 8 MiB 流式下载**：`MAX_ARTIFACT_BYTES`（`api/preprocess.py:17`）是 IPC 响应保护，**本卡不改**；`artifact` 端点 `:144` 的 `kind: Literal["sample_spectra","report"]` 扩到含 `processed_cube`，但 `:160` 的 size 门对大立方体必拒。定案：新增**独立流式端点** `GET /api/v1/preprocess/runs/{run_id}/exports/{filename}`，按固定 chunk 迭代读、`StreamingResponse` 返回，保留 `:149-154` 的 POSIX 相对路径与越界校验；既有 `test_routes.py:262-273` 的 8 MiB 边界断言保持绿 | 用户口径检查单 ④；`api/preprocess.py:143-163` 端点全文；超大产物不应挤占 IPC 响应缓冲 |
 | D10 | **关联 run manifest（不回写 report）**：导出目录内新增 `export_manifest.json`，字段 `run_id` / `recipe_pipeline_sha256` / `recipe_hash_alg` / `input_fingerprint` / `code_version` / `scope` / `fit_signature`（各 fitted step 的规范化参数摘要 sha256）/ `envi`（shape/dtype/interleave/wavelengths 摘要）/ `artifacts`（两文件 kind + relative_path + sha256）/ `peak_rss_bytes` / `exported_at`。`report.json` 字节不变；关联靠 `run_id` + 哈希引用，可被 `run_provenance` 只透出白名单字段 | TASK-30 D5 的 manifest 字段集不改；FR-A13⑤ 路径不进日志 / 工具 / LLM 上下文（`workflows.py:132-141` 白名单） |
 | D11 | **契约与 openapi**：新增端点 + `Literal` 扩容会改变 `app.openapi()` → **必须重生成 `src-python/spectrumagent/api/openapi.json`**（格式 `test_api.py:209-215`：`json.dumps(app.openapi(), ensure_ascii=False, indent=2)+"\n"`，按 `os.linesep` 换行），断言本身不得删改。前端 `src/components/preprocess/api.ts:21` 的 `getArtifact` kind 联合类型、`types.ts` 的封闭结构、`PreprocessPanel.tsx` 需同步扩字段并加「显式导出」入口 | `test_api.py:209-215` 逐字节断言；TASK-31 D9 同款处置；前端封闭 TS 结构不同步会静默不可见 |
-| D12 | **`test_run.py:60` 的处置（对 TASK-30 §8 的精确化）**：TASK-30 预判「导出卡登记 `processed_cube` 后该行必红」，本卡定案 `export` 默认关闭 → 既有 `run_case` 从不触发导出，该集合断言**预期保持绿**；新增导出用例显式断言导出后集合含第三 kind。若实现使既有 run 也产生第三 kind 而变红，须按「按 export 分支判定」**适配语义**，不得删断言、不得放宽为子集判定凑绿 | `tests/preprocess/test_run.py:60` 逐字为 `== {"sample_spectra","report"}`（HEAD `974e8f4` 实读）；`TASK-30-复现基线.md:110` 挂账原文；TASK-30 §7 即停 6「既有用例变红变少 → 停」 |
+| D12 | **`test_run.py:60` 的处置（对 TASK-30 §8 的精确化）**：TASK-30 预判「导出卡登记 `processed_cube` 后该行必红」，本卡定案 `export` 默认关闭 → 既有 `run_case` 从不触发导出，该集合断言**预期保持绿**；新增导出用例显式断言导出后集合含第三 kind。若实现使既有 run 也产生第三 kind 而变红，须按「按 export 分支判定」**适配语义**，不得删断言、不得放宽为子集判定凑绿 | `tests/preprocess/test_run.py:60` 逐字为 `== {"sample_spectra","report"}`（HEAD `974e8f4` 实读）；`TASK-30-复现基线.md:112` 挂账原文；TASK-30 §7 即停 6「既有用例变红变少 → 停」 |
 
 ## 3. 现场锚点与影响面（HEAD `974e8f4` 重锚，开工 grep，漂移即停）
 
 | 文件:行 | 锚定内容 | 动作 |
 |---|---|---|
 | `TASK-31-输出根接线.md:17` / `:128` | D1 裁定原文与导出卡挂账清单 | 只引用，不改 |
-| `TASK-30-复现基线.md:110` | 「导出卡已知影响点：`test_run.py:60` 必红」 | 见下方 D12 处置，不改该文件 |
+| `TASK-30-复现基线.md:112` | 「导出卡已知影响点：`test_run.py:60` 必红」 | 见下方 D12 处置，不改该文件 |
 | `preprocess/run.py:98-100,89-108,142-143,210-215,231,309,352,360,369,387-389` | B01 施加、逐块 `lines()`、`fit_standard` 的 `meta.fitted`、`_stream`、`_merge_records` 保留 fits meta、`final_axis`、`report.steps`、`not_applicable`、`outputs.artifacts`、artifact 登记与 sha256 实算 | **不改 run.py**；只读其 report 产物与复用分块遍历思路 |
 | `preprocess/operators/pca.py:52-64` | `fit_pca` 返回 `mean/loadings/meta`（`loadings` 进 meta） | 只读，作为 D4 真源证据 |
 | `modeling/inference.py:38-101` | `apply_with_calibration` 冻结重放思路 | 参照思路，**不作标定真源**（其 calibration 是注册时重建） |
