@@ -1,0 +1,110 @@
+# TASK-33 标定口径卡（P0-4 · 正式卡）
+
+> **状态**：**已放行起草，待需求方实读后单文件提交入库**（2026-11-07 09:17）。队列：TASK-30 复现基线 `c59dc1d`、TASK-31 输出根接线 `974e8f4`、TASK-32 按需导出 `6b34753` 三张 P0 卡全部 G1–G8 收口，零卡在途；本卡入库后提示词不用排队。**本卡不代发提示词**；卡是执行期唯一口径，对话补充无效，变更另出修订版。P0-4 是 P0 主线最后一项；NAS 专属语义卡按序挂账。
+> **卡型**：正式卡。**两项新口径决策**（三处标定落盘的归属裁定、`calibration.provenance` 契约）+ 契约内新增字段与派生一致性校验；轻量判据（无新口径决策）不满足。
+> **事实源**：需求 v2.7 `artifacts/step3/requirements-v2.7.txt:963`（FR-B05）；`…_需求分析与设计.html`（FR-B05 `—:589`、FR-A10~A13 `—:521-524`、6.8 run manifest `—:2445-2466`）；`TASK-05-预处理.md:80-88`（§2.4 B05 fit-on-apply 裁定）、`:177`（DDL `scaler_params` 列）、`:215`（B05 验收项）；三张前卡 P0-4 挂账原文 `TASK-30-复现基线.md:113` / `TASK-31-输出根接线.md:129` / `TASK-32-按需导出.md:142`。归档版本禁引。
+> **行号时效**：以下全部为 **HEAD `6b34753`（TASK-32 十二文件入库后）** 实读重锚；开工须逐条 grep §3，漂移即停，禁止按偏移推算；格式与键清单一律锚当前 HEAD，引用历史证据须标快照时间与提交。
+> **不承载**：TASK-30 的 manifest / 配方哈希、TASK-31 的输出根与 D1 裁定、TASK-32 的导出与 `report.steps[*].meta` 真源、FR-A12 vs §6、NAS 专属语义、`bbl` / 坏波段掩膜、`msc`/`emsc` 开放、SNR 量纲、历史 Kappa 聚合，均按前卡挂账，本卡不重裁。
+
+## 1. 改什么（一句话）
+
+把「两套标定来源」的模糊口径**一次性裁死**：确认它们是**三处落盘、两种拟合样本、一个派生关系**，互不替代；`report.steps[*].meta` 继续作为预处理/导出的唯一真源，`model_registry.calibration.steps` 继续作为注册/推理的唯一真源，`preprocess_run.scaler_params` 明确降级为**派生只读快照**（不再被当作独立真源、不再被下游读取）；补一条可机读的 `calibration.provenance` 溯源与 `scaler_params` 派生一致性校验，让 FR-B05「标定参数随模型保存，推理时复用」从「注册时重建、不可反证」变成**可反证的显式契约**。**零数值改动、零训练/推理重拟合、零 DDL 改动。**
+
+## 2. 口径定案（D1–D9）
+
+| # | 定案 | 依据（HEAD `6b34753` 实读） |
+|---|---|---|
+| D1 | **三处落盘各自的归属，一次裁死、互不替代**：① `report.json` 的 `steps[*].meta` = **预处理 / 导出侧唯一真源**（TASK-30 D4 / TASK-32 D4 已定，本卡不改）；② `model_registry.calibration.steps` = **注册 / 推理侧唯一真源**（`inference.py:38-101` 冻结重放）；③ `preprocess_run.scaler_params` = **派生只读快照**，`run.py:344-348` 从 `records`（即 `report.steps`）里只取 `standardize` 步的 `meta.fitted`，单步取 `[0]`、多步取列表、无则 `None`。**禁止**把 `scaler_params` 升格为真源、禁止让注册/推理改读它、禁止要求三处数值相等 | `run.py:346-348,352,390-391`；`registry.py:116,130-142`；`inference.py:38-56`；全仓 `scaler_params` 仅出现在 `preprocess/run.py`、`migrations.py:40`、`tests/preprocess/{test_run,test_routes}.py`、`components/preprocess/types.ts:23`，**modeling 层零读取** |
+| D2 | **两种拟合样本不同、数值本就不该相等，严禁合并**：① 预处理 run 的标定在**逐像素已标注谱**上拟合（`run.py:311` `_stream` / `BoundedInput.lines()` `run.py:89-108`）；② 注册期标定在**整样均值谱 `X_raw`** 上重新拟合（`dataset.py:177` `raw = np.stack(means)` → `dataset.py:184` `processed`；`registry.py:116` `fitted = builtin_registry().run(data["X_raw"], ...)`）。挂账原话「让 `scaler_params` + 降维 loadings 成为唯一真源、注册/推理都引用它」**不成立**：强行统一会产出整张错图且不报错（R15 同类） | `run.py:311` / `dataset.py:177,184,187` / `registry.py:116`；`tests/modeling/test_registry.py:65` 已断言 `apply_with_calibration(cal, cal["pipeline"], raw["X_raw"]) == raw["X"]`，**这条既有等价断言必须保持绿**，不得删改凑绿 |
+| D3 | **`scaler_params` 降级但不删除**：保留写入（B05「参数值 + 标定来源随 run 落库」），`GET /preprocess/runs/{id}` 的 detail 仍返回该键；明确写入语义 = `derive(report.steps)` 的快照，新增**派生一致性校验**（见 §5-2 / G2）：落库值必须与从 `report.steps` 按 `run.py:346-348` 规则重算的结果逐字节相等。**不改列、不改类型、不改 API 契约** | `run.py:390-391`；`tests/preprocess/test_run.py:96-97,104,294-311`（`scaler_params` 数值/长度断言）；`tests/preprocess/test_routes.py:277,281`（detail 含键 / listing 不含键）；`migrations.py:40` DDL 列 |
+| D4 | **`calibration.provenance` 新增溯源块**（不改 `calibration` 既有 **14 键**的语义与取值：`protocol / origin / steps / pipeline / source_hashes / recipe_version_ids / input_n_features / probe / wavelengths / model / feature_min / feature_max / residual_interval / limitation`，AST 实测 `registry.py:130-142`）：`fit_scope = "sample_mean"`、`fit_sample_count = len(X_raw)`、`fitted_on = "registration"`、`source_preprocess_run_ids`（来自 `registry.py:97,99,109` 的 `refs`）、`source_input_fingerprints`（来自 `dataset.py:173` 的 `meta.cubes[*].input_fingerprint`）、`report_fit_scope = "labeled_pixels"`、`distinct_fit_populations = true`、`non_interchangeable_reason` 固定文案。**`origin="registration_reconstruction"` 与 `limitation="…可审计不可反证"` 原文保留**，仅以新增字段把「不可反证」补成可机读的来源链 | `registry.py:130-142`（`calibration` 现有键集）；`tests/modeling/test_registry.py:52` 锁的是 `applicability` 键集（`set(app)`），`cal` 无全键集合断言；`tests/modeling/test_registry.py:56` 只断言 `limitation` 含「可审计不可反证」；`registry.py:209-215` `coefficients()` 是**显式构造返回**，不随 `cal` 加键透出，`COEFFICIENT_KEYS` 全键断言（`test_registry.py:197-200,246,315`）不受影响 |
+| D5 | **推理侧只读消费溯源、不参与重放数值**：`inference._prepare` 在既有 `RECIPE_MISMATCH`（`inference.py:180-181`）之后，读 `cal.provenance` 校验 `source_preprocess_run_ids` 含本次 `preprocess_run_id`、`distinct_fit_populations is True`；**缺失 `provenance` 的存量模型按 legacy 放行**（不中断既有推理）。`stats` 新增三个只读字段：`calibration_origin = cal["origin"]`（恒为 `registration_reconstruction`）、`fit_scope = (cal.get("provenance") or {}).get("fit_scope")`（legacy → `null`）、`calibration_provenance_present = bool(cal.get("provenance"))`（legacy → `false`）。**不改 `apply_with_calibration` 一行数值逻辑、不重新 fit、不读 `scaler_params`** | `inference.py:167-181,219,236,251-255`；`tests/modeling/test_inference.py:95-104,139-141`（既有等价与变异断言）；`tests/modeling/test_registry.py:135-162`（五类拟合算子 no-refit 与 block-invariant）。**实测 `stats` 无全键集合断言**（全仓 grep `set(stats)` / `stats.keys()` 零命中；`test_model_routes.py:50` 的 `set(row)` 锁的是 training_run listing，与 stats 无关） |
+| D6 | **零契约漂移**：不改 `preprocess/migrations.py` 的 `DDL` 常量（`tests/preprocess/test_migrations.py:23-33` 与 TASK-05 卡 SQL 逐字节比对 + PRAGMA 快照，改 DDL 或给原表加列必红）、不改 `modeling/migrations.py` 的 `model_registry` DDL（`tests/modeling/test_migrations.py:10-35` 锁迁移行集与列前缀）、不改 `api/openapi.json`（`api/models.py:96-163` 全部端点无 `response_model`、返回 dict；`calibration` 不在 openapi schema；**新增 Pydantic 模型或端点才会变**）、不改 `TASK-05-预处理.md`、不改 TASK-30/31/32 卡 | `migrations.py:33-47` / `modeling/migrations.py:38-47`；`tests/data/test_api.py:209-215` 逐字节断言；`api/models.py:96-163` |
+| D7 | **指标注脚带出处（UI 验收项 7）**：`InferencePanel.tsx:67-72` 的 stats 展示区并列显示 `calibration_origin` / `fit_scope` / `calibration_provenance_present` 与 `run_id`；`api.ts:21-26` 的**封闭 `InferenceStats` 类型须同步扩这三个字段**（`calibration_origin: string`、`fit_scope` 为 string 或 null、`calibration_provenance_present: boolean`），否则字段静默不可见（TASK-30 `types.ts` 封闭 `Report` 类型的同类教训）。前端只读展示、不引入数值计算与新网络通道（沿用 `panel.test.ts:48-64` 三条 `doesNotMatch` pin 的同一纪律）。**不把 `scaler_params` 当数字展示给用户**（它是内部派生快照） | UI `—:2512`；`inference.py:255` 已透出 `calibration_limitation`；`src/components/modeling/api.ts:24` 已有 `calibration_limitation` 字段；`InferencePanel.tsx:67` 是 `item.result.stats` 渲染点 |
+| D8 | **配方含非拟合算子时不产出溯源幻觉**：`provenance.fit_sample_count` 与 `source_input_fingerprints` 一律从注册时真实 `data` 取，不得用 `report` 重算、不得编造；`refs` 为空或 `data["meta"]["cubes"]` 缺 `input_fingerprint` → 抛结构化 `CALIBRATION_PROVENANCE_UNAVAILABLE`，不静默填空 | `registry.py:99-110` / `dataset.py:169-175`；数字带出处纪律 |
+| D9 | **不承载**：不统一三处数值、不改训练契约（`dataset.py:105,184` 的 fit-on-apply 与 `leak.py:5-6` 的 `FULL_FIT_REASON` 阶段一接受全数据拟合）、不修 `limitation` 原文、不碰 `scaler_params` 的既有断言、不把导出侧 `report.steps[*].meta` 换成 `calibration`、不动 `msc`/`emsc`（仍按 TASK-32 D14 结构化拒绝） | 前卡 §8 挂账；`leak.py:5-6` |
+
+## 3. 现场锚点与影响面（HEAD `6b34753` 重锚，开工 grep，漂移即停）
+
+| 文件:行 | 锚定内容 | 动作 |
+|---|---|---|
+| `preprocess/run.py:89-108,311,344-348,350-352,390-391` | `BoundedInput.lines()` 逐像素、`_stream`、`scaler_records`/`scaler_value` 派生、`report.steps = records`、`UPDATE preprocess_run … scaler_params` | **只读**；派生一致性的**唯一权威规则**在 `:346-348`，导出/校验须逐字复刻，禁另立算法 |
+| `preprocess/migrations.py:33-47` / `tests/preprocess/test_migrations.py:23-33` | `preprocess_run` DDL（`scaler_params TEXT` 在 `:40`）；`DDL.strip()` 与 TASK-05 卡内 SQL 逐字节比对 + PRAGMA 快照 | **零改动**；改 DDL / 加列 / 改 TASK-05 卡必红 |
+| `modeling/dataset.py:105,169-175,177,184,187` | 分类侧逐像素 fit、整样侧 `means` / `raw` / `processed` / `X_raw` 返回；`meta.cubes[*].input_fingerprint` | **只读**；provenance 取数来源，禁改拟合样本 |
+| `modeling/registry.py:35-41,99-110,116,130-142,144,160-163,180-215` | `normalized_pipeline`、`refs`/`recipes`、注册期 `fitted`、`calibration` 键集、`rebuilt` 等价校验（`CALIBRATION_MISMATCH`）、INSERT、`coefficients()` 显式返回 | **改**：仅 `calibration` 字典追加 `provenance` 一块；`origin`/`limitation`/`steps`/`feature_min`/`feature_max`/`model`/`probe` 零改动；`:144` 与 `:147` 两处既有断言保持绿 |
+| `modeling/inference.py:38-101,167-181,193,219,236,251-255` | `apply_with_calibration` 冻结重放、`_prepare` 的 `RECIPE_MISMATCH`、stats 组装 | **改**：`_prepare` 加 provenance 只读校验（legacy 放行）、`stats` 加 `calibration_provenance_present`；`apply_with_calibration` 数值逻辑零改动 |
+| `modeling/migrations.py:38-47` / `tests/modeling/test_migrations.py:10-35` | `model_registry` DDL（`calibration TEXT NOT NULL` 在 `:42`）、迁移行集与列前缀断言 | **零改动** |
+| `tests/modeling/test_registry.py:52-65,135-162,197-200,246,270-325` | `set(app)` 全键、`limitation` 含「可审计不可反证」、`X_raw` 等价、五类拟合算子 no-refit、`COEFFICIENT_KEYS` 全键、cal 变异 fail-closed | **既有断言零改动**；新增用例另起文件，不塞进既有 `set(...)` 断言覆盖面 |
+| `tests/modeling/test_inference.py:95-104,139-141` | 统计等价与 `CALIBRATION_MISMATCH` 变异 | **既有断言零改动** |
+| `tests/preprocess/test_run.py:96-97,104,294-311` / `test_routes.py:277,281` | `scaler_params` 数值/长度、detail 含键 / listing 不含键 | **既有断言零改动**；派生一致性新增用例另起文件 |
+| `api/models.py:96-163` / `api/openapi.json` / `tests/data/test_api.py:209-215` | models/inference 端点均无 `response_model`、返回 dict；openapi 逐字节快照 | **零改动**；若实现引入新 Pydantic 模型/端点 → 按 §7 即停 2 上报，重生成快照须显式授权 |
+| `src/components/modeling/api.ts:21-26` / `InferencePanel.tsx:67-72` | 封闭 `InferenceStats` 类型、`item.result.stats` 渲染区（`calibration_limitation` 已在 `api.ts:24`） | **改**：类型扩三字段 + 只读注脚展示；不新增网络通道 / 数值计算 |
+| UI `—:589`（FR-B05）/ `—:2512`（验收项 7）/ `—:2445-2466`（6.8 manifest） | 「标定参数随模型保存，推理时复用」、每个数字带算子/版本/run_id | G3/G7 依据 |
+
+**影响面结论**：`run.py`、`dataset.py`、`leak.py`、两个 `migrations.py` 的 DDL、`TASK-05-预处理.md`、TASK-30/31/32 卡、`api/openapi.json`、`export.py` 全部零改动。必红点**没有**：本卡所有新增都是「字典加键 / 新用例 / 前端只读展示」，不触碰任何既有全键集合断言 —— 起草方已实测：`calibration` 14 键但**无全键断言**（`test_registry.py:52` 锁的是 `applicability`）、`stats` **无全键断言**（全仓 `set(stats)` / `stats.keys()` 零命中）、`COEFFICIENT_KEYS` 由 `coefficients()` 显式构造不随加键透出。唯一必须同步的是 `api.ts:21-26` 的封闭 `InferenceStats` 类型（否则新字段在 TS 侧不可见、`tsc` 不报错但功能静默缺失）。
+
+**开工自检**：① `git status --short` 全文回报（现场为 14 项 `artifacts/step2/` 噪声 M + 1 个 untracked `docs/AI自动标注路径分析.md` = 15 项，暂存区空、HEAD 含 `6b34753`；§4 目标文件须为非 M，否则按 §7 即停 1 上报）。② 后端基线**按分区独立进程 + 每部全新短临时根**（三变量同设，见下），命令逐字：
+```
+./.venv/Scripts/python.exe -m pytest src-python/tests/modeling -q --no-header -p no:cacheprovider        # 参照 145 passed / 6 warnings / 90.91s
+./.venv/Scripts/python.exe -m pytest src-python/tests/preprocess -q --no-header -p no:cacheprovider      # 参照 321 passed / 1 warning / 82.31s
+./.venv/Scripts/python.exe -m pytest src-python/tests/data/test_api.py::test_api_schema_snapshot -q --no-header -p no:cacheprovider  # 参照 1 passed / 2.92s
+```
+**每部预建全新极短根** `.runtime/t33a`（25 字符；起草方基线已用 `t33p` / `t33m` / `t33pr` / `t33s`，**不得复用或删除**；`.gitignore:43` 已忽略）；并**同时**设 `PYTEST_DEBUG_TEMPROOT` / `TMP` / `TEMP` 三变量指向它，缺一不可。**禁止把多个分区塞进同一 pytest 进程**：起草方复跑时曾把 modeling+preprocess+snapshot 合并到一条命令，触发 `safe-delete` 钩子 50 次 unlink/回合预算耗尽（`[SAFE_DELETE_BULK_CONFIRM_REQUIRED] count=50`），表现是 setup errors 连锁与卡住；按七分区纪律逐部独立进程后全绿。**长度硬约束**：根绝对路径 ≤30 字符，最长拼接路径 <250（沿用 TASK-32 v1.3）。③ 前端 `node --test "src/**/*.test.ts"`（双层 glob 逐字；`src/*/.test.ts` 实测 0 tests 且 exit 0 假绿、禁用），**参照 268 / 268 pass / 0 fail**；`node node_modules/typescript/bin/tsc --noEmit` **实测 EXIT=0**；④ 回报 Python / Node 版本（参照 Python 3.12.13；**node 版本差异不作判据**——起草方工具会话为 `v22.22.2`，需求方终端为 `v24.19.0`，两者均跑出 268）。唯一判据「既有用例不变红变少」；数字与参照不符先说明差异来源，不得继续；除三变量外不额外设置环境变量（尤其 `PYTHONIOENCODING`）。`cargo test` / `cargo check` 本卡不涉及 Rust 改动，**不设 Rust 门**。
+
+## 4. 改动清单（清单外零改动）
+
+| 文件 | 动作 |
+|---|---|
+| `src-python/spectrumagent/modeling/registry.py` | `calibration` 字典追加 `provenance` 一块（D4/D8）；`origin`/`limitation`/既有 **14 键**语义与取值零改动 |
+| `src-python/spectrumagent/modeling/inference.py` | `_prepare` 加 provenance 只读校验（legacy 放行）；`stats` 加 `calibration_origin` / `fit_scope` / `calibration_provenance_present` 三字段；`apply_with_calibration` 零改动 |
+| `src-python/tests/modeling/test_calibration_provenance.py` | **新建**：provenance 字段齐全、legacy 缺失放行、变异 fail-closed、`X_raw` 等价与 no-refit 回归、coefficients 键集不变 |
+| `src-python/tests/preprocess/test_scaler_derivation.py` | **新建**：`scaler_params == derive(report.steps)` 的派生一致性（非自指：从 `report.steps` 独立重算，覆盖单步/多步/无 standardize/`fitted=[]` 四分支） |
+| `src/components/modeling/api.ts:21-26` / `InferencePanel.tsx:67-72` | `InferenceStats` 封闭类型扩三字段（`calibration_origin` / `fit_scope` / `calibration_provenance_present`）+ stats 渲染区只读注脚（UI 验收项 7）；不新增网络通道 / 数值计算 |
+| `src/components/modeling/api.test.ts` / `InferencePanel` 对应 pin | 前端新字段展示断言，既有断言零改动 |
+| 本卡 `TASK-33-标定口径.md` | 新建（单文件提交） |
+| `preprocess/run.py`、两个 `migrations.py` 的 DDL 常量、`modeling/dataset.py`、`leak.py`、`export.py`、`api/openapi.json`、`TASK-05-预处理.md`、TASK-30/31/32 卡、`src-tauri/**` | **零改动** |
+| 14 项 step2 噪声 + 1 个 untracked `docs/AI自动标注路径分析.md` | **禁触碰**，不恢复、不改写、不提交 |
+
+## 5. 实现要点
+
+1. **派生一致性是唯一权威规则的复刻，不是新算法**：`derive(report.steps)` 逐字复刻 `run.py:346-348` —— `records = [r["meta"]["fitted"] for r in steps if r["op"]=="standardize"]`；`scaler = records or fits_fallback`（校验侧无 fits，故 `records` 空即期望 `None`）；`value = scaler[0] if len(scaler)==1 else (scaler if scaler else None)`。与 `sha256/json-canonical-v1`（TASK-30 D2）无关，**不得套规范化哈希**冒充实测。四种分支各一例：单步 `standard` / 多步 `standardize` / 无 standardize（`None`）/ `area`·`vector`（`fitted=[]`）。
+2. **provenance 取数只从注册时真实 `data` 与 `refs`**：`fit_sample_count = int(data["X_raw"].shape[0])`，`source_preprocess_run_ids = list(refs)`（`registry.py:97`），`source_input_fingerprints = [row["input_fingerprint"] for row in data["meta"]["cubes"]]`（`dataset.py:173`），顺序与 `refs` 一致；`report_fit_scope` / `distinct_fit_populations` / `non_interchangeable_reason` 为固定常量文案。**禁从 `report.json` 重算、禁读 `scaler_params`、禁编造 `fit_sample_count`**。
+3. **legacy 放行必须显式、可观测**：`cal.get("provenance")` 为 `None` 时 `_prepare` 不抛错，按 D5 规则填 `stats` 三字段（`calibration_provenance_present=False`、`fit_scope=None`、`calibration_origin=cal["origin"]`）；存在但字段缺失 / `distinct_fit_populations` 非 True / `source_preprocess_run_ids` 不含本次 run → `ModelingError("CALIBRATION_PROVENANCE_UNAVAILABLE")`（或复用 `CALIBRATION_MISMATCH`，卡内二选一由执行方在开工回报中说明，**不得静默降级**）。既有 `test_registry.py:139-141` 的 cal 变异测试不得因此变红。
+4. **`calibration` 既有键一字不动**：`origin="registration_reconstruction"`、`limitation="标定由注册时重建得出，非训练时实测值，可审计不可反证"` 保留（`test_registry.py:56` 依赖）；`registry.py:144` 的 `rebuilt` 等价校验与 `:147` 的 `predict` 维度校验保持原样、仍须通过。新增块只允许是**并列的新键**。
+5. **coefficients 端点不透出新键**：`registry.py:209-215` 是显式构造 dict，实现时**不得**把 `provenance` 加进返回；`COEFFICIENT_KEYS`（`test_registry.py:197-200`）保持 12 键全等。这是本卡最容易被误改的契约点。
+6. **前端只读**：`api.ts:21-26` 的封闭 `InferenceStats` 同步扩三字段，`InferencePanel.tsx:67-72` 的 stats 渲染区并列展示 `calibration_origin` / `fit_scope` / `calibration_provenance_present` 与 `run_id`；值直接来自后端 `stats`，不引入新网络通道、不做数值计算（沿用 `panel.test.ts:48-64` 源码 pin 的纪律）。`fit_scope` 为 `null` 时显示「未标注」而非留白或编造。
+7. **不改拟合样本、不改数值**：`dataset.py:105,184` 的 fit-on-apply、`leak.py:5-6` 的 `FULL_FIT_REASON`（阶段一接受全数据拟合）保持；`test_registry.py:65` 的 `apply_with_calibration(cal, pipeline, X_raw) == X` 等价断言保持绿。
+
+## 6. 验收门（7 道，可执行、不自指）
+
+| 门 | 做法 | 判据 |
+|---|---|---|
+| G1 契约零漂移 | `git diff -- TASK-05-预处理.md TASK-30* TASK-31* TASK-32*`、两个 `migrations.py` 的 `DDL` 常量、`api/openapi.json`；跑 `test_migrations.py`（两处）+ `test_api_schema_snapshot` | 全部零字节改动；DDL 逐字节比对与 PRAGMA 快照通过；openapi 快照逐字节断言绿 |
+| G2 派生一致性（非自指） | 新 `test_scaler_derivation.py`：从**真实成功 run 的 `report.json`** 读 `steps`，按 §5-1 独立重算，与 DB `preprocess_run.scaler_params` 比对 | 四分支（单步 / 多步 / 无 standardize / `fitted=[]`）全部逐字节相等；**不得**用 `run.py` 内部函数自证；`test_run.py` 既有 5 处 `scaler_params` 断言零改动且全绿 |
+| G3 provenance 契约 | 新 `test_calibration_provenance.py`：真实注册一个回归模型，读 `calibration` | 新增块字段齐全且取值来自 `data`/`refs`；既有 **14 键**的键名与取值**与基线模型逐键相等**（除新增键）；`origin`/`limitation` 原文不变；`test_registry.py:52-65` 全绿；`coefficients()` 返回键集仍等于 `COEFFICIENT_KEYS`（12 键） |
+| G4 冻结重放与 no-refit | 复用 `test_registry.py:65,135-162` 与 `test_inference.py:95-104`；新增 monkeypatch 计数 | `apply_with_calibration` 零 `fit_*` 调用、block-invariant 逐元素相等、`X_raw` 等价断言绿；`CALIBRATION_MISMATCH` 变异仍 fail-closed |
+| G5 三源不互串（源码 pin） | 源码 pin：`modeling/**` 不得出现 `scaler_params` 读取；`preprocess/export.py` 不得出现 `calibration` 读取；推理不得改读 `report.steps` | 三条 pin 各自成立；`scaler_params` 仍只被 `run.py` 写入与 `test_run`/`test_routes`/`types.ts` 读取（白名单） |
+| G6 legacy 与 fail-closed | 构造缺 `provenance` 的存量 cal → 推理；构造字段缺失 / `distinct_fit_populations=False` / run_ids 不匹配的 cal → 推理 | legacy **放行且** `stats.calibration_provenance_present is False`、`fit_scope is None`、`calibration_origin == "registration_reconstruction"`；三类变异收到结构化错误、零静默降级；`test_inference.py:139-141` 变异断言仍绿 |
+| G7 全量与清单隔离 | 后端**七分区独立进程 + 每部全新短临时根**（三变量同设、逐部启动不并行、`no:cacheprovider`）；前端双层 glob；`tsc --noEmit`；收工 `git status` 对照开工快照 | 唯一判据「既有用例不变红变少」；仅 §4 清单文件为新增改动，14 噪声与 1 untracked 零变化、未提交 |
+
+> 全量分区划分沿用 `.runtime/task32-v15-execution/g8-final-results.json` 的七部（`backend-storage` / `data` / `annotation` / `preprocess` / `modeling` / `mat` / `agent`），每部全新短根并**逐部启动不并行**；起草方本轮实测已证实合并进程会耗尽 `safe-delete` 50 次 unlink 预算。
+
+## 7. 即停（9 条）
+
+1. §3 锚点漂移，或开工时 §4 目标文件已为 M → 停，上报。
+2. 需要改两个 `migrations.py` 的 `DDL` 常量 / 给 `preprocess_run` 或 `model_registry` 加列 / 改 `TASK-05-预处理.md` / 改 TASK-30/31/32 既有契约 / 重生成 `api/openapi.json`（新增 Pydantic 模型或端点会触发 `test_api.py:209-215`）→ 停。
+3. 把 `scaler_params` 升格为唯一真源、让注册或推理改读它、删除或改写其写入、或要求三处标定**数值相等** → 停（D1/D2）。
+4. 改 `dataset.py:105,184` 的拟合样本 / 训练契约、改 `apply_with_calibration` 数值逻辑、重新 fit、逐块 fit、把全图像素纳入拟合 → 停。
+5. 把 `provenance` 塞进 `coefficients()` 返回（破坏 `COEFFICIENT_KEYS` 全键断言）、改 `origin` / `limitation` 原文、改 `applicability` 键集（破坏 `test_registry.py:52`）、或删改 `registry.py:144,147` 既有等价校验 → 停。
+6. 删改既有断言凑绿（尤其 `test_registry.py:52-65,135-162,197-200,246,315`、`test_inference.py:95-104,139-141`、`test_run.py:96-97,104,294-311`、`test_routes.py:277,281`、`test_model_routes.py:50`）→ 停；`stats` / `calibration` 实测无全键集合断言，若实现引入 `set(stats)` 一类新断言再自行删改，按「放宽判定凑绿」处理。
+7. `provenance` 取数从 `report` 重算、读 `scaler_params`、编造 `fit_sample_count` / `input_fingerprint`，或缺失时静默填空 / 静默降级 → 停。
+8. 整幅立方体常驻内存、非分块写，或回写 `report.json`、把绝对路径 / 原始谱送进日志 / 工具 / LLM 上下文 → 停。
+9. 为让 G7 变绿而合并多个 pytest 分区到同一进程、复用旧临时根、删除或改写 14 项噪声 / docs，或把清单外 untracked 列入噪声例外 → 停；分区必须逐部独立进程 + 全新短根。
+
+## 8. 边界与后续（挂账，不在本卡）
+
+- **NAS 专属语义卡**：FR-A13① 连接可用性自检、③ 断线重试 / 断点续传、④ 凭据加密、只读挂载层 —— P0 主线之外下一张，按序挂账。
+- **`output_enabled` 区分态**：现行 `output_enabled: false` 区分不了「未配置」与「已配置但根不可达」，将来用户报「保存的配置没生效」时是第一嫌疑点，另卡。
+- `bbl` / 坏波段掩膜、白 / 暗参考反射率、SNR 量纲与质量四判据、历史 Kappa 聚合、逐步预览与拖拽、复现命令 `iris run reproduce`、长任务可观察可中止、小波 / BM3D 去噪、`labeled_only` 导出、报告导出（UI 标注阶段三）、ENVI 压缩 / 分块切片导出 —— 均按前卡挂账。
+- **训练契约统一**：`leak.py:5-6`「阶段一接受全数据拟合」与 `registry.py:141`「注册时重建、非训练时实测值」的**根本统一**（让训练侧实测标定随模型落盘，从而去掉 `origin=registration_reconstruction`）属重口径决策，会动 `training_run` / `model_artifact` 契约与 13.2 已过闸的训练产物，**另开卡**，本卡只补可反证的溯源链、不改这一现状。
+- **push**：当前 ahead 207，归需求方择机；14 项 `artifacts/step2/` 噪声与 `docs/AI自动标注路径分析.md` 的处置亦归需求方，本卡不碰。
