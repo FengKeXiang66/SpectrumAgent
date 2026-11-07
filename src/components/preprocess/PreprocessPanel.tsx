@@ -5,7 +5,7 @@ import type { DatasetRecord } from '../datasets/types.ts';
 import { displayName } from '../datasets/types.ts';
 import { preprocessing, recoverRun, submitRun } from './api.ts';
 import { compilePipeline } from './pipeline.ts';
-import { describePreprocessError, PHASE_TWO, type CompareResult, type Metrics, type PreprocessRun, type Recipe, type Report, type RunSummary, type Step } from './types.ts';
+import { describePreprocessError, type CompareResult, type Metrics, type PreprocessRun, type Recipe, type Report, type RunSummary, type Step } from './types.ts';
 import CompareChart from './CompareChart';
 import PipelineEditor from './PipelineEditor';
 import './preprocess.css';
@@ -14,14 +14,14 @@ import './preprocess-skin.css';
 function MetricsView({ metrics, runId, steps }: { metrics: Metrics; runId: string; steps?: Pick<Step, 'op' | 'version'>[] }) {
   const provenance = <small>{steps ? steps.map(step => `算子 ${step.op} · 版本 ${step.version}`).join('；') || '无配方算子'
     : '算子 · 版本：报告待加载'} · run_id {runId}</small>;
-  return <section aria-label="后端指标"><h3>后端逐像素指标</h3><dl className="pp-metrics">
-    {Object.entries(metrics.snr).map(([key, value]) => <div key={key}><dt>SNR {key}</dt><dd>{value ?? '不适用'}</dd>{provenance}</div>)}
+  return <section className="pp-quality-card" aria-label="后端指标"><h3>后端逐像素指标</h3><p className="pp-hint">SNR 为谱均值 / 相邻波段一阶差分 RMS 的线性比值。</p><dl className="pp-metrics">
+    {Object.entries(metrics.snr).map(([key, value]) => <div className={key === 'mean' ? 'pp-metric-hero' : undefined} key={key}><dt>SNR {key}</dt><dd>{value ?? '不适用'}</dd>{provenance}</div>)}
     {(['snr_nan_count', 'nan_spectra_skipped', 'interclass_distance', 'intraclass_variance', 'fisher'] as const).filter(key => key in metrics).map(key =>
       <div key={key}><dt>{key}</dt><dd>{metrics[key] ?? '不适用'}</dd>{provenance}</div>)}
-  </dl><p>{metrics.source}</p><p>{metrics.variance_definition}</p>
+  </dl><div className="pp-metric-notes"><p>{metrics.source}</p><p>{metrics.variance_definition}</p>
     {metrics.excluded_classes.map(item => <p key={item.label_index}>label_index {item.label_index} · {item.pixel_count}：{item.reason}</p>)}
     {[...metrics.boundaries, ...metrics.limitations].map((text, i) => <p key={i}>{text}</p>)}
-  </section>;
+  </div></section>;
 }
 
 export default function PreprocessPanel({ record, onClose, refreshVersion = 0 }: { record: DatasetRecord; onClose: () => void; refreshVersion?: number }) {
@@ -142,7 +142,7 @@ export default function PreprocessPanel({ record, onClose, refreshVersion = 0 }:
     setRecipes(await preprocessing.listRecipes()); await load(id, versionId); setMessage('已保存不可变配方版本。');
   };
   return <section className="preprocess-panel" aria-label="S06 预处理工作台">
-    <header><button disabled={busy} onClick={onClose}>返回数据集</button><h2>S06 · {displayName(record)}</h2><span>项目：{project?.name ?? '未获取'}</span></header>
+    <header className="pp-page-heading"><button disabled={busy} onClick={onClose}>返回数据集</button><div className="pp-page-title"><h2>S06 · {displayName(record)}</h2><p>算子链一旦保存即成为可复用资产，任何一次实验都能引用它并复现出同样的输入。</p></div><span className="pp-project">项目：{project?.name ?? '未获取'}</span></header>
     <p role="status">{message}</p>{error && <pre role="alert">{error}{error.startsWith('INVALID_REQUEST') ? '\n请检查 code 是否重复及配方参数。' : ''}</pre>}
     <div className="pp-layout"><aside><h3>配方库（按 code）</h3><button disabled={busy} onClick={() => { setRecipeId(''); setRecipeVersion(''); setSteps([]); setMetadata({ code: '', name: '', description: '', note: '' }); }}>新建草稿</button>
       {recipes.map(recipe => <section key={recipe.id}><strong>{recipe.code}</strong> · {recipe.name}
@@ -156,12 +156,14 @@ export default function PreprocessPanel({ record, onClose, refreshVersion = 0 }:
         }); }}>{selected.some(r => r.id === recipe.id) ? '取消项目选用' : '项目选用'}</button>
       </section>)}<p>项目选用为只读关联；取消不会删除配方。</p>
     </aside><div className="pp-main">
-      <fieldset disabled={busy}><legend>命名与版本</legend>{(['code', 'name', 'description', 'note'] as const).map(key => <label key={key}>{key}<input value={metadata[key]} maxLength={key === 'note' ? 2000 : undefined}
+      <fieldset className="pp-recipe-card" disabled={busy}><legend>命名与版本</legend><div className="pp-recipe-fields">{(['code', 'name', 'description', 'note'] as const).map(key => <label key={key}>{key}<input className={key === 'code' ? 'pp-code' : undefined} value={metadata[key]} maxLength={key === 'note' ? 2000 : undefined}
         onChange={e => setMetadata({ ...metadata, [key]: e.target.value })} /></label>)}
         {recipeId && <label>配方版本<select value={recipeVersion} onChange={e => { void task(() => load(recipeId, e.target.value)); }}>
-          {recipes.find(r => r.id === recipeId)?.versions.map(v => <option key={v.id} value={v.id}>v{v.version_no}</option>)}</select></label>}
+          {recipes.find(r => r.id === recipeId)?.versions.map(v => <option key={v.id} value={v.id}>v{v.version_no}</option>)}</select></label>}</div>
+        <div className="pp-recipe-actions">
         <button disabled={!!invalid || !metadata.code.trim() || !metadata.name.trim()} onClick={() => { void task(() => save(false)); }}>保存为新配方</button>
-        <button disabled={!!invalid || !recipeId} onClick={() => { void task(() => save(true)); }}>保存为新版本</button>
+        <button className="pp-primary" disabled={!!invalid || !recipeId} onClick={() => { void task(() => save(true)); }}>保存为新版本</button>
+        </div><p className="pp-hint">保存后可在建模与批量推理中引用；配方快照随每次实验一并落库</p>
       </fieldset>
       <PipelineEditor steps={steps} onChange={setSteps} initialAxis={record.dataset.wavelengths} bands={record.dataset.shape[2]} disabled={busy} />
       <fieldset disabled={busy}><legend>执行与对比</legend><label>标注版本<select value={annotationVersion} onChange={e => setAnnotationVersion(e.target.value)}>
@@ -182,19 +184,18 @@ export default function PreprocessPanel({ record, onClose, refreshVersion = 0 }:
         <ul aria-label="ENVI 导出产物">{run.artifacts.filter(item => item.kind === 'processed_cube').map(item =>
           <li key={item.id}><code>{item.relative_path}</code> · SHA256 <code>{item.sha256}</code></li>)}</ul>
         {run.metrics && <MetricsView metrics={run.metrics} runId={report?.run_id ?? run.id} steps={report?.steps} />}</section>}
-      {report && <><CompareChart report={report} labels={labels} inputBands={record.dataset.shape[2]} />{report.steps.filter(s => ['pca', 'mnf', 'ica'].includes(s.op)).map((step, i) => <section key={i}>
+      {report && <><p className="pp-reproducibility">{report.reproducibility_assertion}</p><CompareChart report={report} labels={labels} inputBands={record.dataset.shape[2]} />{report.steps.filter(s => ['pca', 'mnf', 'ica'].includes(s.op)).map((step, i) => <section key={i}>
         <h3>{step.op} · {step.op === 'ica' ? '分量重构能量占比' : '解释方差占比'}</h3>
         {step.op === 'ica' && <p>{String(step.meta.variance_definition ?? '')}</p>}
         <p>explained_variance_ratio：{JSON.stringify(step.meta.explained_variance_ratio)}</p><p>cumulative_explained_variance：{JSON.stringify(step.meta.cumulative_explained_variance)}</p>
       </section>)}{report.not_applicable.map(text => <p key={text}>{text}</p>)}</>}
-      {comparison && <section aria-label="配方对比"><h3>Fisher 主排序</h3><table><thead><tr><th>rank</th><th>run</th><th>recipe_version</th><th>Fisher</th></tr></thead>
-        <tbody>{comparison.ranking.map(row => <tr key={row.run_id}><td>{row.rank}</td><td>{row.run_id}</td><td>{row.recipe_version_id}</td><td>{row.fisher}</td></tr>)}</tbody></table>
+      {comparison && <section className="pp-comparison-card" aria-label="配方对比"><h3>Fisher 主排序</h3><div className="pp-table-scroll"><table><thead><tr><th>rank</th><th>run</th><th>recipe_version</th><th>Fisher</th></tr></thead>
+        <tbody>{comparison.ranking.map(row => <tr key={row.run_id}><td>{row.rank}</td><td>{row.run_id}</td><td>{row.recipe_version_id}</td><td>{row.fisher}</td></tr>)}</tbody></table></div>
         {comparison.runs.map(row => <section key={row.id}><button disabled={busy} onClick={() => { void task(() => showRun(row)); }}>查看 {row.id.slice(0, 8)} · {row.status}</button>
           {row.metrics?.fisher == null && <p>未参与排名：{row.error ? describePreprocessError(row.error) : '后端 Fisher 为 null；详见 excluded_classes / limitations。'}</p>}{row.metrics && <MetricsView metrics={row.metrics} runId={row.id}
             steps={report?.run_id === row.id ? report.steps : recipes.flatMap(recipe => recipe.versions).find(version => version.id === row.recipe_version_id)?.pipeline.steps} />}</section>)}
         {comparison.boundaries.map(text => <p key={text}>{text}</p>)}<p>{comparison.selection}</p>
       </section>}
-      <ul>{PHASE_TWO.map(text => <li key={text}>{text}</li>)}</ul>
     </div></div>
   </section>;
 }

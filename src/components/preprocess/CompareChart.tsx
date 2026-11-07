@@ -49,7 +49,8 @@ export default function CompareChart({ report, labels, inputBands }: { report: R
       context.fillText(String(axis?.at(-1) ?? Math.max(0, bands - 1)), right - 55, bottom + 17);
     }
   }, [report, labels, inputBands]);
-  return <section aria-label="处理前后对比图"><h3>{report.curves.labeled ? '按类处理前后对比' : '未标注：整体均值'}</h3>
+  return <section className="pp-curve-card" aria-label="处理前后对比图"><div className="pp-curve-heading"><h3>{report.curves.labeled ? '按类处理前后对比' : '未标注：整体均值'}</h3>
+    <p className="pp-hint"><span>上：原始反射率</span><span>下：处理后</span></p></div>
     <canvas ref={canvas} width={900} height={520} aria-label="上：配方前 B01 反射率，下：配方后；空值断线" />
     <ul className="pp-legend">{report.curves.classes.map(item => { const entry = classLegend(item.label_index, report.label_index, labels);
       return <li key={item.label_index}><span style={{ background: entry.color }} />{entry.code} · {item.count} 像素{item.after === null ? '（处理后无有限谱）' : ''}</li>; })}</ul>

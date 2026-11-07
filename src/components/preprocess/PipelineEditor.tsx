@@ -30,18 +30,30 @@ export default function PipelineEditor({ steps, onChange, initialAxis, bands, di
   const select = (index: number, key: string, values: string[], fallback = '') => <label key={key}>{key}<select value={String(steps[index].params[key] ?? fallback)}
     onChange={e => change(index, { ...steps[index].params, [key]: e.target.value })}><option value="" disabled>请选择</option>{values.map(value => <option key={value}>{value}</option>)}</select></label>;
   return <fieldset disabled={disabled} className="pp-editor"><legend>算子链 · v1</legend>
+    <p className="pp-hint pp-chain-hint">按顺序执行</p>
+    <div className="pp-add-operator">
     <select aria-label="添加算子" value={op} onChange={e => setOp(e.target.value)}>{OPERATORS.map(name => <option key={name}
       disabled={['crop', 'resample'].includes(name) && !initialAxis.length}>{name}</option>)}</select>{' '}
-    <button type="button" disabled={['crop', 'resample'].includes(op) && !initialAxis.length} onClick={() => onChange([...steps, { op, version: 1, params: {} }])}>添加一步</button>
+    <button type="button" className="pp-add-step" disabled={['crop', 'resample'].includes(op) && !initialAxis.length} onClick={() => onChange([...steps, { op, version: 1, params: {} }])}>添加一步</button>
+    </div>
     {!initialAxis.length && <p>数据集无波长轴，crop/resample 禁用。</p>}
-    <ol>{steps.map((step, index) => {
+    <ol className="pp-step-chain">{steps.map((step, index) => {
       let currentAxis: number[] | null = null;
       try { currentAxis = axisAfter(steps.slice(0, index), initialAxis); } catch { /* Incomplete drafts cannot supply a source axis. */ }
       const p = step.params;
-      return <li key={`${index}-${step.op}`}><strong>{step.op}@{step.version}</strong>{' '}
+      const summary = Object.entries(p).map(([key, value]) => {
+        const label = ({ window: 'w', polyorder: 'p', order: 'd' } as Record<string, string>)[key] ?? `${key}=`;
+        return `${label}${Array.isArray(value) ? `${value.length} 项` : value ?? '不适用'}`;
+      }).join(', ');
+      return <li key={`${index}-${step.op}`}>
+        <div className="pp-step-heading"><div className="pp-step-badge"><strong>{step.op}@{step.version}</strong>
+          {summary && <span>（{summary}）</span>}</div>{index < steps.length - 1 && <span className="pp-step-arrow" aria-hidden="true">→</span>}</div>
+        <div className="pp-step-actions">
         <button type="button" disabled={index === 0} onClick={() => move(index, index - 1)}>上移</button>
         <button type="button" disabled={index === steps.length - 1} onClick={() => move(index, index + 1)}>下移</button>
         <button type="button" onClick={() => onChange(steps.filter((_, i) => i !== index))}>删除</button>
+        </div>
+        <section className="pp-parameter-card"><h4>{index + 1} · {step.op} · 参数</h4>
         <div className="pp-fields">
           {step.op.startsWith('sg_') && <>{numeric(index, 'window', 'window（奇数）', p.window)}{numeric(index, 'polyorder', 'polyorder < window', p.polyorder)}{select(index, 'mode', MODES, 'interp')}
             {step.op === 'sg_derivative' && <label>order<select value={String(p.order ?? '')} onChange={e => change(index, { ...p, order: Number(e.target.value) })}><option value="" disabled>请选择</option><option>1</option><option>2</option></select></label>}</>}
@@ -54,9 +66,11 @@ export default function PipelineEditor({ steps, onChange, initialAxis, bands, di
           {['pca', 'mnf', 'ica'].includes(step.op) && <>{numeric(index, 'n_components', 'n_components（必填）', p.n_components)}{numeric(index, 'random_state', 'random_state（默认 0）', p.random_state ?? 0)}</>}
           {step.op === 'continuum' && select(index, 'method', ['convex_hull', 'linear'])}
         </div>
+        {step.op.startsWith('sg_') && <p className="pp-hint">窗口越大越平滑，但会钝化窄特征</p>}
+        </section>
       </li>;
     })}</ol>
     {problem && <p role="status">{problem}；当前链不可保存或提交。</p>}
-    <p>reflectance 由 run 前置转换，不进入配方；MSC/EMSC：参考谱来源待定，阶段二。</p>
+    <p className="pp-hint">reflectance 由 run 前置转换，不进入配方。</p>
   </fieldset>;
 }

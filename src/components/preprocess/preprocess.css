@@ -1,7 +1,7 @@
 .preprocess-panel { color: #25364a; background: #f7f9fc; padding: 1rem; border: 1px solid #d4deea; border-radius: 12px; }
 .preprocess-panel header { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; }
 .preprocess-panel h2 { margin: .4rem 0; }
-.pp-layout { display: grid; grid-template-columns: minmax(190px, 240px) minmax(0, 1fr); gap: 1rem; }
+.pp-layout { display: grid; grid-template-columns: minmax(190px, 240px) minmax(0, 1fr); gap: 1rem; align-items: start; }
 .pp-layout aside > section { margin: .6rem 0; padding: .7rem; background: white; border: 1px solid #d4deea; }
 .pp-main { min-width: 0; }
 .preprocess-panel fieldset { border: 1px solid #c5d2e1; border-radius: 6px; margin: .8rem 0; }

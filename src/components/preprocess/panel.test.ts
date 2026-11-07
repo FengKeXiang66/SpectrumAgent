@@ -122,3 +122,12 @@ test('changed comparison survives IPC key alphabetization because both sides pas
   assert.doesNotMatch(readFileSync(new URL('./PreprocessPanel.tsx', import.meta.url), 'utf8'),
     /JSON\.stringify\(\s*currentVersion\?\.pipeline\s*\)/);
 });
+
+test('S06 excludes prototype example values, unsupported reuse claims and overlay skin', () => {
+  const panel = readFileSync(new URL('./PreprocessPanel.tsx', import.meta.url), 'utf8');
+  const skin = readFileSync(new URL('./preprocess-skin.css', import.meta.url), 'utf8');
+  // 会红：把原型示例数值/类别选择、未实现的检索引用或浮层布局带回产品界面。
+  assert.doesNotMatch(panel, /18\.6\s*dB|1724\s*nm|0\.921|已选类别/);
+  assert.doesNotMatch(panel, /检索中直接引用|与检索/);
+  assert.doesNotMatch(skin, /position:\s*fixed|100vh|z-index/);
+});

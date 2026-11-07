@@ -28,3 +28,57 @@
 .preprocess-panel th { background: #f7f9fc; color: #455260; padding: 8px 11px; border-bottom: 1px solid #e2e7ed; }
 .preprocess-panel td { padding: 7.5px 11px; border-bottom: 1px solid #eef2f6; }
 .preprocess-panel tbody tr:hover { background: #f7fbfd; }
+.preprocess-panel .pp-hint { color: #687786; font-size: 11.8px; line-height: 1.7; }
+.preprocess-panel .pp-chain-hint { margin: 0 0 12px; }
+.preprocess-panel .pp-add-operator { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.preprocess-panel .pp-add-step { border-style: dashed; background: #f7fbfd; color: #0a5670; }
+.preprocess-panel .pp-step-chain { display: flex; align-items: stretch; flex-wrap: wrap; gap: 16px; padding: 0; list-style: none; }
+.preprocess-panel .pp-editor .pp-step-chain > li { flex: 1 1 280px; min-width: 0; margin: 0; padding: 0; border: 0; background: transparent; }
+.preprocess-panel .pp-step-heading { display: flex; align-items: center; gap: 10px; min-height: 42px; }
+.preprocess-panel .pp-step-badge { display: flex; align-items: baseline; flex-wrap: wrap; gap: 3px; padding: 9px 12px; border: 1px solid #b9dbe6; border-radius: 20px; color: #0a5670; background: #e7f3f7; overflow-wrap: anywhere; }
+.preprocess-panel .pp-step-badge span { font-size: 11.6px; }
+.preprocess-panel .pp-step-arrow { color: #81919e; font-size: 21px; }
+.preprocess-panel .pp-step-actions { display: flex; gap: 4px; margin: 7px 0; }
+.preprocess-panel .pp-step-actions button { padding: 3px 8px; font-size: 11.4px; }
+.preprocess-panel .pp-parameter-card { padding: 14px; background: #f7f9fc; border: 1px solid #e2e7ed; border-radius: 9px; }
+.preprocess-panel .pp-parameter-card h4 { margin: 0 0 10px; color: #455260; font-size: 12.4px; }
+.preprocess-panel .pp-parameter-card .pp-fields { align-items: flex-start; }
+.preprocess-panel .pp-parameter-card label { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin: 0; }
+.preprocess-panel .pp-parameter-card .pp-hint { margin-bottom: 0; }
+.preprocess-panel .pp-page-heading { align-items: flex-start; gap: 12px; padding: 4px 0 16px; border-bottom: 1px solid #e2e7ed; }
+.preprocess-panel .pp-page-title { flex: 1 1 360px; min-width: 0; }
+.preprocess-panel .pp-page-title h2 { margin: 4px 0 8px; overflow-wrap: anywhere; }
+.preprocess-panel .pp-page-title p { margin: 0; color: #687786; line-height: 1.7; }
+.preprocess-panel .pp-project { padding: 7px 10px; border-radius: 7px; color: #0a5670; background: #e7f3f7; overflow-wrap: anywhere; }
+.preprocess-panel .pp-layout aside h3 { margin: 12px 0; }
+.preprocess-panel .pp-layout aside > section strong { display: block; margin-bottom: 5px; font-family: ui-monospace, monospace; overflow-wrap: anywhere; }
+.preprocess-panel .pp-layout aside > section button { margin: 7px 0 4px; }
+.preprocess-panel .pp-compare-choice { display: flex; }
+.preprocess-panel .pp-layout aside > p { color: #687786; font-size: 11.8px; line-height: 1.7; }
+.preprocess-panel .pp-recipe-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; }
+.preprocess-panel .pp-recipe-fields label { display: flex; flex-direction: column; align-items: stretch; gap: 5px; margin: 0; color: #687786; }
+.preprocess-panel .pp-recipe-fields input,
+.preprocess-panel .pp-recipe-fields select { min-width: 0; margin: 0; padding: 9px 11px; }
+.preprocess-panel .pp-code { font-family: ui-monospace, monospace; }
+.preprocess-panel .pp-recipe-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.preprocess-panel button.pp-primary { background: #0e6e8c; border-color: #0e6e8c; color: white; }
+.preprocess-panel button.pp-primary:hover:not(:disabled) { background: #0a5670; border-color: #0a5670; color: white; }
+.preprocess-panel .pp-recipe-card > .pp-hint { margin: 10px 0 0; }
+.preprocess-panel .pp-quality-card { margin-top: 18px; padding-top: 6px; border-top: 1px solid #e2e7ed; }
+.preprocess-panel .pp-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+.preprocess-panel .pp-metrics > div { min-width: 0; padding: 12px; background: #f7f9fc; overflow-wrap: anywhere; }
+.preprocess-panel .pp-metrics dt { color: #687786; font-size: 11.8px; }
+.preprocess-panel .pp-metrics dd { margin: 8px 0 10px; font-size: 15px; line-height: 1.5; }
+.preprocess-panel .pp-metrics small { display: block; color: #81919e; font-size: 10.5px; line-height: 1.6; }
+.preprocess-panel .pp-metrics .pp-metric-hero { grid-column: 1 / -1; background: #e7f3f7; border-color: #b9dbe6; }
+.preprocess-panel .pp-metric-hero dd { font-size: 28px; font-weight: 650; }
+.preprocess-panel .pp-metric-notes { color: #687786; font-size: 11.5px; line-height: 1.8; overflow-wrap: anywhere; }
+.preprocess-panel .pp-metric-notes p { margin: 7px 0; }
+.preprocess-panel .pp-reproducibility { padding: 12px 16px; color: #0a5670; background: #e7f3f7; border: 1px solid #b9dbe6; border-radius: 9px; line-height: 1.8; overflow-wrap: anywhere; }
+.preprocess-panel .pp-table-scroll { overflow-x: auto; border: 1px solid #e2e7ed; border-radius: 8px; }
+.preprocess-panel .pp-comparison-card > section { margin-top: 16px; padding-top: 14px; border-top: 1px solid #e2e7ed; }
+.preprocess-panel .pp-curve-heading { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 14px; }
+.preprocess-panel .pp-curve-heading h3 { margin: 0; }
+.preprocess-panel .pp-curve-heading p { display: flex; flex-wrap: wrap; gap: 16px; margin: 0; }
+.preprocess-panel .pp-curve-card canvas { border: 1px solid #eef2f6; border-radius: 7px; }
+.preprocess-panel .pp-curve-card > p { color: #687786; font-size: 11.5px; line-height: 1.8; }
