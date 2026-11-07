@@ -2168,10 +2168,102 @@
             "schema": {
               "enum": [
                 "sample_spectra",
-                "report"
+                "report",
+                "processed_cube"
               ],
               "type": "string",
               "title": "Kind"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/preprocess/runs/{run_id}/exports": {
+      "post": {
+        "tags": [
+          "preprocess"
+        ],
+        "summary": "Create Export",
+        "operationId": "create_export_api_v1_preprocess_runs__run_id__exports_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/preprocess/runs/{run_id}/exports/{filename}": {
+      "get": {
+        "tags": [
+          "preprocess"
+        ],
+        "summary": "Download Export",
+        "operationId": "download_export_api_v1_preprocess_runs__run_id__exports__filename__get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "filename",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Filename"
             }
           }
         ],

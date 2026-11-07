@@ -62,6 +62,16 @@ test('S06 component wiring: no transport outside API, no numeric engine / fake p
   assert.match(read('../datasets/DatasetPanel.tsx'), /onOpen\('s06', record\)/);
   assert.doesNotMatch(read('./preprocess.css'), /position:\s*fixed|100vh|z-index/);
 });
+
+test('ENVI export is explicit and renders registered paths without binary downloads', () => {
+  const source = readFileSync(new URL('./PreprocessPanel.tsx', import.meta.url), 'utf8');
+  assert.match(source, /显式导出 ENVI/);
+  assert.match(source, /preprocessing\.exportRun\(run\.id\)/);
+  assert.match(source, /disabled=\{busy \|\| run\.status !== 'succeeded'\}/);
+  assert.match(source, /item\.kind === 'processed_cube'/);
+  assert.match(source, /item\.relative_path/);
+  assert.doesNotMatch(source, /getArtifact\([^\n]*'processed_cube'|body_base64|createObjectURL/);
+});
 test('unsupported operations are all marked stage two / not applicable without example metrics', () => {
   assert.equal(PHASE_TWO.length, 5);
   for (const text of PHASE_TWO) assert.match(text, /阶段二/);

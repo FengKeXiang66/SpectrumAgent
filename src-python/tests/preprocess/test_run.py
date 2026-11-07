@@ -461,3 +461,15 @@ def test_configured_root_run_uses_project_and_cube_without_changing_numeric_arti
     assert report['recipe_pipeline_sha256'] == c.runner.recipes.get(next(recipe['id'] for recipe in c.runner.recipes.list()
         if any(version['id']==row['recipe_version_id'] for version in recipe['versions'])))['versions'][0]['recipe_pipeline_sha256']
     assert report['metrics'] == row['metrics'] and len(report['outputs']['artifacts']) == 2
+
+
+def test_explicit_export_adds_third_kind_without_changing_default_report(run_case):
+    from spectrumagent.preprocess.export import export_run
+    c = run_case
+    row = c.runner.run(c.cube, c.version, c.recipe([]))
+    assert row["status"] == "succeeded"
+    assert {item["kind"] for item in row["artifacts"]} == {"sample_spectra", "report"}
+    before = c.report(row)
+    export_run(c.runner, row["id"])
+    assert {item["kind"] for item in c.runner.get(row["id"])["artifacts"]} == {"sample_spectra", "report", "processed_cube"}
+    assert c.report(row) == before

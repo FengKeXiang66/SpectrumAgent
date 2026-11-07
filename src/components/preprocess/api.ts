@@ -18,14 +18,16 @@ export const requests = {
   getRun: (id: string): PreprocessRequest => ({ op: 'get_run', id }),
   compare: (dataset_id: string, p: CompareBody): PreprocessRequest => ({ op: 'compare', dataset_id,
     body: { annotation_version_id: p.annotation_version_id, recipe_version_ids: [...p.recipe_version_ids] } }),
-  getArtifact: (run_id: string, kind: 'sample_spectra' | 'report'): PreprocessRequest => ({ op: 'get_artifact', run_id, kind }),
+  getArtifact: (run_id: string, kind: 'sample_spectra' | 'report' | 'processed_cube'): PreprocessRequest => ({ op: 'get_artifact', run_id, kind }),
+  exportRun: (run_id: string): PreprocessRequest => ({ op: 'export', run_id }),
 };
 export type InvokePreprocess = <T>(command: string, args: { request: PreprocessRequest }) => Promise<T>;
 export function preprocessClient(send: InvokePreprocess = invoke): PreprocessApi {
   const forward = <T>(request: PreprocessRequest) => send<T>('preprocess_forward', { request });
   function getArtifact(run: string, kind: 'report'): Promise<Report>;
   function getArtifact(run: string, kind: 'sample_spectra'): Promise<BinaryArtifact>;
-  function getArtifact(run: string, kind: 'sample_spectra' | 'report'): Promise<Report | BinaryArtifact> {
+  function getArtifact(run: string, kind: 'processed_cube'): Promise<BinaryArtifact>;
+  function getArtifact(run: string, kind: 'sample_spectra' | 'report' | 'processed_cube'): Promise<Report | BinaryArtifact> {
     return forward(requests.getArtifact(run, kind));
   }
   return { listRecipes: () => forward(requests.listRecipes()), createRecipe: p => forward(requests.createRecipe(p)),
@@ -35,7 +37,7 @@ export function preprocessClient(send: InvokePreprocess = invoke): PreprocessApi
     listProjectRecipes: project => forward(requests.listProjectRecipes(project)),
     createRun: (dataset, p) => forward(requests.createRun(dataset, p)), listRuns: dataset => forward(requests.listRuns(dataset)),
     getRun: id => forward(requests.getRun(id)), compare: (dataset, p) => forward(requests.compare(dataset, p)),
-    getArtifact };
+    getArtifact, exportRun: run => forward(requests.exportRun(run)) };
 }
 export const preprocessing = preprocessClient();
 

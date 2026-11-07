@@ -19,6 +19,44 @@ BASE = "/api/v1/preprocess"
 SUMMARY_FIELDS = {"id", "status", "b01_branch", "input_fingerprint", "created_at", "finished_at", "error_code"}
 
 
+def test_explicit_export_json_download_paths_and_unavailable_guard(preprocess_api, monkeypatch):
+    from pathlib import Path
+    a = preprocess_api
+    row = run_request(a).json()
+    assert row['status'] == 'succeeded'
+    url = BASE+'/runs/'+row['id']
+    result = a.client.post(url+'/exports')
+    assert result.status_code == 200, result.text
+    metadata = result.json()
+    assert set(metadata) == {'run_id', 'status', 'scope', 'artifacts', 'manifest_relative_path'}
+    assert metadata['run_id'] == row['id'] and metadata['status'] == 'succeeded'
+    assert len(metadata['artifacts']) == 2
+    for item in metadata['artifacts']:
+        assert item['kind'] == 'processed_cube'
+        downloaded = a.client.get(url+'/exports/'+Path(item['relative_path']).name)
+        assert downloaded.status_code == 200 and len(downloaded.content) == item['bytes']
+    for name in ('bad:img', 'bad%5Cimg'):
+        response = a.client.get(url+'/exports/'+name)
+        assert response.status_code == 400 and response.json()['error'] == 'INVALID_ARTIFACT_PATH'
+    with connect_database(a.c.paths.database) as db:
+        db.execute("UPDATE preprocess_artifact SET relative_path='../processed_cube.img' WHERE run_id=? AND kind='processed_cube' AND relative_path LIKE '%.img'", (row['id'],))
+    invalid = a.client.get(url+'/exports/processed_cube.img')
+    assert invalid.status_code == 400 and invalid.json()['error'] == 'INVALID_ARTIFACT_PATH'
+    # Restore only this intentionally corrupted fixture row; no source file changes.
+    with connect_database(a.c.paths.database) as db:
+        image = next(item for item in metadata['artifacts'] if item['relative_path'].endswith('.img'))
+        db.execute("UPDATE preprocess_artifact SET relative_path=? WHERE run_id=? AND relative_path='../processed_cube.img'", (image['relative_path'], row['id']))
+    guard = a.c.registry.storage_guard
+    monkeypatch.setattr(guard, 'output_root', a.c.paths.preprocessed)
+    monkeypatch.setattr(guard, 'output_root_available', False)
+    with monkeypatch.context() as patch:
+        patch.setattr(Path, 'read_text', lambda *_a, **_k: pytest.fail('unavailable root must be refused before report IO'))
+        refused = a.client.post(url+'/exports')
+    assert refused.status_code == 400 and refused.json()['error'] == 'OUTPUT_ROOT_UNAVAILABLE'
+    with connect_database(guard.audit_database) as db:
+        assert db.execute("SELECT COUNT(*) FROM write_audit WHERE action='EXPORT_CREATE' AND decision='DENY' AND reason='OUTPUT_ROOT_UNAVAILABLE'").fetchone()[0] == 1
+
+
 def _restart_run(c, project, recipe):
     import os
     from pathlib import Path
@@ -220,8 +258,12 @@ def test_unknown_uuid_structured_404_and_invalid_uuid_400(preprocess_api, method
 
 @pytest.mark.parametrize("kind", ["processed_cube", "overlay", "unknown"])
 def test_artifact_kind_is_only_two(preprocess_api, kind):
+    # Keep historical case IDs; D9 extends only processed_cube's HTTP contract.
     response = preprocess_api.client.get(BASE+f"/runs/{uuid4()}/artifacts/{kind}")
-    assert response.status_code == 400 and response.json()["error"] == "INVALID_REQUEST"
+    if kind == "processed_cube":
+        assert response.status_code == 404 and response.json()["error"] == "RUN_NOT_FOUND"
+    else:
+        assert response.status_code == 400 and response.json()["error"] == "INVALID_REQUEST"
 
 
 def test_failed_run_summary_excludes_context_and_artifact_is_404(preprocess_api):

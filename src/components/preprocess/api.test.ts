@@ -41,3 +41,13 @@ test('report is parsed JSON; only sample_spectra uses binary wrapper; 204 stays 
   assert.equal(await api.getArtifact('r', 'sample_spectra'), binary);
   assert.equal(await api.deselectRecipe('p', 'r'), null);
 });
+
+test('explicit export uses the thirteenth fixed op and preserves JSON metadata', async () => {
+  const sent: unknown[] = [];
+  const result = { run_id: 'r', status: 'succeeded', artifacts: [{ relative_path: 'c/r/processed_cube.img', bytes: 960 }] };
+  const api = preprocessClient(async <T>(command: string, args: { request: PreprocessRequest }) => {
+    sent.push({ command, args }); return result as T;
+  });
+  assert.equal(await api.exportRun('r'), result);
+  assert.deepEqual(sent, [{ command: 'preprocess_forward', args: { request: { op: 'export', run_id: 'r' } } }]);
+});

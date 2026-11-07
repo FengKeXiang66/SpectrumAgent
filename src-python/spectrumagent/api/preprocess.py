@@ -7,14 +7,20 @@ from uuid import UUID
 
 from fastapi import APIRouter, Response
 from pydantic import BaseModel, ConfigDict, Field
-from starlette.responses import FileResponse
+from starlette.responses import FileResponse, StreamingResponse
 
 from backend.database import connect_database
 from spectrumagent.data import DataError
 from spectrumagent.preprocess.schema import Pipeline
+from spectrumagent.preprocess.export import artifact_path, export_run
 
 
 MAX_ARTIFACT_BYTES = 8*1024*1024  # 11.4/R13 IPC response-size guard, bytes.
+
+
+def _export_chunks(target):
+    with target.open("rb") as stream:
+        yield from iter(lambda: stream.read(1024*1024), b"")
 
 
 class PreprocessInput(BaseModel):
@@ -141,9 +147,10 @@ def make_router(runner, comparison):
                           [str(version) for version in request.recipe_version_ids])
 
     @router.get("/preprocess/runs/{run_id}/artifacts/{kind}")
-    def artifact(run_id: UUID, kind: Literal["sample_spectra", "report"]):
+    def artifact(run_id: UUID, kind: Literal["sample_spectra", "report", "processed_cube"]):
         row = store_call(runner.get, str(run_id))
-        entry = next((item for item in row["artifacts"] if item["kind"] == kind), None)
+        entry = next((item for item in row["artifacts"] if item["kind"] == kind
+                      and (kind != "processed_cube" or item["relative_path"].endswith(".img"))), None)
         if entry is None:
             raise not_found("ARTIFACT_NOT_FOUND", "此 run 没有该类产物", run_id=str(run_id), kind=kind)
         value = entry["relative_path"]
@@ -159,7 +166,27 @@ def make_router(runner, comparison):
         size = target.stat().st_size
         if size > MAX_ARTIFACT_BYTES:
             raise DataError("ARTIFACT_TOO_LARGE", "产物超过 8 MiB 下载上限", size=size)
-        return FileResponse(target, media_type="application/octet-stream" if kind == "sample_spectra" else "application/json",
+        return FileResponse(target, media_type="application/json" if kind == "report" else "application/octet-stream",
                             filename=target.name)
+
+    @router.post("/preprocess/runs/{run_id}/exports")
+    def create_export(run_id: UUID):
+        return store_call(export_run, runner, str(run_id))
+
+    @router.get("/preprocess/runs/{run_id}/exports/{filename}")
+    def download_export(run_id: UUID, filename: str):
+        if (PurePosixPath(filename).name != filename or filename in {".", ".."}
+                or "\\" in filename or ":" in filename):
+            raise DataError("INVALID_ARTIFACT_PATH", "产物须为 POSIX 相对路径")
+        row = store_call(runner.get, str(run_id))
+        entry = next((item for item in row["artifacts"] if item["kind"] == "processed_cube"
+                      and PurePosixPath(item["relative_path"]).name == filename), None)
+        if entry is None:
+            raise not_found("ARTIFACT_NOT_FOUND", "此 run 没有该导出产物")
+        target = artifact_path(runner.paths.artifact_root, entry["relative_path"])
+        if not target.is_file():
+            raise not_found("ARTIFACT_NOT_FOUND", "产物文件不存在")
+        return StreamingResponse(_export_chunks(target), media_type="application/octet-stream",
+                                 headers={"Content-Disposition": f'attachment; filename="{target.name}"'})
 
     return router

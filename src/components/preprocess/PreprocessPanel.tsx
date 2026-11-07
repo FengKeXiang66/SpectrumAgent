@@ -172,6 +172,12 @@ export default function PreprocessPanel({ record, onClose, refreshVersion = 0 }:
       <button disabled={busy} onClick={() => { void task(refresh); }}>刷新最近 run / 恢复状态</button>
       <ul>{history.map(row => <li key={row.id}><button disabled={busy} onClick={() => { void task(async () => showRun(await preprocessing.getRun(row.id))); }}>{row.id.slice(0, 8)} · {row.status}</button> {row.error_code} · {row.created_at}</li>)}</ul>
       {run && <section aria-label="run 详情"><h3>{run.status} · {run.id}</h3>{run.error && <pre role="alert">{describePreprocessError(run.error)}</pre>}
+        <button disabled={busy || run.status !== 'succeeded'} onClick={() => { void task(async () => {
+          const exported = await preprocessing.exportRun(run.id);
+          if (live.current) { await showRun(await preprocessing.getRun(run.id)); setMessage(`导出完成：${exported.manifest_relative_path}`); }
+        }); }}>显式导出 ENVI</button>
+        <ul aria-label="ENVI 导出产物">{run.artifacts.filter(item => item.kind === 'processed_cube').map(item =>
+          <li key={item.id}><code>{item.relative_path}</code> · SHA256 <code>{item.sha256}</code></li>)}</ul>
         {run.metrics && <MetricsView metrics={run.metrics} runId={report?.run_id ?? run.id} steps={report?.steps} />}</section>}
       {report && <><CompareChart report={report} labels={labels} inputBands={record.dataset.shape[2]} />{report.steps.filter(s => ['pca', 'mnf', 'ica'].includes(s.op)).map((step, i) => <section key={i}>
         <h3>{step.op} · {step.op === 'ica' ? '分量重构能量占比' : '解释方差占比'}</h3>

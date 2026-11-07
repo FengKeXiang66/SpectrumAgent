@@ -16,7 +16,9 @@ export type Metrics = { snr: { mean: number | null; median: number | null; p10: 
   snr_nan_count: number; nan_spectra_skipped: number; interclass_distance?: number | null; intraclass_variance?: number | null;
   fisher?: number | null; excluded_classes: { label_index: number; pixel_count: number; reason: string }[];
   boundaries: string[]; limitations: string[]; source: string; variance_definition: string };
-export type Artifact = { id: string; run_id: string; kind: 'sample_spectra' | 'report'; relative_path: string; sha256: string; created_at: string };
+export type Artifact = { id: string; run_id: string; kind: 'sample_spectra' | 'report' | 'processed_cube'; relative_path: string; sha256: string; created_at: string };
+export type ExportResult = { run_id: string; status: 'succeeded'; scope: 'full_cube'; manifest_relative_path: string;
+  artifacts: { kind: 'processed_cube'; relative_path: string; sha256: string; bytes: number }[] };
 export type PreprocessRun = { id: string; cube_id: string; annotation_version_id: string; recipe_version_id: string;
   b01_branch: string; input_fingerprint: string; status: RunStatus; scaler_params: Json; metrics: Metrics | null;
   error: ForwardError | null; created_at: string; finished_at: string | null; note: string | null; artifacts: Artifact[] };
@@ -48,7 +50,8 @@ export type PreprocessRequest =
   | { op: 'list_runs'; dataset_id: string }
   | { op: 'get_run'; id: string }
   | { op: 'compare'; dataset_id: string; body: CompareBody }
-  | { op: 'get_artifact'; run_id: string; kind: 'sample_spectra' | 'report' };
+  | { op: 'get_artifact'; run_id: string; kind: 'sample_spectra' | 'report' | 'processed_cube' }
+  | { op: 'export'; run_id: string };
 export type PreprocessApi = {
   listRecipes(): Promise<Recipe[]>; createRecipe(body: RecipeBody): Promise<Recipe>; getRecipe(id: string): Promise<Recipe>;
   addVersion(id: string, body: VersionBody): Promise<RecipeVersion>; selectRecipe(project: string, recipe: string): Promise<ProjectRecipe>;
@@ -57,6 +60,8 @@ export type PreprocessApi = {
   getRun(id: string): Promise<PreprocessRun>; compare(dataset: string, body: CompareBody): Promise<CompareResult>;
   getArtifact(run: string, kind: 'report'): Promise<Report>;
   getArtifact(run: string, kind: 'sample_spectra'): Promise<BinaryArtifact>;
+  getArtifact(run: string, kind: 'processed_cube'): Promise<BinaryArtifact>;
+  exportRun(run: string): Promise<ExportResult>;
 };
 
 export function describePreprocessError(error: unknown): string {

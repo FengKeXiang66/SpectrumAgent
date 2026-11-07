@@ -61,6 +61,9 @@ pub enum PreprocessRequest {
         run_id: String,
         kind: ArtifactKind,
     },
+    Export {
+        run_id: String,
+    },
 }
 
 fn uuid(value: &str, code: &str) -> Result<(), ForwardError> {
@@ -102,7 +105,7 @@ impl PreprocessRequest {
         match self {
             Self::GetRecipe { id } | Self::AddVersion { id, .. } => uuid(id, "INVALID_RECIPE_ID"),
             Self::GetRun { id } => uuid(id, "INVALID_RUN_ID"),
-            Self::GetArtifact { run_id, .. } => uuid(run_id, "INVALID_RUN_ID"),
+            Self::GetArtifact { run_id, .. } | Self::Export { run_id } => uuid(run_id, "INVALID_RUN_ID"),
             Self::CreateRun { dataset_id, .. }
             | Self::ListRuns { dataset_id }
             | Self::Compare { dataset_id, .. } => uuid(dataset_id, "INVALID_DATASET_ID"),
@@ -182,6 +185,11 @@ impl PreprocessRequest {
                 format!("/api/v1/datasets/{dataset_id}/preprocess/compare"),
                 Method::POST,
                 Some(body.clone()),
+            ),
+            Self::Export { run_id } => (
+                format!("/api/v1/preprocess/runs/{run_id}/exports"),
+                Method::POST,
+                None,
             ),
             Self::GetArtifact { run_id, kind } => {
                 let kind = match kind {
@@ -454,7 +462,7 @@ mod tests {
     }
 
     #[test]
-    fn all_twelve_destinations_methods_and_exact_bodies() -> TestResult {
+    fn all_thirteen_destinations_methods_and_exact_bodies() -> TestResult {
         let body = json!({"deliberately_dynamic":true});
         let cases = [
             (
@@ -527,6 +535,12 @@ mod tests {
                 json!({"op":"get_artifact","run_id":ID,"kind":"sample_spectra"}),
                 format!("/api/v1/preprocess/runs/{ID}/artifacts/sample_spectra"),
                 Method::GET,
+                None,
+            ),
+            (
+                json!({"op":"export","run_id":ID}),
+                format!("/api/v1/preprocess/runs/{ID}/exports"),
+                Method::POST,
                 None,
             ),
         ];
