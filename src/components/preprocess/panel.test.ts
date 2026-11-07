@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { isTransportError, preprocessClient, recoverRun, submitRun } from './api.ts';
-import { classLegend, describePreprocessError, PHASE_TWO, type PreprocessRequest, type RunSummary } from './types.ts';
+import { compilePipeline } from './pipeline.ts';
+import { classLegend, describePreprocessError, PHASE_TWO, type PreprocessRequest, type RunSummary, type Step } from './types.ts';
 
 const summary = (id: string, status = 'succeeded') => ({ id, status } as RunSummary);
 test('recovery inspects only new succeeded summaries and matches recipe in details', async () => {
@@ -100,4 +101,24 @@ test('metric provenance renders operator versions and the originating run under 
   assert.equal((html.match(/<small>/g) ?? []).length, 8);
   assert.equal((html.match(/算子 snv · 版本 1；算子 sg_derivative · 版本 3 · run_id origin-run/g) ?? []).length, 8);
   assert.match(html, /SNR mean<\/dt><dd>3<\/dd>/);
+});
+
+test('changed comparison survives IPC key alphabetization because both sides pass compilePipeline', () => {
+  // IPC 字母序形态：serde_json 无 preserve_order → step 顶层 {op,params,version}、params 键亦按字母序
+  const axis = Array.from({ length: 200 }, (_, i) => 1000 + 2 * i), bands = 200;
+  const ipcSteps: Step[] = [
+    { op: 'snv', params: {}, version: 1 },
+    { op: 'sg_derivative', params: { order: 1, polyorder: 2, window: 15 }, version: 1 },
+  ];
+  const ipcStored = { steps: ipcSteps };
+  const compiled = compilePipeline(structuredClone(ipcStored.steps), axis, bands);
+  // ① 复现故障：单侧编译输出 {op,version,params} 与字母序存档 {op,params,version} 逐字不等
+  assert.notEqual(JSON.stringify(compiled), JSON.stringify(ipcStored));
+  // ② 修复依据：编译器统一 step 顶层键序（只打乱顶层、params 保持同一对象引用）
+  const topShuffled: Step = { params: ipcSteps[1].params, version: 1, op: 'sg_derivative' };
+  assert.equal(JSON.stringify(compilePipeline([topShuffled], axis, bands)),
+               JSON.stringify(compilePipeline([structuredClone(ipcSteps[1])], axis, bands)));
+  // ③ 防回退 pin：changed 判定不得再直接 stringify 未编译的存档 pipeline
+  assert.doesNotMatch(readFileSync(new URL('./PreprocessPanel.tsx', import.meta.url), 'utf8'),
+    /JSON\.stringify\(\s*currentVersion\?\.pipeline\s*\)/);
 });

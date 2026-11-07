@@ -113,7 +113,10 @@ export default function PreprocessPanel({ record, onClose, refreshVersion = 0 }:
   try { compilePipeline(steps, record.dataset.wavelengths, record.dataset.shape[2]); } catch (error) { invalid = (error as Error).message; }
   const currentVersion = recipes.find(r => r.id === recipeId)?.versions.find(v => v.id === recipeVersion);
   let changed = true;
-  try { changed = JSON.stringify(compilePipeline(steps, record.dataset.wavelengths, record.dataset.shape[2])) !== JSON.stringify(currentVersion?.pipeline); } catch { /* Invalid drafts cannot run. */ }
+  try {
+    if (currentVersion) changed = JSON.stringify(compilePipeline(steps, record.dataset.wavelengths, record.dataset.shape[2]))
+      !== JSON.stringify(compilePipeline(currentVersion.pipeline.steps, record.dataset.wavelengths, record.dataset.shape[2]));
+  } catch { /* Invalid drafts or stored versions cannot run. */ }
   const submit = async () => {
     const before = await preprocessing.listRuns(record.id);
     recovery.current = { recipe: recipeVersion, before };
