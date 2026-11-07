@@ -65,7 +65,7 @@ export default function S08({ runId, onOpen, onBackToList, onClose }: {
       </table> : <p>暂无回归运行记录。请先在建模屏完成训练。</p>)}
     </section> : <>
       {runError && <pre role="alert">{runError}</pre>}
-      {result && <section aria-label="回归结果"><h3>回归结果 · {result.status}</h3><p>样品 {result.n_samples} 个；实际使用前景像素 {result.n_pixels_used} 个。</p>
+      {result && result.task !== 'classification' && <section aria-label="回归结果"><h3>回归结果 · {result.status}</h3><p>样品 {result.n_samples} 个；实际使用前景像素 {result.n_pixels_used} 个。</p>
         <p>交叉验证最小建议 LV：{result.best_lv ?? '不适用'}；使用 LV：{result.selected_lv ?? '不适用'}{sweep ? `；拐点法建议 LV：${sweep.elbow_lv}` : ''}</p>
         {result.quality_label && <strong role="status">{result.quality_label}</strong>}
         <dl>{Object.entries(metricLabels).map(([key, label]) => <div key={key}><dt>{label}</dt><dd>{result.metrics?.[key] ?? '不适用'}</dd></div>)}</dl>

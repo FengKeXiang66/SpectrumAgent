@@ -2711,7 +2711,22 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RegressionRequest"
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/RegressionRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ClassificationRequest"
+                  }
+                ],
+                "discriminator": {
+                  "propertyName": "task",
+                  "mapping": {
+                    "regression": "#/components/schemas/RegressionRequest",
+                    "classification": "#/components/schemas/ClassificationRequest"
+                  }
+                },
+                "title": "Body"
               }
             }
           }
@@ -3261,6 +3276,106 @@
           "decision"
         ],
         "title": "CheckMessage"
+      },
+      "ClassificationRequest": {
+        "properties": {
+          "cube_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Cube Ids"
+          },
+          "annotation_version_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Annotation Version Ids"
+          },
+          "preprocess_run_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Preprocess Run Ids"
+          },
+          "task": {
+            "type": "string",
+            "const": "classification",
+            "title": "Task"
+          },
+          "target": {
+            "type": "string",
+            "title": "Target"
+          },
+          "cv_strategy": {
+            "type": "string",
+            "const": "group_kfold",
+            "title": "Cv Strategy"
+          },
+          "cv_folds": {
+            "type": "integer",
+            "minimum": 2.0,
+            "title": "Cv Folds"
+          },
+          "seed": {
+            "type": "integer",
+            "title": "Seed"
+          },
+          "split_strategy": {
+            "type": "string",
+            "const": "none",
+            "title": "Split Strategy",
+            "default": "none"
+          },
+          "confidence_threshold": {
+            "type": "number",
+            "exclusiveMaximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence Threshold",
+            "default": 0
+          },
+          "n_components": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 20.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "N Components"
+          },
+          "max_components": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 20.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Components"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "cube_ids",
+          "annotation_version_ids",
+          "preprocess_run_ids",
+          "task",
+          "target",
+          "cv_strategy",
+          "cv_folds",
+          "seed"
+        ],
+        "title": "ClassificationRequest"
       },
       "ColorPreview": {
         "properties": {

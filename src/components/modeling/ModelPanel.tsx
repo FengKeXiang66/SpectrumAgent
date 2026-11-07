@@ -7,11 +7,13 @@ import { preprocessing } from '../preprocess/api.ts';
 import { modeling, type ImportResult, type Target } from './api.ts';
 import RegistryPanel from './RegistryPanel.tsx';
 import InferencePanel from './InferencePanel.tsx';
+import ClassificationPanel from './ClassificationPanel.tsx';
 import './modeling.css';
 import './modeling-skin.css';
 
 export default function ModelPanel({ records, onClose, onOpenResults }: { records: DatasetReference[]; onClose(): void; onOpenResults(run: string): void }) {
   const [view, setView] = useState<'training' | 'registry' | 'inference'>('training');
+  const [task, setTask] = useState<'regression' | 'classification'>('regression');
   const [projects, setProjects] = useState<Project[]>([]), [project, setProject] = useState('');
   const [schemas, setSchemas] = useState<LabelSchema[]>([]), [schema, setSchema] = useState('');
   const [cube, setCube] = useState(records[0]?.id ?? ''), [value, setValue] = useState('');
@@ -47,10 +49,12 @@ export default function ModelPanel({ records, onClose, onOpenResults }: { record
   const runIds = Object.values(selected).filter(Boolean);
   if (view === 'registry') return <RegistryPanel onClose={() => setView('training')} />;
   if (view === 'inference') return <InferencePanel records={records} onClose={() => setView('training')} />;
-  return <section className="model-panel" aria-label="PLS 回归工作台">
-    <header><button disabled={busy} onClick={onClose}>返回数据集</button><h2>PLS 回归</h2></header>
-    <nav aria-label="建模操作"><button disabled={busy} onClick={() => setView('registry')}>模型注册</button><button disabled={busy} onClick={() => setView('inference')}>批量推理</button></nav>
+  return <section className="model-panel" aria-label={task === 'regression' ? 'PLS 回归工作台' : 'PLS-DA 分类工作台'}>
+    <header><button disabled={busy} onClick={onClose}>返回数据集</button><h2>{task === 'regression' ? 'PLS 回归' : 'PLS-DA 分类'}</h2></header>
+    <nav aria-label="建模任务"><button disabled={busy} aria-pressed={task === 'classification'} onClick={() => setTask('classification')}>PLS-DA 分类</button><button disabled={busy} aria-pressed={task === 'regression'} onClick={() => setTask('regression')}>PLS 回归</button></nav>
+    {task === 'regression' && <nav aria-label="建模操作"><button disabled={busy} onClick={() => setView('registry')}>模型注册</button><button disabled={busy} onClick={() => setView('inference')}>批量推理</button></nav>}
     <p role="status">{message}</p>{error && <pre role="alert">{error}</pre>}
+    {task === 'classification' ? <ClassificationPanel records={records} choices={choices} busy={busy} work={work} onOpenResults={onOpenResults} /> : <>
     <fieldset disabled={busy}><legend>样品连续量</legend>
       <label>项目<select value={project} onChange={e => setProject(e.target.value)}>{projects.map(row => <option key={row.id} value={row.id}>{row.name}</option>)}</select></label>
       <label>连续字段<select value={schema} onChange={e => setSchema(e.target.value)}><option value="">请选择</option>{schemas.map(row => <option key={row.id} value={row.id}>{row.tree_path}{row.unit ? ` (${row.unit})` : ''}</option>)}</select></label>
@@ -81,5 +85,6 @@ export default function ModelPanel({ records, onClose, onOpenResults }: { record
         onOpenResults(row.run_id);
       })}>{busy ? '正在计算…' : '训练 PLS'}</button>
     </fieldset>
+    </>}
   </section>;
 }

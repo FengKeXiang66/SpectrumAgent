@@ -2,14 +2,32 @@ import { invoke } from '@tauri-apps/api/core';
 
 export type Target = { cube_id: string; schema_id: string; tree_path: string; value: number; source: 'annotation' | 'import' };
 export type ImportResult = { imported: number; unmatched: unknown[]; pending_confirmation: unknown[]; invalid: unknown[]; unknown_fields: unknown[]; out_of_range: unknown[] };
-export type TrainBody = { task: 'regression'; preprocess_run_ids: string[]; target_schema_id: string; split_strategy: 'ks';
+export type RegressionBody = { task: 'regression'; preprocess_run_ids: string[]; target_schema_id: string; split_strategy: 'ks';
   cv_strategy: 'kfold' | 'loo'; cv_folds: number; test_ratio: number; seed: number; n_components?: number };
+export type ClassificationBody = { task: 'classification'; cube_ids: string[]; annotation_version_ids: string[];
+  preprocess_run_ids: string[]; target: 'label'; cv_strategy: 'group_kfold'; cv_folds: number; seed: number;
+  split_strategy: 'none'; confidence_threshold: number; n_components?: number; max_components?: number };
+export type TrainBody = RegressionBody | ClassificationBody;
 export type Prediction = { cube_id: string; y_true: number; y_pred: number; residual: number; set: 'calibration' | 'prediction' };
-export type Result = { run_id: string; status: string; n_samples: number; n_pixels_used: number; selected_lv: number | null;
+export type RegressionResult = { task?: 'regression'; run_id: string; status: string; n_samples: number; n_pixels_used: number; selected_lv: number | null;
   best_lv: number | null; metrics: Record<string, number | null>; quality_label: string | null; leak_report: unknown; error: unknown;
   predictions?: Prediction[]; semi_quantitative?: boolean };
 export type Sweep = { best_lv: number; elbow_lv: number; selected_lv: number; by_cv_min: number; by_elbow: number;
   manual_override: boolean; definition: string; curve: { n_components: number; rmsecv: number; sd: number }[] };
+export type ClassScore = { oa: number | null; kappa: number | null; aa: number | null; macro_f1: number | null;
+  labels: number[]; confusion: number[][]; per_class: { label: number; precision: number | null; recall: number | null; f1: number | null }[] };
+export type ClassScopes = Record<'pixel' | 'sample', ClassScore>;
+export type FoldStatistic = { mean: number | null; std: number | null };
+export type ClassConfusion = { scores: ClassScopes; folds: ({ fold_index: number } & ClassScopes)[];
+  fold_summary: Record<'pixel' | 'sample', Record<'oa' | 'kappa' | 'aa' | 'macro_f1', FoldStatistic> & {
+    per_class: { label: number; precision: FoldStatistic; recall: FoldStatistic; f1: FoldStatistic }[] }>;
+  threshold: { confidence_threshold: number; uncertain_pixels: number; accepted_pixels: number; total_pixels: number };
+  lv: Sweep; manifest: { operator: string; operator_version: number; code_version: string | null; seed: number } };
+export type ClassificationResult = Omit<RegressionResult, 'task' | 'metrics' | 'predictions' | 'quality_label'> & {
+  task: 'classification'; metrics: Record<'pixel' | 'sample', { oa: number | null; kappa: number | null }>;
+  confusion?: ClassConfusion; by_cv_min: number | null; by_elbow: number | null; predictions?: never; quality_label?: null };
+export type Result = RegressionResult | ClassificationResult;
+export type RunRow = { id: string; task: string; status: string; oa?: number | null; kappa?: number | null; lv?: number | null };
 export type PreflightBody = { cube_ids: string[]; annotation_version_ids: string[]; preprocess_run_ids: string[];
   task: 'classification'; target: 'label'; cv_strategy: 'group_kfold' | 'random'; cv_folds: number; seed: number };
 export type ModelStage = 'experiment' | 'candidate' | 'production';
@@ -49,7 +67,7 @@ export function modelingClient(send: Send = invoke) {
     importCSV: (project: string, text: string, overwrite = false) => forward<ImportResult>({ op: 'import_targets', project_id: project, csv_text: text, overwrite }),
     train: (body: TrainBody) => forward<Result>({ op: 'create_run', body }),
     preflight: (body: PreflightBody) => forward<unknown>({ op: 'preflight_run', body }),
-    runs: () => forward<{ id: string; task: string; status: string }[]>({ op: 'list_runs' }),
+    runs: () => forward<RunRow[]>({ op: 'list_runs' }),
     run: (id: string) => forward<Result>({ op: 'get_run', id }),
     sweep: (id: string) => forward<Sweep>({ op: 'lv_sweep', id }),
     register: (run_id: string, name?: string) => forward<RegisteredModel>({ op: 'register_model', run_id, ...(name === undefined ? {} : { name }) }),

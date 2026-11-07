@@ -23,3 +23,13 @@
 .model-panel[aria-label="PLS 回归工作台"] input:focus-visible,
 .model-panel[aria-label="PLS 回归工作台"] select:focus-visible,
 .model-panel[aria-label="PLS 回归工作台"] button:focus-visible { outline-color: #0e6e8c; }
+.model-panel[aria-label="PLS-DA 分类工作台"] { color: #16202a; font-size: 12.4px; }
+.classification-panel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; }
+.classification-panel > fieldset { min-width: 0; background: white; border: 1px solid #e2e7ed; border-radius: 9px; }
+.classification-panel > details,
+.classification-panel > section { grid-column: 1 / -1; }
+.classification-panel label { display: block; margin: .7rem 0; }
+.classification-panel input,
+.classification-panel select { display: block; width: 100%; box-sizing: border-box; margin-top: .35rem; border: 1px solid #e2e7ed; border-radius: 7px; padding: .5rem; font: inherit; }
+.classification-panel button { margin: .3rem; border: 1px solid #b9dbe6; border-radius: 7px; background: #e7f3f7; color: #0a5670; padding: .5rem .8rem; font: inherit; }
+.classification-panel button:disabled { opacity: .6; }

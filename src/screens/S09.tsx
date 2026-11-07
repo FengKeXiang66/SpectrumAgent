@@ -61,7 +61,7 @@ export default function S09({ records }: { records: DatasetReference[] }) {
       </table> : <p>{task === 'regression' ? '暂无回归运行记录。请先在建模屏完成训练。' : '暂无运行记录。请先在建模屏完成训练。'}</p>)}
       {detailLoading && <p role="status">正在读取运行详情…</p>}
       {detailError && <pre role="alert">{detailError}</pre>}
-      {result && <section aria-label="运行详情"><h3>运行详情 · {(result.run_id ?? selectedRun).slice(0, 8)}</h3>
+      {result && result.task !== 'classification' && <section aria-label="运行详情"><h3>运行详情 · {(result.run_id ?? selectedRun).slice(0, 8)}</h3>
         <p>样品 {result.n_samples ?? '不适用'} 个；实际使用前景像素 {result.n_pixels_used ?? '不适用'} 个。</p>
         <p>使用 LV：{result.selected_lv ?? '不适用'}；交叉验证最小建议 LV：{result.best_lv ?? '不适用'}</p>
         {result.quality_label && <strong role="status">{result.quality_label}</strong>}

@@ -1,5 +1,5 @@
 """Modeling references, sample targets and PLS results; no local file paths."""
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Union
 
 from fastapi import APIRouter
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, StrictBool, model_validator
@@ -55,6 +55,28 @@ class RegressionRequest(BaseModel):
     seed: StrictInt = 17
     n_components: Annotated[StrictInt, Field(ge=1)] | None = None
     max_components: Annotated[StrictInt, Field(ge=1)] | None = None
+
+
+class ClassificationRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    cube_ids: list[StrictStr]
+    annotation_version_ids: list[StrictStr]
+    preprocess_run_ids: list[StrictStr]
+    task: Literal["classification"]
+    target: StrictStr
+    cv_strategy: Literal["group_kfold"]
+    cv_folds: Annotated[StrictInt, Field(ge=2)]
+    seed: StrictInt
+    split_strategy: Literal["none"] = "none"
+    confidence_threshold: Annotated[float, Field(ge=0, lt=1, allow_inf_nan=False)] = 0
+    n_components: Annotated[StrictInt, Field(ge=1, le=20)] | None = None
+    max_components: Annotated[StrictInt, Field(ge=1, le=20)] | None = None
+
+    @model_validator(mode="after")
+    def label_target(self):
+        if self.target != "label":
+            raise ValueError("分类仅支持 label")
+        return self
 
 
 class RegisterModel(BaseModel):
@@ -134,8 +156,10 @@ def make_router(sessions, runner):
         return targets.list(project_id)
 
     @router.post("/runs")
-    def regression(body: RegressionRequest):
+    def regression(body: Annotated[Union[RegressionRequest, ClassificationRequest], Field(discriminator="task")]):
         try:
+            if body.task == "classification":
+                return runs.classify(**body.model_dump())
             return runs.regress(**body.model_dump())
         except ModelingError:
             raise

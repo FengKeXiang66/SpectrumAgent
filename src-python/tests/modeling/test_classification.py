@@ -3,12 +3,15 @@ import json
 
 import numpy as np
 import pytest
+from fastapi.testclient import TestClient
 
 from backend.database import connect_database
 from spectrumagent.modeling import ModelingError
 from spectrumagent.modeling.dataset import build_training_set
 from spectrumagent.modeling.metrics import classification_scores, derive_classification
 from spectrumagent.modeling.run import TrainingRuns, classification_probabilities
+from spectrumagent.app import create_app
+from backend.identity import EngineIdentity
 
 
 def arguments(c, **changes):
@@ -157,3 +160,55 @@ def test_classification_cannot_disable_grouping_or_use_invalid_threshold_lv(mode
         TrainingRuns(c.registry, c.paths).classify(**arguments(c, **change))
     with connect_database(c.paths.database) as db:
         assert db.execute("SELECT count(*) FROM training_run").fetchone()[0] == 0
+
+
+@pytest.fixture
+def classification_api(model_case):
+    c = model_case
+    identity = EngineIdentity()
+    with TestClient(create_app(c.paths, identity)) as client:
+        client.headers["Authorization"] = "Bearer " + identity.token
+        yield c, client
+
+
+def test_existing_runs_route_dispatches_classification_and_reads_bounded_results(classification_api):
+    c, client = classification_api
+    response = client.post("/api/v1/models/runs", json=arguments(c))
+    assert response.status_code == 200, response.text
+    result = response.json()
+    assert result["task"] == "classification" and result["group_by"] == "sample_id"
+    assert result["confusion"]["threshold"]["confidence_threshold"] == 0
+    detail = client.get("/api/v1/models/runs/" + result["run_id"]).json()
+    assert detail == result
+    listing = client.get("/api/v1/models/runs").json()
+    assert set(listing[0]) == {"id", "task", "status", "created_at", "oa", "kappa", "lv"}
+    assert listing[0]["oa"] == result["metrics"]["sample"]["oa"]
+    assert listing[0]["kappa"] == result["metrics"]["sample"]["kappa"]
+    assert "predictions" not in json.dumps([detail, listing])
+
+
+@pytest.mark.parametrize("change", [{"unknown": 1}, {"cv_strategy": "random"}, {"cv_strategy": "kfold"},
+    {"split_strategy": "ks"}, {"confidence_threshold": 1}, {"confidence_threshold": True},
+    {"confidence_threshold": -.1}, {"n_components": 21}, {"target": "strength"}, {"seed": "17"}])
+def test_classification_schema_refuses_invalid_inputs_before_writing(classification_api, change):
+    c, client = classification_api
+    response = client.post("/api/v1/models/runs", json={**arguments(c), **change})
+    assert response.status_code == 400 and response.json()["error"] == "INVALID_REQUEST", response.text
+    with connect_database(c.paths.database) as db:
+        assert db.execute("SELECT count(*) FROM training_run").fetchone()[0] == 0
+
+
+def test_five_fold_training_through_existing_http_route(regression_factory):
+    c = regression_factory(10)
+    identity = EngineIdentity()
+    request = {"cube_ids": c.cubes, "annotation_version_ids": c.versions, "preprocess_run_ids": c.runs,
+               "task": "classification", "target": "label", "cv_strategy": "group_kfold", "cv_folds": 5,
+               "seed": 17, "split_strategy": "none", "confidence_threshold": 0, "max_components": 2}
+    with TestClient(create_app(c.paths, identity)) as client:
+        client.headers["Authorization"] = "Bearer " + identity.token
+        response = client.post("/api/v1/models/runs", json=request)
+    assert response.status_code == 200, response.text
+    result = response.json()
+    assert result["status"] == "succeeded" and result["cv_folds"] == 5
+    assert len(result["confusion"]["folds"]) == 5
+    assert result["confusion"]["threshold"]["uncertain_pixels"] == 0
