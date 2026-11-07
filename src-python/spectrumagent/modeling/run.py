@@ -7,8 +7,10 @@ from pathlib import PurePosixPath
 import hashlib
 from uuid import uuid4
 from time import perf_counter
+import sys
 
 import numpy as np
+import sklearn
 from sklearn.cross_decomposition import PLSRegression
 
 from backend.database import connect_database
@@ -249,6 +251,8 @@ class TrainingRuns:
                      "definition": "pooled held-out one-hot RMSECV; elbow <= best RMSECV + one SD of best fold RMSE",
                      "curve": curve}
             model = PLSRegression(n_components=selected).fit(X, one_hot)
+            params["estimator"] = model.get_params()
+            params["operator"] = {"name": "train_plsda", "version": 1}
             manifest = {"dataset_versions": [{"cube_id": cube["cube_id"], "source_hashes": cube["source_hashes"],
                          "input_fingerprint": cube["input_fingerprint"]} for cube in data["meta"]["cubes"]],
                         "annotation_version_ids": annotation_version_ids, "preprocess_run_ids": preprocess_run_ids,
@@ -258,7 +262,8 @@ class TrainingRuns:
                                    "cv_strategy": cv_strategy, "cv_folds": cv_folds, "split_strategy": split_strategy},
                         "seed": seed, "code_version": code_version(), "metrics": scores,
                         "artifact_path": f"{identifier}/model.json", "operator": "train_plsda", "operator_version": 1,
-                        "actor": "local", "duration_s": perf_counter()-started}
+                        "actor": "local", "duration_s": perf_counter()-started,
+                        "env": {"python": sys.version, "numpy": np.__version__, "sklearn": sklearn.__version__}}
             threshold = {"confidence_threshold": float(confidence_threshold), "uncertain_pixels": int((predicted == -2).sum()),
                          "accepted_pixels": int((predicted >= 0).sum()), "total_pixels": len(y)}
             artifacts = {

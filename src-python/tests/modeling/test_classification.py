@@ -212,3 +212,16 @@ def test_five_fold_training_through_existing_http_route(regression_factory):
     assert result["status"] == "succeeded" and result["cv_folds"] == 5
     assert len(result["confusion"]["folds"]) == 5
     assert result["confusion"]["threshold"]["uncertain_pixels"] == 0
+
+
+def test_manifest_records_actual_estimator_defaults_and_runtime_versions(model_case):
+    c = model_case
+    result = TrainingRuns(c.registry, c.paths).classify(**arguments(c, n_components=1))
+    manifest = result["confusion"]["manifest"]
+    with connect_database(c.paths.database) as db:
+        params = json.loads(db.execute("SELECT model_params FROM training_run WHERE id=?", (result["run_id"],)).fetchone()[0])
+    assert {"n_components", "scale", "max_iter", "tol", "copy"} <= params["estimator"].keys()
+    assert params["estimator"]["n_components"] == 1
+    assert params["estimator"] == manifest["params"]["estimator"]
+    assert params["operator"] == {"name": "train_plsda", "version": 1}
+    assert all(manifest["env"][name] for name in ("python", "numpy", "sklearn"))
