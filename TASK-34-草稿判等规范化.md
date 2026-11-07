@@ -1,8 +1,8 @@
 # TASK-34 草稿判等规范化卡（轻量卡）
 
-> **状态**：**v1 已入库、可执行**（2026-11-07 需求方授权出卡；队列零卡在途——TASK-30~33 四张 P0 卡均已收口入库，本卡不排队）。**本卡不代发提示词**；卡是执行期唯一口径，对话补充无效，变更另出修订版。
+> **状态**：**v1.1（2026-11-07 13:00 需求方按复核结论放行根因重写与 §5 断言修订）**。版本链：v1 `dd8caf5`（82 行，轻量卡入库）→ **v1.1 本版**；代码基线仍 `1c7ed69`（本卡提交只改卡文件、不含代码改动，§3 代码行号不按卡提交号推算）。**v1 三处误诊由需求方复核与起草方独立复跑共同坐实**：① 把 `pipeline.ts:35-37` 的参数白名单误读为「输出重排模板」（实测 `compilePipeline` 保留输入 params 键序）；② 虚构 `mode` 字段并写错两代 DB 键序（系 04:20 未实测的旧诊断）；③ 根因漏掉 Tauri IPC 层（直连模拟 `changed=false`，故误判「现象无法复现」）。**v1.1 核心**：根因改定为「`serde_json` 无 `preserve_order` → `Value::Map` 为 BTreeMap → 响应对象键按字母序重排 → 存档侧 step 顶层 `{op,params,version}` vs 编译输出 `{op,version,params}` → `JSON.stringify` 不等」；**修法（双侧编译）维持不变，现已被实测验证**（IPC 字母序模型 v1/v2 `changed(现行)=true` → `changed(双侧编译)=false`）。**v1.1 只改**：卡头状态行 / 事实源行、§2 D1（根因与依据全文重写）、§3 的 DB 证据行与新增 IPC 证据行、§5 标题 / 代码块 / 说明（改三断言）、§6 G2 一处「两断言→三断言」联动订正；D2 / D3 / §4 清单 / G1 / G3 / §7 即停 4 条 / §8 **全部零改动**，轻量卡判据（2 文件 / 零契约 / 无新口径）仍成立。**本卡不代发提示词**；卡是执行期唯一口径，对话补充无效，变更另出修订版。
 > **卡型**：**轻量卡**。判据逐条满足：① 纯前端 **2 文件**（`PreprocessPanel.tsx` + `panel.test.ts`）；② 零契约改动（不动任何 API / DDL / openapi / Rust / 后端）；③ 无边界数学（只改比较方式）；④ **无新口径决策**——`changed` 的意图语义自始是「草稿内容与已存版本是否一致」，本卡只把实现修到符合既有意图，不重新裁定任何口径。
-> **事实源**：现象与根因为需求方 2026-11-07 真实界面复现（本机 HEAD `1c7ed69`）；后端规范化哈希依据 TASK-30 D2（`sha256/json-canonical-v1`）；版本不可变纪律依据 TASK-05 §2.3；数据库实物证据见 §2。
+> **事实源**：现象为需求方 2026-11-07 真实界面复现（本机 HEAD `1c7ed69`）；**根因证据链（v1.1 重写）**：`src-tauri/Cargo.toml:35` `serde_json = "=1.0.154"`（无 `preserve_order`）、`src-tauri/src/preprocess.rs:333` `serde_json::from_slice(&bytes)` 与 `:337` `serde_json::to_vec(&value)`、以及本轮 node 字母序模型实测（v1/v2 复现 / 双侧编译修复 / 直连不触发）；后端规范化哈希依据 TASK-30 D2（`sha256/json-canonical-v1`）；版本不可变纪律依据 TASK-05 §2.3；DB 实物与 §3 锚点见下。历史证据 `5f5f2be`（2026-10-21 12:20 +0800）仅说明 `pipeline.ts` / 守卫自该提交未改，**不作现行格式定义**（引用纪律：格式与键清单一律锚当前 HEAD）。
 > **不承载**：数据库历史行键序不改写（TASK-30 §8 挂账维持）；「算子链 · v1」legend 写死问题（`PipelineEditor.tsx:32`）**不在本卡**——同族 UI 瑕疵另挂账，保持本卡 2 文件边界。
 
 ## 1. 现象（一句话）
@@ -13,7 +13,7 @@ S06 载入 `plastic-snv-sg1` 任一历史版本（v1 或 v2）后**未做任何�
 
 | # | 定案 | 依据（HEAD `1c7ed69` 实读） |
 |---|---|---|
-| D1 | **修法 = 判等双侧规范化**：`PreprocessPanel.tsx:116` 的比较由「`compilePipeline(草稿)` vs 原始存储 JSON」改为「`compilePipeline(草稿)` vs `compilePipeline(存档 steps)`」——两侧均以 `compilePipeline`（`pipeline.ts:27-68`）输出为准，比较仍用 `JSON.stringify`。**守卫语义零变化**：真改过参数 → 编译后仍不等 → 照常拦截；非法草稿链 → `:113` 的 `invalid` 照常拦截。保守回退：**存档侧编译失败或无已存版本时保持 `changed = true`**（不降格判定）。存档侧编译须用与草稿侧**完全相同**的 `record.dataset.wavelengths` / `record.dataset.shape[2]` 输入 | 根因：`:116` 只对草稿一侧过编译器，存档一侧用原始 `pipeline` JSON 逐字比对；`compilePipeline` 按必需键表（`pipeline.ts:35-37`）固定输出键序 `window→polyorder→mode→order`，而库内两代历史行键序均为 `order→window→polyorder→mode` → 内容相等、字符串不等。后端早已认等价：两版规范化哈希同为 `43fe2124e53c`（本机 DB 实读，TASK-30 回填行）；`save`（`:132`）本就先过 `compilePipeline` → 新存版本（v3+）键序必标准、永不触发 |
+| D1 | **修法 = 判等双侧规范化（v1.1 维持不变，修法本身零改动）**：`PreprocessPanel.tsx:116` 的比较由「`compilePipeline(草稿)` vs 原始存储 JSON」改为「`compilePipeline(草稿)` vs `compilePipeline(存档 steps)`」——两侧均以 `compilePipeline`（`pipeline.ts:27-68`）输出为准，比较仍用 `JSON.stringify`。**守卫语义零变化**：真改过参数 → 编译后仍不等 → 照常拦截；非法草稿链 → `:113` 的 `invalid` 照常拦截。保守回退：**存档侧编译失败或无已存版本时保持 `changed = true`**（不降格判定）。存档侧编译须用与草稿侧**完全相同**的 `record.dataset.wavelengths` / `record.dataset.shape[2]` 输入。**对 `preserve_order` 两种形态均稳健**：`compilePipeline` 输出 step 顶层恒为 `{op,version,params}`（实测：只打乱顶层键序、`params` 保持同一对象时输出逐字相等），故无论 IPC 是否启用 `preserve_order`、存档侧顶层是字母序还是插入序，双侧编译后形态一致 | **v1.1 根因（全文重写）**：`Cargo.toml:35` 的 `serde_json = "=1.0.154"` 未启用 `preserve_order` → `Value::Map` 为 `BTreeMap`、对象键按字母序重排；`preprocess.rs:333` 把后端响应解析成 `Value`、`:337` 再 `to_vec` 回前端，`getRecipe`（草稿来源）与 `listRecipes`（`currentVersion` 来源）走同一条链 → 两侧 step 顶层均为 `{op,params,version}`，而 `compilePipeline` 输出恒为 `{op,version,params}` → `JSON.stringify` 逐字不等 → `changed=true`。**实测（真实函数 + 真实 DB 数据 + 字母序模型，axis 200 / bands 200）**：v1/v2 `changed(现行)=true`、`changed(双侧编译)=false`；直连（不经 IPC）`changed=false` —— 直连不触发正是 v1 误判「现象无法复现」的原因。**注意**：`pipeline.ts:35-37` 的 `keys` 表只是参数白名单校验，`:32` `p={...step.params}` 与 `:63` `next={op,version,params:p}` **不做 params 键序重排**；v1 所写「按必需键表固定输出键序 `window→polyorder→mode→order`」为误读。`save`（`:132`）先过 `compilePipeline`，故 v3+ 新存版本顶层键序标准 |
 | D2 | **数据库零改动**：不改写 v1/v2 的 `pipeline` 文本（版本不可变，TASK-05 §2.3）；不动后端、不动 `recipe_pipeline_hash` 表与哈希算法；本修纯前端状态判定 | 后端契约红线；BUILTIN seed 行键序不改写为 TASK-30 §8 既定挂账 |
 | D3 | **防回退 pin**：`panel.test.ts` 追加 `doesNotMatch`，禁止 `changed` 判定退回「直接 `JSON.stringify` 未编译的存档 pipeline」的写法 | 与既有 `:48-64` 三条源码 pin 同款纪律 |
 
@@ -27,7 +27,8 @@ S06 载入 `plastic-snv-sg1` 任一历史版本（v1 或 v2）后**未做任何�
 | `PreprocessPanel.tsx:166-167` | 「草稿已变更」提示与「提交 run」禁用条件 | 不改（守卫渲染零变化） |
 | `src/components/preprocess/pipeline.ts:27-68`（`:35-37` 必需键表） | `compilePipeline` 规范化编译器 | 不改（本卡复用，非新算法） |
 | `src/components/preprocess/panel.test.ts:48-64` | wiring 源码 pin（`fetch/invoke/http`、`updateRecipe/deleteRecipe`、`ranking.sort/fisher` 三条 doesNotMatch） | **既有断言零改动**；新增用例不得引入上述模式（本修天然不涉及） |
-| 本机 DB `preprocess_recipe_version` | `plastic-snv-sg1` v1（2026-10-21）/ v2（2026-11-04）`steps` 键序均为 `order→window→polyorder→mode`，规范化哈希同为 `43fe2124e53c` | 只读证据，执行方不访问运行库 |
+| 本机 DB `preprocess_recipe_version` | `plastic-snv-sg1` v1（2026-10-21）`sg_derivative.params` 键序 `order→window→polyorder`、v2（2026-11-04）`order→polyorder→window`，**两代均无 `mode`**；规范化哈希同值（TASK-30 回填 `43fe2124e53c`）；用这两份数据**直连**模拟 `:116` → `changed=false`（不触发症状） | 只读证据（v1.1 按实物订正），执行方不访问运行库 |
+| `src-tauri/Cargo.toml:35` / `src-tauri/src/preprocess.rs:333,337` / `PreprocessPanel.tsx:116` | `serde_json = "=1.0.154"` 无 `preserve_order`（`Value::Map` 为 BTreeMap、键按字母序）；响应 `from_slice` 成 `Value` 再 `to_vec` 回前端；`:116` 单侧编译逐字比对 | **只读**（v1.1 新增证据行）：症状根因链；执行方不改这三个文件 |
 
 ## 4. 改动清单（清单外零改动）
 
@@ -38,30 +39,38 @@ S06 载入 `plastic-snv-sg1` 任一历史版本（v1 或 v2）后**未做任何�
 | 后端 / Rust / DDL / openapi / 数据库 / `pipeline.ts` / `PipelineEditor.tsx` / 其余前端文件 | **零改动** |
 | 14 项 step2 噪声 + 1 个 untracked `docs/AI自动标注路径分析.md` | **禁触碰** |
 
-## 5. 新增测试设计（1 个用例、两个断言，非自指）
+## 5. 新增测试设计（1 个用例、三个断言，非自指）
 
 ```ts
-test('changed comparison is key-order-insensitive because both sides pass compilePipeline', () => {
-  // ① 规范化性质：同一 step 以两种键序构造，compilePipeline 输出必须逐字相等
-  //   （这正是 :116 双侧编译比较后键序不再影响判定的依据）
-  const reordered = { op: 'sg_derivative', version: 1, params: { order: 1, window: 15, polyorder: 2, mode: 'interp' } };
-  const canonical = { op: 'sg_derivative', version: 1, params: { window: 15, polyorder: 2, mode: 'interp', order: 1 } };
-  const axis = Array.from({ length: 32 }, (_, i) => 1000 + 2 * i);
-  assert.equal(JSON.stringify(compilePipeline([reordered], axis, 32)), JSON.stringify(compilePipeline([canonical], axis, 32)));
-  // ② 防回退 pin：changed 判定不得再直接 stringify 未编译的存档 pipeline
+test('changed comparison survives IPC key alphabetization because both sides pass compilePipeline', () => {
+  // IPC 字母序形态：serde_json 无 preserve_order → step 顶层 {op,params,version}、params 键亦按字母序
+  const axis = Array.from({ length: 200 }, (_, i) => 1000 + 2 * i), bands = 200;
+  const ipcSteps: Step[] = [
+    { op: 'snv', params: {}, version: 1 },
+    { op: 'sg_derivative', params: { order: 1, polyorder: 2, window: 15 }, version: 1 },
+  ];
+  const ipcStored = { steps: ipcSteps };
+  const compiled = compilePipeline(structuredClone(ipcStored.steps), axis, bands);
+  // ① 复现故障：单侧编译输出 {op,version,params} 与字母序存档 {op,params,version} 逐字不等
+  assert.notEqual(JSON.stringify(compiled), JSON.stringify(ipcStored));
+  // ② 修复依据：编译器统一 step 顶层键序（只打乱顶层、params 保持同一对象引用）
+  const topShuffled: Step = { params: ipcSteps[1].params, version: 1, op: 'sg_derivative' };
+  assert.equal(JSON.stringify(compilePipeline([topShuffled], axis, bands)),
+               JSON.stringify(compilePipeline([structuredClone(ipcSteps[1])], axis, bands)));
+  // ③ 防回退 pin：changed 判定不得再直接 stringify 未编译的存档 pipeline
   assert.doesNotMatch(readFileSync(new URL('./PreprocessPanel.tsx', import.meta.url), 'utf8'),
     /JSON\.stringify\(\s*currentVersion\?\.pipeline\s*\)/);
 });
 ```
 
-（需在文件头部补 `compilePipeline` 的 import；断言①用 `sg_derivative` 全参数键序对调，覆盖最宽的键序差。）
+（需在文件头部补 `compilePipeline` 与 `type Step` 的 import；`assert` / `test` / `readFileSync` 复用现有 import。**防必红约束**：`compilePipeline` 不做 params 键序重排，实测 `compiled(DB序) === compiled(IPC字母序)` 为 **false** —— 禁止把两种不同 params 键序的 steps 直接比较，断言②必须「只打乱 step 顶层键序、`params` 保持同一对象」。**TDD 顺序**：断言③ 的 pin 正则在未改 `:116` 实现前必然命中、`doesNotMatch` 必失败，须先按 D1 改实现再跑测试；改后三断言全通过、候选代码已实测 `tsc --noEmit` EXIT=0。另实测同一 IPC 字母序 steps 双侧编译后 `changed=false`（v1/v2），即修复后 `:116` 不再误判。）
 
 ## 6. 验收门（3 道，可执行、不自指）
 
 | 门 | 命令 / 断言 | 预期 |
 |---|---|---|
 | G1 | `node --test "src/**/*.test.ts"`（双层 glob 逐字） | **269+1 / 269+1 pass / 0 fail**（基线 269/269/0 于 HEAD `1c7ed69` 实测）；既有用例不变红变少 |
-| G2 | 新用例两断言 + `node node_modules/typescript/bin/tsc --noEmit` | 两断言通过；tsc EXIT=0 |
+| G2 | 新用例三断言 + `node node_modules/typescript/bin/tsc --noEmit` | 三断言通过（③ 须在 D1 实现改完后才可能通过）；tsc EXIT=0 |
 | G3 | 收工 `git status` 对照开工快照（开工 = 14 M 噪声 + 1 untracked docs，共 15 项） | 仅 §4 两文件为新增 M；噪声与 docs 零变化、未提交 |
 
 **需求方手测回归（收口后由需求方执行，不设自动门）**：载入 `plastic-snv-sg1` v1 → 无「草稿已变更」提示、「提交 run」可点；把 window 15→17 → 提示恢复、按钮禁用（守卫仍在）；v2 同验。
