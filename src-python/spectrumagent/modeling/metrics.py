@@ -109,3 +109,52 @@ def _regression(true, predicted, set):
             "rpd": float(np.std(true, ddof=1)/rmse) if len(true) > 1 and np.ptp(true) > 0 and rmse > 0 else None,
             "rer": float(np.ptp(true)/rmse) if len(true) > 1 and np.ptp(true) > 0 and rmse > 0 else None,
             "bias": float(np.mean(predicted-true))}
+
+
+def derive_classification(score):
+    """R10: undefined denominators remain None; no epsilon or zero imputation."""
+    matrix = np.asarray(score["confusion"], dtype=np.int64)
+    classes = []
+    for i, label in enumerate(score["labels"]):
+        support, predicted = int(matrix[i].sum()), int(matrix[:, i].sum())
+        recall = float(matrix[i, i]/support) if support else None
+        precision = float(matrix[i, i]/predicted) if predicted else None
+        f1 = (2*precision*recall/(precision+recall)
+              if precision is not None and recall is not None and precision+recall > 0 else None)
+        classes.append({"label": label, "precision": precision, "recall": recall, "f1": f1})
+    def average(key):
+        values = [item[key] for item in classes if item[key] is not None]
+        return float(np.mean(values)) if values else None
+    return {**score, "aa": average("recall"), "macro_f1": average("f1"), "per_class": classes}
+
+
+def classification_scores(y_true, y_pred, groups, *, labels):
+    """Reuse pixel/sample majority votes after removing explicitly rejected pixels."""
+    true, predicted, groups = _vectors(y_true, y_pred, groups)
+    accepted = (true >= 0) & (predicted >= 0)
+    scores = score_predictions(true[accepted], predicted[accepted], groups[accepted], task="classification") if accepted.any() else None
+    result = {}
+    for scope in ("pixel", "sample"):
+        matrix = np.zeros((len(labels), len(labels)), dtype=np.int64)
+        score = scores[scope] if scores else {"oa": None, "kappa": None, "labels": [], "confusion": []}
+        index = {label: i for i, label in enumerate(labels)}
+        for i, left in enumerate(score["labels"]):
+            for j, right in enumerate(score["labels"]):
+                matrix[index[left], index[right]] = score["confusion"][i][j]
+        result[scope] = derive_classification({**score, "labels": list(labels), "confusion": matrix.tolist()})
+    return result
+
+
+def classification_fold_summary(folds):
+    """Fold statistics use defined scores only; SD needs two defined folds."""
+    def summary(values):
+        finite = [value for value in values if value is not None]
+        return {"mean": float(np.mean(finite)) if finite else None,
+                "std": float(np.std(finite, ddof=1)) if len(finite) > 1 else None}
+    return {scope: {
+        **{name: summary([fold[scope][name] for fold in folds]) for name in ("oa", "kappa", "aa", "macro_f1")},
+        "per_class": [{"label": item["label"], **{
+            name: summary([fold[scope]["per_class"][i][name] for fold in folds])
+            for name in ("precision", "recall", "f1")}}
+            for i, item in enumerate(folds[0][scope]["per_class"])]}
+        for scope in ("pixel", "sample")}

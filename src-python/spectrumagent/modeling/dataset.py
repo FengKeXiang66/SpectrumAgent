@@ -61,7 +61,7 @@ def _inputs(registry, *, cube_ids, annotation_version_ids, preprocess_run_ids, t
 def _build(registry, paths, rows):
     started = perf_counter()
     operators = builtin_registry()
-    xs, ys, gs, metadata = [], [], [], []
+    xs, ys, gs, metadata, sample_means_raw = [], [], [], [], []
     cube_groups = {cube: i for i, cube in enumerate(dict.fromkeys(row["cube_id"] for row in rows))}
     for row in rows:
         cube = row["cube_id"]
@@ -101,6 +101,7 @@ def _build(registry, paths, rows):
             y[offset:offset+count] = labels[mask]
             offset += count
             del block
+        sample_means_raw.append(x.mean(axis=0))
         # Each cube is fitted as a whole, explicitly acknowledged by leak.py.
         processed = operators.run(x, row["pipeline"], wavelengths=wavelengths or None).spectra
         if not np.isfinite(processed).all():
@@ -115,6 +116,7 @@ def _build(registry, paths, rows):
     if len({x.shape[1] for x in xs}) != 1:
         raise ModelingError("FEATURE_COUNT_MISMATCH", "各数据集预处理后的特征数须相同")
     return {"X": np.concatenate(xs), "y": np.concatenate(ys), "groups": np.concatenate(gs),
+            "sample_means_raw": np.stack(sample_means_raw),
             "meta": {"cubes": metadata, "n_samples": sum(len(y) for y in ys), "n_features": xs[0].shape[1],
                      "build_seconds": perf_counter() - started}}
 
