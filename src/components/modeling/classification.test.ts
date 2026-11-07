@@ -4,9 +4,11 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { Children, isValidElement, type ReactNode } from 'react';
 import ts from 'typescript';
-import { modelingClient, type ClassificationBody, type Request } from './api.ts';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { modelingClient, type ClassificationBody, type ClassificationResult, type ClassScore, type Request } from './api.ts';
 
 type Element = { type: unknown; props: Record<string, unknown> };
+let componentSerial = 0;
 function elements(tree: ReactNode): Element[] {
   const result: Element[] = [];
   const visit = (node: ReactNode) => {
@@ -20,7 +22,7 @@ async function component(file: string, dependencies: Record<string, unknown>) {
   const slots: unknown[] = [], effects = new Map<number, { deps: unknown[]; cleanup?: () => void }>();
   const pending: (() => void)[] = [];
   const scope = globalThis as unknown as Record<string, unknown>;
-  const key = '__classification_' + file.replace(/\W/g, '_');
+  const key = '__classification_' + file.replace(/\W/g, '_') + componentSerial++;
   scope[key] = { ...dependencies,
     useState: (initial: unknown) => {
       const index = cursor++;
@@ -115,5 +117,86 @@ test('S07 task toggle preserves the regression form and makes classification ind
     const back = elements(panel.render(props)).find(row => row.type === 'button' && row.props.children === 'PLS 回归')!;
     (back.props.onClick as () => void)();
     assert.match(JSON.stringify(panel.render(props)), /样品连续量/);
+  } finally { panel.dispose(); }
+});
+
+function classificationResult(): ClassificationResult {
+  const score: ClassScore = { oa: .75, kappa: .5, aa: .75, macro_f1: .7, labels: [0, 1], confusion: [[2, 0], [1, 1]],
+    per_class: [{ label: 0, precision: 2/3, recall: 1, f1: .8 }, { label: 1, precision: null, recall: .5, f1: null }] };
+  const statistic = { mean: .4, std: .1 };
+  const summary = { oa: statistic, kappa: statistic, aa: statistic, macro_f1: statistic,
+    per_class: [{ label: 0, precision: statistic, recall: statistic, f1: statistic },
+      { label: 1, precision: { mean: null, std: null }, recall: statistic, f1: { mean: null, std: null } }] };
+  return { task: 'classification', run_id: 'classification-run', status: 'succeeded', n_samples: 2, n_pixels_used: 6,
+    selected_lv: 2, best_lv: 2, by_cv_min: 2, by_elbow: 1, metrics: { pixel: { oa: .625, kappa: null }, sample: { oa: .5, kappa: 0 } },
+    leak_report: { passed: true }, error: null, confusion: { scores: { pixel: score, sample: score },
+      folds: [{ fold_index: 0, pixel: score, sample: score }], fold_summary: { pixel: summary, sample: summary },
+      threshold: { confidence_threshold: .6, uncertain_pixels: 2, accepted_pixels: 4, total_pixels: 6 },
+      lv: { best_lv: 2, elbow_lv: 1, selected_lv: 2, by_cv_min: 2, by_elbow: 1, manual_override: false, definition: 'saved rule', curve: [] },
+      manifest: { operator: 'train_plsda', operator_version: 1, code_version: 'revision', seed: 17 } } };
+}
+
+test('classification rendering preserves DB metrics, JSON matrix/F1/fold statistics and null disclosure', async () => {
+  const panel = await component('./ClassificationResults.tsx', {});
+  try {
+    const html = renderToStaticMarkup(panel.render({ result: classificationResult() }));
+    for (const label of ['像素级分类指标', '样品级分类指标', 'pixel 混淆矩阵', 'sample 混淆矩阵', '每类 F1', '折间均值', '置信度阈值', '不确定像素']) assert.ok(html.includes(label));
+    assert.match(html, /<dd>0.625<\/dd>/, 'OA must come from the metric table response');
+    assert.match(html, /<dd>不适用<\/dd>/);
+    assert.match(html, /<td>0.4<\/td><td>0.1<\/td>/, 'fold statistics must use saved backend values');
+    assert.doesNotMatch(html, /94.5%|0.921|782,500|伪彩分类图|ROC|Top 5|NaN|undefined/);
+    const preflight = renderToStaticMarkup(panel.render({ result: { task: 'classification', status: 'succeeded' } }));
+    assert.match(preflight, /尚无分类训练产物/);
+  } finally { panel.dispose(); }
+});
+
+test('S08 classification reads only the selected run and never requests regression charts or a separate sweep', async () => {
+  const calls: string[] = [], ClassificationResults = () => null, RegressionCharts = () => null;
+  const panel = await component('../../screens/S08.tsx', { ClassificationResults, RegressionCharts, metricLabels: {}, failureMessage: String,
+    regressionCharts: () => [], modeling: { run: async (id: string) => { calls.push(id); return classificationResult(); },
+      sweep: async () => { assert.fail('classification must not fetch a regression sweep'); } } });
+  const props = { runId: 'classification-run', onOpen() {}, onBackToList() {}, onClose() {} };
+  try {
+    panel.render(props); await panel.flush();
+    const tree = elements(panel.render(props));
+    assert.deepEqual(calls, ['classification-run']);
+    assert.ok(tree.some(row => row.type === ClassificationResults));
+    assert.ok(!tree.some(row => row.type === RegressionCharts));
+  } finally { panel.dispose(); }
+});
+
+test('S08 list retains regression runs and also includes classification runs', async () => {
+  const panel = await component('../../screens/S08.tsx', { ClassificationResults: () => null, RegressionCharts: () => null, metricLabels: {}, failureMessage: String,
+    regressionCharts: () => [], modeling: { runs: async () => [{ id: 'regression-id', task: 'regression', status: 'succeeded' },
+      { id: 'classification-id', task: 'classification', status: 'succeeded' }, { id: 'unknown-id', task: 'unknown', status: 'succeeded' }] } });
+  const props = { runId: null, onOpen() {}, onBackToList() {}, onClose() {} };
+  try {
+    panel.render(props); await panel.flush();
+    const html = renderToStaticMarkup(panel.render(props));
+    assert.ok(html.includes('regression-id') && html.includes('classification-id'));
+    assert.ok(!html.includes('unknown-id'));
+  } finally { panel.dispose(); }
+});
+
+test('S09 classification table follows the unchanged regression table and uses exactly one listing with no detail fan-out', async () => {
+  let listings = 0, details = 0;
+  const panel = await component('../../screens/S09.tsx', { ClassificationResults: () => null, metricLabels: {}, failureMessage: String,
+    displayName: String, preprocessing: { listRuns: async () => { assert.fail('no selected dataset'); } }, modeling: {
+      runs: async () => { listings++; return [{ id: 'regression-id', task: 'regression', status: 'succeeded' },
+        { id: 'classification-id', task: 'classification', status: 'succeeded', oa: .625, kappa: null, lv: 2 },
+        { id: 'preflight-id', task: 'classification', status: 'succeeded' }]; },
+      run: async () => { details++; return classificationResult(); } } });
+  const props = { records: [] };
+  try {
+    panel.render(props); await panel.flush();
+    const html = renderToStaticMarkup(panel.render(props));
+    assert.equal(listings, 1); assert.equal(details, 0);
+    assert.ok(html.indexOf('aria-label="回归台账列表"') < html.indexOf('aria-label="分类台账列表"'));
+    const table = html.slice(html.indexOf('<table aria-label="回归台账列表">'), html.indexOf('</table>')+8);
+    assert.deepEqual([...table.matchAll(/<th>(.*?)<\/th>/g)].map(row => row[1]), ['运行 ID', 'task', 'status']);
+    const classification = html.slice(html.indexOf('<table aria-label="分类台账列表">'));
+    assert.ok(classification.includes('classification-id') && classification.includes('preflight-id'));
+    assert.match(classification, /<td>0.625<\/td><td>不适用<\/td><td>2<\/td>/);
+    assert.doesNotMatch(classification, /NaN|undefined|94.5%|0.921/);
   } finally { panel.dispose(); }
 });

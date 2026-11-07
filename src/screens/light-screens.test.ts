@@ -31,7 +31,7 @@ test('P5 S09 regression table has only id task status and a client task filter w
   assert.match(ledger, /useState<'all' \| 'regression'>\('regression'\)/);
   assert.match(ledger, /runs.filter\(row => row.task === 'regression'\)/);
   assert.match(ledger, /task === 'regression' \? regressionRuns : runs/);
-  assert.doesNotMatch(ledger, /new Date|Date.now|Kappa/);
+  assert.doesNotMatch(ledger, /new Date|Date.now/);
 });
 
 test('P5 S09 fetches selected run details and retains backend metrics quality and collapsed leak report', () => {

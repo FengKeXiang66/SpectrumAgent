@@ -37,7 +37,7 @@ test('P2 S04 and S03 thumbnails share BandCanvas and viewing updates workspace',
 
 test('P2 S08 loads real regression runs and refetches run plus sweep on mount', () => {
   assert.match(results, /modeling.runs\(\)/);
-  assert.match(results, /rows.filter\(row => row.task === 'regression'\)/);
+  assert.match(results, /rows.filter\(row => row.task === 'regression' \|\| row.task === 'classification'\)/);
   assert.match(results, /onOpen\(row.id\)/);
   assert.match(results, /if \(runId !== null\) void load\(runId\)/);
   assert.match(results, /await modeling.run\(id\)/);

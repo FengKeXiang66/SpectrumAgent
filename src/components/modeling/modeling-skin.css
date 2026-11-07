@@ -33,3 +33,11 @@
 .classification-panel select { display: block; width: 100%; box-sizing: border-box; margin-top: .35rem; border: 1px solid #e2e7ed; border-radius: 7px; padding: .5rem; font: inherit; }
 .classification-panel button { margin: .3rem; border: 1px solid #b9dbe6; border-radius: 7px; background: #e7f3f7; color: #0a5670; padding: .5rem .8rem; font: inherit; }
 .classification-panel button:disabled { opacity: .6; }
+.classification-results .classification-scopes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.classification-results .classification-scopes > section { min-width: 0; overflow-x: auto; padding: .8rem; border: 1px solid #e2e7ed; border-radius: 9px; background: white; }
+.classification-results table { margin: 1rem 0; border-collapse: collapse; width: 100%; }
+.classification-results th,
+.classification-results td { padding: .4rem; border: 1px solid #e2e7ed; text-align: right; }
+.classification-results caption { color: #455260; text-align: left; margin-bottom: .4rem; }
+.classification-results dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
+.classification-results dd { margin: .3rem 0; font-size: 1.1rem; color: #0a5670; }

@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { displayName, type DatasetReference } from '../components/datasets/types';
-import { metricLabels, modeling, type Result } from '../components/modeling/api';
+import { metricLabels, modeling, type Result, type RunRow } from '../components/modeling/api';
+import ClassificationResults from '../components/modeling/ClassificationResults';
 import { failureMessage } from '../components/modeling/chart';
 import { preprocessing } from '../components/preprocess/api';
 import type { RunSummary } from '../components/preprocess/types';
 import '../components/modeling/modeling.css';
 
 export default function S09({ records }: { records: DatasetReference[] }) {
-  const [runs, setRuns] = useState<{ id: string; task: string; status: string }[]>([]);
+  const [runs, setRuns] = useState<RunRow[]>([]);
   const [task, setTask] = useState<'all' | 'regression'>('regression');
   const [loading, setLoading] = useState(true), [error, setError] = useState('');
   const [selectedRun, setSelectedRun] = useState(''), [result, setResult] = useState<Result | null>(null);
@@ -43,6 +44,7 @@ export default function S09({ records }: { records: DatasetReference[] }) {
   }, [datasetId]);
   const regressionRuns = runs.filter(row => row.task === 'regression');
   const visibleRuns = task === 'regression' ? regressionRuns : runs;
+  const classificationRuns = runs.filter(row => row.task === 'classification');
   return <section className="model-panel" aria-label="实验台账">
     <h2>实验台账</h2>
     <section aria-label="回归运行台账">
@@ -68,6 +70,18 @@ export default function S09({ records }: { records: DatasetReference[] }) {
         <dl>{Object.entries(result.metrics ?? {}).map(([key, value]) => <div key={key}><dt>{metricLabels[key] ?? key}</dt><dd>{value ?? '不适用'}</dd></div>)}</dl>
         <details><summary>泄漏预检</summary><pre>{JSON.stringify(result.leak_report, null, 2)}</pre></details>
       </section>}
+    </section>
+    <section aria-label="分类运行台账"><h3>分类运行</h3><p>OA / Kappa 使用样品级指标；无分类训练产物时显示不适用。</p>
+      {loading && <p role="status">正在读取分类运行记录…</p>}
+      {error && <pre role="alert">{error}</pre>}
+      {!loading && !error && (classificationRuns.length ? <table aria-label="分类台账列表">
+        <thead><tr><th>run_id</th><th>task</th><th>status</th><th>OA</th><th>Kappa</th><th>LVs</th></tr></thead>
+        <tbody>{classificationRuns.map(row => <tr key={row.id}>
+          <td><button onClick={() => setSelectedRun(row.id)}>{row.id}</button></td><td>{row.task}</td><td>{row.status}</td>
+          <td>{row.oa ?? '不适用'}</td><td>{row.kappa ?? '不适用'}</td><td>{row.lv ?? '不适用'}</td>
+        </tr>)}</tbody>
+      </table> : <p>暂无分类运行记录。请先在建模屏完成训练。</p>)}
+      {selectedRun && result?.task === 'classification' && <ClassificationResults result={result} />}
     </section>
     <section aria-label="预处理运行台账"><h3>预处理运行</h3>
       <label>数据集<select value={datasetId} disabled={!records.length} onChange={event => setDatasetId(event.target.value)}>
