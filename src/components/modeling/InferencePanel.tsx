@@ -66,6 +66,8 @@ export default function InferencePanel({ records, onClose }: { records: DatasetR
       {item.error && <p role="alert">{item.error}。若请求超时或中断，请先核对已有记录，避免重复提交。</p>}
       {item.result?.stats && <><strong>{item.result.stats.quality_label}</strong>
         <p className="model-science-warning">{item.result.stats.warning}</p>
+        <p>标定来源：{item.result.stats.calibration_origin}；拟合范围：{item.result.stats.fit_scope ?? '未标注'}；
+          溯源记录：{item.result.stats.calibration_provenance_present ? '有' : '无'}；run_id：{item.result.id}</p>
         <p>{clippingMessage(item.result.stats)}</p>
         <dl><div><dt>像素预测均值</dt><dd>{item.result.stats.pixel_mean}</dd></div>
           <div><dt>样品均值谱预测</dt><dd>{item.result.stats.sample_prediction}</dd></div>

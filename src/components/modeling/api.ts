@@ -22,6 +22,7 @@ export type InferenceStats = { n_pixels: number; n_foreground: number; mean: num
   pixel_mean: number; sample_prediction: number; out_of_domain_count: number; out_of_domain_fraction: number;
   out_of_range_count: number; below_range_count: number; above_range_count: number; low: number; high: number;
   warning: string; quality_label: string | null; calibration_limitation: string; quantiles: Record<string, number>;
+  calibration_origin: string; fit_scope: string | null; calibration_provenance_present: boolean;
   residual_interval: { mean: number; sd: number | null; low: number | null; high: number | null } };
 export type InferenceResult = InferenceBody & { id: string; status: string; stats: InferenceStats | null; error: unknown };
 export type ConcentrationMap = { width: number; height: number; mime: 'image/png'; png_base64: string;

@@ -179,6 +179,23 @@ class InferenceRuns:
             if (recipe is None or run["recipe_version_id"] not in cal.get("recipe_version_ids", [])
                     or normalized_pipeline(recipe[0]) != cal.get("pipeline")):
                 raise ModelingError("RECIPE_MISMATCH", "推理须使用训练 run 绑定的配方版本")
+            provenance = cal.get("provenance")
+            if provenance is not None:
+                required = {"fit_scope", "fit_sample_count", "fitted_on", "source_preprocess_run_ids",
+                            "source_input_fingerprints", "report_fit_scope", "distinct_fit_populations",
+                            "non_interchangeable_reason"}
+                if (not isinstance(provenance, dict) or not required.issubset(provenance)
+                        or provenance["fit_scope"] != "sample_mean"
+                        or provenance["fitted_on"] != "registration"
+                        or provenance["report_fit_scope"] != "labeled_pixels"
+                        or provenance["distinct_fit_populations"] is not True
+                        or type(provenance["fit_sample_count"]) is not int or provenance["fit_sample_count"] <= 0
+                        or any(not isinstance(provenance[key], list) or not provenance[key]
+                               or any(not isinstance(value, str) for value in provenance[key])
+                               for key in ("source_preprocess_run_ids", "source_input_fingerprints"))
+                        or not isinstance(provenance["non_interchangeable_reason"], str)
+                        or not provenance["non_interchangeable_reason"].strip()):
+                    raise ModelingError("CALIBRATION_PROVENANCE_UNAVAILABLE", "注册标定溯源结构无效")
             backgrounds = {row[0] for row in db.execute("SELECT id FROM label WHERE is_background=1")}
         dataset, _ = self.registry.readable(cube_id, raw=False)
         shape = dataset.shape
@@ -253,6 +270,9 @@ class InferenceRuns:
                 "out_of_range_count": below+above, "below_range_count": below, "above_range_count": above,
                 "low": low, "high": high, "warning": WARNING, "quality_label": model["quality_label"],
                 "residual_interval": cal["residual_interval"], "calibration_limitation": cal["limitation"],
+                "calibration_origin": cal["origin"],
+                "fit_scope": (cal.get("provenance") or {}).get("fit_scope"),
+                "calibration_provenance_present": bool(cal.get("provenance")),
                 "statistics_scope": "annotated_foreground", "ood_rule": "any_feature_outside_training_range",
             }
             rgb = concentration_colors(prediction, low, high)

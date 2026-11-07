@@ -95,6 +95,8 @@ class ModelRegistry:
         model = artifacts.artifact(run_id, "model")
         predictions = artifacts.artifact(run_id, "predictions")
         refs = json.loads(run["preprocess_run_ids"])
+        if not refs:
+            raise ModelingError("CALIBRATION_PROVENANCE_UNAVAILABLE", "注册标定缺少训练数据来源")
         try:
             data = build_sample_training_set(self.registry, self.paths, preprocess_run_ids=refs,
                                              target_schema_id=run["target_schema_id"])
@@ -105,6 +107,12 @@ class ModelRegistry:
         except (DataError, OSError, ValueError) as error:
             raise ModelingError("TRAINING_DATA_UNAVAILABLE",
                                 "训练数据已不可读，请在数据仍可访问时注册") from error
+        try:
+            fingerprints = [row["input_fingerprint"] for row in data["meta"]["cubes"]]
+            if not fingerprints or any(not isinstance(value, str) or not value for value in fingerprints):
+                raise ValueError("missing input fingerprint")
+        except (KeyError, TypeError, ValueError) as error:
+            raise ModelingError("CALIBRATION_PROVENANCE_UNAVAILABLE", "注册标定缺少输入指纹来源") from error
         with connect_database(self.database) as db:
             recipes = [db.execute("SELECT recipe_version_id FROM preprocess_run WHERE id=?", (ref,)).fetchone()[0]
                        for ref in refs]
@@ -139,6 +147,13 @@ class ModelRegistry:
                                   "high": mean + sd if sd is not None else None, "ddof": 1,
                                   "scope": "global_calibration_residual"},
             "limitation": "标定由注册时重建得出，非训练时实测值，可审计不可反证",
+            "provenance": {
+                "fit_scope": "sample_mean", "fit_sample_count": int(data["X_raw"].shape[0]),
+                "fitted_on": "registration", "source_preprocess_run_ids": list(refs),
+                "source_input_fingerprints": fingerprints, "report_fit_scope": "labeled_pixels",
+                "distinct_fit_populations": True,
+                "non_interchangeable_reason": "注册期使用整样均值谱拟合，预处理使用逐像素已标注谱拟合，两种拟合样本不同，标定参数不可互换。",
+            },
         }
         from .inference import apply_with_calibration, predict
         rebuilt = apply_with_calibration(calibration, pipeline, data["X_raw"])

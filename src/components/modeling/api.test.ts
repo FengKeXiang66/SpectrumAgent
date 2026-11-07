@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { readFileSync } from 'node:fs';
 import { modelingClient, metricLabels, type Request } from './api.ts';
 
 test('sample value uses fixed native command and preserves annotation response', async () => {
@@ -40,4 +41,20 @@ test('coefficients use one fixed read-only native operation and exact model id b
   const row = await api.coefficients('registered');
   assert.deepEqual(row.coefficients, [1, -2]);
   assert.deepEqual(sent, [{ command: 'models_forward', args: { request: { op: 'get_coefficients', model_id: 'registered' } } }]);
+});
+
+test('inference provenance fields reach the closed stats type and read-only run footnote', () => {
+  const api = readFileSync(new URL('./api.ts', import.meta.url), 'utf8');
+  const stats = api.match(/export type InferenceStats = \{([\s\S]*?)\};/)?.[1];
+  assert.ok(stats, 'closed InferenceStats declaration must exist');
+  assert.match(stats, /calibration_origin: string/);
+  assert.match(stats, /fit_scope: string \| null/);
+  assert.match(stats, /calibration_provenance_present: boolean/);
+  const panel = readFileSync(new URL('./InferencePanel.tsx', import.meta.url), 'utf8');
+  assert.match(panel, /item\.result\.stats\.calibration_origin/);
+  assert.match(panel, /item\.result\.stats\.fit_scope \?\? '未标注'/);
+  assert.match(panel, /item\.result\.stats\.calibration_provenance_present \? '有' : '无'/);
+  assert.match(panel, /run_id：\{item\.result\.id\}/);
+  assert.doesNotMatch(panel, /\bfetch\s*\(|\binvoke\s*\(|https?:\/\//);
+  assert.doesNotMatch(panel, /scaler_params/);
 });
