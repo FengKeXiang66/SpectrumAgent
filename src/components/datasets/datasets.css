@@ -1,0 +1,21 @@
+.dataset-panel, .project-paths { padding: 20px; margin: 16px 0; border: 1px solid var(--line, #dce5eb); border-radius: 12px; background: var(--card, #fff); }
+.dataset-toolbar, .dataset-row-actions, .dataset-dialog-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.dataset-toolbar label { margin: 0; }
+.dataset-table-scroll { overflow-x: auto; margin-top: 16px; }
+.dataset-panel table { width: 100%; border-collapse: collapse; }
+.dataset-panel th, .dataset-panel td { text-align: left; padding: 12px; border-bottom: 1px solid #dce5eb; vertical-align: top; }
+.dataset-panel code, .project-paths code, .project-paths dd { display: block; overflow-wrap: anywhere; white-space: pre-wrap; font-size: 12px; max-width: 420px; }
+.dataset-panel pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+.dataset-row-actions { margin-top: 8px; }
+.dataset-danger, .dataset-unavailable { color: #9e3030; }
+.dataset-modal-shade { position: fixed; inset: 0; z-index: 100; background: #102c3a70; display: grid; place-items: center; padding: 24px; }
+.dataset-dialog { background: #fff; color: #163442; border-radius: 14px; padding: 24px; max-width: 680px; width: 100%; max-height: 85vh; overflow: auto; box-shadow: 0 16px 60px #102c3a35; box-sizing: border-box; }
+.dataset-impact { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.dataset-impact dd { margin: 4px 0; font-weight: 650; font-size: 20px; }
+.dataset-dialog-actions { justify-content: flex-end; margin-top: 24px; }
+.project-path-row { display: flex; gap: 8px; align-items: end; margin: 12px 0; flex-wrap: wrap; }
+.project-path-row label { display: grid; gap: 6px; flex: 1; min-width: 240px; margin: 0; }
+.project-path-row input { width: 100%; box-sizing: border-box; margin: 0; font-family: monospace; }
+.readonly-badge { border-radius: 6px; background: #e7f4ed; color: #216143; padding: 8px; font-size: 12px; }
+.dataset-format-note { color: #506b79; line-height: 1.7; }
+@media (max-width: 720px) { .dataset-impact { grid-template-columns: repeat(2, 1fr); } .dataset-modal-shade { padding: 10px; } }

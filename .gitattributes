@@ -1,0 +1,8 @@
+*.py text eol=lf
+*.spec text eol=lf
+*.md text eol=lf
+*.rs text eol=lf
+*.toml text eol=lf
+src-tauri/Cargo.lock text eol=lf
+# Preserve the bundled NSIS template byte-for-byte.
+src-tauri/nsis/*.nsi -text -whitespace

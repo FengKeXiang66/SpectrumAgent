@@ -1,0 +1,186 @@
+/* S05 annotation workbench skin, aligned with the high-fidelity prototype
+   (第一阶段UI设计与高保真原型.html:1618-1735 S05, :8-21 tokens, :221-390 components).
+   Scope: .annotation-workbench only. No DOM, interaction or data-flow changes.
+   Guard contract (src/shell/skin-guards.test.ts): no important flag, no pinned or
+   full-viewport positioning, no stacking index, and exactly one narrow media query. */
+
+.annotation-workbench {
+  --ann-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --ann-mono: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+  --ann-ink: #16202a;
+  --ann-ink2: #455260;
+  --ann-ink3: #7b8794;
+  --ann-ink4: #a3adb8;
+  --ann-line: #e2e7ed;
+  --ann-line2: #eef2f6;
+  --ann-panel2: #f7f9fb;
+  --ann-panel3: #f1f4f8;
+  --ann-brand: #0e6e8c;
+  --ann-brand-d: #0a5670;
+  --ann-brand-soft: #e7f3f7;
+  --ann-brand-line: #b9dbe6;
+  --ann-muted: #7b8794;
+  --ann-ok: #17714a;
+  --ann-ok-bg: #e8f5ee;
+  --ann-ok-line: #c6e5d5;
+  --ann-warn: #a06a12;
+  --ann-warn-bg: #fdf4e3;
+  --ann-warn-line: #f0dfb8;
+  --ann-bad: #b83227;
+  --ann-bad-bg: #fdeceb;
+  --ann-bad-line: #f2cfcc;
+  --ann-canvas: #1b2530;
+  --ann-canvas-line: #0d151d;
+  --ann-radius: var(--ui-radius);
+  margin: 0;
+  color: var(--ann-ink);
+  font-family: var(--ann-font);
+  font-size: 12.4px;
+  line-height: 1.7;
+}
+/* Aliases onto the shared design tokens; canvas colours stay page-local. */
+.annotation-workbench {
+  --ann-ink: var(--ui-ink); --ann-ink2: var(--ui-ink-2); --ann-ink3: var(--ui-ink-3); --ann-ink4: var(--ui-ink-4);
+  --ann-line: var(--ui-line); --ann-line2: var(--ui-line-2);
+  --ann-panel2: var(--ui-surface-2); --ann-panel3: var(--ui-surface-3);
+  --ann-brand: var(--ui-brand); --ann-brand-d: var(--ui-brand-dark);
+  --ann-brand-soft: var(--ui-brand-soft); --ann-brand-line: var(--ui-brand-line);
+  --ann-muted: var(--ui-ink-3);
+  --ann-ok: var(--ui-ok); --ann-ok-bg: var(--ui-ok-bg); --ann-ok-line: var(--ui-ok-line);
+  --ann-warn: var(--ui-warn); --ann-warn-bg: var(--ui-warn-bg); --ann-warn-line: var(--ui-warn-line);
+  --ann-bad: var(--ui-bad); --ann-bad-bg: var(--ui-bad-bg); --ann-bad-line: var(--ui-bad-line);
+}
+
+/* ---- Headings & page frame ---- */
+.annotation-workbench h2 { font-size: 16.5px; font-weight: 700; letter-spacing: -.2px; color: var(--ann-ink); }
+.annotation-workbench h3 { font-size: 13px; font-weight: 650; color: var(--ann-ink); margin-bottom: 10px; }
+.annotation-workbench h3 small { font-size: 11px; font-weight: 500; color: var(--ann-ink3); }
+.annotation-workbench h4 { color: var(--ann-brand-d); }
+.annotation-workbench p { font-size: 12.2px; line-height: 1.7; }
+.annotation-workbench small,
+.annotation-workbench .annotation-hint { color: var(--ann-ink3); font-size: 11px; line-height: 1.65; }
+.annotation-workbench .annotation-heading { gap: 12px; margin-bottom: 12px; }
+.annotation-workbench .annotation-heading > div > button { margin-bottom: 10px; }
+
+/* Three-column grid matches prototype S05: 178 / flex / 236. */
+.annotation-workbench .annotation-columns { grid-template-columns: 178px minmax(0, 1fr) 236px; gap: 14px; align-items: start; }
+.annotation-workbench .annotation-center,
+.annotation-workbench .annotation-left,
+.annotation-workbench .annotation-right { min-width: 0; }
+.annotation-workbench .annotation-right { grid-column: auto; display: block; }
+
+/* ---- Cards ---- */
+/* Card surface comes from the shared ui-page layer; keep page rhythm only. */
+.annotation-workbench .annotation-card { margin: 0 0 14px; }
+.annotation-workbench .annotation-left .annotation-card { padding: 11px 12px; }
+.annotation-workbench .annotation-center > .annotation-card { padding: 12px; }
+
+/* ---- Level indicator: one connected capsule, L0 done / L1 current (prototype p-level) ---- */
+.annotation-workbench .annotation-levels { display: inline-flex; gap: 0; flex-wrap: nowrap; border: 1px solid var(--ann-line); border-radius: 8px; overflow: hidden; background: #fff; }
+.annotation-workbench .annotation-levels li {
+  border: 0;
+  border-right: 1px solid var(--ann-line);
+  border-radius: 0;
+  padding: 6px 11px;
+  background: #fff;
+  color: var(--ann-ink3);
+  font-size: 10.8px;
+  white-space: nowrap;
+}
+.annotation-workbench .annotation-levels li:last-child { border-right: 0; }
+.annotation-workbench .annotation-levels li:first-child { background: var(--ann-ok-bg); color: var(--ann-ok); font-weight: 650; }
+.annotation-workbench .annotation-levels [aria-current] { color: #fff; background: var(--ann-brand); border-color: var(--ann-brand); font-weight: 700; box-shadow: none; }
+
+/* ---- Status badge: prototype callout (left accent) ---- */
+.annotation-workbench .annotation-json-status { border-left-width: 5px; border-radius: 9px; padding: 11px 16px; }
+.annotation-workbench .annotation-json-status-label { font-size: 19px; }
+.annotation-workbench .annotation-json-status-detail { font-size: 11.2px; }
+.annotation-workbench .annotation-json-status-present { background: var(--ann-ok-bg); border-color: var(--ann-ok-line); border-left-color: var(--ann-ok); color: var(--ann-ok); }
+.annotation-workbench .annotation-json-status-absent { background: var(--ann-warn-bg); border-color: var(--ann-warn-line); border-left-color: var(--ann-warn); color: var(--ann-warn); }
+.annotation-workbench .annotation-json-status-pending,
+.annotation-workbench .annotation-json-status-unknown { background: var(--ann-panel3); border-color: var(--ann-line); border-left-color: var(--ann-ink3); color: var(--ann-ink2); }
+
+/* ---- Callouts: surfaces come from the shared ui-page layer ---- */
+.annotation-workbench .annotation-error { white-space: pre-wrap; }
+.annotation-workbench .annotation-status { gap: 8px; }
+.annotation-workbench .annotation-status p { margin-right: auto; }
+
+/* ---- Buttons & form controls (base from shared ui-page layer) ---- */
+.annotation-workbench button { white-space: nowrap; }
+.annotation-workbench .annotation-primary { color: #fff; background: var(--ann-brand); border-color: var(--ann-brand); font-weight: 600; }
+.annotation-workbench .annotation-primary:hover:not(:disabled) { color: #fff; background: var(--ann-brand-d); border-color: var(--ann-brand-d); }
+.annotation-workbench .selected,
+.annotation-workbench [aria-selected="true"] { border-color: var(--ann-brand); color: var(--ann-brand-d); background: var(--ann-brand-soft); font-weight: 650; }
+.annotation-workbench input,
+.annotation-workbench select,
+.annotation-workbench textarea { font: inherit; font-size: 12.2px; color: var(--ann-ink); background: #fff; border: 1px solid var(--ann-line); border-radius: 7px; padding: 6.5px 9px; }
+.annotation-workbench input[type="checkbox"] { accent-color: var(--ann-brand); }
+.annotation-workbench kbd { font-family: var(--ann-mono); border: 1px solid var(--ann-line); border-bottom-width: 2px; background: var(--ann-panel3); color: var(--ann-ink3); border-radius: 4px; padding: 1px 5px; font-size: 10px; }
+
+/* ---- Label swatches: prototype p-label (white card, brand ring when active) ---- */
+.annotation-workbench .annotation-labels,
+.annotation-workbench .annotation-tools { gap: 6px; }
+.annotation-workbench .annotation-label { gap: 8px; padding: 7px 9px; border: 1px solid var(--ann-line); border-radius: 7px; background: #fff; color: var(--ann-ink2); }
+.annotation-workbench .annotation-label:hover:not(:disabled) { border-color: var(--ann-brand-line); background: var(--ann-brand-soft); }
+.annotation-workbench .annotation-label.selected { border-color: var(--ann-brand); box-shadow: 0 0 0 2.5px #0e6e8c17; background: var(--ann-brand-soft); color: var(--ann-brand-d); font-weight: 650; }
+.annotation-workbench .annotation-label-name { color: inherit; font-size: 12px; }
+.annotation-workbench .annotation-swatch { width: 13px; height: 13px; border-radius: 4px; border: 1px solid #0002; }
+.annotation-workbench .annotation-new-label > label { font-size: 11px; color: var(--ann-ink2); }
+
+/* ---- Segmentation tabs: prototype p-seg (joined control) ---- */
+.annotation-workbench .annotation-tabs { gap: 0; padding: 0; border: 1px solid var(--ann-line); border-radius: 8px; overflow: hidden; }
+.annotation-workbench .annotation-tabs button { border: 0; border-right: 1px solid var(--ann-line); border-radius: 0; padding: 6px 13px; }
+.annotation-workbench .annotation-tabs button:last-child { border-right: 0; }
+.annotation-workbench .annotation-tabs button[aria-selected="true"] { background: var(--ann-brand-soft); color: var(--ann-brand-d); font-weight: 650; }
+
+/* ---- Parameters ---- */
+.annotation-workbench .annotation-parameters { gap: 10px; }
+.annotation-workbench .annotation-parameters > label { font-size: 11.4px; color: var(--ann-ink2); }
+
+/* ---- Statistics with progress bar (prototype p-list + p-bar) ---- */
+.annotation-workbench .annotation-statistics { gap: 8px 10px; font-size: 11.4px; }
+.annotation-workbench .annotation-statistics dt { color: var(--ann-ink3); }
+.annotation-workbench .annotation-statistics dd { color: var(--ann-ink); font-variant-numeric: tabular-nums; }
+.annotation-workbench .annotation-progress { height: 6px; border-radius: 4px; background: var(--ann-panel3); overflow: hidden; margin: 10px 0 6px; }
+.annotation-workbench .annotation-progress i { display: block; height: 100%; border-radius: 4px; background: var(--ann-brand); }
+
+/* ---- Canvas: dark stage with layer bar and foot (prototype p-canvas) ---- */
+.annotation-workbench .annotation-canvas-panel { margin: 12px -4px 8px; border: 1px solid var(--ann-line); border-radius: 8px; overflow: hidden; }
+.annotation-workbench .annotation-layers,
+.annotation-workbench .annotation-canvas-foot { background: var(--ann-panel3); font-size: 10.5px; }
+.annotation-workbench .annotation-canvas-host { background: var(--ann-canvas); }
+.annotation-workbench .annotation-canvas-empty { color: var(--ann-ink4); }
+
+/* ---- Actions & navigation ---- */
+.annotation-workbench .annotation-actions { gap: 8px; }
+.annotation-workbench .annotation-navigation { border-top: 1px solid var(--ann-line); }
+
+/* ---- Candidate queue & distribution (prototype card lists) ---- */
+.annotation-workbench .annotation-queue { gap: 7px; }
+.annotation-workbench .annotation-queue button { border-radius: 8px; padding: 9px 10px; }
+.annotation-workbench .annotation-queue button.selected { border-color: var(--ann-brand); box-shadow: 0 0 0 2.5px #0e6e8c17; background: var(--ann-brand-soft); }
+.annotation-workbench .annotation-queue button b { color: var(--ann-ink); font-size: 11.6px; }
+.annotation-workbench .annotation-queue button span { color: var(--ann-ink2); font-variant-numeric: tabular-nums; }
+.annotation-workbench .annotation-distribution { margin-bottom: 12px; }
+.annotation-workbench .annotation-distribution li { border-bottom-color: var(--ann-line2); font-size: 11.4px; }
+.annotation-workbench .annotation-distribution li span { color: var(--ann-ink2); }
+.annotation-workbench .annotation-distribution li b { color: var(--ann-ink); font-variant-numeric: tabular-nums; }
+.annotation-workbench .annotation-right .annotation-primary { width: 100%; }
+
+/* ---- Spectrum readout ---- */
+.annotation-workbench figure { margin: 12px 0; padding: 12px 14px; border: 1px solid var(--ann-line); border-radius: var(--ann-radius); background: #fff; }
+.annotation-workbench figure figcaption { font-size: 11.2px; color: var(--ann-ink3); }
+.annotation-workbench figure svg { color: var(--ann-brand); }
+.annotation-workbench figure table { width: 100%; border-collapse: collapse; font-size: 11px; font-variant-numeric: tabular-nums; }
+.annotation-workbench figure th,
+.annotation-workbench figure td { text-align: left; padding: 5px 7px; border-bottom: 1px solid var(--ann-line2); }
+
+/* ---- Shortcut help ---- */
+.annotation-workbench .annotation-shortcut-help { border-color: var(--ann-brand-line); border-radius: 10px; padding: 18px; box-shadow: 0 12px 36px #16202a26; }
+.annotation-workbench .annotation-shortcut-grid { gap: 8px 12px; }
+
+@media (max-width: 720px) {
+  .annotation-workbench .annotation-columns { grid-template-columns: minmax(0, 1fr); }
+  .annotation-workbench .annotation-levels li { padding: 7px 8px; }
+  .annotation-workbench .annotation-right { grid-column: auto; display: block; }
+}

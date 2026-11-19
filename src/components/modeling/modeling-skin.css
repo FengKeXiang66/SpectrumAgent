@@ -1,0 +1,212 @@
+/* S07 modeling workbench skin, aligned with the first-stage high-fidelity prototype
+   (:1822-1876 S07 layout, :221-289 type/buttons/cards/seg/fields).
+   Scope: the two [aria-label] workbench hosts and the shared modeling-* sub-components.
+   Guard contract: no pinned/full-viewport positioning, no stacking index, no
+   forced-priority flag, no media query, and no bare .model-panel selector. */
+.model-panel[aria-label="PLS 回归工作台"],
+.model-panel[aria-label="PLS-DA 分类工作台"] {
+  --md-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --md-mono: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+  --md-ink: #16202a; --md-ink2: #455260; --md-ink3: #7b8794; --md-ink4: #a3adb8;
+  --md-line: #e2e7ed; --md-line2: #eef2f6; --md-panel2: #f7f9fb; --md-panel3: #f1f4f8;
+  --md-brand: #0e6e8c; --md-brand-d: #0a5670; --md-brand-soft: #e7f3f7; --md-brand-line: #b9dbe6;
+  --md-ok: #17714a; --md-ok-bg: #e8f5ee;
+  --md-warn: #a06a12; --md-warn-bg: #fdf4e3; --md-warn-line: #f0dfb8;
+  --md-bad: #b83227; --md-bad-bg: #fdeceb;
+  color: var(--md-ink); font-family: var(--md-font); font-size: 12.4px; line-height: 1.7;
+}
+/* Aliases onto the shared design tokens; page-local names stay stable. */
+.model-panel[aria-label="PLS 回归工作台"],
+.model-panel[aria-label="PLS-DA 分类工作台"] {
+  --md-ink: var(--ui-ink); --md-ink2: var(--ui-ink-2); --md-ink3: var(--ui-ink-3); --md-ink4: var(--ui-ink-4);
+  --md-line: var(--ui-line); --md-line2: var(--ui-line-2);
+  --md-panel2: var(--ui-surface-2); --md-panel3: var(--ui-surface-3);
+  --md-brand: var(--ui-brand); --md-brand-d: var(--ui-brand-dark); --md-brand-soft: var(--ui-brand-soft); --md-brand-line: var(--ui-brand-line);
+  --md-ok: var(--ui-ok); --md-ok-bg: var(--ui-ok-bg);
+  --md-warn: var(--ui-warn); --md-warn-bg: var(--ui-warn-bg); --md-warn-line: var(--ui-warn-line);
+  --md-bad: var(--ui-bad); --md-bad-bg: var(--ui-bad-bg);
+}
+
+/* Regression workbench: two-column prototype layout */
+.model-panel[aria-label="PLS 回归工作台"] { display: grid; grid-template-columns: 300px minmax(0, 1fr); column-gap: 1rem; align-items: start; }
+.model-panel[aria-label="PLS 回归工作台"] > header,
+.model-panel[aria-label="PLS 回归工作台"] > nav,
+.model-panel[aria-label="PLS 回归工作台"] > p,
+.model-panel[aria-label="PLS 回归工作台"] > pre,
+.model-panel[aria-label="PLS 回归工作台"] > .md-workbench { grid-column: 1 / -1; }
+.model-panel[aria-label="PLS 回归工作台"] h2 { font-size: 16.5px; font-weight: 700; letter-spacing: -.2px; }
+
+/* ---- Cards / fieldsets ---- */
+.model-panel[aria-label="PLS 回归工作台"] > fieldset,
+.classification-panel > fieldset,
+.classification-panel > .classification-preflight {
+  min-width: 0; margin: 0 0 14px; padding: 14px 16px;
+  background: #fff; border: 1px solid var(--md-line); border-radius: 10px;
+  box-shadow: 0 2px 10px #16202a08;
+}
+.model-panel[aria-label="PLS 回归工作台"] legend,
+.classification-panel > fieldset > legend { padding: 0 .35rem; color: var(--md-ink); font-size: 12.8px; font-weight: 650; }
+.classification-panel > fieldset > p { margin: .6rem 0; color: var(--md-ink2); line-height: 1.6; }
+
+/* ---- Form fields ---- */
+.model-panel[aria-label="PLS 回归工作台"] .md-workbench fieldset label > input,
+.model-panel[aria-label="PLS 回归工作台"] .md-workbench fieldset label > select { display: block; width: 100%; max-width: 100%; margin: .35rem 0 0; box-sizing: border-box; min-width: 0; }
+.model-panel[aria-label="PLS 回归工作台"] input,
+.model-panel[aria-label="PLS 回归工作台"] select,
+.classification-panel input,
+.classification-panel select {
+  font: inherit; font-size: 12.2px; color: var(--md-ink); background: #fff;
+  border: 1px solid var(--md-line); border-radius: 7px; padding: 6.5px 9px;
+}
+.model-panel[aria-label="PLS 回归工作台"] input[type=file] { max-width: 100%; min-width: 0; box-sizing: border-box; }
+.classification-panel label { display: block; margin: .7rem 0; color: var(--md-ink2); }
+.classification-panel input[type="checkbox"] { accent-color: var(--md-brand); }
+
+/* ---- Buttons: base from shared ui-page layer; primary stays page-local ---- */
+/* Primary actions: filled brand, mirroring prototype p-btn.pri */
+.model-panel[aria-label="PLS 回归工作台"] button.modeling-primary,
+.classification-panel button.modeling-primary,
+.classification-results button.modeling-primary { background: var(--md-brand); border-color: var(--md-brand); color: #fff; font-weight: 600; }
+.model-panel[aria-label="PLS 回归工作台"] button.modeling-primary:hover:not(:disabled),
+.classification-panel button.modeling-primary:hover:not(:disabled),
+.classification-results button.modeling-primary:hover:not(:disabled) { background: var(--md-brand-d); border-color: var(--md-brand-d); color: #fff; }
+.model-panel[aria-label="PLS 回归工作台"] input:focus-visible,
+.model-panel[aria-label="PLS 回归工作台"] select:focus-visible,
+.model-panel[aria-label="PLS 回归工作台"] button:focus-visible,
+.classification-panel button:focus-visible { outline-color: var(--md-brand); }
+
+/* ---- Task switcher: joined segmented control (prototype p-seg) ---- */
+.model-panel[aria-label="PLS 回归工作台"] > nav[aria-label="建模任务"],
+.model-panel[aria-label="PLS-DA 分类工作台"] > nav[aria-label="建模任务"] { display: inline-flex; gap: 0; border: 1px solid var(--md-line); border-radius: 8px; overflow: hidden; background: #fff; margin: 8px 0 12px; }
+.model-panel[aria-label="PLS 回归工作台"] > nav[aria-label="建模任务"] button,
+.model-panel[aria-label="PLS-DA 分类工作台"] > nav[aria-label="建模任务"] button { border: 0; border-right: 1px solid var(--md-line); border-radius: 0; padding: 6px 14px; background: #fff; color: var(--md-ink2); }
+.model-panel[aria-label="PLS 回归工作台"] > nav[aria-label="建模任务"] button:last-child,
+.model-panel[aria-label="PLS-DA 分类工作台"] > nav[aria-label="建模任务"] button:last-child { border-right: 0; }
+.model-panel[aria-label="PLS 回归工作台"] > nav[aria-label="建模任务"] button[aria-pressed="true"],
+.model-panel[aria-label="PLS-DA 分类工作台"] > nav[aria-label="建模任务"] button[aria-pressed="true"] { background: var(--md-brand-soft); color: var(--md-brand-d); font-weight: 650; }
+
+/* ---- Classification preflight: lives in the right column, not in classification-panel ---- */
+.md-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.md-card-note { color: var(--md-ink3); font-size: 11.2px; white-space: nowrap; }
+.md-card-note[data-state="bad"] { color: var(--md-bad); font-weight: 650; }
+.classification-preflight .preflight-steps { display: grid; gap: 14px; padding: 0; margin: 0; }
+.classification-preflight .preflight-step { display: flex; align-items: flex-start; gap: 10px; }
+.classification-preflight .preflight-state { display: inline-flex; flex: 0 0 20px; width: 20px; height: 20px; align-items: center; justify-content: center; border-radius: 50%; font-size: 11px; font-weight: 700; }
+.classification-preflight .preflight-step[data-state="pass"] .preflight-state { background: var(--md-ok-bg); color: var(--md-ok); }
+.classification-preflight .preflight-step[data-state="warning"] .preflight-state { background: var(--md-warn-bg); color: var(--md-warn); }
+.classification-preflight .preflight-step[data-state="neutral"] .preflight-state { background: var(--ui-brand); color: #fff; }
+.classification-preflight h4 { margin: 1px 0 3px; font-size: 12.4px; color: var(--md-ink); font-weight: 650; }
+.classification-preflight p { margin: 0; line-height: 1.6; color: var(--md-ink3); font-size: 11.4px; overflow-wrap: anywhere; }
+.classification-preflight > details { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--md-line); }
+.classification-preflight summary { cursor: pointer; color: var(--md-brand-d); font-size: 11.4px; }
+
+/* ---- Results: tables and metric blocks ---- */
+.classification-results .classification-scopes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.classification-results .classification-scopes > section { min-width: 0; overflow-x: auto; padding: .8rem; border: 1px solid var(--md-line); border-radius: 9px; background: #fff; }
+.classification-results table { margin: 1rem 0; border-collapse: collapse; width: 100%; font-size: 12.2px; }
+.classification-results th,
+.classification-results td { padding: .45rem .6rem; border: 1px solid var(--md-line); text-align: right; font-variant-numeric: tabular-nums; }
+.classification-results th { background: var(--md-panel2); color: var(--md-ink2); font-weight: 650; }
+.classification-results caption { color: var(--md-ink2); text-align: left; margin-bottom: .4rem; }
+.classification-results dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
+.classification-results dd { margin: .3rem 0; font-size: 1.1rem; color: var(--md-brand-d); font-variant-numeric: tabular-nums; }
+.classification-bands { margin-block: 18px; }
+.classification-bands table { width: 100%; }
+.classification-bands .model-chart { margin-inline: 0; }
+
+/* ---- Charts, registry, inference, stage badges ---- */
+.model-chart { border-color: var(--md-line); border-radius: 9px; }
+.model-chart-quality { background: var(--md-warn-bg); color: var(--md-warn); border-radius: 6px; }
+.model-registry-list article,
+.model-inference-item { border: 1px solid var(--md-line); border-radius: 9px; box-shadow: 0 2px 10px #16202a08; }
+.model-stage { font-size: 11px; padding: .2rem .6rem; border: 1px solid var(--md-line); border-radius: 20px; }
+.model-stage-production { color: var(--md-ok); border-color: var(--md-ok-bg); }
+.model-science-warning { border-left: 4px solid var(--md-warn); padding: .6rem .9rem; background: var(--md-warn-bg); border-radius: 0 8px 8px 0; color: var(--md-warn); }
+
+/* ---- S07 workbench: left configuration / right evidence and execution ---- */
+.model-panel[aria-label="PLS 回归工作台"] > header.md-page-head,
+.model-panel[aria-label="PLS-DA 分类工作台"] > header.md-page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 0 0 14px; border-bottom: 1px solid var(--md-line); }
+.md-subtitle { margin: 4px 0 0; color: var(--md-ink3); font-size: 11.4px; line-height: 1.7; }
+.md-head-task { padding: 6px 11px; border: 1px solid var(--md-brand-line); border-radius: 20px; background: var(--md-brand-soft); color: var(--md-brand-d); font-size: 11.6px; white-space: nowrap; }
+.model-panel[aria-label="PLS 回归工作台"] .md-workbench,
+.model-panel[aria-label="PLS-DA 分类工作台"] .md-workbench { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 14px; align-items: start; }
+.model-panel[aria-label="PLS 回归工作台"] .md-workbench > .classification-panel,
+.model-panel[aria-label="PLS-DA 分类工作台"] .md-workbench > .classification-panel { display: contents; }
+.model-panel[aria-label="PLS 回归工作台"] .md-col-left,
+.model-panel[aria-label="PLS-DA 分类工作台"] .md-col-left,
+.model-panel[aria-label="PLS 回归工作台"] .md-col-right,
+.model-panel[aria-label="PLS-DA 分类工作台"] .md-col-right { display: grid; gap: 14px; align-content: start; min-width: 0; }
+
+/* Cards inside either column use the same surface as the old direct fieldsets. */
+.classification-panel .md-col-left > fieldset,
+.classification-panel .md-col-left > section,
+.classification-panel .md-col-right > section,
+.model-panel[aria-label="PLS 回归工作台"] .md-col-left > fieldset,
+.model-panel[aria-label="PLS-DA 分类工作台"] .md-col-left > fieldset,
+.model-panel[aria-label="PLS 回归工作台"] .md-col-right > fieldset,
+.model-panel[aria-label="PLS-DA 分类工作台"] .md-col-right > fieldset { min-width: 0; margin: 0; padding: 14px 16px; background: #fff; border: 1px solid var(--md-line); border-radius: 10px; box-shadow: 0 2px 10px #16202a08; }
+.classification-panel .md-col-left > fieldset legend,
+.model-panel[aria-label="PLS 回归工作台"] .md-col-left > fieldset legend,
+.model-panel[aria-label="PLS-DA 分类工作台"] .md-col-left > fieldset legend,
+.model-panel[aria-label="PLS 回归工作台"] .md-col-right > fieldset legend,
+.model-panel[aria-label="PLS-DA 分类工作台"] .md-col-right > fieldset legend { padding: 0 .35rem; color: var(--md-ink); font-size: 12.8px; font-weight: 650; }
+.classification-panel .md-col-left > section > h3,
+.classification-panel .md-col-right > section > h3,
+.md-data-card h3,
+.md-exec-log h3 { margin: 0 0 10px; color: var(--md-ink); font-size: 13px; font-weight: 650; }
+
+/* Read-only task summary: every value comes from the frozen version binding. */
+.md-data-card dl { display: grid; gap: 6px; margin: 0; }
+.md-data-card dl > div { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--md-line2); }
+.md-data-card dl > div:last-child { border-bottom: 0; }
+.md-data-card dt { color: var(--md-ink3); font-size: 11.4px; }
+.md-data-card dd { margin: 0; color: var(--md-brand-d); font-size: 11.8px; font-variant-numeric: tabular-nums; text-align: right; overflow-wrap: anywhere; }
+
+/* Real front-end event record; never a fabricated fold progress. */
+.md-exec-log ol { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.md-exec-log li { display: flex; align-items: baseline; gap: 10px; padding: 6px 8px; border: 1px solid var(--md-line2); border-radius: 7px; background: var(--md-panel2); font-size: 11.6px; color: var(--md-ink2); }
+.md-exec-log time { flex: 0 0 auto; color: var(--md-ink3); font-family: var(--md-mono); font-size: 10.8px; }
+.md-exec-log span { overflow-wrap: anywhere; }
+.classification-panel .md-col-right .classification-preflight > h3 { margin: 0 0 .85rem; }
+
+/* Task is a field on the single S07 page, not a separate screen. */
+.md-task-card > h3 { margin: 0 0 10px; color: var(--md-ink); font-size: 13px; font-weight: 650; }
+.md-task-card .md-seg { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--md-line); border-radius: 8px; overflow: hidden; background: #fff; margin-bottom: 12px; }
+.md-task-card .md-seg button { display: block; width: 100%; border: 0; border-right: 1px solid var(--md-line); border-radius: 0; padding: 6px 8px; background: #fff; color: var(--md-ink2); }
+.md-task-card .md-seg button:last-child { border-right: 0; }
+.md-task-card .md-seg button[aria-pressed="true"] { background: var(--md-brand-soft); color: var(--md-brand-d); font-weight: 650; }
+.md-task-card .md-task-fields { display: grid; gap: 6px; margin: 0; }
+.md-task-card .md-task-fields > div { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--md-line2); }
+.md-task-card .md-task-fields > div:last-child { border-bottom: 0; }
+.md-task-card .md-task-fields dt { color: var(--md-ink3); font-size: 11.4px; }
+.md-task-card .md-task-fields dd { margin: 0; color: var(--md-brand-d); font-size: 11.8px; text-align: right; overflow-wrap: anywhere; }
+.classification-panel.classification-config { display: block; }
+.classification-panel.classification-config .md-col-left { display: grid; gap: 14px; }
+.classification-panel.classification-config .md-col-right,
+.classification-panel.classification-config .md-data-card { display: none; }
+.model-panel[aria-label="PLS 回归工作台"] .md-secondary-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.model-panel[aria-label="PLS 回归工作台"] .md-secondary-card > p { margin: 8px 0 0; color: var(--md-ink3); font-size: 11.4px; }
+.classification-panel .md-members { display: grid; gap: 6px; list-style: none; padding: 0; margin: 8px 0; max-height: 220px; overflow: auto; }
+.classification-panel .md-members li { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 5px 8px; border: 1px solid var(--md-line2); border-radius: var(--ui-radius-sm); background: var(--ui-surface-2); font-size: 11.4px; color: var(--md-ink2); }
+.classification-panel .md-members code { font-family: var(--md-mono); font-size: 10.6px; color: var(--md-brand-d); }
+.classification-panel .md-members em { color: var(--md-bad); font-style: normal; font-size: 10.6px; }
+
+/* Compact task summary: two columns, label above value. */
+.md-task-card .md-task-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 10px; }
+.md-task-card .md-task-fields > div { display: block; padding: 5px 0; }
+.md-task-card .md-task-fields dt { font-size: 10.8px; }
+.md-task-card .md-task-fields dd { margin-top: 2px; text-align: left; font-size: 11.2px; }
+.classification-panel .md-help { margin: 8px 0; color: var(--md-ink3); font-size: 11.2px; }
+.classification-panel .md-help > summary { cursor: pointer; }
+.classification-panel .md-help p { margin: 6px 0; line-height: 1.6; }
+.classification-panel.classification-config .md-members-fieldset { display: none; }
+.model-panel[aria-label="PLS-DA 分类工作台"] .md-audit-card > p { margin: 0 0 8px; color: var(--md-ink2); font-size: 11.6px; font-variant-numeric: tabular-nums; }
+.model-panel[aria-label="PLS-DA 分类工作台"] .md-audit-card details > summary { cursor: pointer; color: var(--md-brand-d); font-size: 11.4px; }
+.md-audit-members { display: grid; gap: 5px; list-style: none; padding: 0; margin: 8px 0 0; }
+.md-audit-members li { display: flex; justify-content: space-between; gap: 8px; padding: 4px 8px; border: 1px solid var(--md-line2); border-radius: var(--ui-radius-sm); background: var(--ui-surface-2); font-size: 11px; }
+.md-audit-members code { font-family: var(--md-mono); font-size: 10.4px; color: var(--md-brand-d); }
+/* Execution log uses the prototype's dark terminal surface, with real events only. */
+.md-exec-log ol { gap: 4px; margin: 0; padding: 10px 12px; border-radius: 8px; background: #1b2530; }
+.md-exec-log li { display: flex; align-items: baseline; gap: 10px; padding: 1px 0; border: 0; border-radius: 0; background: transparent; color: #dbe6ee; font-family: var(--md-mono); font-size: 10.8px; }
+.md-exec-log time { color: #7f9aad; font-size: 10.4px; }
+.md-exec-log span { color: #dbe6ee; }

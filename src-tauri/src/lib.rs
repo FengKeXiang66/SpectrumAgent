@@ -1,0 +1,21 @@
+//! SpectrumAgent process supervision core. The desktop UI is added after core acceptance.
+
+pub mod causality;
+pub mod engine_path;
+pub mod handshake;
+pub mod health;
+pub mod logging;
+pub mod process;
+pub mod session_root;
+pub mod state;
+pub mod supervisor;
+pub mod win32;
+#[cfg(debug_assertions)]
+pub mod dev_engine;
+pub mod datasets_dev;
+pub mod annotation;
+pub mod preprocess;
+pub mod models;
+pub mod agent;
+pub mod settings;
+pub mod annotations_draft;

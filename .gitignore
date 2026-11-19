@@ -1,0 +1,26 @@
+# Installed dependencies and local toolchains
+.venv/
+node_modules/
+.toolchains/
+.cargo-home/
+.npm-cache/
+
+# Build output and frozen backend binaries
+artifacts/
+build/
+dist/
+src-tauri/target/
+src-tauri/resources/
+
+# Python and temporary data
+__pycache__/
+.pytest_cache/
+*.py[cod]
+.runtime/
+.temp/
+.t74*/
+.tmp-*/
+
+# Local assistant metadata
+.workbuddy/
+.workbuddy-ai/

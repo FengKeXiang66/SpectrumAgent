@@ -1,0 +1,246 @@
+"""Versioned sample-PLS registration; reconstructed calibration is auditable, not historical proof."""
+import hashlib
+import json
+import sqlite3
+from datetime import datetime, timezone
+from uuid import uuid4
+
+import numpy as np
+
+from backend.database import connect_database
+from spectrumagent.data import DataError
+from spectrumagent.preprocess import builtin_registry
+from spectrumagent.preprocess.registry import validate
+from spectrumagent.preprocess.registry import effective_pipeline
+from . import ModelingError
+from .dataset import build_sample_training_set
+from .run import TrainingRuns
+
+
+def encode(value):
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False)
+
+
+def now():
+    return datetime.now(timezone.utc).isoformat()
+
+
+def axis_sha256(values):
+    return hashlib.sha256(np.ascontiguousarray(values, dtype=np.float64).tobytes()).hexdigest()
+
+
+def data_fingerprint(triples):
+    return hashlib.sha256(encode(sorted(tuple(row) for row in triples)).encode("utf-8")).hexdigest()
+
+
+def normalized_pipeline(value):
+    return effective_pipeline(value)
+
+
+def missing(code, message):
+    error = ModelingError(code, message)
+    error.status_code = 404
+    return error
+
+
+class ModelRegistry:
+    def __init__(self, registry, paths):
+        self.registry, self.paths, self.database = registry, paths, registry.database
+
+    def get(self, identifier, *, calibration=False):
+        with connect_database(self.database) as check:
+            classification = check.execute("SELECT 1 FROM classification_model WHERE id=?", (str(identifier),)).fetchone()
+        if classification:
+            from .classification_models import ClassificationModels
+            return ClassificationModels(self.registry, self.paths).get(str(identifier), calibration)
+        with connect_database(self.database) as db:
+            db.row_factory = sqlite3.Row
+            row = db.execute("SELECT * FROM model_registry WHERE id=?", (str(identifier),)).fetchone()
+            if row is None:
+                raise missing("MODEL_NOT_FOUND", "注册模型不存在")
+            result = dict(row)
+            result["applicability"] = json.loads(result["applicability"])
+            if calibration:
+                result["calibration"] = json.loads(result["calibration"])
+            else:
+                result.pop("calibration")
+            result["metrics"] = dict(db.execute(
+                "SELECT name,value FROM metric WHERE run_id=? AND scope='sample' AND fold_index IS NULL",
+                (result["run_id"],)))
+        rpd = result["metrics"].get("rpd")
+        result["quality_label"] = "仅可做半定量" if rpd is not None and rpd < 2.5 else None
+        return result
+
+    def list(self):
+        with connect_database(self.database) as db:
+            ids = [row[0] for row in db.execute("SELECT id FROM model_registry ORDER BY name,version DESC,id")]
+        from .classification_models import ClassificationModels
+        return [self.get(identifier) for identifier in ids] + ClassificationModels(self.registry, self.paths).list()
+
+    def register(self, run_id, name=None):
+        with connect_database(self.database) as db:
+            db.row_factory = sqlite3.Row
+            row = db.execute("SELECT * FROM training_run WHERE id=?", (str(run_id),)).fetchone()
+            if row is None:
+                raise missing("RUN_NOT_FOUND", "训练 run 不存在")
+            run = dict(row)
+        if run["task"] != "regression":
+            from .classification_models import ClassificationModels
+            from .evaluation import Evaluations
+            snapshot = Evaluations(self.registry, self.paths).latest(str(run_id))
+            if snapshot is None:
+                raise ModelingError("CALIBRATION_PROVENANCE_UNAVAILABLE", "历史分类模型缺少训练时冻结状态，不能注册为可部署版本")
+            return ClassificationModels(self.registry, self.paths).register(snapshot["evaluation_id"], name)
+        if run["status"] != "succeeded":
+            raise ModelingError("RUN_NOT_READY", "只有成功的训练 run 可注册")
+        label = name if name is not None else (
+            f"{run['model_family']}-{run['target']}" if run["model_family"] else run["target"])
+        if not isinstance(label, str) or not label.strip() or len(label) > 200:
+            raise ModelingError("INVALID_MODEL_NAME", "模型名称须为不超过200字的非空文本")
+        label = label.strip()
+        artifacts = TrainingRuns(self.registry, self.paths)
+        model = artifacts.artifact(run_id, "model")
+        predictions = artifacts.artifact(run_id, "predictions")
+        refs = json.loads(run["preprocess_run_ids"])
+        if not refs:
+            raise ModelingError("CALIBRATION_PROVENANCE_UNAVAILABLE", "注册标定缺少训练数据来源")
+        try:
+            data = build_sample_training_set(self.registry, self.paths, preprocess_run_ids=refs,
+                                             target_schema_id=run["target_schema_id"])
+            if data["groups"].tolist() != json.loads(run["cube_ids"]) or [
+                row["annotation_version_id"] for row in data["meta"]["cubes"]
+            ] != json.loads(run["annotation_version_ids"]):
+                raise ModelingError("TRAINING_REFERENCE_CHANGED", "训练引用或目标取值已缺失")
+        except (DataError, OSError, ValueError) as error:
+            raise ModelingError("TRAINING_DATA_UNAVAILABLE",
+                                "训练数据已不可读，请在数据仍可访问时注册") from error
+        try:
+            fingerprints = [row["input_fingerprint"] for row in data["meta"]["cubes"]]
+            if not fingerprints or any(not isinstance(value, str) or not value for value in fingerprints):
+                raise ValueError("missing input fingerprint")
+        except (KeyError, TypeError, ValueError) as error:
+            raise ModelingError("CALIBRATION_PROVENANCE_UNAVAILABLE", "注册标定缺少输入指纹来源") from error
+        with connect_database(self.database) as db:
+            recipes = [db.execute("SELECT recipe_version_id FROM preprocess_run WHERE id=?", (ref,)).fetchone()[0]
+                       for ref in refs]
+        pipeline = normalized_pipeline(data["meta"]["cubes"][0]["pipeline"])
+        dataset, _ = self.registry.readable(data["groups"][0], raw=False)
+        axis = np.asarray(dataset.wavelengths, dtype=np.float64)
+        # Rebuild once for IO, then repeat the small mean matrix pipeline to obtain public .steps.
+        # 13.2 never stored those records; no changes to that training contract.
+        fitted = builtin_registry().run(data["X_raw"], pipeline, wavelengths=axis if axis.size else None)
+        if not np.isfinite(fitted.spectra).all():
+            raise ModelingError("NON_FINITE_SPECTRA", "注册标定结果含非有限值")
+        original = {row["cube_id"]: row for row in predictions}
+        train_ids = json.loads(run["model_params"])["train_cube_ids"]
+        train_mask = np.isin(data["groups"], train_ids)
+        if not train_mask.any() or set(original) != set(data["groups"].tolist()):
+            raise ModelingError("INVALID_MODEL_ARTIFACT", "模型训练样品引用不完整")
+        ys = np.asarray([original[cube]["y_true"] for cube in train_ids], dtype=float)
+        residual = np.asarray([original[cube]["residual"] for cube in train_ids], dtype=float)
+        if not np.isfinite(ys).all() or not np.isfinite(residual).all():
+            raise ModelingError("INVALID_MODEL_ARTIFACT", "训练目标或残差含非有限值")
+        sd = float(residual.std(ddof=1)) if len(residual) > 1 else None
+        mean = float(residual.mean())
+        calibration = {
+            "protocol": 1, "origin": "registration_reconstruction",
+            "steps": fitted.steps, "pipeline": pipeline,
+            "source_hashes": [{"cube_id": row["cube_id"], **row["source_hashes"]} for row in data["meta"]["cubes"]],
+            "recipe_version_ids": sorted(set(recipes)), "input_n_features": data["X_raw"].shape[1],
+            "probe": data["X_raw"][0].tolist(), "wavelengths": axis.tolist(), "model": model,
+            "feature_min": fitted.spectra[train_mask].min(axis=0).tolist(),
+            "feature_max": fitted.spectra[train_mask].max(axis=0).tolist(),
+            "residual_interval": {"mean": mean, "sd": sd, "low": mean - sd if sd is not None else None,
+                                  "high": mean + sd if sd is not None else None, "ddof": 1,
+                                  "scope": "global_calibration_residual"},
+            "limitation": "标定由注册时重建得出，非训练时实测值，可审计不可反证",
+            "provenance": {
+                "fit_scope": "sample_mean", "fit_sample_count": int(data["X_raw"].shape[0]),
+                "fitted_on": "registration", "source_preprocess_run_ids": list(refs),
+                "source_input_fingerprints": fingerprints, "report_fit_scope": "labeled_pixels",
+                "distinct_fit_populations": True,
+                "non_interchangeable_reason": "注册期使用整样均值谱拟合，预处理使用逐像素已标注谱拟合，两种拟合样本不同，标定参数不可互换。",
+            },
+        }
+        from .inference import apply_with_calibration, predict
+        rebuilt = apply_with_calibration(calibration, pipeline, data["X_raw"])
+        if not np.allclose(rebuilt, fitted.spectra, rtol=1e-10, atol=1e-12):
+            raise ModelingError("CALIBRATION_MISMATCH", "标定重放与注册重建结果不一致")
+        predict(rebuilt, model)  # Validate the frozen model dimensions before writing anything.
+        applicability = {
+            "y_min": float(ys.min()), "y_max": float(ys.max()),
+            "n_features": fitted.spectra.shape[1], "wavelength_axis_sha256": axis_sha256(axis),
+            "recipe_version_id": min(recipes), "target_schema_id": run["target_schema_id"], "task": "regression",
+        }
+        triples = [(row["cube_id"], row["annotation_version_id"], recipe)
+                   for row, recipe in zip(data["meta"]["cubes"], recipes)]
+        identifier = str(uuid4())
+        # Heavy calibration stays outside the write transaction; MAX+INSERT are atomic across connections.
+        with connect_database(self.database, timeout=30) as db:
+            db.execute("BEGIN IMMEDIATE")
+            version = db.execute("SELECT COALESCE(MAX(version),0)+1 FROM model_registry WHERE name=?", (label,)).fetchone()[0]
+            db.execute("INSERT INTO model_registry (id,run_id,name,version,target_schema_id,data_fingerprint,"
+                       "applicability,calibration,stage,created_at) VALUES (?,?,?,?,?,?,?,?,'experiment',?)",
+                       (identifier, run_id, label, version, run["target_schema_id"], data_fingerprint(triples),
+                        encode(applicability), encode(calibration), now()))
+        return self.get(identifier)
+
+    def set_stage(self, identifier, stage):
+        with connect_database(self.database) as check:
+            classification = check.execute("SELECT 1 FROM classification_model WHERE id=?", (str(identifier),)).fetchone()
+        if classification:
+            from .classification_models import ClassificationModels
+            return ClassificationModels(self.registry, self.paths).set_stage(str(identifier), stage)
+        if stage not in ("experiment", "candidate", "production"):
+            raise ModelingError("INVALID_MODEL_STAGE", "模型阶段须为实验、候选或生产")
+        with connect_database(self.database, timeout=30) as db:
+            db.execute("BEGIN IMMEDIATE")
+            row = db.execute("SELECT target_schema_id FROM model_registry WHERE id=?", (str(identifier),)).fetchone()
+            if row is None:
+                raise missing("MODEL_NOT_FOUND", "注册模型不存在")
+            if stage == "production":
+                db.execute("UPDATE model_registry SET stage='candidate' WHERE target_schema_id=? "
+                           "AND stage='production' AND id<>?", (row[0], str(identifier)))
+            db.execute("UPDATE model_registry SET stage=? WHERE id=?", (stage, str(identifier)))
+        return self.get(identifier)
+
+    def coefficients(self, identifier):
+        """Read only the frozen registration; never reopen cubes or fit a recipe."""
+        try:
+            row = self.get(identifier, calibration=True)
+            cal, app = row["calibration"], row["applicability"]
+            if not isinstance(cal, dict) or not isinstance(app, dict):
+                raise ValueError("invalid calibration")
+            model = cal["model"]
+            if not isinstance(model, dict):
+                raise ValueError("invalid model")
+            coef, waves, lv = model["coef"], cal["wavelengths"], model["selected_lv"]
+            features, inputs = app["n_features"], cal["input_n_features"]
+            if (type(lv) is not int or lv < 1 or type(features) is not int or features < 1
+                    or type(inputs) is not int or inputs < 1
+                    or not isinstance(coef, list) or len(coef) != 1 or not isinstance(coef[0], list)
+                    or not isinstance(waves, list)):
+                raise ValueError("invalid shape")
+            flat = coef[0]
+            if (len(flat) != features or (waves and len(waves) != inputs)
+                    or any(type(value) not in (int, float) or not np.isfinite(value) for value in flat + waves)):
+                raise ValueError("invalid coefficients or wavelengths")
+            # Dimension equality alone is insufficient: full-width PCA mixes
+            # bands and equal-length resampling changes their wavelength grid.
+            preserving = {"reflectance", "sg_smooth", "sg_derivative", "snv", "msc",
+                          "emsc", "standardize", "continuum", "crop"}
+            steps = cal.get("steps")
+            comparable = bool(waves) and len(waves) == features and isinstance(steps, list) and all(
+                isinstance(step, dict) and isinstance(step.get("op"), str) and step["op"] in preserving
+                for step in steps)
+            return {
+                "model_id": row["id"], "name": row["name"], "version": row["version"], "stage": row["stage"],
+                "selected_lv": lv, "quality_label": row["quality_label"],
+                "n_features": features, "n_wavelengths": len(waves), "comparable": comparable,
+                "coefficients": flat, "wavelengths": waves,
+                "limitation": "回归系数刻画各特征与预测值的线性关系方向与幅度；不构成重要性排序，特征不对应波长时不具波长可解释性。",
+            }
+        except ModelingError:
+            raise
+        except (KeyError, TypeError, ValueError, OverflowError) as error:
+            raise ModelingError("INVALID_MODEL_ARTIFACT", "注册模型的系数或输入波长轴产物无效") from error
