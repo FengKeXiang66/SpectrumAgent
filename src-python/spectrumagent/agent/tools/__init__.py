@@ -305,7 +305,7 @@ def check_run_error(row,completed_count=0):
 
 def build_registry(*, datasets=None, runner=None, comparison=None, database=None, sessions=None, diffusion=None, catalogue_version=1, batch_prepare=None,
                    training=None, models=None, inferences=None, versions=None, engine=None,
-                   recycle=None, training_sets=None, paths=None):
+                   recycle=None, training_sets=None, paths=None, experiments=None):
     """Bind available services without constructing engines or making requests."""
     registry = ToolRegistry()
     if catalogue_version not in (1, 2):
@@ -394,4 +394,8 @@ def build_registry(*, datasets=None, runner=None, comparison=None, database=None
         from .interactive import register_interactive
         register_interactive(registry,datasets=datasets,runner=runner,sessions=sessions,paths=paths,
                              database=database,training=training,training_sets=training_sets,diffusion=diffusion)
+        if experiments is not None:
+            from spectrumagent.experiments.conversation import ExperimentDialogue
+            from .experiments import register_experiments
+            register_experiments(registry, ExperimentDialogue(experiments))
     return registry

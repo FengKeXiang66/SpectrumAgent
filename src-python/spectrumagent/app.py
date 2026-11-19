@@ -106,7 +106,8 @@ def create_app(paths, identity):
                                           training=app.state.training_runs, models=app.state.model_registry,
                                           inferences=app.state.inference_runs, versions=app.state.dataset_versions,
                                           engine=app.state.superpixel_engine, recycle=registry.recycle,
-                                          training_sets=app.state.training_sets, paths=paths)
+                                          training_sets=app.state.training_sets, paths=paths,
+                                          experiments=app.state.experiments)
     app.state.agent_llm_factory = lambda session_id: OpenAICompatibleClient(paths.database, session_id=session_id)
     # Startup self-check: publish the built-in v2 skill and rebind sessions that still
     # hold the built-in v1 skill. Without this the upgrade only happens when a new

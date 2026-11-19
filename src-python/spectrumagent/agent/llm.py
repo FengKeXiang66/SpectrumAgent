@@ -245,7 +245,8 @@ def validate_tool_response(result):
 
 def _workflow_wire(messages, tools):
     """Use portable function names at the provider boundary, retain domain names locally."""
-    if not any(tool["function"]["name"] == "annotations.prepare" for tool in tools or []):
+    if not any(tool['function']['name'] == 'annotations.prepare'
+               or tool['function']['name'].startswith('experiments.') for tool in tools or []):
         return messages, tools, {}
     mapping = {tool["function"]["name"]: "sa_" + tool["function"]["name"].replace(".", "__") for tool in tools}
     if len(set(mapping.values())) != len(mapping):

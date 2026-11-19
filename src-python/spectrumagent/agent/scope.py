@@ -49,6 +49,7 @@ POLICIES = {
     'preprocess.recipe_delete':'public','preprocess.recipe_restore':'public',
 }
 POLICIES.update({
+    'experiments.draft_get':'global', 'experiments.draft_update':'global', 'experiments.input_inspect':'global',
     'preprocess.runs':'global', 'preprocess.operators':'public','projects.paths_set':'public',
     'preprocess.recipe_select':'public','modeling.targets':'public','modeling.target_set':'cube',
     'modeling.targets_import':'global','modeling.regress':'global','labels.create':'public',
@@ -60,6 +61,10 @@ POLICIES.update({
 
 
 class ScopedToolRegistry:
+    @property
+    def experiment_dialogue(self):
+        return getattr(self.base, 'experiment_dialogue', None)
+
     def __init__(self, base, service, session_id, *, engine=None, annotations=None, batch=None, request_id=None, tasks=None):
         self.base, self.service, self.session_id = base, service, session_id
         self.engine, self.annotations, self.batch = engine, annotations, batch
@@ -568,7 +573,7 @@ class ScopedToolRegistry:
     def invoke(self, name, arguments):
         if getattr(self, 'control', None) is not None:
             self.control.begin('tool')
-        raw=self.validate(name,arguments).model_dump(mode='json')
+        raw=self.validate(name,arguments).model_dump(mode='json', exclude_unset=name.startswith('experiments.'))
         args=self.effective_arguments(name,raw)
         grant = self.authorize_annotation(name, args)
         self.check_preprocess_discovery(name,args)
