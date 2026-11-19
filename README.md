@@ -4,16 +4,15 @@ Windows 桌面光谱分析工作台，采用 Tauri 2 + React + Python FastAPI。
 当前桌面产品版本为 **0.4.1**，以 `src-tauri/tauri.conf.json` 为准。
 本目录保留运行源码、已有依赖、工具链、冻结后端和桌面构建产物；清理清单内的历史归档与测试已移除。
 
-源码仓库：https://github.com/FengKeXiang66/SpectrumAgent 。Git 历史从当前精简版本重新开始。
+源码仓库：[FengKeXiang66/SpectrumAgent](https://github.com/FengKeXiang66/SpectrumAgent)。Git 历史从当前精简版本重新开始。
 仓库包含本体源码、锁文件、配置和构建脚本；本机依赖、工具链、缓存、完整冻结后端及 EXE 不上传 Git。
-下列直接运行命令适用于已保留运行环境的本机目录；新克隆需先准备锁定依赖、Rust/WebView2 工具和后端冻结资源。
+仓库可克隆到任意盘符和目录；下列命令均从仓库根执行。新协作者先按“首次克隆与开发环境”安装依赖。
 
 ## 直接运行现有桌面程序
 
-在 PowerShell 中执行：
+仅适用于已有完整 release 构建产物的目录。在仓库根的 PowerShell 中执行：
 
 ```powershell
-Set-Location -LiteralPath 'E:\AI_Agent'
 & '.\src-tauri\target\release\spectrum-agent.exe'
 ```
 
@@ -59,34 +58,73 @@ Set-Location -LiteralPath 'E:\AI_Agent'
 | `.git/` | 从当前精简版本开始的本地 Git 历史 |
 | `dist/`、`build/` | 已有前端与冻结构建中间产物 |
 
-## 开发启动与前端构建
+## 首次克隆与开发环境
 
-已有依赖可直接使用；本次精简不重新安装依赖。前端锁定版本见 `package-lock.json`，Python 见 `requirements-lock.txt`，Rust 见 `src-tauri/Cargo.lock`。
-Node 工具链为 24.19.0 / npm 10.8.2；开发后端要求 CPython 3.12.13。
-先在 PowerShell 中设置当前会话：
+当前目标平台为 Windows x64。先准备以下工具：
+
+- **CPython 3.12.13**：开发后端会检查完整版本号，其他 3.12 补丁版本也会被拒绝。
+- **Node.js 24.19.0 / npm 10.8.2**：与 `package.json` 的版本约束一致。
+- Rust 的 MSVC 工具链、Visual Studio C++ 构建工具和 WebView2，安装步骤见 [Tauri Windows 官方前置条件](https://v2.tauri.app/start/prerequisites/#windows)。
+
+在自己选择的父目录中打开 PowerShell，再执行：
 
 ```powershell
-Set-Location -LiteralPath 'E:\AI_Agent'
-$env:PATH = 'E:\AI_Agent\.toolchains\node24.19.0-npm10.8.2;' + $env:PATH
-$env:npm_config_cache = 'E:\AI_Agent\.npm-cache'
-$env:CARGO_HOME = 'E:\AI_Agent\.cargo-home'
-$env:CARGO_TARGET_DIR = 'E:\AI_Agent\src-tauri\target'
-$env:CARGO_NET_OFFLINE = 'true'
-$env:SPECTRUMAGENT_DEV_PYTHON = 'E:\AI_Agent\.venv\Scripts\python.exe'
-New-Item -ItemType Directory -Path 'E:\AI_Agent\build\temp' -Force | Out-Null
-$env:TEMP = 'E:\AI_Agent\build\temp'
-$env:TMP = $env:TEMP
-Remove-Item Env:SPECTRUM_ENGINE_EXE -ErrorAction SilentlyContinue
+git clone https://github.com/FengKeXiang66/SpectrumAgent.git
+Set-Location -LiteralPath '.\SpectrumAgent'
+
+# 必须先安装 3.12.13；确认 py 启动器选中的补丁版本正确。
+py -3.12 -c "import sys; assert sys.version_info[:3] == (3, 12, 13), sys.version"
+py -3.12 -m venv .venv
+& '.\.venv\Scripts\python.exe' -m pip install -r '.\requirements-lock.txt'
+
+npm.cmd ci
+cargo build --manifest-path '.\src-tauri\Cargo.toml' --locked
 ```
 
-启动完整开发桌面（需要已有 Rust/Cargo 在 PATH）：
+每条命令成功后再执行下一条。若未安装 `py` 启动器，使用自己安装的 Python 3.12.13 的完整路径替代 `py -3.12`。
+Python、npm 和 Cargo 依赖分别锁定在 `requirements-lock.txt`、`package-lock.json` 和 `src-tauri/Cargo.lock`。
+首次安装需要下载依赖，不能直接启用 Cargo 离线模式；已有依赖的本机可跳过安装步骤。
+
+## 开发启动与前端构建
+
+在仓库根启动完整开发桌面：
 
 ```powershell
+# 清除可能遗留的“直接启动另一份引擎”覆盖配置。
+Remove-Item Env:SPECTRUM_ENGINE_EXE -ErrorAction SilentlyContinue
 npm.cmd run tauri -- dev
 ```
 
 该入口会启动 Vite（127.0.0.1:1420）；debug 外壳自动通过 `dev_sidecar.py` 启动源码后端。
+默认解释器从编译时仓库位置推导为 `.venv\Scripts\python.exe`，不要求 E 盘，也无需设置 Python 路径变量。
+源码开发不需要先冻结 Python 后端。安装包的 release 外壳使用随包后端，不读取这个 debug 配置。
 仅运行 `npm.cmd run dev` 是浏览器前端，桌面 IPC 需要 Tauri 宿主。
+
+如需使用其他虚拟环境，可在当前终端显式覆盖，值必须是 Python 3.12.13 的绝对路径：
+
+```powershell
+$env:SPECTRUMAGENT_DEV_PYTHON = (Resolve-Path -LiteralPath '..\other-env\Scripts\python.exe').Path
+```
+
+未设置该变量时使用仓库 `.venv`；若终端曾设置过覆盖值，执行 `Remove-Item Env:SPECTRUMAGENT_DEV_PYTHON -ErrorAction SilentlyContinue` 可恢复默认。
+
+已有仓库内离线工具缓存的本机，可在启动前按需设置，所有路径跟随当前仓库：
+
+```powershell
+$repo = (Get-Location).Path
+$localNode = Join-Path $repo '.toolchains\node24.19.0-npm10.8.2'
+if (Test-Path -LiteralPath (Join-Path $localNode 'node.exe')) {
+    $env:PATH = $localNode + ';' + $env:PATH
+}
+if (Test-Path -LiteralPath (Join-Path $repo '.cargo-home\registry')) {
+    $env:CARGO_HOME = Join-Path $repo '.cargo-home'
+}
+$env:CARGO_TARGET_DIR = Join-Path $repo 'src-tauri\target'
+$env:npm_config_cache = Join-Path $repo '.npm-cache'
+$env:TEMP = Join-Path $repo 'build\temp'
+New-Item -ItemType Directory -Path $env:TEMP -Force | Out-Null
+$env:TMP = $env:TEMP
+```
 
 检查前端类型并构建：
 
@@ -105,6 +143,7 @@ pwsh -NoProfile -File '.\scripts\build_release.ps1'
 ```
 
 脚本使用现有 Python、Node、Cargo、NSIS 和 WebView2 工具缓存，执行 PyInstaller 冻结、包内 JSON 校验、完整后端资源暂存和 Tauri NSIS 构建。
+该发布入口要求仓库内已有 `.venv`、`.toolchains/node24.19.0-npm10.8.2`、完整 Cargo 离线缓存，以及 `src-tauri/target/.tauri/NSIS/Bin/makensis.exe` 等打包工具。它们不会随 Git 克隆提供，前面的开发安装步骤也不会自动准备全部离线打包缓存。
 资源暂存核对逐文件 SHA256，并把旧资源移入本次构建目录备份；禁止只替换 `app.exe` 或混用不同批次资源。
 生产外壳必须启用 `custom-protocol`；发布脚本已包含该特性及 Cargo `--locked --offline`。
 新的日志、备份和安装包写入 `artifacts/releases/0.4.1-<时间戳>/`，最终路径由 `SUCCESS:` 输出。

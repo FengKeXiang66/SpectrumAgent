@@ -1,6 +1,7 @@
 r"""DEV ONLY: source sidecar for milestone02; never used by release resources.
 
-Interpreter: E:\AI_Agent\.venv\Scripts\python.exe (CPython3.12.13).
+Interpreter: repository-local .venv/Scripts/python.exe (CPython 3.12.13),
+or the absolute interpreter selected through SPECTRUMAGENT_DEV_PYTHON.
 The Rust supervisor supplies --data-root and still owns suspended launch/Job.
 """
 import argparse
