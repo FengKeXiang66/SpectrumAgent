@@ -360,6 +360,10 @@ class StateMachine:
 
     def _dispatch(self, **kwargs):
         if self._workflow_enabled():
+            dialogue = getattr(self.tools, 'experiment_dialogue', None)
+            if kwargs.get('content') is not None and dialogue and dialogue.handles(self.session_id, kwargs['content']):
+                from .experiment_flow import generate as experiment_generate
+                return experiment_generate(self, kwargs['content'])
             from .workflow import generate
             def with_reply_state():
                 events=generate(self,**kwargs)

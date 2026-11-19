@@ -114,7 +114,7 @@ class ExperimentService:
             raise DataError("EXPERIMENT_ARTIFACT_CHANGED", "实验产物缺失或校验失败")
         return path
 
-    def run(self, config: ExperimentConfig):
+    def run(self, config: ExperimentConfig, *, expected_sources=None):
         # BLAS thread limits are process-wide; serial execution avoids overlap.
         if not self.lock.acquire(blocking=False):
             raise DataError("EXPERIMENT_BUSY", "已有数值实验正在运行")
@@ -125,7 +125,8 @@ class ExperimentService:
             write_json(folder / "config.json", config.model_dump(mode="json"))
             write_json(folder / "status.json", {"experiment_id": identifier, "status": "running"})
             with threadpool_limits(limits=2):
-                result = self._execute(identifier, folder, config)
+                result = (self._execute(identifier, folder, config) if expected_sources is None else
+                          self._execute(identifier, folder, config, expected_sources=expected_sources))
             write_json(folder / "status.json", {"experiment_id": identifier, "status": "succeeded"})
             return result
         except Exception as error:
@@ -136,10 +137,12 @@ class ExperimentService:
         finally:
             self.lock.release()
 
-    def _execute(self, identifier, folder, config):
+    def _execute(self, identifier, folder, config, *, expected_sources=None):
         train = load_input(config.train, config.wavelengths_nm, config.classes)
         test = load_input(config.test, config.wavelengths_nm, config.classes)
         source_manifest = {**train.sources, **test.sources}
+        if expected_sources is not None and {key: item['sha256'] for key, item in source_manifest.items()} != expected_sources:
+            raise DataError('EXPERIMENT_INPUT_CHANGED', '实验输入自方案核验后发生变化，请重新检查并展示方案')
         storage.for_database(self.paths.database).add_sources([item["path"] for item in source_manifest.values()])
         check_split(train, test)
         if set(train.y.tolist()) != set(config.classes):
