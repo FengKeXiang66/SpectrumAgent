@@ -1,0 +1,566 @@
+"""Full-coverage tool layer: import, deletion, recipes, modeling writes, training sets.
+
+Design invariant kept from the rest of the catalogue: a summary is a flat map of
+scalars. Local paths, provider URLs and secrets never appear in a model-facing
+result. Where an operation needs one of those, the server keeps it behind an
+opaque reference (``SRC-1`` / ``C-1`` / ``DEL-1``) that the model may name but
+cannot read back.
+
+Confirmation is still explicit but no longer UI-only: destructive calls take a
+reference produced by their own preview tool, so the impact list is always read
+before anything is removed.
+"""
+from pathlib import Path
+import os
+import sqlite3
+from time import monotonic
+from uuid import uuid4
+from typing import Annotated, Literal
+
+from pydantic import Field
+
+from backend.database import connect_database
+from spectrumagent.data import DataError
+from spectrumagent.preprocess.export import export_run
+from spectrumagent.preprocess.references import registered_run
+from ..tool_context import owner_session
+from ..open_access import OPEN_ACCESS
+from . import NoArguments, Reference, ToolInput
+
+
+MAX_ITEMS = 10
+SCAN_LIMIT = 50
+HEADER_SUFFIXES = (".hdr", ".json", ".txt")
+
+
+def label(value, fallback="未命名"):
+    """Display name with every path marker, separator and data suffix removed."""
+    if not isinstance(value, str) or not value.strip():
+        return fallback
+    name = value.strip().replace("\\", "/").rstrip("/").split("/")[-1]
+    name = name.strip()
+    stem, suffix = os.path.splitext(name)
+    if suffix.lower() in HEADER_SUFFIXES:
+        name = stem
+    name = name.replace(":", "").replace("\n", " ").strip()
+    return name[:60] or fallback
+
+
+def finite(value):
+    if isinstance(value, bool) or value is None:
+        return value
+    if isinstance(value, float) and (value != value or value in (float("inf"), float("-inf"))):
+        return None
+    return value if isinstance(value, (str, int, float)) else None
+
+
+class ReferenceBook:
+    """Server-side holder for values the model must never see."""
+
+    def __init__(self):
+        self.sources = {}
+        self.entries = {}
+        self.deletions = {}
+        self.counter = {"SRC": 0, "C": 0, "DEL": 0}
+
+    def issue(self, kind, value):
+        self.counter[kind] += 1
+        reference = f"{kind}-{self.counter[kind]}"
+        {"SRC": self.sources, "C": self.entries, "DEL": self.deletions}[kind][reference] = value
+        return reference
+
+    def source(self, reference):
+        value = self.sources.get(reference, self.entries.get(reference))
+        if value is None:
+            raise DataError("REFERENCE_EXPIRED", "导入源引用已失效，请重新列出导入源")
+        return value
+
+    def deletion(self, reference):
+        value = self.deletions.pop(reference, None)
+        if value is None:
+            raise DataError("REFERENCE_EXPIRED", "删除预览引用已失效，请重新预览影响清单")
+        return value
+
+
+# ---------------------------------------------------------------- import
+
+
+class ScanArguments(ToolInput):
+    source_ref: Reference
+    offset: Annotated[int, Field(ge=0)] = 0
+    limit: Annotated[int, Field(ge=1, le=SCAN_LIMIT)] = SCAN_LIMIT
+
+
+class ImportArguments(ToolInput):
+    source_ref: Reference
+    raw: bool = False
+    confirm_new: bool = False
+
+
+# ---------------------------------------------------------------- deletion
+
+
+class DeletePreviewArguments(ToolInput):
+    cube_ids: Annotated[list[Reference], Field(min_length=1, max_length=32)]
+
+
+class DeleteArguments(ToolInput):
+    deletion_ref: Reference
+    confirm: bool = False
+
+
+# ---------------------------------------------------------------- recipes
+
+
+class SnvStep(ToolInput):
+    op: Literal["snv"]
+    zero_std: Literal["zeros", "nan", "error"] = "zeros"
+
+
+class SmoothStep(ToolInput):
+    op: Literal["sg_smooth"]
+    window: Annotated[int, Field(gt=0)]
+    polyorder: Annotated[int, Field(ge=0)]
+    mode: Literal["interp", "mirror", "constant", "nearest", "wrap"] = "interp"
+
+
+class DerivativeStep(ToolInput):
+    op: Literal["sg_derivative"]
+    order: Annotated[int, Field(ge=1, le=2)]
+    window: Annotated[int, Field(gt=0)]
+    polyorder: Annotated[int, Field(ge=0)]
+    mode: Literal["interp", "mirror", "constant", "nearest", "wrap"] = "interp"
+
+
+class StandardizeStep(ToolInput):
+    op: Literal["standardize"]
+    method: Literal["standard", "minmax", "area", "vector"]
+    zero_std: Literal["zeros", "nan", "error"] = "zeros"
+
+
+Step = Annotated[SnvStep | SmoothStep | DerivativeStep | StandardizeStep, Field(discriminator="op")]
+
+
+class RecipeCreateArguments(ToolInput):
+    code: Annotated[str, Field(min_length=1, max_length=64, pattern=r"^[a-z0-9][a-z0-9-]*$")]
+    name: Annotated[str, Field(min_length=1, max_length=80)]
+    steps: Annotated[list[Step], Field(max_length=8)]
+    description: Annotated[str, Field(max_length=2000)] | None = None
+    note: Annotated[str, Field(max_length=2000)] | None = None
+
+
+class RecipeVersionArguments(ToolInput):
+    recipe_id: Reference
+    steps: Annotated[list[Step], Field(max_length=8)]
+    note: Annotated[str, Field(max_length=2000)] | None = None
+
+
+class RunExportArguments(ToolInput):
+    run_id: Reference
+
+
+# ---------------------------------------------------------------- modeling writes
+
+
+class RegisterArguments(ToolInput):
+    run_id: Reference
+    name: Annotated[str, Field(min_length=1, max_length=120)] | None = None
+
+
+class StageArguments(ToolInput):
+    model_id: Reference
+    stage: Literal["experiment", "candidate", "production"]
+
+
+class InferArguments(ToolInput):
+    model_id: Reference
+    cube_id: Reference
+    preprocess_run_id: Reference
+    annotation_version_id: Reference
+
+
+# ---------------------------------------------------------------- training sets
+
+
+class TrainingCandidatesArguments(ToolInput):
+    cube_ids: Annotated[list[Reference], Field(min_length=1, max_length=32)] | None = None
+    recipe_version_id: Reference | None = None
+    snapshot_ref: Reference | None = None
+    offset: Annotated[int, Field(ge=0)] = 0
+    limit: Annotated[int, Field(ge=1, le=100)] = 32 if OPEN_ACCESS else 10
+
+
+class TrainingMember(ToolInput):
+    cube_id: Reference
+    annotation_version_id: Reference
+    recipe_version_id: Reference
+
+
+class TrainingPreviewArguments(ToolInput):
+    members: Annotated[list[TrainingMember], Field(min_length=1, max_length=32)]
+    note: Annotated[str, Field(max_length=2000)] | None = None
+
+
+class VersionArguments(ToolInput):
+    version_id: Reference
+
+
+class VersionPageArguments(VersionArguments):
+    offset: Annotated[int,Field(ge=0)] = 0
+    limit: Annotated[int,Field(ge=1,le=100)] = 32
+
+
+# ---------------------------------------------------------------- settings and paths
+
+
+class LlmSetArguments(ToolInput):
+    model: Annotated[str, Field(max_length=120)] | None = None
+    temperature: Annotated[str, Field(max_length=16)] | None = None
+    max_tokens: Annotated[str, Field(max_length=16)] | None = None
+    timeout_ms: Annotated[str, Field(max_length=16)] | None = None
+    egress_enabled: bool | None = None
+    base_url: Annotated[str, Field(max_length=500)] | None = None
+    api_key: Annotated[str, Field(max_length=2000)] | None = None
+
+
+class ProjectArguments(ToolInput):
+    project_id: Reference | None = None
+
+
+def _pipeline(steps):
+    return {"steps": [{"op": step.op, "version": 1, "params": step.model_dump(exclude={"op"})}
+                      for step in steps]}
+
+
+def _recipe_version(row):
+    return {"recipe_version_id": row["id"], "recipe_version_no": row.get("version_no", 1)}
+
+
+def _training_summary(row):
+    labels = row.get("label_summary") or {}
+    ordered = sorted(labels.items(), key=lambda item: (-item[1], item[0]))[:MAX_ITEMS]
+    return {"version_id": row.get("id") or row["version_id"], "member_count": row["member_count"],
+            "is_frozen": 0 if not row.get("is_frozen") else 1,
+            "label_total": sum(labels.values()), "label_kinds": len(labels),
+            "label_summary": ", ".join(f"{label(code)}:{count}" for code, count in ordered) or "无"}
+
+
+def register_operations(registry, *, datasets=None, recycle=None, runner=None, models=None,
+                        inferences=None, training_sets=None, paths=None, database=None):
+    book = ReferenceBook()
+    candidate_snapshots = {}
+
+    # ------------------------------------------------------------ import
+    def known_sources():
+        if database is None:
+            return []
+        values = []
+        with connect_database(database) as db:
+            exists = db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='project_path_settings'").fetchone()
+            if exists:
+                values = [row[0] for row in db.execute(
+                    "SELECT source_path FROM project_path_settings WHERE source_path<>'' ORDER BY source_path")]
+        return [Path(value) for value in values if Path(value).is_dir()]
+
+    def list_sources(arguments):
+        roots = known_sources()
+        book.sources.clear()
+        result = {"status": "ok" if roots else "need_source_setup", "source_count": len(roots)}
+        for index, root in enumerate(roots[:MAX_ITEMS], 1):
+            result[f"source_{index}_ref"] = book.issue("SRC", root)
+            # The configured root is a local path: only its ordinal is model-visible.
+            result[f"source_{index}_name"] = f"数据源{index}"
+            result[f"source_{index}_children"] = sum(1 for _ in root.iterdir()) if os.access(root, os.R_OK) else 0
+        if not roots:
+            result["hint"] = "尚无已登记的数据源目录，请先在设置界面登记一次；路径不允许进入模型上下文"
+        return result
+
+    def scan(arguments):
+        root = book.source(arguments.source_ref)
+        if not root.is_dir():
+            raise DataError("INVALID_IMPORT", "该引用不是目录")
+        children = []
+        try:
+            for entry in sorted(root.iterdir(), key=lambda item: (not item.is_dir(), item.name.lower())):
+                if entry.is_dir():
+                    children.append((entry, "dir"))
+                elif entry.suffix.lower() in HEADER_SUFFIXES:
+                    children.append((entry, "header"))
+        except OSError as error:
+            raise DataError("DIRECTORY_UNREADABLE", "无法读取该目录") from error
+        page = children[arguments.offset:arguments.offset + arguments.limit]
+        result = {"status": "ok", "total_count": len(children), "count": len(page), "offset": arguments.offset,
+                  "truncated": arguments.offset + len(page) < len(children)}
+        for index, (entry, kind) in enumerate(page, 1):
+            result[f"entry_{index}_ref"] = book.issue("C", entry)
+            result[f"entry_{index}_name"] = label(entry.name)
+            result[f"entry_{index}_kind"] = kind
+            if kind == "header":
+                result[f"entry_{index}_has_header"] = 1
+            elif entry.is_dir():
+                result[f"entry_{index}_has_header"] = 1 if any(
+                    child.suffix.lower() in HEADER_SUFFIXES for child in entry.iterdir() if child.is_file()) else 0
+            else:
+                result[f"entry_{index}_has_header"] = 0
+        return result
+
+    def import_source(arguments):
+        root = book.source(arguments.source_ref)
+        try:
+            response = datasets.import_path(str(root), raw=arguments.raw, confirm_new=arguments.confirm_new)
+            datasets.label_imported_folders([row.id for row in response.datasets])
+        except DataError as error:
+            if getattr(error, "status_code", None) == 409 or error.code == "REIMPORT_ACTIVE_EXISTS":
+                return {"status": "need_confirm", "conflict": error.code,
+                        "hint": "该路径已有活跃记录；确认以新记录重新登记后再调用一次，confirm_new=true"}
+            raise
+        rows = response.datasets
+        result = {"status": "imported", "dataset_count": len(rows),
+                  "imported_count": sum(1 for row in rows if not row.existing),
+                  "existing_count": sum(1 for row in rows if row.existing),
+                  "truncated": len(rows) > MAX_ITEMS}
+        for index, row in enumerate(rows[:MAX_ITEMS], 1):
+            result[f"dataset_{index}_id"] = str(row.id)
+            result[f"dataset_{index}_name"] = label(row.display_name)
+            result[f"dataset_{index}_existing"] = 1 if row.existing else 0
+            result[f"dataset_{index}_lines"] = int(row.dataset.shape[0])
+            result[f"dataset_{index}_samples"] = int(row.dataset.shape[1])
+            result[f"dataset_{index}_bands"] = int(row.dataset.shape[2])
+        return result
+
+    # ------------------------------------------------------------ deletion
+    def delete_preview(arguments):
+        preview = recycle.preview_batch([str(cube) for cube in arguments.cube_ids])
+        per_cube = preview.get("per_cube") or []
+        result = {"status": "ok", "cube_count": len(preview.get("cube_ids") or []),
+                  "file_count": len(preview.get("directories") or []),
+                  "deletion_ref": book.issue("DEL", {"token": preview["preview_token"],
+                                                     "cube_ids": list(preview.get("cube_ids") or [])})}
+        for index, item in enumerate(per_cube[:MAX_ITEMS], 1):
+            result[f"item_{index}_cube_id"] = item["cube_id"]
+            result[f"item_{index}_annotation_versions"] = item["annotation_versions"]
+            result[f"item_{index}_preprocess_runs"] = item["preprocess_runs"]
+            result[f"item_{index}_inference_runs"] = item["inference_runs"]
+            result[f"item_{index}_kilobytes"] = int(item["total_bytes"] // 1024)
+        return result
+
+    def delete(arguments):
+        if arguments.confirm is not True:
+            return {"status": "need_confirm", "hint": "永久删除须显式确认；先调用 datasets.delete_preview 查看影响清单"}
+        record = book.deletion(arguments.deletion_ref)
+        recycle.delete_batch(record["cube_ids"], confirm=True, preview_token=record["token"])
+        return {"status": "deleted", "cube_count": len(record["cube_ids"])}
+
+    # ------------------------------------------------------------ recipes
+    def recipe_create(arguments):
+        row = runner.recipes.create(arguments.code, arguments.name, arguments.description,
+                                    _pipeline(arguments.steps), note=arguments.note)
+        versions = row.get("versions") or []
+        result = {"recipe_id": row["id"], "recipe_code": row["code"], "recipe_name": label(row["name"]),
+                  "step_count": len(arguments.steps), "version_count": len(versions)}
+        if versions:
+            result.update(_recipe_version(versions[-1]))
+        return result
+
+    def recipe_version(arguments):
+        row = runner.recipes.add_version(arguments.recipe_id, _pipeline(arguments.steps), note=arguments.note)
+        return {"recipe_id": arguments.recipe_id, "step_count": len(arguments.steps), **_recipe_version(row)}
+
+    def run_export(arguments):
+        row = export_run(runner, arguments.run_id)
+        artifacts = row.get("artifacts") or []
+        return {"status": row.get("status", "succeeded"), "run_id": row.get("run_id", arguments.run_id),
+                'view_kind':'exports',
+                "artifact_count": len(artifacts),
+                "artifact_kinds": ", ".join(sorted({item.get("kind", "") for item in artifacts}))}
+
+    # ------------------------------------------------------------ modeling writes
+    def register_model(arguments):
+        row = models.register(arguments.run_id, arguments.name)
+        return {"model_id": row["id"], "run_id": row.get("run_id", arguments.run_id),
+                "stage": row.get("stage", "experiment"), "version": row.get("version", 1),
+                "name_available": 1 if row.get("name") else 0}
+
+    def set_stage(arguments):
+        row = models.set_stage(arguments.model_id, arguments.stage)
+        return {"model_id": row["id"], "stage": row["stage"]}
+
+    def infer(arguments):
+        row = inferences.create(arguments.model_id, arguments.cube_id,
+                                arguments.preprocess_run_id, arguments.annotation_version_id)
+        stats = row.get("stats") or {}
+        return {"inference_run_id": row["id"], "status": row.get("status", "succeeded"),
+                "model_id": row.get("model_id", arguments.model_id),
+                "n_pixels": int(stats.get("n_pixels", 0)),
+                "n_foreground": int(stats.get("n_foreground", 0)),
+                "sample_prediction": finite(stats.get("sample_prediction")),
+                "out_of_domain_count": int(stats.get("out_of_domain_count", 0)),
+                "quality_label": stats.get("quality_label", "")}
+
+    # ------------------------------------------------------------ training sets
+    def latest_annotation(db, cube_id):
+        row = db.execute("SELECT id FROM annotation_version WHERE cube_id=? ORDER BY version_no DESC LIMIT 1",
+                         (str(cube_id),)).fetchone()
+        return None if row is None else row[0]
+
+    def candidates(arguments):
+        if database is None:
+            raise DataError("TOOL_NOT_IMPLEMENTED", "缺少数据库绑定")
+        if arguments.cube_ids and len(set(arguments.cube_ids))!=len(arguments.cube_ids):
+            raise DataError('INVALID_REQUEST','候选范围不能包含重复样品')
+        now = monotonic()
+        for ref in list(candidate_snapshots):
+            if candidate_snapshots[ref]['expires'] < now:
+                del candidate_snapshots[ref]
+        reference = arguments.snapshot_ref
+        if reference:
+            snapshot = candidate_snapshots.get(reference)
+            if snapshot is None or snapshot['owner'] != owner_session.get():
+                raise DataError('QUERY_SNAPSHOT_EXPIRED', '查询快照失效或不属于当前会话，请从第一页重新查询')
+            cubes,recipe=snapshot['identity']
+            if ((arguments.cube_ids is not None and set(arguments.cube_ids)!=set(cubes))
+                    or arguments.recipe_version_id is not None and arguments.recipe_version_id!=recipe):
+                raise DataError('QUERY_SCOPE_MISMATCH','续页必须沿用同一快照范围和配方；不能改成剩余样品再使用旧offset')
+        else:
+            if arguments.offset:
+                raise DataError('QUERY_PAGE_REFERENCE_REQUIRED', '续页缺少snapshot_ref；请使用上一页返回的快照和next_offset，不要改写样品范围')
+            if not arguments.cube_ids or not arguments.recipe_version_id:
+                raise DataError('QUERY_PAGE_REFERENCE_REQUIRED','首次查询须给出完整cube_ids和recipe_version_id；续页只需snapshot_ref和offset')
+            identity = (tuple(arguments.cube_ids), arguments.recipe_version_id)
+            rows = []
+            with connect_database(database) as db:
+                db.execute('PRAGMA query_only=ON')
+                db.execute('BEGIN')  # short consistent read snapshot; no write lock
+                for cube in arguments.cube_ids:
+                    item = {'cube_id': cube}
+                    try:
+                        version_id = latest_annotation(db, cube)
+                        if version_id is None:
+                            item['status'] = 'need_annotation'
+                        else:
+                            item['annotation_version_id'] = version_id
+                            run = registered_run(db, cube, version_id, arguments.recipe_version_id, discovery=True)
+                            item['status'] = 'ready' if run else 'need_preprocess'
+                            if run:
+                                item['preprocess_run_id'] = run['id']
+                    except sqlite3.Error:
+                        item['status'] = 'unknown'
+                    rows.append(item)
+            if len(candidate_snapshots) >= 128:
+                del candidate_snapshots[next(iter(candidate_snapshots))]
+            reference = 'Q-' + uuid4().hex
+            snapshot = {'rows': rows, 'owner': owner_session.get(), 'identity': identity, 'expires': now + 300}
+            candidate_snapshots[reference] = snapshot
+        rows = snapshot['rows']
+        page = rows[arguments.offset:arguments.offset + arguments.limit]
+        ready = sum(item['status'] == 'ready' for item in rows)
+        unknown = sum(item['status'] == 'unknown' for item in rows)
+        result = {'status': 'ok', 'cube_count': len(rows), 'total': len(rows), 'ready_count': ready,
+                  'need_work': len(rows) - ready - unknown, 'unknown_count': unknown, 'snapshot_ref': reference,
+                  'offset': arguments.offset, 'count': len(page), 'truncated': arguments.offset + len(page) < len(rows),
+                  'references_confirmed': False}
+        result['next_offset']=arguments.offset+len(page) if result['truncated'] else None
+        result['recipe_version_id']=snapshot['identity'][1]
+        for index, item in enumerate(page, 1):
+            result.update({f'item_{index}_{key}': value for key, value in item.items()})
+        return result
+
+    def training_preview(arguments):
+        row = training_sets.preview({"members": [member.model_dump() for member in arguments.members],
+                                     "source_note": arguments.note})
+        result = {**_training_summary(row), "reused": 1 if row.get("reused") else 0,
+                  "need_preprocess_count": len(row.get("need_preprocess") or [])}
+        return result
+
+    def training_confirm(arguments):
+        row = training_sets.confirm(arguments.version_id)
+        return _training_summary(row)
+
+    def training_list(arguments):
+        rows = training_sets.list_frozen()
+        result = {"count": len(rows), "truncated": len(rows) > MAX_ITEMS}
+        for index, row in enumerate(rows[:MAX_ITEMS], 1):
+            result[f"item_{index}_version_id"] = row["id"]
+            result[f"item_{index}_member_count"] = row["member_count"]
+            result[f"item_{index}_label_summary"] = ", ".join(
+                f"{label(code)}:{count}" for code, count in list((row.get("label_summary") or {}).items())[:MAX_ITEMS]) or "无"
+        return result
+
+    def training_members(arguments):
+        row = training_sets.resolve_members(arguments.version_id)
+        members = row.get("members") or []
+        result = {"version_id": row["version_id"], "member_count": len(members),
+                  "need_preprocess_count": len(row.get("need_preprocess") or []),
+                  'offset':arguments.offset,'count':len(members[arguments.offset:arguments.offset+arguments.limit]),
+                  'truncated':arguments.offset+arguments.limit<len(members)}
+        for index, member in enumerate(members[arguments.offset:arguments.offset+arguments.limit], 1):
+            result[f"member_{index}_cube_id"] = member["cube_id"]
+            result[f"member_{index}_annotation_version_id"] = member["annotation_version_id"]
+            result[f"member_{index}_recipe_version_id"] = member["recipe_version_id"]
+            result[f"member_{index}_n_pixels"] = member["n_pixels"]
+            result[f"member_{index}_preprocess_run_id"] = member.get("preprocess_run_id") or "缺"
+        return result
+
+    # ------------------------------------------------------------ settings and paths
+    def llm_set(arguments):
+        from ..llm import LLMSettings, read_settings, write_settings, set_api_key
+        current = read_settings(database)
+        update = {key: value for key, value in arguments.model_dump().items() if value is not None}
+        api_key = update.pop('api_key', None)
+        settings = LLMSettings(**{**current.model_dump(), **update})
+        write_settings(database, settings, **({'permanent_root':paths.credential_root} if paths is not None else {}))
+        if api_key is not None:
+            if paths is not None:
+                from ..credential_store import save as save_credential
+                root = getattr(paths, 'credential_root', None)
+                if root is not None:
+                    save_credential(root, api_key)
+            set_api_key(api_key)
+        return {"configured": bool(settings.base_url and settings.model), "model": settings.model,
+                "temperature": settings.temperature, "max_tokens": settings.max_tokens,
+                "timeout_ms": settings.timeout_ms,
+                "egress_enabled": 1 if settings.egress_enabled else 0}
+
+    def project_paths(arguments):
+        if database is None:
+            raise DataError("TOOL_NOT_IMPLEMENTED", "缺少数据库绑定")
+        with connect_database(database) as db:
+            exists = db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='project_path_settings'").fetchone()
+            if exists:
+                row = db.execute("SELECT project_id,source_path,output_root FROM project_path_settings "
+                                 + ("WHERE project_id=?" if arguments.project_id else "ORDER BY updated_at DESC LIMIT 1"),
+                                 (str(arguments.project_id),) if arguments.project_id else ()).fetchone()
+            else:
+                row = None
+            projects = db.execute("SELECT id FROM project ORDER BY rowid LIMIT 1").fetchone()
+        result = {"project_id": row[0] if row else (projects[0] if projects else ""),
+                  "source_configured": 1 if row and row[1] else 0,
+                  "output_configured": 1 if row and row[2] else 0,
+                  "source_set": 1 if row and row[1] else 0,
+                  "output_set": 1 if row and row[2] else 0}
+        return result
+
+    tools = [
+        ("sources.list", NoArguments, "列出服务端已登记的数据源目录（路径不进模型，只给引用）；无登记时返回 need_source_setup", list_sources, paths is not None or database is not None),
+        ("sources.scan", ScanArguments, "按 source_ref 列出下一层的子目录与数据头，返回 entry 引用；不返回真实路径", scan, datasets is not None),
+        ("datasets.import", ImportArguments, "按 source_ref 导入整批数据；冲突返回 need_confirm，确认后以 confirm_new=true 重试；不返回路径与谱值", import_source, datasets is not None),
+        ("datasets.delete_preview", DeletePreviewArguments, "永久删除前的影响清单预览；返回 deletion_ref，不删除任何内容", delete_preview, recycle is not None),
+        ("datasets.delete", DeleteArguments, "按 deletion_ref 永久删除数据集及其产物；须 confirm=true，不确认只返回 need_confirm", delete, recycle is not None),
+        ("preprocess.recipe_create", RecipeCreateArguments, "组合算子新建配方（snv、sg_smooth、sg_derivative、standardize）；返回 recipe 与首个版本引用", recipe_create, runner is not None),
+        ("preprocess.recipe_version_add", RecipeVersionArguments, "为现有配方追加新版本；内容与最新版相同会被拒绝", recipe_version, runner is not None),
+        ("preprocess.run_export", RunExportArguments, "把已成功的预处理 run 导出为可下载产物；只返回产物数量与类型", run_export, runner is not None and paths is not None),
+        ("modeling.register", RegisterArguments, "把成功的分类或回归训练 run 注册为模型；返回 model_id", register_model, models is not None),
+        ("modeling.set_stage", StageArguments, "设置模型阶段：experiment、candidate、production；同目标只有一个生产模型", set_stage, models is not None),
+        ("modeling.infer", InferArguments, "对指定样品发起批量推理；须显式给出模型、cube、预处理 run 与标注版本", infer, inferences is not None),
+        ("training_sets.candidates", TrainingCandidatesArguments, "按 cube 列表与配方解析最新标注版本与可用预处理 run；只报缺口，不自动冻结", candidates, database is not None),
+        ("training_sets.preview", TrainingPreviewArguments, "按显式成员生成训练集版本预览；返回成员数、类别分布与预处理缺口", training_preview, training_sets is not None),
+        ("training_sets.confirm", VersionArguments, "冻结一个已预览的训练集版本", training_confirm, training_sets is not None),
+        ("training_sets.list", NoArguments, "列出已冻结的训练集版本", training_list, training_sets is not None),
+        ("training_sets.members", VersionPageArguments, "分页读取训练集版本的完整成员与缺口；不返回谱值", training_members, training_sets is not None),
+        ("settings.llm_set", LlmSetArguments, "配置模型服务（base_url、API Key、model、temperature、max_tokens、timeout_ms、egress 开关）；开发期允许对话直接提供连接地址与密钥", llm_set, database is not None),
+        ("projects.paths_get", ProjectArguments, "读取项目数据源与输出根的登记状态；只返回是否已配置，不返回路径", project_paths, database is not None),
+    ]
+    for name, arguments, description, handler, ready in tools:
+        registry.register(name, arguments, description, handler if ready else None)
+    from .recipe_drafts import register_draft_operations
+    register_draft_operations(registry,runner)

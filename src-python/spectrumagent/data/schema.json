@@ -1,0 +1,93 @@
+{
+  "$defs": {
+    "JsonValue": {}
+  },
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "shape": {
+      "maxItems": 3,
+      "minItems": 3,
+      "prefixItems": [
+        {
+          "exclusiveMinimum": 0,
+          "type": "integer"
+        },
+        {
+          "exclusiveMinimum": 0,
+          "type": "integer"
+        },
+        {
+          "exclusiveMinimum": 0,
+          "type": "integer"
+        }
+      ],
+      "title": "Shape",
+      "type": "array"
+    },
+    "dtype": {
+      "title": "Dtype",
+      "type": "string"
+    },
+    "interleave": {
+      "enum": [
+        "bsq",
+        "bil",
+        "bip"
+      ],
+      "title": "Interleave",
+      "type": "string"
+    },
+    "wavelengths": {
+      "items": {
+        "type": "number"
+      },
+      "title": "Wavelengths",
+      "type": "array"
+    },
+    "data_path": {
+      "title": "Data Path",
+      "type": "string"
+    },
+    "header_path": {
+      "title": "Header Path",
+      "type": "string"
+    },
+    "fwhm": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "number"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Fwhm"
+    },
+    "metadata": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Metadata",
+      "type": "object"
+    }
+  },
+  "required": [
+    "name",
+    "shape",
+    "dtype",
+    "interleave",
+    "wavelengths",
+    "data_path",
+    "header_path"
+  ],
+  "title": "SpectrumDataSet",
+  "type": "object"
+}

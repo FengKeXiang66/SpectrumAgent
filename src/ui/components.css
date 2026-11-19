@@ -1,0 +1,99 @@
+/* Shared page skeleton and component primitives.
+   Rules inside :where() have zero specificity, so existing page skins keep
+   authority over their own components while inheriting consistent basics. */
+.ui-page {
+  max-width: var(--ui-page-max);
+  margin: 0 auto;
+  padding: 1.25rem;
+  color: var(--ui-ink);
+  font-family: var(--ui-font);
+  font-size: 12.4px;
+  line-height: 1.7;
+  min-width: 0;
+}
+.ui-page[hidden] { display: none; }
+.app .ui-page { max-width: var(--ui-page-max); margin: 0 auto; padding: 1.25rem; min-width: 0; box-sizing: border-box; }
+.ui-page > p[role="status"]:empty { display: none; }
+.ui-page :where(h2) { margin: 0 0 4px; font-size: 16.5px; font-weight: 700; letter-spacing: -.2px; color: var(--ui-ink); }
+.ui-page :where(h3) { margin: 0 0 10px; font-size: 12.8px; font-weight: 650; color: var(--ui-ink-2); }
+.ui-page :where(p) { color: var(--ui-ink-2); }
+.ui-page :where(button) {
+  font: inherit; font-size: 12.2px; padding: 6.5px 13px;
+  border: 1px solid var(--ui-line); border-radius: var(--ui-radius-sm);
+  background: var(--ui-surface); color: var(--ui-ink-2);
+}
+.ui-page :where(input, select) {
+  font: inherit; font-size: 12.2px; color: var(--ui-ink);
+  background: var(--ui-surface); border: 1px solid var(--ui-line);
+  border-radius: var(--ui-radius-sm); padding: 6px 9px; min-width: 0;
+}
+.ui-page :where(input[type="checkbox"]) { padding: 0; accent-color: var(--ui-brand); }
+.ui-page :where(fieldset) { min-width: 0; border: 1px solid var(--ui-line); border-radius: var(--ui-radius); background: var(--ui-surface); }
+.ui-page :where(legend) { padding: 0 .35rem; color: var(--ui-ink); font-size: 12.8px; font-weight: 650; }
+.ui-page :where(th, td) { padding: 8px 11px; border-bottom: 1px solid var(--ui-line-2); text-align: left; }
+.ui-page :where(button:disabled) { opacity: .55; cursor: not-allowed; }
+.ui-page :where(button:not(:disabled):hover) { border-color: var(--ui-brand-line); background: var(--ui-brand-soft); color: var(--ui-brand-dark); }
+.ui-page :where(button:focus-visible) { outline: 2px solid var(--ui-brand); outline-offset: 2px; }
+.ui-page :where(input:focus-visible, select:focus-visible, textarea:focus-visible) { border-color: var(--ui-brand-line); outline-color: var(--ui-brand); }
+
+/* One card surface shared by every analysis page. Page skins may still add
+   column padding or accents, but the border/radius/shadow live here only. */
+.ui-page :where(
+  .ui-card, fieldset, .dataset-panel, .project-paths,
+  .annotation-card, .annotation-workbench figure,
+  .dv-card, .pp-recipe-card, .pp-matrix-card, .pp-runs-card,
+  .pp-curve-card, .pp-comparison-card, .pp-quality-card,
+  .md-task-card, .md-data-card, .md-exec-log, .classification-preflight,
+  section[aria-label="批量提交计划"], section[aria-label="批量运行详情"]
+) { min-width: 0; padding: 14px 16px; background: var(--ui-surface); border: 1px solid var(--ui-line); border-radius: var(--ui-radius); box-shadow: var(--ui-shadow); }
+
+/* Status callouts: neutral/info by default, bad for alerts, warn for warnings. */
+.ui-page :where(p[role="status"]:not(:empty), [role="alert"], .annotation-note,
+  .annotation-warning, .annotation-error, .pp-reproducibility) {
+  padding: 9px 12px; border: 1px solid var(--ui-brand-line); border-radius: var(--ui-radius-sm);
+  background: var(--ui-brand-soft); color: var(--ui-brand-dark); font-size: 11.4px;
+}
+.ui-page :where([role="alert"], .annotation-error) { border-color: var(--ui-bad-line); background: var(--ui-bad-bg); color: var(--ui-bad); }
+.ui-page :where(.annotation-warning) { border-color: var(--ui-warn-line); background: var(--ui-warn-bg); color: var(--ui-warn); }
+.ui-page :where(pre[role="alert"]) { margin: 0 0 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* Reusable primitives. Opt-in; page skins may add more specific rules. */
+.ui-card {
+  min-width: 0; padding: 14px 16px; background: var(--ui-surface);
+  border: 1px solid var(--ui-line); border-radius: var(--ui-radius);
+  box-shadow: var(--ui-shadow);
+}
+.ui-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 0 0 14px; margin-bottom: 14px; border-bottom: 1px solid var(--ui-line); }
+.ui-subtitle { margin: 4px 0 0; color: var(--ui-ink-3); font-size: 11.4px; }
+.ui-grid { display: grid; gap: var(--ui-gap); align-items: start; }
+.ui-grid-2 { grid-template-columns: 300px minmax(0, 1fr); }
+.ui-stack { display: grid; gap: var(--ui-gap); align-content: start; min-width: 0; }
+.ui-tabs { display: inline-flex; border: 1px solid var(--ui-line); border-radius: var(--ui-radius-sm); overflow: hidden; background: var(--ui-surface); }
+.ui-tabs button { border: 0; border-right: 1px solid var(--ui-line); border-radius: 0; }
+.ui-tabs button:last-child { border-right: 0; }
+.ui-tabs button[aria-pressed="true"] { background: var(--ui-brand-soft); color: var(--ui-brand-dark); font-weight: 650; }
+.ui-field { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; color: var(--ui-ink-2); }
+.ui-field > :where(select, input) { flex: 1 1 auto; }
+.ui-btn-primary,
+.ui-page .ui-btn-primary { background: var(--ui-brand); border-color: var(--ui-brand); color: #fff; font-weight: 600; }
+.ui-btn-primary:hover:not(:disabled),
+.ui-page .ui-btn-primary:hover:not(:disabled) { background: var(--ui-brand-dark); border-color: var(--ui-brand-dark); color: #fff; }
+.ui-badge { display: inline-flex; align-items: center; padding: 2px 9px; border: 1px solid var(--ui-brand-line); border-radius: 20px; background: var(--ui-brand-soft); color: var(--ui-brand-dark); font-size: 11.4px; }
+.ui-badge[data-state="ok"] { border-color: var(--ui-ok-line); background: var(--ui-ok-bg); color: var(--ui-ok); }
+.ui-badge[data-state="warn"] { border-color: var(--ui-warn-line); background: var(--ui-warn-bg); color: var(--ui-warn); }
+.ui-badge[data-state="bad"] { border-color: var(--ui-bad-line); background: var(--ui-bad-bg); color: var(--ui-bad); }
+.ui-alert { padding: 9px 12px; border: 1px solid var(--ui-brand-line); border-radius: var(--ui-radius-sm); background: var(--ui-brand-soft); color: var(--ui-brand-dark); }
+.ui-alert[data-state="warn"] { border-color: var(--ui-warn-line); background: var(--ui-warn-bg); color: var(--ui-warn); }
+.ui-alert[data-state="bad"] { border-color: var(--ui-bad-line); background: var(--ui-bad-bg); color: var(--ui-bad); }
+.ui-table-scroll { overflow-x: auto; border: 1px solid var(--ui-line); border-radius: var(--ui-radius-sm); }
+.ui-table { width: 100%; border-collapse: collapse; font-size: 11.8px; }
+.ui-table th { background: var(--ui-surface-2); color: var(--ui-ink-2); font-weight: 650; white-space: nowrap; }
+.ui-table tbody tr:hover { background: #f7fbfd; }
+.ui-kv { display: grid; gap: 6px; margin: 0; }
+.ui-kv > div { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--ui-line-2); }
+.ui-kv > div:last-child { border-bottom: 0; }
+.ui-kv dt { color: var(--ui-ink-3); font-size: 11.4px; }
+.ui-kv dd { margin: 0; color: var(--ui-brand-dark); font-size: 11.8px; text-align: right; overflow-wrap: anywhere; }
+.ui-log { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.ui-log li { display: flex; align-items: baseline; gap: 10px; padding: 6px 8px; border: 1px solid var(--ui-line-2); border-radius: var(--ui-radius-sm); background: var(--ui-surface-2); font-size: 11.6px; color: var(--ui-ink-2); }
+.ui-log time { flex: 0 0 auto; color: var(--ui-ink-3); font-family: var(--ui-mono); font-size: 10.8px; }

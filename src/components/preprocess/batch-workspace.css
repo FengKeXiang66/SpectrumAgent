@@ -1,0 +1,234 @@
+/* S06 full-sample preprocessing workspace skin, aligned with the first-stage
+   high-fidelity prototype (:221-390 components, :1738-1835 S06 layout).
+   Scope: .preprocess-workspace direct children and workspace-only classes.
+   Uses direct-child selectors so nested .preprocess-panel keeps its own skin. */
+.preprocess-workspace {
+  --pp-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --pp-mono: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+  --pp-ink: #16202a;
+  --pp-ink2: #455260;
+  --pp-ink3: #7b8794;
+  --pp-ink4: #a3adb8;
+  --pp-line: #e2e7ed;
+  --pp-line2: #eef2f6;
+  --pp-panel2: #f7f9fb;
+  --pp-panel3: #f1f4f8;
+  --pp-brand: #0e6e8c;
+  --pp-brand-d: #0a5670;
+  --pp-brand-soft: #e7f3f7;
+  --pp-brand-line: #b9dbe6;
+  --pp-ok: #17714a;
+  --pp-ok-bg: #e8f5ee;
+  --pp-ok-line: #c6e5d5;
+  --pp-warn: #a06a12;
+  --pp-warn-bg: #fdf4e3;
+  --pp-warn-line: #f0dfb8;
+  --pp-bad: #b83227;
+  --pp-bad-bg: #fdeceb;
+  --pp-bad-line: #f2cfcc;
+  --pp-radius: 10px;
+  min-width: 0;
+  color: var(--pp-ink);
+  font-family: var(--pp-font);
+  font-size: 12.4px;
+  line-height: 1.7;
+}
+/* Aliases onto the shared design tokens; page-local names stay stable. */
+.preprocess-workspace {
+  --pp-ink: var(--ui-ink); --pp-ink2: var(--ui-ink-2); --pp-ink3: var(--ui-ink-3); --pp-ink4: var(--ui-ink-4);
+  --pp-line: var(--ui-line); --pp-line2: var(--ui-line-2);
+  --pp-panel2: var(--ui-surface-2); --pp-panel3: var(--ui-surface-3);
+  --pp-brand: var(--ui-brand); --pp-brand-d: var(--ui-brand-dark); --pp-brand-soft: var(--ui-brand-soft); --pp-brand-line: var(--ui-brand-line);
+  --pp-ok: var(--ui-ok); --pp-ok-bg: var(--ui-ok-bg); --pp-ok-line: var(--ui-ok-line);
+  --pp-warn: var(--ui-warn); --pp-warn-bg: var(--ui-warn-bg); --pp-warn-line: var(--ui-warn-line);
+  --pp-bad: var(--ui-bad); --pp-bad-bg: var(--ui-bad-bg); --pp-bad-line: var(--ui-bad-line);
+  --pp-radius: var(--ui-radius);
+}
+
+/* ---- Page heading ---- */
+.preprocess-workspace > .pp-page-heading { display: flex; align-items: flex-start; gap: 12px; padding: 0 0 14px; margin-bottom: 14px; border-bottom: 1px solid var(--pp-line); }
+.preprocess-workspace > .pp-page-heading h2 { margin: 0 0 4px; font-size: 16.5px; font-weight: 700; letter-spacing: -.2px; color: var(--pp-ink); }
+.preprocess-workspace > .pp-page-heading p { margin: 0; font-size: 12.4px; color: var(--pp-ink3); }
+.preprocess-workspace > .pp-page-heading > button { font-size: 12.2px; }
+
+/* ---- View switcher: joined segmented control (prototype p-seg) ---- */
+.preprocess-workspace > nav { display: inline-flex; gap: 0; padding: 0; margin: 0 0 12px; border: 1px solid var(--pp-line); border-radius: 8px; overflow: hidden; background: #fff; }
+.preprocess-workspace > nav button { border: 0; border-right: 1px solid var(--pp-line); border-radius: 0; padding: 6px 14px; background: #fff; color: var(--pp-ink2); font-size: 12.4px; }
+.preprocess-workspace > nav button:last-child { border-right: 0; }
+.preprocess-workspace > nav button[aria-pressed="true"] { background: var(--pp-brand-soft); color: var(--pp-brand-d); font-weight: 650; }
+
+/* ---- Representative sample picker ---- */
+.preprocess-workspace > label,
+.preprocess-workspace > div > label { display: inline-flex; align-items: center; gap: 8px; margin: 0 8px 8px 0; color: var(--pp-ink2); font-size: 12.2px; }
+.preprocess-workspace > p { font-size: 11.4px; color: var(--pp-ink3); margin: 0 0 12px; }
+.preprocess-workspace > p[role="alert"],
+.preprocess-workspace > div > p[role="alert"] { color: var(--pp-bad); background: var(--pp-bad-bg); border: 1px solid var(--pp-bad-line); border-radius: 8px; padding: 9px 12px; }
+.preprocess-workspace > div > p[role="status"] { color: var(--pp-brand-d); background: var(--pp-brand-soft); border: 1px solid var(--pp-brand-line); border-radius: 8px; padding: 9px 12px; font-variant-numeric: tabular-nums; }
+
+/* ---- Batch action row ---- */
+.pp-batch-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.pp-batch-actions button,
+.preprocess-workspace > div > button { font: inherit; font-size: 12.2px; padding: 6.5px 13px; border: 1px solid var(--pp-line); border-radius: 7px; background: #fff; color: var(--pp-ink2); }
+.pp-batch-actions button:hover:not(:disabled),
+.preprocess-workspace > div > button:hover:not(:disabled) { border-color: var(--pp-brand-line); background: var(--pp-brand-soft); color: var(--pp-brand-d); }
+.pp-batch-actions button:disabled,
+.preprocess-workspace > div > button:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ---- Batch sample table (prototype p-tbl) ---- */
+.pp-batch-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 12.2px; }
+.pp-batch-table th { background: var(--pp-panel2); color: var(--pp-ink2); font-weight: 650; font-size: 11.3px; text-align: left; padding: 8px 11px; border-bottom: 1px solid var(--pp-line); white-space: nowrap; }
+.pp-batch-table td { padding: 7.5px 11px; border-bottom: 1px solid var(--pp-line2); text-align: left; overflow-wrap: anywhere; vertical-align: middle; }
+.pp-batch-table tbody tr:last-child td { border-bottom: 0; }
+.pp-batch-table tbody tr:hover { background: #f7fbfd; }
+.pp-batch-table small { display: block; color: var(--pp-ink3); font-size: 11px; }
+.pp-batch-table select { font: inherit; font-size: 12.2px; color: var(--pp-ink); background: #fff; border: 1px solid var(--pp-line); border-radius: 7px; padding: 6px 9px; max-width: 100%; }
+.pp-batch-table input[type="checkbox"] { accent-color: var(--pp-brand); }
+.pp-batch-table button { font: inherit; font-size: 11.6px; padding: 4px 9px; border: 1px solid var(--pp-brand-line); border-radius: 6px; background: var(--pp-brand-soft); color: var(--pp-brand-d); }
+
+/* ---- Submission plan & run detail cards ---- */
+.preprocess-workspace section[aria-label="批量提交计划"],
+.preprocess-workspace section[aria-label="批量运行详情"] { background: #fff; border: 1px solid var(--pp-line); border-radius: var(--pp-radius); padding: 16px 18px; margin: 14px 0; box-shadow: 0 2px 10px #16202a08; }
+.preprocess-workspace section[aria-label="批量提交计划"] h3,
+.preprocess-workspace section[aria-label="批量运行详情"] h3 { margin: 0 0 10px; font-size: 13px; font-weight: 650; color: var(--pp-ink); }
+.preprocess-workspace section[aria-label="批量提交计划"] > p { font-size: 11.8px; color: var(--pp-ink2); }
+.preprocess-workspace section[aria-label="批量提交计划"] > p[role="status"] { color: var(--pp-warn); background: var(--pp-warn-bg); border: 1px solid var(--pp-warn-line); border-radius: 8px; padding: 9px 12px; }
+.preprocess-workspace section[aria-label="批量提交计划"] > p[role="alert"],
+.preprocess-workspace section[aria-label="批量运行详情"] > p[role="alert"] { color: var(--pp-bad); background: var(--pp-bad-bg); border: 1px solid var(--pp-bad-line); border-radius: 8px; padding: 9px 12px; }
+.preprocess-workspace section details { border: 1px solid var(--pp-line); border-radius: 8px; padding: 8px 12px; margin: 8px 0; background: var(--pp-panel2); }
+.preprocess-workspace section details summary { cursor: pointer; font-size: 12.2px; color: var(--pp-ink2); }
+.preprocess-workspace section details p { font-size: 11.4px; color: var(--pp-ink3); }
+
+/* ---- Run results: one skin for every data-bound output in the apply tab.
+   Tokens are inherited from .preprocess-workspace, so design and result areas
+   share the same palette, type scale and control geometry. ---- */
+.preprocess-workspace .pp-runs-card { background: #fff; border: 1px solid var(--pp-line); border-radius: var(--pp-radius); padding: 16px 18px; margin: 14px 0 0; box-shadow: 0 2px 10px #16202a08; }
+.preprocess-workspace .pp-runs-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px; margin-bottom: 12px; }
+.preprocess-workspace .pp-runs-head h3 { margin: 0; font-size: 13px; font-weight: 650; color: var(--pp-ink); }
+.preprocess-workspace .pp-runs-head .pp-hint { margin: 0; color: var(--pp-ink3); font-size: 11.4px; line-height: 1.7; }
+.preprocess-workspace .pp-runs-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.preprocess-workspace .pp-runs-card fieldset { min-width: 0; margin: 0; padding: 12px 14px; background: var(--pp-panel2); border: 1px solid var(--pp-line); border-radius: 9px; }
+.preprocess-workspace .pp-runs-card legend { padding: 0 6px; color: var(--pp-ink2); font-size: 11.8px; font-weight: 650; }
+.preprocess-workspace .pp-runs-card fieldset > label { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; color: var(--pp-ink2); }
+.preprocess-workspace .pp-runs-card fieldset > label select { flex: 1 1 auto; min-width: 0; }
+.preprocess-workspace .pp-runs-card .pp-compare-choice { display: flex; align-items: center; gap: 6px; margin: 3px 0; color: var(--pp-ink2); }
+.preprocess-workspace .pp-runs-card .pp-compare-choice input { min-width: 0; accent-color: var(--pp-brand); }
+.preprocess-workspace .pp-runs-card select { font: inherit; font-size: 12.2px; color: var(--pp-ink); background: #fff; border: 1px solid var(--pp-line); border-radius: 7px; padding: 6px 9px; }
+.preprocess-workspace .pp-runs-card button { font: inherit; font-size: 12.2px; padding: 6.5px 13px; border: 1px solid var(--pp-line); border-radius: 7px; background: #fff; color: var(--pp-ink2); }
+.preprocess-workspace .pp-runs-card button.pp-primary { background: var(--pp-brand); border-color: var(--pp-brand); color: #fff; }
+.preprocess-workspace .pp-runs-card button.pp-primary:hover:not(:disabled) { background: var(--pp-brand-d); border-color: var(--pp-brand-d); color: #fff; }
+.preprocess-workspace .pp-runs-card button:hover:not(:disabled) { border-color: var(--pp-brand-line); background: var(--pp-brand-soft); color: var(--pp-brand-d); }
+.preprocess-workspace .pp-runs-card button:disabled { opacity: .55; cursor: not-allowed; }
+.preprocess-workspace .pp-runs-card input:focus-visible,
+.preprocess-workspace .pp-runs-card select:focus-visible,
+.preprocess-workspace .pp-runs-card button:focus-visible,
+.preprocess-workspace .pp-runs-card summary:focus-visible { outline-color: var(--pp-brand); }
+.preprocess-workspace .pp-runs-toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.preprocess-workspace .pp-runs-card > p[role="status"] { color: var(--pp-brand-d); background: var(--pp-brand-soft); border: 1px solid var(--pp-brand-line); border-radius: 8px; padding: 9px 12px; margin: 0 0 10px; }
+.preprocess-workspace .pp-runs-card pre[role="alert"] { color: var(--pp-bad); background: var(--pp-bad-bg); border: 1px solid var(--pp-bad-line); border-radius: 8px; padding: 9px 12px; margin: 0 0 10px; white-space: pre-wrap; }
+.preprocess-workspace .pp-run-history { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; padding: 0; margin: 0 0 14px; }
+.preprocess-workspace .pp-run-history li { display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px 2px 2px; border: 1px solid var(--pp-line); border-radius: 16px; background: var(--pp-panel2); font-size: 11px; }
+.preprocess-workspace .pp-run-history li button { padding: 3px 9px; font-size: 11px; border-color: var(--pp-brand-line); border-radius: 14px; background: var(--pp-brand-soft); color: var(--pp-brand-d); }
+.preprocess-workspace .pp-run-history li span { color: var(--pp-ink3); font-variant-numeric: tabular-nums; }
+.preprocess-workspace .pp-runs-card section[aria-label="run 详情"] { border: 1px solid var(--pp-line); border-radius: 9px; padding: 14px 16px; margin: 12px 0; background: var(--pp-panel2); }
+.preprocess-workspace .pp-runs-card section[aria-label="run 详情"] > h3 { margin: 0 0 10px; font-size: 12.8px; font-weight: 650; color: var(--pp-ink2); font-family: var(--pp-mono); }
+.preprocess-workspace .pp-runs-card ul[aria-label="ENVI 导出产物"] { list-style: none; padding: 0; margin: 10px 0 0; color: var(--pp-ink3); font-size: 11.2px; }
+.preprocess-workspace .pp-runs-card ul[aria-label="ENVI 导出产物"] code { color: var(--pp-brand-d); font-family: var(--pp-mono); overflow-wrap: anywhere; }
+
+/* Metric cards and explanation blocks reuse the design-area geometry. */
+.preprocess-workspace .pp-runs-card .pp-quality-card { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--pp-line); }
+.preprocess-workspace .pp-runs-card .pp-quality-card > h3 { margin: 0 0 6px; font-size: 12.8px; color: var(--pp-ink2); }
+.preprocess-workspace .pp-runs-card .pp-quality-card > .pp-hint { margin: 0 0 12px; color: var(--pp-ink3); font-size: 11.4px; }
+.preprocess-workspace .pp-runs-card .pp-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.preprocess-workspace .pp-runs-card .pp-metrics > div { min-width: 0; padding: 10px 12px; background: var(--pp-panel2); border: 1px solid var(--pp-line); border-radius: 9px; overflow-wrap: anywhere; }
+.preprocess-workspace .pp-runs-card .pp-metrics dt { color: var(--pp-ink3); font-size: 11.5px; }
+.preprocess-workspace .pp-runs-card .pp-metrics dd { margin: 6px 0 8px; color: var(--pp-brand-d); font-size: 14px; line-height: 1.5; font-variant-numeric: tabular-nums; }
+.preprocess-workspace .pp-runs-card .pp-metrics small { display: block; color: var(--pp-ink4); font-size: 10.2px; line-height: 1.6; }
+.preprocess-workspace .pp-runs-card .pp-metrics .pp-metric-hero { grid-column: 1 / -1; background: var(--pp-brand-soft); border-color: var(--pp-brand-line); }
+.preprocess-workspace .pp-runs-card .pp-metric-hero dd { font-size: 26px; font-weight: 650; }
+.preprocess-workspace .pp-runs-card .pp-metric-notes { color: var(--pp-ink3); font-size: 11.3px; line-height: 1.8; overflow-wrap: anywhere; }
+.preprocess-workspace .pp-runs-card .pp-metric-notes p { margin: 6px 0; }
+.preprocess-workspace .pp-run-notes { border: 1px solid var(--pp-line); border-radius: 8px; background: var(--pp-panel2); padding: 8px 12px; margin: 12px 0; }
+.preprocess-workspace .pp-run-notes summary { cursor: pointer; color: var(--pp-ink2); font-size: 11.8px; }
+.preprocess-workspace .pp-run-notes p { color: var(--pp-ink3); font-size: 11.4px; line-height: 1.8; margin: 6px 0; overflow-wrap: anywhere; }
+.preprocess-workspace .pp-run-notes .pp-reproducibility { margin: 10px 0 0; padding: 10px 12px; color: var(--pp-brand-d); background: var(--pp-brand-soft); border: 1px solid var(--pp-brand-line); border-radius: 7px; }
+
+/* Curve comparison and Fisher ranking. */
+.preprocess-workspace .pp-runs-card .pp-curve-card { border: 1px solid var(--pp-line); border-radius: 9px; padding: 14px 16px; margin: 12px 0; background: #fff; }
+.preprocess-workspace .pp-runs-card .pp-curve-heading { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 6px 16px; margin-bottom: 12px; }
+.preprocess-workspace .pp-runs-card .pp-curve-heading h3 { margin: 0; color: var(--pp-ink2); font-size: 12.8px; font-weight: 650; }
+.preprocess-workspace .pp-runs-card .pp-curve-heading p { display: flex; flex-wrap: wrap; gap: 16px; margin: 0; color: var(--pp-ink3); font-size: 11.4px; }
+.preprocess-workspace .pp-runs-card .pp-curve-card canvas { display: block; max-width: 100%; height: auto; border: 1px solid var(--pp-line2); border-radius: 7px; background: #fff; }
+.preprocess-workspace .pp-runs-card .pp-legend { display: flex; flex-wrap: wrap; gap: 8px 18px; list-style: none; padding: 0; margin: 10px 0; color: var(--pp-ink2); font-size: 11.4px; }
+.preprocess-workspace .pp-runs-card .pp-legend li { display: inline-flex; align-items: center; gap: 6px; }
+.preprocess-workspace .pp-runs-card .pp-legend span { width: 10px; height: 10px; border-radius: 3px; border: 1px solid var(--pp-line); }
+.preprocess-workspace .pp-runs-card .pp-curve-card > p { margin: 6px 0 0; color: var(--pp-ink3); font-size: 11.3px; line-height: 1.8; }
+.preprocess-workspace .pp-runs-card .pp-comparison-card { border: 1px solid var(--pp-line); border-radius: 9px; padding: 14px 16px; margin: 14px 0 0; background: #fff; }
+.preprocess-workspace .pp-runs-card .pp-comparison-card > h3 { margin: 0 0 12px; font-size: 12.8px; font-weight: 650; color: var(--pp-ink2); }
+.preprocess-workspace .pp-runs-card .pp-table-scroll { overflow-x: auto; border: 1px solid var(--pp-line); border-radius: 8px; }
+.preprocess-workspace .pp-runs-card table { width: 100%; border-collapse: collapse; text-align: left; font-size: 11.8px; }
+.preprocess-workspace .pp-runs-card th { background: var(--pp-panel2); color: var(--pp-ink2); padding: 8px 11px; border-bottom: 1px solid var(--pp-line); white-space: nowrap; }
+.preprocess-workspace .pp-runs-card td { padding: 7.5px 11px; border-bottom: 1px solid var(--pp-line2); color: var(--pp-ink2); }
+.preprocess-workspace .pp-runs-card tbody tr:hover { background: #f7fbfd; }
+.preprocess-workspace .pp-runs-card .pp-comparison-card > section { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--pp-line); }
+.preprocess-workspace .pp-runs-card .pp-comparison-card > section > p { color: var(--pp-ink3); font-size: 11.4px; }
+
+/* ---- Multi-recipe screening: the primary apply flow ---- */
+.preprocess-workspace .pp-matrix-card { background: #fff; border: 1px solid var(--pp-line); border-radius: var(--pp-radius); padding: 16px 18px; margin: 14px 0; box-shadow: 0 2px 10px #16202a08; }
+.preprocess-workspace .pp-matrix-head { margin-bottom: 12px; }
+.preprocess-workspace .pp-matrix-head h3 { margin: 0 0 4px; font-size: 13px; font-weight: 650; color: var(--pp-ink); }
+.preprocess-workspace .pp-matrix-head .pp-hint { margin: 0; color: var(--pp-ink3); font-size: 11.4px; line-height: 1.7; }
+.preprocess-workspace .pp-matrix-picker { display: flex; flex-wrap: wrap; gap: 6px 10px; }
+.preprocess-workspace .pp-matrix-choice { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border: 1px solid var(--pp-line); border-radius: 16px; background: var(--pp-panel2); color: var(--pp-ink2); font-size: 11.8px; }
+.preprocess-workspace .pp-matrix-choice input { min-width: 0; accent-color: var(--pp-brand); }
+.preprocess-workspace .pp-matrix-choice:has(input:checked) { border-color: var(--pp-brand-line); background: var(--pp-brand-soft); color: var(--pp-brand-d); }
+.preprocess-workspace .pp-matrix-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 4px; }
+.preprocess-workspace .pp-matrix-card > p[role="status"] { margin: 8px 0 0; color: var(--pp-brand-d); font-size: 11.6px; font-variant-numeric: tabular-nums; }
+.preprocess-workspace .pp-matrix-card pre[role="alert"] { margin: 10px 0 0; color: var(--pp-bad); background: var(--pp-bad-bg); border: 1px solid var(--pp-bad-line); border-radius: 8px; padding: 9px 12px; white-space: pre-wrap; }
+.preprocess-workspace .pp-matrix-card button { font: inherit; font-size: 12px; padding: 6px 12px; border: 1px solid var(--pp-line); border-radius: 7px; background: #fff; color: var(--pp-ink2); }
+.preprocess-workspace .pp-matrix-card button.pp-primary { background: var(--pp-brand); border-color: var(--pp-brand); color: #fff; }
+.preprocess-workspace .pp-matrix-card button.pp-primary:hover:not(:disabled) { background: var(--pp-brand-d); border-color: var(--pp-brand-d); color: #fff; }
+.preprocess-workspace .pp-matrix-card button:hover:not(:disabled) { border-color: var(--pp-brand-line); background: var(--pp-brand-soft); color: var(--pp-brand-d); }
+.preprocess-workspace .pp-matrix-card button:disabled { opacity: .55; cursor: not-allowed; }
+.preprocess-workspace .pp-matrix-card input:focus-visible,
+.preprocess-workspace .pp-matrix-card button:focus-visible { outline-color: var(--pp-brand); }
+.preprocess-workspace .pp-matrix-scroll { overflow-x: auto; border: 1px solid var(--pp-line); border-radius: 8px; margin-top: 12px; }
+.preprocess-workspace .pp-matrix-table { width: 100%; border-collapse: collapse; font-size: 11.8px; }
+.preprocess-workspace .pp-matrix-table th,
+.preprocess-workspace .pp-matrix-table td { padding: 8px 10px; border-bottom: 1px solid var(--pp-line2); text-align: left; white-space: nowrap; }
+.preprocess-workspace .pp-matrix-table thead th { background: var(--pp-panel2); color: var(--pp-ink2); font-weight: 650; }
+.preprocess-workspace .pp-matrix-table tbody th { color: var(--pp-ink2); font-weight: 650; }
+.preprocess-workspace .pp-matrix-table tbody tr:hover { background: #f7fbfd; }
+.preprocess-workspace .pp-matrix-card .pp-matrix-table button.pp-matrix-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 92px; padding: 5px 9px; border-color: var(--pp-brand-line); border-radius: 7px; background: var(--pp-brand-soft); color: var(--pp-brand-d); }
+.preprocess-workspace .pp-matrix-card .pp-matrix-table button.pp-matrix-cell.is-open { background: var(--pp-brand); border-color: var(--pp-brand); color: #fff; }
+.preprocess-workspace .pp-matrix-card .pp-matrix-table button.pp-matrix-cell small { font-family: var(--pp-mono); font-size: 10px; opacity: .75; }
+.preprocess-workspace .pp-matrix-card .pp-matrix-table button.pp-adopted { background: var(--pp-ok-bg); border-color: var(--pp-ok-line); color: var(--pp-ok); }
+.preprocess-workspace .pp-matrix-detail { margin-top: 14px; padding: 14px 16px; border: 1px solid var(--pp-line); border-radius: 9px; background: var(--pp-panel2); }
+.preprocess-workspace .pp-matrix-detail > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.preprocess-workspace .pp-matrix-detail h3 { margin: 0; color: var(--pp-ink2); font-size: 12.4px; font-family: var(--pp-mono); }
+.preprocess-workspace .pp-matrix-detail-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.preprocess-workspace .pp-matrix-detail ul[aria-label="ENVI 导出产物"] { list-style: none; padding: 0; margin: 0 0 10px; color: var(--pp-ink3); font-size: 11.2px; }
+.preprocess-workspace .pp-matrix-detail ul[aria-label="ENVI 导出产物"] code { color: var(--pp-brand-d); font-family: var(--pp-mono); overflow-wrap: anywhere; }
+
+/* ---- Advanced: submission plan & recovery (scope-confined to this block so
+   nested plan/run cards keep their own skin). Controls here sit one level
+   deeper than the batch action row, so they need their own rules to match the
+   same 12.2px / 7px-radius geometry used everywhere else in the workspace. ---- */
+.preprocess-workspace details.pp-advanced { margin: 14px 0 0; border: 1px solid var(--pp-line); border-radius: var(--pp-radius); background: #fff; box-shadow: 0 2px 10px #16202a08; }
+.preprocess-workspace details.pp-advanced > summary { cursor: pointer; padding: 12px 16px; color: var(--pp-ink); font-size: 12.8px; font-weight: 650; list-style: none; }
+.preprocess-workspace details.pp-advanced > summary::-webkit-details-marker { display: none; }
+.preprocess-workspace details.pp-advanced > summary::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 9px; border-right: 1.6px solid var(--pp-brand); border-bottom: 1.6px solid var(--pp-brand); transform: rotate(45deg); vertical-align: 2px; transition: transform .15s ease; }
+.preprocess-workspace details.pp-advanced[open] > summary::before { transform: rotate(-135deg); vertical-align: -1px; }
+.preprocess-workspace .pp-advanced-body { padding: 2px 16px 16px; border-top: 1px solid var(--pp-line2); }
+.preprocess-workspace .pp-advanced-body > label { display: inline-flex; align-items: center; gap: 8px; margin: 12px 0 8px; color: var(--pp-ink2); font-size: 12.2px; }
+.preprocess-workspace .pp-advanced-body > label select { font: inherit; font-size: 12.2px; color: var(--pp-ink); background: #fff; border: 1px solid var(--pp-line); border-radius: 7px; padding: 6px 9px; min-width: 210px; max-width: 100%; }
+.preprocess-workspace .pp-advanced-body > button { font: inherit; font-size: 12.2px; padding: 6.5px 13px; border: 1px solid var(--pp-line); border-radius: 7px; background: #fff; color: var(--pp-ink2); }
+.preprocess-workspace .pp-advanced-body > button.pp-primary { background: var(--pp-brand); border-color: var(--pp-brand); color: #fff; font-weight: 650; }
+.preprocess-workspace .pp-advanced-body > button.pp-primary:hover:not(:disabled) { background: var(--pp-brand-d); border-color: var(--pp-brand-d); color: #fff; }
+.preprocess-workspace .pp-advanced-body > button:hover:not(:disabled) { border-color: var(--pp-brand-line); background: var(--pp-brand-soft); color: var(--pp-brand-d); }
+.preprocess-workspace .pp-advanced-body > button:disabled { opacity: .5; cursor: not-allowed; }
+.preprocess-workspace .pp-advanced-body > label select:focus-visible,
+.preprocess-workspace .pp-advanced-body > button:focus-visible,
+.preprocess-workspace details.pp-advanced > summary:focus-visible { outline-color: var(--pp-brand); }
+.preprocess-workspace .pp-advanced .pp-runs-card { margin-top: 14px; }
+
+.preprocess-workspace [hidden] { display: none; }

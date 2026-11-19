@@ -1,0 +1,30 @@
+{
+  "$defs": {
+    "JsonValue": {}
+  },
+  "additionalProperties": false,
+  "properties": {
+    "error": {
+      "title": "Error",
+      "type": "string"
+    },
+    "detail": {
+      "title": "Detail",
+      "type": "string"
+    },
+    "context": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Context",
+      "type": "object"
+    }
+  },
+  "required": [
+    "error",
+    "detail",
+    "context"
+  ],
+  "title": "DataErrorPayload",
+  "type": "object"
+}

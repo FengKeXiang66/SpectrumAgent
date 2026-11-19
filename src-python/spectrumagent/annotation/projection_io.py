@@ -1,0 +1,169 @@
+"""Project-scoped configuration and atomic publication under data_root/exports."""
+from spectrumagent.storage import guard as storage
+from collections import Counter
+import json
+from pathlib import Path
+from threading import RLock
+from uuid import UUID, uuid4
+
+from .labels import now
+from .projection import project
+
+
+_EXPORT_LOCK = RLock()
+
+
+def _json(value):
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def project_config_path(paths, project_id):
+    return paths.root / "projects" / str(UUID(str(project_id))) / "projection.json"
+
+
+def configure_project(paths, project_id, *, filenames=None):
+    """Persist project-level export filenames; a class code is its own label name."""
+    value = {"filenames": filenames or {}}
+    _validate_config(value)
+    path = project_config_path(paths, project_id)
+    storage.mkdir(path.parent, parents=True, exist_ok=True)
+    temporary = path.with_name(path.name + f".{uuid4().hex}.tmp")
+    try:
+        storage.resolve_write(temporary, kind="WRITE_TEXT").write_text(_json(value), encoding="utf-8")
+        storage.replace(temporary, path)
+    finally:
+        storage.unlink(temporary, missing_ok=True)
+    return path
+
+
+def _validate_config(value):
+    # A legacy "mapping" key from older installs is tolerated and ignored:
+    # class codes are now the label names, so no name translation happens.
+    if not isinstance(value, dict) or not isinstance(value.get("filenames", {}), dict):
+        raise ValueError("项目 projection.json 须含 filenames 对象")
+    for cube, filename in value.get("filenames", {}).items():
+        UUID(cube)
+        _filename(filename)
+    return value
+
+
+def _filename(name):
+    if not isinstance(name, str) or not name or any(char in name for char in '/\\:\x00') or name.strip() != name:
+        raise ValueError("投影文件名须为本地文件名，不得含路径")
+    stem = name[:-5] if name.lower().endswith(".json") else name
+    if stem in ("", ".", "..") or stem.casefold() == "manifest" or stem.lower().endswith(".meta"):
+        raise ValueError("投影文件名与 manifest/sidecar 冲突")
+    return stem + ".json"
+
+
+def write_projection(paths, cube_id, project_id, source_hdr, version_no, label_map, label_index, *, document=None):
+    """Return JSON path and metadata; publish all three files only after validation."""
+    cube_id = str(UUID(str(cube_id)))
+    config_path = project_config_path(paths, project_id)
+    # utf-8-sig: projection.json is the one hand-edited file here. Notepad / PowerShell
+    # `Out-File -Encoding utf8` both prepend a BOM, and plain "utf-8" rejects it outright
+    # ("Unexpected UTF-8 BOM"), turning a perfectly valid config into a save-time failure.
+    config = _validate_config(json.loads(config_path.read_text("utf-8-sig"))) if config_path.exists() else {}
+    text, meta = project(label_map, label_index, rule_version=1)
+    source = Path(source_hdr)
+    if not source.is_absolute():
+        raise ValueError("source_hdr 必须为绝对路径")
+    requested = _filename(config.get("filenames", {}).get(cube_id, source.stem))
+    root = paths.exports.resolve()
+    folder = root / cube_id
+    generated = now()
+    meta.update(cube_id=cube_id, version_no=version_no, source_hdr=str(source), generated_at=generated)
+    confidence = []
+    if document is not None:
+        regions = document["regions"]
+        confidence = [region["confidence"] for region in regions if region.get("confidence") is not None]
+        meta["region_statistics"] = {"count": len(regions), "sources": dict(Counter(region["source"] for region in regions)),
+                                     "confidence_count": len(confidence)}
+    meta["confidence_counts"] = dict(Counter(confidence))
+    with _EXPORT_LOCK:
+        storage.mkdir(root, parents=True, exist_ok=True)
+        owned = folder / "manifest.json"
+        previous = json.loads(owned.read_text("utf-8")) if owned.exists() else {}
+        filename = previous["filename"] if previous.get("requested_filename") == requested else requested
+        filename = _filename(filename)
+        others = [json.loads(path.read_text("utf-8")) for path in sorted(root.glob("*/manifest.json")) if path != owned]
+        used = {entry["filename"].casefold() for entry in others}
+        if filename.casefold() in used:
+            filename = requested[:-5] + "_" + cube_id[:8] + ".json"
+        if filename.casefold() in used:
+            raise ValueError("投影文件名追加 cube_id 前 8 位后仍冲突")
+        manifest = {"cube_id": cube_id, "source_hdr": str(source), "generated_at": generated,
+                    "filename": filename, "requested_filename": requested, "version_no": version_no}
+        storage.mkdir(folder, parents=True, exist_ok=True)
+        values = {folder / filename: text,
+                  folder / (filename[:-5] + ".meta.json"): _json(meta),
+                  folder / "manifest.json": _json(manifest)}
+        obsolete = []
+        if previous.get("cube_id") == cube_id and previous.get("filename") != filename:
+            old_name = _filename(previous["filename"])
+            obsolete = [folder / old_name, folder / (old_name[:-5] + ".meta.json")]
+        managed = [*values, *obsolete]
+        previous_bytes = {path: path.read_bytes() if path.exists() else None for path in managed}
+        temporary = {path: path.with_name(f".{path.name}.{uuid4().hex}.tmp") for path in managed}
+        published = []
+        try:
+            for path, value in values.items():
+                storage.resolve_write(temporary[path], kind="WRITE_TEXT").write_text(value, encoding="utf-8")
+            # Only our JSON files are replaced. Existing training MATs belong to
+            # another service even when they share the cube's export directory.
+            for path in values:
+                storage.replace(temporary[path], path)
+                published.append(path)
+            # A configured rename must still leave one current JSON per cube.
+            # Only the old manifest's owned JSON and sidecar are retired.
+            for path in obsolete:
+                if path.exists():
+                    storage.unlink(path)
+                    published.append(path)
+        except BaseException:
+            for path in reversed(published):
+                old = previous_bytes[path]
+                if old is None:
+                    storage.unlink(path, missing_ok=True)
+                else:
+                    storage.resolve_write(temporary[path], kind="WRITE_BYTES").write_bytes(old)
+                    storage.replace(temporary[path], path)
+            raise
+        finally:
+            for path in temporary.values():
+                storage.unlink(path, missing_ok=True)
+    return str(folder / filename), meta
+
+
+def read_projection_status(paths, cube_id):
+    """Read-only disk truth for this cube's published JSON annotation file.
+
+    The manifest is the only pointer to the current filename; a stale or
+    hand-edited manifest must never turn into a path outside exports/<cube>.
+    Never raises: a broken projection is reported as absent, not as a 500
+    that would take the whole versions listing (and the workbench) down.
+    """
+    absent = {"exists": False, "path": None, "filename": None,
+              "generated_at": None, "version_no": None, "reason": None}
+    try:
+        cube = str(UUID(str(cube_id)))
+    except (ValueError, TypeError, AttributeError):
+        return {**absent, "reason": "invalid_cube_id"}
+    folder = paths.exports.resolve() / cube
+    manifest_path = folder / "manifest.json"
+    if not manifest_path.is_file():
+        return {**absent, "reason": "no_manifest"}
+    try:
+        manifest = json.loads(manifest_path.read_text("utf-8"))
+        if not isinstance(manifest, dict) or manifest.get("cube_id") != cube:
+            return {**absent, "reason": "invalid_manifest"}
+        # _filename rejects separators, drive letters and reserved stems.
+        filename = _filename(manifest["filename"])
+    except (OSError, ValueError, KeyError, TypeError):
+        return {**absent, "reason": "invalid_manifest"}
+    target = folder / filename
+    if not target.is_file():
+        return {**absent, "filename": filename, "reason": "missing_json"}
+    return {"exists": True, "path": str(target), "filename": filename,
+            "generated_at": manifest.get("generated_at"),
+            "version_no": manifest.get("version_no"), "reason": None}

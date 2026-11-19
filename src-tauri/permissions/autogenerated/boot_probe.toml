@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-boot-probe"
+description = "Enables the boot_probe command without any pre-configured scope."
+commands.allow = ["boot_probe"]
+
+[[permission]]
+identifier = "deny-boot-probe"
+description = "Denies the boot_probe command without any pre-configured scope."
+commands.deny = ["boot_probe"]

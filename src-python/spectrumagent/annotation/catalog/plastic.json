@@ -1,0 +1,107 @@
+[
+  {
+    "code": "PE",
+    "name": "聚乙烯",
+    "color_hex": "#5aa469"
+  },
+  {
+    "code": "PET",
+    "name": "聚对苯二甲酸乙二醇酯",
+    "color_hex": "#c98a3c"
+  },
+  {
+    "code": "PP",
+    "name": "聚丙烯",
+    "color_hex": "#2f7fb0"
+  },
+  {
+    "code": "PS",
+    "name": "聚苯乙烯",
+    "color_hex": "#b23434"
+  },
+  {
+    "code": "PVC",
+    "name": "聚氯乙烯",
+    "color_hex": "#b25e34"
+  },
+  {
+    "code": "HDPE",
+    "name": "高密度聚乙烯",
+    "color_hex": "#b28834"
+  },
+  {
+    "code": "LDPE",
+    "name": "低密度聚乙烯",
+    "color_hex": "#b2b234"
+  },
+  {
+    "code": "ABS",
+    "name": "丙烯腈-丁二烯-苯乙烯塑料",
+    "color_hex": "#88b234"
+  },
+  {
+    "code": "PC",
+    "name": "聚碳酸酯",
+    "color_hex": "#5eb234"
+  },
+  {
+    "code": "PA",
+    "name": "聚酰胺",
+    "color_hex": "#34b234"
+  },
+  {
+    "code": "PTFE",
+    "name": "聚四氟乙烯",
+    "color_hex": "#34b25e"
+  },
+  {
+    "code": "PMMA",
+    "name": "聚甲基丙烯酸甲酯",
+    "color_hex": "#34b288"
+  },
+  {
+    "code": "PAN",
+    "name": "聚丙烯腈",
+    "color_hex": "#34b2b2"
+  },
+  {
+    "code": "PBT",
+    "name": "聚对苯二甲酸丁二醇酯",
+    "color_hex": "#3488b2"
+  },
+  {
+    "code": "PCL",
+    "name": "聚己内酯",
+    "color_hex": "#345eb2"
+  },
+  {
+    "code": "POM",
+    "name": "聚甲醛",
+    "color_hex": "#3434b2"
+  },
+  {
+    "code": "PLA",
+    "name": "聚乳酸",
+    "color_hex": "#5e34b2"
+  },
+  {
+    "code": "TPU",
+    "name": "热塑性聚氨酯弹性体",
+    "color_hex": "#8834b2"
+  },
+  {
+    "code": "PPO",
+    "name": "聚苯醚",
+    "color_hex": "#b234b2"
+  },
+  {
+    "code": "PPS",
+    "name": "聚苯硫醚",
+    "color_hex": "#b23488"
+  },
+  {
+    "code": "SAN",
+    "name": "苯乙烯-丙烯腈共聚物",
+    "color_hex": "#b2345e"
+  }
+]
