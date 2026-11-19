@@ -6154,6 +6154,153 @@
           }
         }
       }
+    },
+    "/api/v1/experiments/schema": {
+      "get": {
+        "tags": [
+          "experiments"
+        ],
+        "summary": "Schema",
+        "operationId": "schema_api_v1_experiments_schema_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/experiments/run": {
+      "post": {
+        "tags": [
+          "experiments"
+        ],
+        "summary": "Run",
+        "operationId": "run_api_v1_experiments_run_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExperimentConfig"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/experiments/{identifier}": {
+      "get": {
+        "tags": [
+          "experiments"
+        ],
+        "summary": "Get",
+        "operationId": "get_api_v1_experiments__identifier__get",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identifier"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/experiments/{identifier}/artifacts/{name}": {
+      "get": {
+        "tags": [
+          "experiments"
+        ],
+        "summary": "Artifact",
+        "operationId": "artifact_api_v1_experiments__identifier__artifacts__name__get",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identifier"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -11278,6 +11425,540 @@
           "cube_id"
         ],
         "title": "Workspace"
+      },
+      "ArchiveInput": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "npz",
+            "title": "Kind"
+          },
+          "paths": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Paths"
+          },
+          "spectra_key": {
+            "type": "string",
+            "title": "Spectra Key"
+          },
+          "labels_key": {
+            "type": "string",
+            "title": "Labels Key",
+            "default": "y"
+          },
+          "wavelengths_key": {
+            "type": "string",
+            "title": "Wavelengths Key",
+            "default": "wavelengths_nm"
+          },
+          "input_stage": {
+            "type": "string",
+            "enum": [
+              "spectra",
+              "neighborhood_mean"
+            ],
+            "title": "Input Stage"
+          },
+          "neighborhood": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Neighborhood"
+          },
+          "evaluation_unit": {
+            "type": "string",
+            "enum": [
+              "spectrum",
+              "center_pixel"
+            ],
+            "title": "Evaluation Unit"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "paths",
+          "spectra_key",
+          "input_stage",
+          "neighborhood",
+          "evaluation_unit"
+        ],
+        "title": "ArchiveInput"
+      },
+      "Center": {
+        "properties": {
+          "op": {
+            "type": "string",
+            "const": "center",
+            "title": "Op"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "op"
+        ],
+        "title": "Center"
+      },
+      "ExperimentConfig": {
+        "properties": {
+          "schema_version": {
+            "type": "integer",
+            "const": 1,
+            "title": "Schema Version",
+            "default": 1
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "train": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ArchiveInput"
+              },
+              {
+                "$ref": "#/components/schemas/ImageInput"
+              }
+            ],
+            "title": "Train",
+            "discriminator": {
+              "propertyName": "kind",
+              "mapping": {
+                "npz": "#/components/schemas/ArchiveInput",
+                "roi_images": "#/components/schemas/ImageInput"
+              }
+            }
+          },
+          "test": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ArchiveInput"
+              },
+              {
+                "$ref": "#/components/schemas/ImageInput"
+              }
+            ],
+            "title": "Test",
+            "discriminator": {
+              "propertyName": "kind",
+              "mapping": {
+                "npz": "#/components/schemas/ArchiveInput",
+                "roi_images": "#/components/schemas/ImageInput"
+              }
+            }
+          },
+          "wavelengths_nm": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "minItems": 2,
+            "title": "Wavelengths Nm"
+          },
+          "classes": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Classes"
+          },
+          "preprocessing": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/SG"
+                },
+                {
+                  "$ref": "#/components/schemas/L2"
+                },
+                {
+                  "$ref": "#/components/schemas/Center"
+                },
+                {
+                  "$ref": "#/components/schemas/Standard"
+                },
+                {
+                  "$ref": "#/components/schemas/SNV"
+                },
+                {
+                  "$ref": "#/components/schemas/PCA"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "op",
+                "mapping": {
+                  "center": "#/components/schemas/Center",
+                  "l2": "#/components/schemas/L2",
+                  "pca": "#/components/schemas/PCA",
+                  "savgol": "#/components/schemas/SG",
+                  "snv": "#/components/schemas/SNV",
+                  "standard_scale": "#/components/schemas/Standard"
+                }
+              }
+            },
+            "type": "array",
+            "title": "Preprocessing"
+          },
+          "model": {
+            "$ref": "#/components/schemas/PLSDAConfig"
+          },
+          "additional_metrics": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "kappa",
+                "weighted_f1",
+                "balanced_accuracy"
+              ]
+            },
+            "type": "array",
+            "title": "Additional Metrics"
+          },
+          "test_usage": {
+            "type": "string",
+            "enum": [
+              "independent_test",
+              "development_regression"
+            ],
+            "title": "Test Usage"
+          },
+          "notes": {
+            "type": "string",
+            "title": "Notes",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "train",
+          "test",
+          "wavelengths_nm",
+          "classes",
+          "preprocessing",
+          "model",
+          "test_usage"
+        ],
+        "title": "ExperimentConfig"
+      },
+      "ImageInput": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "roi_images",
+            "title": "Kind"
+          },
+          "members": {
+            "items": {
+              "$ref": "#/components/schemas/ImageMember"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Members"
+          },
+          "neighborhood": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Neighborhood"
+          },
+          "wavelength_unit": {
+            "type": "string",
+            "enum": [
+              "nm",
+              "um"
+            ],
+            "title": "Wavelength Unit"
+          },
+          "mapping_window_nm": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Mapping Window Nm"
+          },
+          "nearest_tolerance_nm": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Nearest Tolerance Nm"
+          },
+          "quality": {
+            "$ref": "#/components/schemas/Quality"
+          },
+          "evaluation_unit": {
+            "type": "string",
+            "const": "center_pixel",
+            "title": "Evaluation Unit",
+            "default": "center_pixel"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "members",
+          "neighborhood",
+          "wavelength_unit",
+          "mapping_window_nm",
+          "nearest_tolerance_nm",
+          "quality"
+        ],
+        "title": "ImageInput"
+      },
+      "ImageMember": {
+        "properties": {
+          "header_path": {
+            "type": "string",
+            "title": "Header Path"
+          },
+          "roi_path": {
+            "type": "string",
+            "title": "Roi Path"
+          },
+          "data_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data Path"
+          },
+          "centers_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Centers Path"
+          },
+          "sample_id": {
+            "type": "string",
+            "title": "Sample Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "header_path",
+          "roi_path",
+          "sample_id"
+        ],
+        "title": "ImageMember"
+      },
+      "L2": {
+        "properties": {
+          "op": {
+            "type": "string",
+            "const": "l2",
+            "title": "Op"
+          },
+          "epsilon": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Epsilon",
+            "default": 1e-12
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "op"
+        ],
+        "title": "L2"
+      },
+      "PCA": {
+        "properties": {
+          "op": {
+            "type": "string",
+            "const": "pca",
+            "title": "Op"
+          },
+          "n_components": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "N Components"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "op",
+          "n_components"
+        ],
+        "title": "PCA"
+      },
+      "PLSDAConfig": {
+        "properties": {
+          "n_components": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "N Components"
+          },
+          "scale": {
+            "type": "boolean",
+            "title": "Scale"
+          },
+          "max_iter": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Max Iter"
+          },
+          "tol": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Tol",
+            "default": 1e-06
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "n_components",
+          "scale",
+          "max_iter"
+        ],
+        "title": "PLSDAConfig"
+      },
+      "Quality": {
+        "properties": {
+          "min_mean": {
+            "type": "number",
+            "title": "Min Mean"
+          },
+          "min_std": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Min Std"
+          },
+          "max_zero_fraction": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Max Zero Fraction"
+          },
+          "saturation": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Saturation"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "min_mean",
+          "min_std",
+          "max_zero_fraction",
+          "saturation"
+        ],
+        "title": "Quality"
+      },
+      "SG": {
+        "properties": {
+          "op": {
+            "type": "string",
+            "const": "savgol",
+            "title": "Op"
+          },
+          "window": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Window"
+          },
+          "polyorder": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Polyorder"
+          },
+          "derivative": {
+            "type": "integer",
+            "maximum": 2.0,
+            "minimum": 0.0,
+            "title": "Derivative"
+          },
+          "delta_nm": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Delta Nm"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "interp",
+              "mirror",
+              "constant",
+              "nearest",
+              "wrap"
+            ],
+            "title": "Mode",
+            "default": "interp"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "op",
+          "window",
+          "polyorder",
+          "derivative",
+          "delta_nm"
+        ],
+        "title": "SG"
+      },
+      "SNV": {
+        "properties": {
+          "op": {
+            "type": "string",
+            "const": "snv",
+            "title": "Op"
+          },
+          "ddof": {
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ],
+            "title": "Ddof",
+            "default": 1
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "op"
+        ],
+        "title": "SNV"
+      },
+      "Standard": {
+        "properties": {
+          "op": {
+            "type": "string",
+            "const": "standard_scale",
+            "title": "Op"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "op"
+        ],
+        "title": "Standard"
       }
     }
   }

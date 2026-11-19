@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "name": "五类光谱固定参数训练与测试",
+  "train": {
+    "kind": "npz",
+    "paths": ["C:/spectral-data/train.npz"],
+    "spectra_key": "X3",
+    "labels_key": "y",
+    "wavelengths_key": "wavelengths_nm",
+    "input_stage": "neighborhood_mean",
+    "neighborhood": 3,
+    "evaluation_unit": "center_pixel"
+  },
+  "test": {
+    "kind": "npz",
+    "paths": ["C:/spectral-data/test.npz"],
+    "spectra_key": "X3",
+    "labels_key": "y",
+    "wavelengths_key": "wavelengths_nm",
+    "input_stage": "neighborhood_mean",
+    "neighborhood": 3,
+    "evaluation_unit": "center_pixel"
+  },
+  "wavelengths_nm": [
+    1120, 1125, 1130, 1135, 1140, 1145, 1150, 1155, 1160, 1165, 1170, 1175,
+    1180, 1185, 1190, 1195, 1200, 1205, 1210, 1215, 1220, 1225, 1230, 1235,
+    1240, 1245, 1250, 1255, 1260, 1265, 1270, 1275, 1280, 1285, 1290, 1295,
+    1300, 1305, 1310, 1315, 1320, 1325, 1330, 1335, 1340, 1345, 1350, 1355,
+    1360, 1365, 1370, 1375, 1380, 1385, 1390, 1395, 1400, 1405, 1410, 1415,
+    1420, 1425, 1430, 1435, 1440, 1445, 1450, 1455, 1460, 1465, 1470, 1475,
+    1480, 1485, 1490, 1495, 1500, 1505, 1510, 1515, 1520, 1525, 1530, 1535,
+    1540, 1545, 1550, 1555, 1560, 1565, 1570, 1575, 1580, 1585, 1590, 1595,
+    1600, 1605, 1610, 1615, 1620, 1625, 1630, 1635, 1640, 1645, 1650, 1655,
+    1660, 1665, 1670, 1675
+  ],
+  "classes": {"1": "PE", "2": "PP", "3": "PET", "4": "EPS", "5": "纸"},
+  "preprocessing": [
+    {"op": "savgol", "window": 15, "polyorder": 2, "derivative": 2, "delta_nm": 5.0},
+    {"op": "l2"},
+    {"op": "center"}
+  ],
+  "model": {"n_components": 12, "scale": false, "max_iter": 1000, "tol": 0.000001},
+  "additional_metrics": ["kappa"],
+  "test_usage": "development_regression",
+  "notes": "将示例路径替换为实际绝对路径。X3须已完成数值缩放、波长映射和3×3均值，尚未进行上述preprocessing。若测试集为新独立留出集，明确改为independent_test。"
+}

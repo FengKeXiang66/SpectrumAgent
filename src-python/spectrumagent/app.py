@@ -17,6 +17,8 @@ from spectrumagent.api.agent import make_router as make_agent_router
 from spectrumagent.api.models import make_router as make_models_router
 from spectrumagent.api.dataset_versions import make_router as make_dataset_versions_router
 from spectrumagent.api.training_sets import make_router as make_training_sets_router
+from spectrumagent.api.experiments import make_router as make_experiments_router
+from spectrumagent.experiments.service import ExperimentService
 from spectrumagent.dataset_version.store import DatasetVersions
 from spectrumagent.agent.llm import OpenAICompatibleClient
 from spectrumagent.agent.tools import build_registry
@@ -76,6 +78,8 @@ def create_app(paths, identity):
     app.state.preprocess_compare = CompareEngine(app.state.preprocess_runner)
     app.include_router(make_preprocess_router(app.state.preprocess_runner, app.state.preprocess_compare))
     app.include_router(make_models_router(app.state.annotation_sessions, app.state.preprocess_runner, identity.boot_id))
+    app.state.experiments = ExperimentService(paths)
+    app.include_router(make_experiments_router(app.state.experiments))
     preview_image = next(route.endpoint for route in dataset_router.routes
                          if route.path == '/api/v1/datasets/{identifier}/preview')
     app.state.dataset_versions = DatasetVersions(registry, preview_image=preview_image)
@@ -143,6 +147,9 @@ def create_app(paths, identity):
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(request, error):
+        if request.url.path.startswith("/api/v1/experiments"):
+            return JSONResponse(DataError("INVALID_REQUEST", "实验配置不合法",
+                                fields=[".".join(map(str, e["loc"])) for e in error.errors()]).as_dict(), status_code=400)
         if request.url.path.startswith('/api/v1/preprocess') or '/preprocess/' in request.url.path:
             from spectrumagent.data.validation import field_errors
             return JSONResponse(DataError('INVALID_REQUEST','预处理请求参数不合法',fields=field_errors(error)).as_dict(),status_code=400)
@@ -184,7 +191,7 @@ def create_app(paths, identity):
             response.headers["X-SpectrumAgent-Request-Id"] = trace
             logger.info("model_request_exit", request_id=trace, status=response.status_code,
                         elapsed_ms=round((monotonic()-started)*1000))
-        if (request.url.path in LABEL_PATHS or request.url.path == "/api/v1/datasets" or request.url.path.startswith("/api/v1/datasets/") or request.url.path.startswith("/api/v1/preprocess") or request.url.path.startswith("/api/v1/settings") or request.url.path.startswith("/api/v1/agent") or request.url.path.startswith("/api/v1/annotations/") or request.url.path.startswith("/api/v1/models") or request.url.path.startswith("/api/v1/batch-deletions") or request.url.path.startswith("/api/v1/dataset-versions") or request.url.path.startswith("/api/v1/training-sets")) and response.status_code != 401:
+        if (request.url.path in LABEL_PATHS or request.url.path == "/api/v1/datasets" or request.url.path.startswith("/api/v1/datasets/") or request.url.path.startswith("/api/v1/preprocess") or request.url.path.startswith("/api/v1/settings") or request.url.path.startswith("/api/v1/agent") or request.url.path.startswith("/api/v1/annotations/") or request.url.path.startswith("/api/v1/models") or request.url.path.startswith("/api/v1/batch-deletions") or request.url.path.startswith("/api/v1/dataset-versions") or request.url.path.startswith("/api/v1/training-sets") or request.url.path.startswith("/api/v1/experiments")) and response.status_code != 401:
             response.headers["X-SpectrumAgent-Boot-Id"] = identity.boot_id
             response.headers["X-SpectrumAgent-Pid"] = str(identity.pid)
         return response
