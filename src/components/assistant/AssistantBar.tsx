@@ -10,6 +10,7 @@ import AsyncPrepareCard from './AsyncPrepareCard.tsx';
 import { annotationChoices, choiceScope, taskPositions, replyPosition } from './annotation-timeline.ts';
 import RequestStatus from './RequestStatus';
 import ResultCard from './ResultCard';
+import ExperimentTaskCard from './ExperimentTaskCard';
 
 function entryText(entry: ChatEntry): string {
   switch (entry.event) {
@@ -92,6 +93,11 @@ export default function AssistantBar({ session }: { session: AssistantSession })
             </div>
           </li>,entry.event==='step'&&entry.data.status==='ok'&&typeof entry.data.result_summary.view_kind==='string'&&
             <li key={`result:${index}`} className="agent-msg agent-msg-ai" data-event="local-result"><ResultCard summary={entry.data.result_summary}/></li>,
+            entry.event==='step'&&entry.data.status==='ok'&&typeof entry.data.result_summary.experiment_task_id==='string'&&session.active&&
+              !state.entries.slice(0,index).some(old=>old.event==='step'&&old.data.result_summary.experiment_task_id===entry.data.result_summary.experiment_task_id)&&
+              <li key={`experiment:${entry.data.result_summary.experiment_task_id}`} className="agent-msg agent-msg-ai"><div className="agent-bubble">
+                <ExperimentTaskCard taskId={entry.data.result_summary.experiment_task_id} sessionId={session.active.id} enabled={enabled}/>
+              </div></li>,
             choice&&<li key={`choice:${index}`} className="agent-msg agent-msg-ai" data-event="annotation-choice">
             <span className="agent-avatar" aria-hidden="true">AI</span>
             <div className="agent-bubble"><section aria-label="开始人工点选标注" className="batch-prepare-card">

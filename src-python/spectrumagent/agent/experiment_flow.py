@@ -73,6 +73,11 @@ def generate(machine, content):
         # The user-visible journal retains the original input; model history is separately redacted.
         row = store.new_round(session, content, [], 'running')
         if CANCEL.fullmatch(content.strip()):
+            task = dialogue.tasks.active(session)
+            if task:
+                dialogue.tasks.cancel(session, task)
+                yield from finish('已请求取消实验，将在下一个安全阶段边界停止。停止对话不会自动取消后台实验。', outcome='working')
+                return
             dialogue.cancel(session)
             yield from finish('已退出本次实验对话，草稿保留；可说“继续数值实验”恢复。', outcome='cancelled')
             return
@@ -82,20 +87,23 @@ def generate(machine, content):
                 machine.control.begin('tool')
             started = perf_counter_ns()
             try:
-                result = dialogue.run_confirmed(session, content, row['turn_id'])
+                result = dialogue.tasks.submit(session, content, row['turn_id'])
             except Exception as error:
                 summary = {'error': error.code if isinstance(error, DataError) else 'EXPERIMENT_FAILED'}
                 step = store.add_step(row, 'experiments.run', {}, 'error', summary, (perf_counter_ns() - started) // 1_000_000)
                 yield machine._step_event(step)
                 raise
-            summary = {'experiment_id': result['experiment_id'], 'status': result['status'],
-                       'train_accuracy': result['metrics']['train']['accuracy'], 'test_accuracy': result['metrics']['test']['accuracy']}
+            summary = {'experiment_task_id': result['task_id'], 'status': result['status']}
             # Controller execution is audited without inventing a native model call ID.
             step = store.add_step(row, 'experiments.run', {}, 'ok', summary, (perf_counter_ns() - started) // 1_000_000)
             yield machine._step_event(step)
-            yield from finish(result_answer(result), outcome='succeeded')
+            yield from finish('实验任务已受理，请查看下方任务卡的真实阶段、耗时和结果。停止当前对话不会取消后台实验。', outcome='working')
             return
         if re.search(r'(?:实验|训练测试)(?:结果|报告)', content):
+            task_id = dialogue.tasks.active(session)
+            if task_id:
+                yield from finish('实验仍在执行，请查看任务卡。不会重复提交训练。', outcome='working')
+                return
             result = dialogue.result(session)
             answer = result_answer(result)
             if result and result.get('status') == 'failed':

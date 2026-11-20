@@ -112,3 +112,17 @@
 .composer .agent-stop, .assistant-bar .agent-stop { background: #fff1ee; color: #a93624; border-color: #e9ad9e; }
 .agent-interrupted { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px; border: 1px solid #e0c88b; border-radius: 8px; background: #fffaf0; }
 .composer > .agent-busy, .composer > .agent-error, .composer > .agent-interrupted { margin: 4px 12px; font-size: 12px; }
+.experiment-task-card { padding: 12px; border: 1px solid #b7c8d8; border-radius: 8px; }
+.experiment-task-card h3 { margin: 0 0 8px; }
+.experiment-task-card ol { padding-left: 24px; }
+.experiment-task-card li { margin: 6px 0; }
+.experiment-results { margin-top: 16px; }
+.experiment-results button { margin: 4px; }
+.experiment-results button[aria-pressed="true"] { font-weight: bold; outline: 2px solid #3483b6; }
+.experiment-table { overflow-x: auto; margin: 12px 0; }
+.experiment-table table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+.experiment-table caption { text-align: left; font-weight: bold; margin-bottom: 6px; }
+.experiment-table th,.experiment-table td { padding: 8px; border: 1px solid #c7d3dd; text-align: right; white-space: nowrap; }
+.experiment-table th:first-child { text-align: left; }
+.experiment-plot { display: block; width: 100%; height: auto; }
+.experiment-note { padding: 8px; background: #fff3d7; color: #614615; }
