@@ -4,6 +4,7 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Request, Query
 from pydantic import BaseModel, ConfigDict, Field
 from starlette.responses import StreamingResponse
+from starlette.responses import Response
 
 from spectrumagent.agent.llm import OpenAICompatibleClient, _json
 from spectrumagent.agent.state import AgentStore, StateMachine
@@ -139,6 +140,35 @@ def make_router(database, tools, llm_factory=None, runtime_info=None, *, session
     def scoped(session_id, request_id=None):
         return ScopedToolRegistry(tools(), session_service, session_id, engine=engine,
                                   annotations=annotations, batch=batch, request_id=request_id, tasks=tasks)
+
+    @router.get('/sessions/{session_id}/experiments/{task_id}')
+    def experiment_task(session_id: UUIDText, task_id: UUIDText):
+        session_service.scope(session_id)
+        return tools().experiment_dialogue.tasks.view(session_id, task_id)
+
+    @router.post('/sessions/{session_id}/experiments/{task_id}/cancel')
+    def cancel_experiment_task(session_id: UUIDText, task_id: UUIDText):
+        session_service.scope(session_id)
+        return tools().experiment_dialogue.tasks.cancel(session_id, task_id)
+
+    def experiment_results(session_id):
+        from spectrumagent.experiments.results import ExperimentResults
+        session_service.scope(session_id)
+        return ExperimentResults(tools().experiment_dialogue)
+
+    @router.get('/sessions/{session_id}/experiments/{task_id}/result')
+    def experiment_result(session_id: UUIDText, task_id: UUIDText):
+        return experiment_results(session_id).summary(session_id, task_id)
+
+    @router.get('/sessions/{session_id}/experiments/{task_id}/plots/{name}')
+    def experiment_plot(session_id: UUIDText, task_id: UUIDText, name: str):
+        return experiment_results(session_id).plot(session_id, task_id, name)
+
+    @router.get('/sessions/{session_id}/experiments/{task_id}/export/{kind}', response_class=Response,
+                responses={200: {'content': {'application/octet-stream': {'schema': {'type': 'string', 'format': 'binary'}}}}})
+    def export_experiment_result(session_id: UUIDText, task_id: UUIDText, kind: str):
+        data = experiment_results(session_id).export(session_id, task_id, kind)
+        return Response(data, media_type='application/octet-stream')
 
     @router.post('/sessions/{session_id}/annotation-flow')
     def start_annotation(session_id: UUIDText, body: AnnotationFlow, request: Request):

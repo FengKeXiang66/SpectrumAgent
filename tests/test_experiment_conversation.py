@@ -1,6 +1,7 @@
 """Conversation integration and execution guards; no external model credentials."""
 import copy
 import json
+import time
 from uuid import uuid4
 
 import numpy as np
@@ -55,7 +56,19 @@ def application(workspace):
     identity = EngineIdentity()
     app = create_app(workspace, identity)
     app.state.testing_identity = identity
-    return app
+    yield app
+    for task_id, row in app.state.agent_tools.experiment_dialogue.tasks.rows.items():
+        wait_task(app.state.agent_tools.experiment_dialogue.tasks, row['session_id'], task_id)
+
+
+def wait_task(tasks, session, task_id):
+    deadline = time.monotonic() + 15
+    while time.monotonic() < deadline:
+        row = tasks.view(session, task_id)
+        if row['status'] in {'succeeded', 'failed', 'cancelled'}:
+            return row
+        time.sleep(.02)
+    raise AssertionError('后台实验未及时结束')
 
 
 def machine_for(app, session, model):
@@ -92,14 +105,17 @@ def test_multi_turn_partial_patch_review_execute_and_query(tmp_path, application
     assert reloaded.view(session)['can_run']
     confirmed = list(machine_for(app, session, ScriptedModel()).message(content='确认执行'))
     assert confirmed[-1][0] == 'done', confirmed
-    assert confirmed[-1][1]['task_result'] == 'succeeded'
+    assert confirmed[-1][1]['task_result'] == 'working'
+    task = wait_task(draft.tasks, session, draft.tasks.latest(session))
+    assert task['status'] == 'succeeded', task
     result = draft.result(session)
     assert result['config']['classes'] == {'1': 'A', '2': 'B'}
     assert result['metrics']['test']['n'] == 18
     assert app.state.experiments.artifact(result['experiment_id'], 'report.html').is_file()
     assert any(step['tool'] == 'experiments.run' and step['tool_call_id'] is None for step in store.steps(session))
     repeated = list(machine_for(app, session, ScriptedModel()).message(content='确认执行'))
-    assert repeated[-1][1]['task_result'] == 'succeeded'
+    assert repeated[-1][1]['task_result'] == 'working'
+    assert draft.tasks.latest(session) == task['task_id']
     queried = list(machine_for(app, session, ScriptedModel()).message(content='查询实验结果'))
     assert queried[-1][1]['task_result'] == 'succeeded'
     assert len(list(app.state.experiments.root.iterdir())) == 1
@@ -177,7 +193,14 @@ def test_http_chat_uses_registered_tools_and_no_external_model(tmp_path, applica
                              + '" "' + body['test']['paths'][0] + '"', 'request_id': str(uuid4())})
         assert response.status_code == 200 and '确认执行' in response.text, response.text
         response = client.post(url, json={'content': '确认执行', 'request_id': str(uuid4())})
-        assert 'event: error' not in response.text and '训练与测试已完成' in response.text, response.text
+        assert 'event: error' not in response.text and '实验任务已受理' in response.text, response.text
+        tasks = app.state.agent_tools.experiment_dialogue.tasks
+        task_id = tasks.latest(session)
+        task = wait_task(tasks, session, task_id)
+        assert task['status'] == 'succeeded', task
+        task_url = '/api/v1/agent/sessions/' + session + '/experiments/' + task_id
+        assert client.get(task_url).json()['completed_phases'] == ['checking','preparing','training','testing','reporting']
+        assert client.post(task_url + '/cancel').json()['status'] == 'succeeded'
         history = client.get('/api/v1/agent/sessions/' + session + '/history')
         assert history.status_code == 200
         record = app.state.agent_tools.experiment_dialogue.result(session)

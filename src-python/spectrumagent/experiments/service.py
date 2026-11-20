@@ -114,7 +114,7 @@ class ExperimentService:
             raise DataError("EXPERIMENT_ARTIFACT_CHANGED", "实验产物缺失或校验失败")
         return path
 
-    def run(self, config: ExperimentConfig, *, expected_sources=None):
+    def run(self, config: ExperimentConfig, *, expected_sources=None, progress=None):
         # BLAS thread limits are process-wide; serial execution avoids overlap.
         if not self.lock.acquire(blocking=False):
             raise DataError("EXPERIMENT_BUSY", "已有数值实验正在运行")
@@ -124,20 +124,30 @@ class ExperimentService:
             storage.mkdir(folder, parents=True)
             write_json(folder / "config.json", config.model_dump(mode="json"))
             write_json(folder / "status.json", {"experiment_id": identifier, "status": "running"})
+            if progress:
+                progress('checking')
             with threadpool_limits(limits=2):
-                result = (self._execute(identifier, folder, config) if expected_sources is None else
-                          self._execute(identifier, folder, config, expected_sources=expected_sources))
+                options = {}
+                if expected_sources is not None:
+                    options['expected_sources'] = expected_sources
+                if progress is not None:
+                    options['progress'] = progress
+                result = self._execute(identifier, folder, config, **options)
+            if progress:
+                progress('reporting')
             write_json(folder / "status.json", {"experiment_id": identifier, "status": "succeeded"})
             return result
         except Exception as error:
             failure = error if isinstance(error, DataError) else DataError("EXPERIMENT_FAILED", "数值实验失败", reason=str(error))
             if folder.is_dir():
-                write_json(folder / "status.json", {"experiment_id": identifier, "status": "failed", "error": failure.as_dict()})
+                write_json(folder / "status.json", {"experiment_id": identifier, "status": "cancelled" if failure.code == 'EXPERIMENT_CANCELLED' else "failed", "error": failure.as_dict()})
             raise DataError(failure.code, failure.payload.detail, **{**failure.payload.context, "experiment_id": identifier}) from error
         finally:
             self.lock.release()
 
-    def _execute(self, identifier, folder, config, *, expected_sources=None):
+    def _execute(self, identifier, folder, config, *, expected_sources=None, progress=None):
+        if progress:
+            progress('preparing')
         train = load_input(config.train, config.wavelengths_nm, config.classes)
         test = load_input(config.test, config.wavelengths_nm, config.classes)
         source_manifest = {**train.sources, **test.sources}
@@ -149,7 +159,11 @@ class ExperimentService:
             raise DataError("EXPERIMENT_CLASSES_MISSING", "训练数据必须覆盖所有声明类别")
         write_json(folder / "sources.json", source_manifest)
         model = ExperimentModel(config)
+        if progress:
+            progress('training')
         train_features = model.fit(train.X, train.y)
+        if progress:
+            progress('testing')
         test_features = model.pipeline.transform(test.X)
         predictions, scores, summaries, curves = {}, {}, {}, {}
         for role, data, features in (("train", train, train_features), ("test", test, test_features)):
@@ -165,6 +179,9 @@ class ExperimentService:
             save_arrays(folder / (role + "_predictions.npz"), truth=data.y, prediction=prediction, responses=responses,
                         classes=model.classes_)
             write_json(folder / (role + "_origins.json"), data.origins)
+        if progress:
+            progress('reporting')
+        for role, data, features in (("train", train, train_features), ("test", test, test_features)):
             axis = (list(range(1, features.shape[1]+1)) if any(s.op == "pca" for s in config.preprocessing)
                     else config.wavelengths_nm)
             for stage, matrix, x_axis in (("input", data.X, config.wavelengths_nm), ("processed", features, axis)):

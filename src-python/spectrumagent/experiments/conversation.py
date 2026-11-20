@@ -122,6 +122,8 @@ class ExperimentDialogue:
                 experiment_id TEXT)''')
             if 'review_sources_json' not in {row[1] for row in db.execute('PRAGMA table_info(experiment_dialogue)')}:
                 db.execute('ALTER TABLE experiment_dialogue ADD COLUMN review_sources_json TEXT')
+        from .tasks import ExperimentTasks
+        self.tasks = ExperimentTasks(self)
 
     def _read(self, session_id, db=None):
         if db is None:
@@ -297,6 +299,7 @@ class ExperimentDialogue:
         if record['run_status'] != 'idle':
             question = {'succeeded': '本方案已经完成，可查询实验结果；如需重新实验，请明确新建实验。',
                         'running': '本方案已提交，尚无已核验终态；不会自动重复训练。',
+                        'cancelled': '本方案已取消，已完成产物保留；请修改方案或明确新建实验后重新确认。',
                         'failed': '上次提交失败。可查询实验结果、修改参数，或明确新建实验后重新核对方案。'}[record['run_status']]
         return {'revision': record['revision'], 'status': 'needs_input' if issues else 'needs_confirmation',
                 'plan': self.redact(session_id, plan), 'question': self.redact(session_id, question),
@@ -304,6 +307,8 @@ class ExperimentDialogue:
                 'run_status': record['run_status'], 'experiment_id': record['experiment_id']}
 
     def update(self, session_id, arguments):
+        if self.tasks.active(session_id):
+            raise DataError('EXPERIMENT_BUSY', '实验已提交，不能修改正在运行的方案')
         patch = arguments.model_dump(mode='json', exclude_unset=True)
         revision = patch.pop('expected_revision')
         reset = patch.pop('reset', False)
@@ -351,12 +356,13 @@ class ExperimentDialogue:
         with connect_database(self.database) as db:
             db.execute('UPDATE experiment_dialogue SET active=0,reviewed_revision=NULL,review_turn=NULL WHERE session_id=?', (session_id,))
 
-    def run_confirmed(self, session_id, content, turn):
+    def run_confirmed(self, session_id, content, turn, *, progress=None, expected_revision=None):
         with connect_database(self.database) as db:
             db.execute('BEGIN IMMEDIATE')
             record = self._read(session_id, db)
             if (not record or not CONFIRM.fullmatch(content.strip()) or record['reviewed_revision'] != record['revision']
-                    or record['review_turn'] == turn or not record['review_sources_json']):
+                    or record['review_turn'] == turn or not record['review_sources_json']
+                    or expected_revision is not None and expected_revision != record['revision']):
                 raise DataError('EXPERIMENT_CONFIRMATION_REQUIRED', '请先核对完整实验方案，再单独回复“确认执行”')
             if record['run_status'] == 'succeeded':
                 return self.service.get(record['experiment_id'])
@@ -365,11 +371,15 @@ class ExperimentDialogue:
             config = self._config(record)
             db.execute("UPDATE experiment_dialogue SET run_status='running' WHERE session_id=?", (session_id,))
         try:
-            result = self.service.run(config, expected_sources=json.loads(record['review_sources_json']))
+            options = {'expected_sources': json.loads(record['review_sources_json'])}
+            if progress is not None:
+                options['progress'] = progress
+            result = self.service.run(config, **options)
         except Exception as error:
             identifier = error.payload.context.get('experiment_id') if isinstance(error, DataError) else None
             with connect_database(self.database) as db:
-                db.execute("UPDATE experiment_dialogue SET run_status='failed',experiment_id=? WHERE session_id=?", (identifier, session_id))
+                status = 'cancelled' if isinstance(error, DataError) and error.code == 'EXPERIMENT_CANCELLED' else 'failed'
+                db.execute('UPDATE experiment_dialogue SET run_status=?,experiment_id=? WHERE session_id=?', (status, identifier, session_id))
             raise
         with connect_database(self.database) as db:
             db.execute("UPDATE experiment_dialogue SET run_status='succeeded',experiment_id=?,active=0 WHERE session_id=?",

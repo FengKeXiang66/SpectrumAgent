@@ -178,6 +178,10 @@ pub struct SessionQuery {
 #[derive(Deserialize)]
 #[serde(tag = "op", rename_all = "snake_case", deny_unknown_fields)]
 pub enum AgentRequest {
+    ExperimentResult { id: String, task_id: String },
+    ExperimentPlot { id: String, task_id: String, name: String },
+    ExperimentExport { id: String, task_id: String, kind: String, destination: String },
+    ExperimentTask { id: String, task_id: String, action: String },
     CancelRequest { id: String, request_id: String },
     GetRequest { id: String, request_id: String },
     StartAnnotation {
@@ -272,6 +276,25 @@ fn page_limit(limit: &Option<u32>, maximum: u32) -> Result<(), ForwardError> {
 impl AgentRequest {
     fn validate(&self) -> Result<(), ForwardError> {
         match self {
+            Self::ExperimentResult { id, task_id } => { uuid(id)?; uuid(task_id) }
+            Self::ExperimentPlot { id, task_id, name } => {
+                uuid(id)?; uuid(task_id)?;
+                if !["train_input.png","train_processed.png","test_input.png","test_processed.png"].contains(&name.as_str()) { return Err(invalid_request()); }
+                Ok(())
+            }
+            Self::ExperimentExport { id, task_id, kind, destination } => {
+                uuid(id)?; uuid(task_id)?;
+                let expected = match kind.as_str() { "report" => "html", "bundle" => "zip", _ => return Err(invalid_request()) };
+                let path = std::path::Path::new(destination);
+                if !path.is_absolute() || path.extension().and_then(|v|v.to_str()) != Some(expected) { return Err(invalid_request()); }
+                Ok(())
+            }
+            Self::ExperimentTask { id, task_id, action } => {
+                uuid(id)?;
+                uuid(task_id)?;
+                if !["get", "cancel"].contains(&action.as_str()) { return Err(invalid_request()); }
+                Ok(())
+            }
             Self::CancelRequest { id, request_id } | Self::GetRequest { id, request_id } => {
                 uuid(id)?;
                 uuid(request_id)
@@ -425,6 +448,14 @@ impl AgentRequest {
     pub fn destination(&self, port: u16) -> Result<(Url, Method, Option<Value>), ForwardError> {
         self.validate()?;
         let (path, method, body) = match self {
+            Self::ExperimentResult { id, task_id } => (format!("/api/v1/agent/sessions/{id}/experiments/{task_id}/result"), Method::GET, None),
+            Self::ExperimentPlot { id, task_id, name } => (format!("/api/v1/agent/sessions/{id}/experiments/{task_id}/plots/{name}"), Method::GET, None),
+            Self::ExperimentExport { id, task_id, kind, .. } => (format!("/api/v1/agent/sessions/{id}/experiments/{task_id}/export/{kind}"), Method::GET, None),
+            Self::ExperimentTask { id, task_id, action } => {
+                let base = format!("/api/v1/agent/sessions/{id}/experiments/{task_id}");
+                if action == "cancel" { (format!("{base}/cancel"), Method::POST, None) }
+                else { (base, Method::GET, None) }
+            }
             Self::StartAnnotation { id, request_id, cube_ids, mode } => (
                 format!("/api/v1/agent/sessions/{id}/annotation-flow"), Method::POST,
                 Some(json!({"request_id": request_id, "cube_ids": cube_ids, "mode": mode})),
@@ -813,8 +844,51 @@ pub(crate) fn forward_http_scoped(
     Ok(value)
 }
 
+fn save_experiment_export(identity: &Handshake, url: Url, destination: &str) -> Result<Value, ForwardError> {
+    use std::io::Write;
+    let path = std::path::Path::new(destination);
+    if path.exists() { return Err(ForwardError::new("EXPORT_DESTINATION_EXISTS", "保存位置已有文件，请选择新文件名")); }
+    let response = Client::builder().no_proxy().redirect(reqwest::redirect::Policy::none())
+        .connect_timeout(Duration::from_secs(2)).timeout(Duration::from_secs(60)).build()
+        .map_err(|_|ForwardError::new("TRANSPORT","无法初始化导出连接"))?
+        .get(url).bearer_auth(identity.token()).send()
+        .map_err(|_|ForwardError::new("TRANSPORT","无法读取实验报告"))?;
+    let header = |key|response.headers().get(key).and_then(|v|v.to_str().ok());
+    if header("X-SpectrumAgent-Boot-Id") != Some(identity.boot_id.as_str())
+        || header("X-SpectrumAgent-Pid") != Some(identity.pid.to_string().as_str()) {
+        return Err(ForwardError::new("SESSION_IDENTITY_MISMATCH","导出响应与当前引擎不一致"));
+    }
+    if !response.status().is_success() || header("Content-Type") != Some("application/octet-stream") {
+        return Err(ForwardError::new("EXPERIMENT_EXPORT_FAILED","报告尚未就绪或产物校验失败，未写入文件"));
+    }
+    const LIMIT: u64 = 16 * 1024 * 1024;
+    let expected = response.content_length();
+    if expected.is_some_and(|n|n > LIMIT) { return Err(ForwardError::new("RESPONSE_TOO_LARGE","报告超过导出上限")); }
+    let mut bytes=Vec::new();
+    response.take(LIMIT+1).read_to_end(&mut bytes).map_err(|_|ForwardError::new("TRANSPORT","报告下载中断"))?;
+    if bytes.len() as u64 > LIMIT || expected.is_some_and(|n|n != bytes.len() as u64) {
+        return Err(ForwardError::new("INVALID_BODY","报告下载不完整或超过上限"));
+    }
+    reject_sensitive(&bytes, &[identity.token()])?;
+    let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH)
+        .map_err(|_|ForwardError::new("EXPORT_WRITE_FAILED","无法创建临时文件"))?.as_nanos();
+    let temporary=path.with_extension(format!("{stamp}.part"));
+    let mut file=std::fs::OpenOptions::new().write(true).create_new(true).open(&temporary)
+        .map_err(|_|ForwardError::new("EXPORT_WRITE_FAILED","无法创建导出文件"))?;
+    let saved=(|| -> std::io::Result<()> {
+        file.write_all(&bytes)?;file.flush()?;file.sync_all()?;
+        std::fs::hard_link(&temporary,path)?;Ok(())
+    })();
+    drop(file);let _=std::fs::remove_file(&temporary);
+    saved.map_err(|_|ForwardError::new("EXPORT_WRITE_FAILED","未完成保存，请选择新文件名；服务器产物保留"))?;
+    Ok(json!({"saved":true,"bytes":bytes.len()}))
+}
+
 pub fn forward(identity: &Handshake, request: &AgentRequest) -> Result<Value, ForwardError> {
     let (url, method, body) = request.destination(identity.port)?;
+    if let AgentRequest::ExperimentExport { destination, .. } = request {
+        return save_experiment_export(identity, url, destination);
+    }
     let mut result = forward_http(
         identity,
         url,
@@ -978,5 +1052,106 @@ mod streaming_tests {
         assert!(parse_request(json!({"op":"cancel_request","id":sid,"request_id":"../other"})).is_err());
         assert!(parse_request(json!({"op":"cancel_request","id":sid,"request_id":rid,"url":"http://other"})).is_err());
         Ok(())
+    }
+
+    #[test]
+    fn experiment_task_routes_only_query_and_cancel() -> Result<(), ForwardError> {
+        let sid = "00000000-0000-0000-0000-000000000001";
+        let tid = "00000000-0000-0000-0000-000000000002";
+        for action in ["get", "cancel"] {
+            let request = parse_request(json!({"op":"experiment_task","id":sid,"task_id":tid,"action":action}))?;
+            let (url, method, body) = request.destination(1234)?;
+            let suffix = if action == "cancel" { "/cancel" } else { "" };
+            assert_eq!(url.path(), format!("/api/v1/agent/sessions/{sid}/experiments/{tid}{suffix}"));
+            assert_eq!(method, if action == "cancel" { Method::POST } else { Method::GET });
+            assert!(body.is_none());
+        }
+        assert!(parse_request(json!({"op":"experiment_task","id":sid,"task_id":tid,"action":"run"})).is_err());
+        assert!(parse_request(json!({"op":"experiment_task","id":sid,"task_id":"../other","action":"get"})).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn experiment_results_allow_only_fixed_files_and_export_formats() -> Result<(), ForwardError> {
+        let sid = "00000000-0000-0000-0000-000000000001";
+        let tid = "00000000-0000-0000-0000-000000000002";
+        let request = parse_request(json!({"op":"experiment_result","id":sid,"task_id":tid}))?;
+        assert_eq!(request.destination(1234)?.0.path(), format!("/api/v1/agent/sessions/{sid}/experiments/{tid}/result"));
+        for name in ["train_input.png","train_processed.png","test_input.png","test_processed.png"] {
+            let request = parse_request(json!({"op":"experiment_plot","id":sid,"task_id":tid,"name":name}))?;
+            assert_eq!(request.destination(1234)?.0.path(), format!("/api/v1/agent/sessions/{sid}/experiments/{tid}/plots/{name}"));
+        }
+        for name in ["../model.joblib", "model.joblib", "test_input.png?other=1"] {
+            assert!(parse_request(json!({"op":"experiment_plot","id":sid,"task_id":tid,"name":name})).is_err());
+        }
+        let path = std::env::temp_dir().join("report.html");
+        assert!(parse_request(json!({"op":"experiment_export","id":sid,"task_id":tid,"kind":"model","destination":path})).is_err());
+        assert!(parse_request(json!({"op":"experiment_export","id":sid,"task_id":tid,"kind":"bundle","destination":path})).is_err());
+        assert!(parse_request(json!({"op":"experiment_export","id":sid,"task_id":tid,"kind":"report","destination":"relative.html"})).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn report_download_checks_identity_and_never_overwrites() -> Result<(), Box<dyn std::error::Error>> {
+        use std::{io::Write, net::TcpListener, thread};
+        let sid = "00000000-0000-0000-0000-000000000001";
+        let tid = "00000000-0000-0000-0000-000000000002";
+        let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH)?.as_nanos();
+        let folder = std::env::temp_dir().join(format!("spectrum-result-{}-{stamp}",std::process::id()));
+        std::fs::create_dir(&folder)?;
+        let run = (|| -> Result<(), Box<dyn std::error::Error>> {
+            for valid_identity in [false, true] {
+                let listener = TcpListener::bind(("127.0.0.1",0))?;
+                listener.set_nonblocking(true)?;
+                let identity = crate::handshake::parse(&serde_json::to_vec(&json!({
+                    "boot_id":"1234abcd","pid":123,"port":listener.local_addr()?.port(),
+                    "token":"0123456789abcdef0123456789abcdef","protocol":1,"version":"0.1.0",
+                    "process_created_at":"2026-10-19T00:00:00.000Z","started_at":"2026-10-19T00:00:00.000Z"
+                }))?)?;
+                let path = folder.join("report.html");
+                let request = parse_request(json!({"op":"experiment_export","id":sid,"task_id":tid,"kind":"report","destination":path}))?;
+                let server = thread::spawn(move || -> std::io::Result<String> {
+                    let deadline = std::time::Instant::now()+Duration::from_secs(5);
+                    let mut socket = loop {
+                        match listener.accept() {
+                            Ok((socket,_))=>break socket,
+                            Err(error) if error.kind()==std::io::ErrorKind::WouldBlock => {
+                                if std::time::Instant::now()>=deadline { return Err(std::io::Error::other("stub accept timeout")); }
+                                thread::sleep(Duration::from_millis(2));
+                            }
+                            Err(error)=>return Err(error),
+                        }
+                    };
+                    socket.set_read_timeout(Some(Duration::from_secs(3)))?;
+                    let mut incoming=Vec::new();
+                    while !incoming.ends_with(b"\r\n\r\n") && incoming.len()<65536 {
+                        let mut byte=[0];
+                        if socket.read(&mut byte)?==0 { return Err(std::io::Error::other("incomplete request")); }
+                        incoming.push(byte[0]);
+                    }
+                    let boot=if valid_identity {"1234abcd"} else {"different"};
+                    socket.write_all(format!("HTTP/1.1 200 OK\r\nConnection: close\r\nX-SpectrumAgent-Boot-Id: {boot}\r\nX-SpectrumAgent-Pid: 123\r\nContent-Type: application/octet-stream\r\nContent-Length: 15\r\n\r\n<html>ok</html>").as_bytes())?;
+                    Ok(String::from_utf8_lossy(&incoming).into_owned())
+                });
+                let result=forward(&identity,&request);
+                let incoming=server.join().map_err(|_|std::io::Error::other("stub thread failed"))??;
+                assert!(incoming.starts_with(&format!("GET /api/v1/agent/sessions/{sid}/experiments/{tid}/export/report ")));
+                assert!(incoming.to_ascii_lowercase().contains("authorization: bearer 0123456789abcdef0123456789abcdef"));
+                if valid_identity {
+                    assert_eq!(result?["saved"],true);
+                    assert_eq!(std::fs::read(&path)?,b"<html>ok</html>");
+                    assert_eq!(forward(&identity,&request).err().map(|e|e.error),Some("EXPORT_DESTINATION_EXISTS".into()));
+                    assert_eq!(std::fs::read(&path)?,b"<html>ok</html>");
+                } else {
+                    assert_eq!(result.err().map(|e|e.error),Some("SESSION_IDENTITY_MISMATCH".into()));
+                    assert!(!path.exists());
+                }
+            }
+            assert_eq!(std::fs::read_dir(&folder)?.count(),1); // no partial download remains
+            Ok(())
+        })();
+        std::fs::remove_file(folder.join("report.html")).ok();
+        std::fs::remove_dir(folder)?;
+        run
     }
 }

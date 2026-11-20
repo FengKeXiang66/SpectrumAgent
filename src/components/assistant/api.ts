@@ -1,6 +1,16 @@
 import { Channel, invoke } from '@tauri-apps/api/core';
 import type { AgentEvent, PlanDecision } from './sse.ts';
 
+export type ExperimentTask = {task_id:string;session_id:string;status:'queued'|'running'|'succeeded'|'failed'|'cancelled';
+  phase:string|null;completed_phases:string[];elapsed_seconds:number;cancel_requested:boolean;
+  experiment_id:string|null;error:string|null;failed_phase:string|null;train_accuracy:number|null;test_accuracy:number|null};
+export type ExperimentScore = {n:number;correct:number;accuracy:number;macro_precision:number;macro_recall:number;macro_f1:number;
+  kappa?:number|null;weighted_f1?:number|null;balanced_accuracy?:number|null;evaluation_unit:string;purpose:string;
+  confusion:number[][];confusion_labels:number[];macro_labels:number[];
+  per_class:{label:number;name:string;support:number;precision:number|null;recall:number|null;f1:number|null}[]};
+export type ExperimentResult = {experiment_id:string;name:string;classes:Record<string,string>;processed_axis:'component'|'wavelength_nm';
+  metrics:Record<'train'|'test',ExperimentScore>;score_definition:string};
+
 export type WorkspaceContext = { cube_id?: string; gesture_ref?: string };
 // Local validated batch models only; AgentRequest/MessageBody wire stays unchanged.
 export type BatchMember = { cubeId: string; displayName: string; status: 'ready' | 'failed' | 'conflict' | 'not_attempted';
@@ -24,6 +34,10 @@ export type BatchCard = { result: BatchResult | null; stepStatus: string; epoch:
 export type MessageBody = ({ content: string; workspace?: WorkspaceContext } | { check_id: string; decision: 'approve' | 'reject' } | ({ plan_id: string } & PlanDecision)) & { request_id?: string };
 export type AgentRequest = ({ op: 'create_session' } & CreateSessionInput)
   | {op:'cancel_request'|'get_request';id:string;request_id:string}
+  | {op:'experiment_task';id:string;task_id:string;action:'get'|'cancel'}
+  | {op:'experiment_result';id:string;task_id:string}
+  | {op:'experiment_plot';id:string;task_id:string;name:string}
+  | {op:'experiment_export';id:string;task_id:string;kind:'report'|'bundle';destination:string}
   | {op:'start_annotation';id:string;request_id:string;cube_ids:string[];mode:'per_image'|'all'}
   | {op:'annotation_task';id:string;task_id:string;action:'get'|'items'|'cancel'|'retry'|'prepare'|'focus'|'blur';after?:number;limit?:number;version?:number;request_id?:string;mode?:'failed'|'remaining';authorization_id?:string}
   | { op: 'check_batch_prepare'; id: string; dataset_version_id?: string }
@@ -90,6 +104,10 @@ export function workspaceContext(value: WorkspaceContext): WorkspaceContext {
 export function agentClient(send: InvokeAgent = invoke) {
   const forward = <T>(request: AgentRequest) => send<T>('agent_forward', { request });
   return {
+    experimentResult:(id:string,task_id:string)=>forward<ExperimentResult>({op:'experiment_result',id,task_id}),
+    experimentPlot:(id:string,task_id:string,name:string)=>forward<{name:string;png_base64:string}>({op:'experiment_plot',id,task_id,name}),
+    experimentExport:(id:string,task_id:string,kind:'report'|'bundle',destination:string)=>forward<{saved:boolean;bytes:number}>({op:'experiment_export',id,task_id,kind,destination}),
+    experimentTask: (id:string,taskId:string,action:'get'|'cancel'='get') => forward<ExperimentTask>({op:'experiment_task',id,task_id:taskId,action}),
     startAnnotation: (id:string, cubeIds:string[], mode:'per_image'|'all', requestId:string) => forward<TaskAccepted>({op:'start_annotation',id,request_id:requestId,cube_ids:[...cubeIds],mode}),
     annotationTask: (id:string, taskId:string, action:'get'|'cancel' = 'get') => forward<AnnotationTask>({op:'annotation_task',id,task_id:taskId,action}),
     taskItems: (id:string, taskId:string, after:number, version:number) => forward<AnnotationTask>({op:'annotation_task',id,task_id:taskId,action:'items',after,limit:100,version}),
