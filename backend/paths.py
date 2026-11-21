@@ -28,14 +28,17 @@ class AppPaths:
 
     @property
     def credential_root(self) -> Path:
-        """2026-11-13 ruling: the permanent root holds only application-level
-        configuration that must survive a restart (the DPAPI API-key blob and
-        the non-sensitive LLM settings snapshot); all processing state stays
-        session-scoped. The shell points SPECTRUMAGENT_PERMANENT_ROOT at that
-        root; tests and legacy launches without the variable keep the files
-        beside the data."""
+        """Cross-session root for configuration and explicit experiment archives.
+
+        Other processing state remains session-scoped. Tests and legacy launches
+        without the override keep these files beside the data.
+        """
         override = os.environ.get("SPECTRUMAGENT_PERMANENT_ROOT")
         return Path(override) if override else self.root
+
+    @property
+    def experiment_archive(self) -> Path:
+        return self.credential_root / 'experiments'
 
     @property
     def run(self) -> Path:
@@ -92,7 +95,8 @@ class AppPaths:
         from spectrumagent.storage.guard import bootstrap_output_root, initialize, validate_bootstrap
         validate_bootstrap(self)
         # Explicit bootstrap exception: create trash before the storage self-check.
-        for directory in (self.run, self.logs, self.testdata, self.database.parent, self.exports, self.trash):
+        for directory in (self.run, self.logs, self.testdata, self.database.parent, self.exports, self.trash,
+                          self.experiment_archive):
             directory.mkdir(parents=True, exist_ok=True)
         initialize(self)
         if activate_output:

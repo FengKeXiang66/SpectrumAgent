@@ -101,8 +101,33 @@ class InspectInput(ToolInput):
     source_ref: Reference
 
 
+class HistoryPage(ToolInput):
+    offset: Annotated[int, Field(ge=0)] = 0
+    limit: Annotated[int, Field(ge=1, le=20)] = 10
+
+
+class SelectExperiment(ToolInput):
+    experiment_id: Reference
+
+
+class CompareExperiments(ToolInput):
+    first_id: Reference
+    second_id: Reference
+
+
 def register_experiments(registry, dialogue):
     registry.experiment_dialogue = dialogue
+    from .inference import register_inference
+    register_inference(registry,dialogue.inference)
+    registry.register('experiments.history_list', HistoryPage,
+                      '分页列出跨应用重启保留的显式训练测试实验；仅返回编号、状态与指标摘要，无路径和谱值',
+                      lambda args: dialogue.history_list(args.offset, args.limit))
+    registry.register('experiments.history_select', SelectExperiment,
+                      '根据已列出的真实实验编号，在本会话选中历史实验并展示原始保存结果；不启动训练或推理',
+                      lambda args: dialogue.select(owner_session.get(), args.experiment_id))
+    registry.register('experiments.history_compare', CompareExperiments,
+                      '并列核对两个成功实验的指标和输入、划分、评价单位一致性；口径不同不可直接判断优劣，不自动选参',
+                      lambda args: dialogue.compare(args.first_id, args.second_id))
     registry.register('experiments.draft_get', NoArguments,
                       '读取本会话的训练测试实验草稿、修订号、方案与待补字段',
                       lambda args: dialogue.view(owner_session.get()))

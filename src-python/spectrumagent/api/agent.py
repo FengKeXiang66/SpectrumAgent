@@ -19,6 +19,15 @@ class AgentInput(BaseModel):
 UUIDText = Annotated[str, Field(pattern=r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$')]
 
 
+class ExperimentSelection(AgentInput):
+    experiment_id: UUIDText
+
+
+class ExperimentComparison(AgentInput):
+    first_id: UUIDText
+    second_id: UUIDText
+
+
 class GlobalScope(AgentInput):
     kind: Literal['global']
 
@@ -155,6 +164,69 @@ def make_router(database, tools, llm_factory=None, runtime_info=None, *, session
         from spectrumagent.experiments.results import ExperimentResults
         session_service.scope(session_id)
         return ExperimentResults(tools().experiment_dialogue)
+
+    def experiment_archive(session_id):
+        if session_service.scope(session_id)['scope_kind'] != 'global':
+            raise _failure('SESSION_SCOPE_MISMATCH', '请在全局会话查看历史实验', 409)
+        return experiment_results(session_id)
+
+    def inference_service(session_id):
+        return experiment_archive(session_id).dialogue.inference.service
+
+    @router.get('/sessions/{session_id}/experiment-history/{model_id}/inferences')
+    def inference_history(session_id: UUIDText, model_id: UUIDText):
+        return {'items': inference_service(session_id).history(model_id)}
+
+    @router.get('/sessions/{session_id}/experiment-history/{model_id}/inferences/{run_id}')
+    def inference_task(session_id: UUIDText, model_id: UUIDText, run_id: UUIDText):
+        return inference_service(session_id).status(model_id,run_id,session_id)
+
+    @router.post('/sessions/{session_id}/experiment-history/{model_id}/inferences/{run_id}/cancel')
+    def cancel_inference(session_id: UUIDText, model_id: UUIDText, run_id: UUIDText):
+        return inference_service(session_id).cancel(session_id,model_id,run_id)
+
+    @router.get('/sessions/{session_id}/experiment-history/{model_id}/inferences/{run_id}/result')
+    def inference_result(session_id: UUIDText, model_id: UUIDText, run_id: UUIDText):
+        return inference_service(session_id).result(model_id,run_id)
+
+    @router.get('/sessions/{session_id}/experiment-history/{model_id}/inferences/{run_id}/plots/{file_index}')
+    def inference_plot(session_id: UUIDText, model_id: UUIDText, run_id: UUIDText, file_index: int, kind: Literal['prediction','input']='prediction'):
+        return inference_service(session_id).plot(model_id,run_id,file_index,kind)
+
+    @router.get('/sessions/{session_id}/experiment-history/{model_id}/inferences/{run_id}/export', response_class=Response,
+                responses={200: {'content': {'application/octet-stream': {'schema': {'type':'string','format':'binary'}}}}})
+    def export_inference(session_id: UUIDText, model_id: UUIDText, run_id: UUIDText):
+        return Response(inference_service(session_id).export(model_id,run_id),media_type='application/octet-stream')
+
+    @router.get('/sessions/{session_id}/experiment-history')
+    def experiment_history(session_id: UUIDText, request: Request,
+                           offset: int = Query(default=0, ge=0), limit: int = Query(default=20, ge=1, le=50)):
+        queries(request, {'offset', 'limit'})
+        result = experiment_archive(session_id)
+        return {**result.service.archive.list(offset=offset, limit=limit),
+                'selected_experiment_id': result.dialogue.selected(session_id)}
+
+    @router.post('/sessions/{session_id}/experiment-history/selection')
+    def select_experiment(session_id: UUIDText, body: ExperimentSelection):
+        return experiment_archive(session_id).dialogue.select(session_id, body.experiment_id)
+
+    @router.post('/sessions/{session_id}/experiment-history/comparison')
+    def compare_experiments(session_id: UUIDText, body: ExperimentComparison):
+        return experiment_archive(session_id).service.archive.compare(body.first_id, body.second_id)
+
+    @router.get('/sessions/{session_id}/experiment-history/{experiment_id}/result')
+    def archived_experiment_result(session_id: UUIDText, experiment_id: UUIDText):
+        return experiment_archive(session_id).summary(session_id, experiment_id=experiment_id)
+
+    @router.get('/sessions/{session_id}/experiment-history/{experiment_id}/plots/{name}')
+    def archived_experiment_plot(session_id: UUIDText, experiment_id: UUIDText, name: str):
+        return experiment_archive(session_id).plot(session_id, None, name, experiment_id=experiment_id)
+
+    @router.get('/sessions/{session_id}/experiment-history/{experiment_id}/export/{kind}', response_class=Response,
+                responses={200: {'content': {'application/octet-stream': {'schema': {'type': 'string', 'format': 'binary'}}}}})
+    def export_archived_experiment(session_id: UUIDText, experiment_id: UUIDText, kind: str):
+        data = experiment_archive(session_id).export(session_id, None, kind, experiment_id=experiment_id)
+        return Response(data, media_type='application/octet-stream')
 
     @router.get('/sessions/{session_id}/experiments/{task_id}/result')
     def experiment_result(session_id: UUIDText, task_id: UUIDText):

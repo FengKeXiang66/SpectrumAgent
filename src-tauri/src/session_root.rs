@@ -1,9 +1,9 @@
 //! Per-session data root (2026-11-13 ruling): the app is a single-use tool.
-//! All processing state (db, artifacts, cache, exports, logs) lives under
+//! Session processing state (db, cache, transient artifacts, exports, logs) lives under
 //! `<permanent>/sessions/<millis>-<pid>` and is wiped on exit; leftovers from
-//! crashed runs are swept at next launch. The permanent root keeps only
+//! crashed runs are swept at next launch. The permanent root keeps
 //! application-level configuration (API-key ciphertext, LLM settings snapshot)
-//! and the shell event log.
+//! the shell event log and explicit train/test experiment archives in `experiments/`.
 //!
 //! The backend learns its roots through environment variables rather than CLI
 //! arguments because the frozen production exe is spawned with `args: vec![]`
@@ -122,8 +122,12 @@ mod tests {
         let session = root.join("sessions").join("1-2");
         fs::create_dir_all(session.join("db")).unwrap();
         fs::write(session.join("db").join("x.sqlite3"), b"state").unwrap();
+        let archived = root.join("experiments").join("example");
+        fs::create_dir_all(&archived).unwrap();
+        fs::write(archived.join("model.joblib"), b"fitted-model").unwrap();
         cleanup(&session).unwrap();
         assert!(!session.exists());
+        assert_eq!(fs::read(archived.join("model.joblib")).unwrap(),b"fitted-model");
         cleanup(&session).unwrap(); // Already gone: still Ok.
         fs::remove_dir_all(&root).unwrap();
     }

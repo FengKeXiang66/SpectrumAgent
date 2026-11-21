@@ -18,6 +18,7 @@ PATHS = re.compile(r'''["“‘'](?P<quoted>(?:[A-Za-z]:[\\/]|/)[^"”’'\r\n]+
 CONFIRM = re.compile(r'(?:请)?(?:确认(?:方案)?(?:并)?(?:开始)?(?:执行|训练|运行)|按(?:此|这个|上述)方案(?:执行|训练)|开始训练)[。！!\s]*')
 START = re.compile(r'PLS[-_ ]?DA|训练.*测试|train.*test|训练(?:数据|集)|测试(?:数据|集)|独立测试|数值实验', re.I)
 CANCEL = re.compile(r'(?:取消|退出|停止)(?:本次|当前)?(?:数值)?实验[。！!\s]*')
+HISTORY = re.compile(r'(?:历史|上次|最近|归档).{0,8}实验|(?:实验|训练测试)(?:结果|报告)|(?:比较|对比).{0,20}实验|实验.{0,8}(?:历史|归档)')
 
 
 class DraftIssue(ValueError):
@@ -109,6 +110,8 @@ class ExperimentDialogue:
     def __init__(self, service):
         self.service, self.database = service, service.paths.database
         with connect_database(self.database) as db:
+            db.execute('''CREATE TABLE IF NOT EXISTS experiment_selection (
+                session_id TEXT PRIMARY KEY REFERENCES agent_session(id), experiment_id TEXT NOT NULL)''')
             db.execute('''CREATE TABLE IF NOT EXISTS experiment_dialogue (
                 session_id TEXT PRIMARY KEY REFERENCES agent_session(id),
                 revision INTEGER NOT NULL DEFAULT 0,
@@ -124,6 +127,8 @@ class ExperimentDialogue:
                 db.execute('ALTER TABLE experiment_dialogue ADD COLUMN review_sources_json TEXT')
         from .tasks import ExperimentTasks
         self.tasks = ExperimentTasks(self)
+        from .inference_dialogue import InferenceDialogue
+        self.inference = InferenceDialogue(self)
 
     def _read(self, session_id, db=None):
         if db is None:
@@ -137,6 +142,8 @@ class ExperimentDialogue:
                         (row[0], json.loads(row[1]), json.loads(row[2]), *row[3:])))
 
     def handles(self, session_id, content):
+        if HISTORY.search(content):
+            return True
         record = self._read(session_id)
         if record and record['run_status'] == 'succeeded' and CONFIRM.fullmatch(content.strip()):
             return True
@@ -370,6 +377,7 @@ class ExperimentDialogue:
                 raise DataError('EXPERIMENT_ALREADY_SUBMITTED', '本方案已提交，先查询已记录结果；不会自动重复训练')
             config = self._config(record)
             db.execute("UPDATE experiment_dialogue SET run_status='running' WHERE session_id=?", (session_id,))
+            db.execute('DELETE FROM experiment_selection WHERE session_id=?', (session_id,))
         try:
             options = {'expected_sources': json.loads(record['review_sources_json'])}
             if progress is not None:
@@ -384,10 +392,45 @@ class ExperimentDialogue:
         with connect_database(self.database) as db:
             db.execute("UPDATE experiment_dialogue SET run_status='succeeded',experiment_id=?,active=0 WHERE session_id=?",
                        (result['experiment_id'], session_id))
+        self.select(session_id, result['experiment_id'])
         return result
 
     def result(self, session_id):
+        selected = self.selected(session_id)
+        if selected:
+            return self.service.get(selected)
         record = self._read(session_id)
         if record and record['experiment_id']:
             return self.service.get(record['experiment_id'])
         return None
+
+    def selected(self, session_id):
+        with connect_database(self.database) as db:
+            row = db.execute('SELECT experiment_id FROM experiment_selection WHERE session_id=?', (session_id,)).fetchone()
+        return row[0] if row else None
+
+    def select(self, session_id, identifier):
+        item = self.service.archive.item(identifier)
+        with connect_database(self.database) as db:
+            db.execute('INSERT INTO experiment_selection VALUES (?,?) ON CONFLICT(session_id) '
+                       'DO UPDATE SET experiment_id=excluded.experiment_id', (session_id, identifier))
+        return {'archived_experiment_id': identifier, **{key: value for key, value in item.items() if key != 'experiment_id'}}
+
+    def history_list(self, offset=0, limit=10):
+        page = self.service.archive.list(offset=offset, limit=limit)
+        summary = {'total': page['total'], 'offset': offset, 'count': len(page['items'])}
+        for index, row in enumerate(page['items'], 1):
+            for key, value in row.items():
+                summary[f'item_{index}_{key}'] = value
+        return summary
+
+    def compare(self, first, second):
+        comparison = self.service.archive.compare(first, second)
+        summary = {key: comparison[key] for key in ('first', 'second', 'comparable', 'note')}
+        summary.update({'same_' + key: value for key, value in comparison['checks'].items()})
+        for prefix, scores in zip(('first', 'second'), comparison['metrics']):
+            for role in ('train', 'test'):
+                for key in ('n', 'correct', 'accuracy', 'macro_f1', 'kappa', 'evaluation_unit', 'purpose'):
+                    if key in scores[role]:
+                        summary[f'{prefix}_{role}_{key}'] = scores[role][key]
+        return summary

@@ -79,6 +79,7 @@ def create_app(paths, identity):
     app.include_router(make_preprocess_router(app.state.preprocess_runner, app.state.preprocess_compare))
     app.include_router(make_models_router(app.state.annotation_sessions, app.state.preprocess_runner, identity.boot_id))
     app.state.experiments = ExperimentService(paths)
+    app.state.experiments.archive.recover_interrupted()
     app.include_router(make_experiments_router(app.state.experiments))
     preview_image = next(route.endpoint for route in dataset_router.routes
                          if route.path == '/api/v1/datasets/{identifier}/preview')
@@ -108,6 +109,7 @@ def create_app(paths, identity):
                                           engine=app.state.superpixel_engine, recycle=registry.recycle,
                                           training_sets=app.state.training_sets, paths=paths,
                                           experiments=app.state.experiments)
+    app.state.agent_tools.experiment_dialogue.inference.service.recover()
     app.state.agent_llm_factory = lambda session_id: OpenAICompatibleClient(paths.database, session_id=session_id)
     # Startup self-check: publish the built-in v2 skill and rebind sessions that still
     # hold the built-in v1 skill. Without this the upgrade only happens when a new
