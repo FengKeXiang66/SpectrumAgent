@@ -50,6 +50,8 @@ POLICIES = {
 }
 POLICIES.update({
     'experiments.draft_get':'global', 'experiments.draft_update':'global', 'experiments.input_inspect':'global',
+    'experiments.history_list':'global', 'experiments.history_select':'global', 'experiments.history_compare':'global',
+    'experiments.inference_get':'global','experiments.inference_inspect':'global','experiments.inference_update':'global',
     'preprocess.runs':'global', 'preprocess.operators':'public','projects.paths_set':'public',
     'preprocess.recipe_select':'public','modeling.targets':'public','modeling.target_set':'cube',
     'modeling.targets_import':'global','modeling.regress':'global','labels.create':'public',

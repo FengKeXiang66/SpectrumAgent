@@ -6,7 +6,7 @@ const phases = [['checking','检查输入'],['preparing','准备数据'],['train
 const labels = {queued:'等待执行',running:'正在执行',succeeded:'已完成',failed:'执行失败',cancelled:'已取消'};
 const terminal = new Set(['succeeded','failed','cancelled']);
 
-export default function ExperimentTaskCard({taskId,sessionId,enabled}: {taskId:string;sessionId:string;enabled:boolean}) {
+export default function ExperimentTaskCard({taskId,sessionId,enabled,onInfer}: {taskId:string;sessionId:string;enabled:boolean;onInfer?:(id:string)=>void}) {
   const [task,setTask] = useState<ExperimentTask|null>(null);
   const [error,setError] = useState('');
   const [canceling,setCanceling] = useState(false);
@@ -37,10 +37,10 @@ export default function ExperimentTaskCard({taskId,sessionId,enabled}: {taskId:s
     </li>)}</ol>
     {task?.status==='running'&&<p>当前阶段尚未结束，未提供内部百分比。</p>}
     {task?.cancel_requested&&task.status!=='cancelled'&&!terminal.has(task.status)&&<p role="status">已请求取消，等待下一个安全阶段边界；当前算子可能仍在运行。</p>}
-    {task?.status==='succeeded'&&<ExperimentResults sessionId={sessionId} taskId={taskId} enabled={enabled}/>}
+    {task?.status==='succeeded'&&<ExperimentResults sessionId={sessionId} taskId={taskId} enabled={enabled} onInfer={onInfer}/>}
     {task?.status==='failed'&&<p role="alert">失败阶段：{phases.find(([id])=>id===task.failed_phase)?.[1]??'提交检查'}；{task.error}。已完成产物保留。</p>}
     {task?.status==='cancelled'&&<p>实验已取消，已完成产物保留；未宣称完成后续阶段。</p>}
-    <p>停止对话不会取消此实验。应用退出后不恢复本次后台任务。</p>
+    <p>停止对话不会取消此实验。已完成实验自动归档；应用退出时未完成的实验不自动续训。</p>
     {!enabled&&<p>当前引擎不可用，任务状态未核验。</p>}
     {error&&<p role="alert">{error}</p>}
     {error&&<button disabled={!enabled} onClick={()=>setRefresh(x=>x+1)}>重新查询</button>}

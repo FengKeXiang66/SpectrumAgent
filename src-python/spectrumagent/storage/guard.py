@@ -56,11 +56,12 @@ def utc_now():
 
 
 class WriteGuard:
-    def __init__(self, root, *, output_root=None, source_roots=(), temp_root=None,
+    def __init__(self, root, *, output_root=None, source_roots=(), temp_root=None, archive_root=None,
                  buffer_limit=BUFFER_LIMIT):
         if type(buffer_limit) is not int or buffer_limit < 1:
             raise ValueError('audit buffer must have a positive bound')
         self.root = Path(root).resolve()
+        self.archive_root = Path(archive_root).resolve() if archive_root is not None else None
         self.output_root = Path(output_root).resolve() if output_root is not None else None
         self.output_root_available = False
         self.output_projects = ()
@@ -81,7 +82,7 @@ class WriteGuard:
 
     @property
     def roots(self):
-        return tuple(path for path in (self.root, self.output_root, self.temp_root) if path is not None)
+        return tuple(path for path in (self.root, self.output_root, self.temp_root, self.archive_root) if path is not None)
 
     @contextmanager
     def _audit_connect(self):
@@ -279,7 +280,9 @@ def _prepare(paths, *, output_root=None, source_roots=(), temp_root=None):
     with _registration_lock:
         guard = _guards.get(key)
         if guard is None:
-            guard = WriteGuard(key, output_root=output_root, source_roots=source_roots, temp_root=temp_root)
+            archive = paths.experiment_archive.resolve()
+            guard = WriteGuard(key, output_root=output_root, source_roots=source_roots, temp_root=temp_root,
+                               archive_root=archive if not archive.is_relative_to(key) else None)
             _guards[key] = guard
         else:
             with guard.lock:
@@ -377,7 +380,7 @@ def _guard_for(path):
         raise DataError('STORAGE_SELF_CHECK_FAILED', '存储未初始化，已拒绝写任务')
     with _registration_lock:
         matches = [(len(root.parts), guard) for guard in _guards.values()
-                   for root in (guard.root, guard.output_root) if root is not None and target.is_relative_to(root)]
+                   for root in (guard.root, guard.output_root, guard.archive_root) if root is not None and target.is_relative_to(root)]
         guard = max(matches, key=lambda item: item[0])[1] if matches else _current
     if guard is None:
         raise DataError('STORAGE_SELF_CHECK_FAILED', '存储未初始化，已拒绝写任务')

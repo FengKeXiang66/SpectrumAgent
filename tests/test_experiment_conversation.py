@@ -88,7 +88,7 @@ def test_multi_turn_partial_patch_review_execute_and_query(tmp_path, application
         tool('experiments.draft_update', {'expected_revision': 1,
              'preprocessing': [{'op': 'savgol', 'derivative': 2, 'window': 5, 'polyorder': 2, 'delta_nm': 5.}, {'op': 'center'}]}))
     first = list(machine_for(app, session, model).message(content='PLSDA训练与测试，训练数据“' + body['train']['paths'][0]
-                 + '”，测试数据“' + body['test']['paths'][0] + '”，用SG二阶导数。'))
+                 + '”，测试数据“' + body['test']['paths'][0] + '”，用SG二阶导数，训练后输出实验结果。'))
     assert first[-1][0] == 'clarify', first
     assert '窗口长度' in first[-1][1]['question']
     assert not list(app.state.experiments.root.glob('*'))

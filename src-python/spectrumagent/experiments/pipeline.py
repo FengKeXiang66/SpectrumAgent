@@ -44,9 +44,11 @@ class SpectralPipeline:
         return X
 
     def transform(self, X):
-        if self.fitted is None:
+        if self.fitted is None or len(self.fitted) != len(self.steps):
             raise DataError("EXPERIMENT_MODEL_INVALID", "预处理尚未拟合")
         X = np.asarray(X, dtype=np.float64)
         for step, fitted in zip(self.steps, self.fitted):
+            if step.op in {'center','standard_scale','pca'} and fitted is None:
+                raise DataError('EXPERIMENT_MODEL_INVALID', '归档预处理缺少训练时拟合参数，拒绝在推理数据上重新拟合')
             X, _ = self._step(X, step, fitted)
         return X

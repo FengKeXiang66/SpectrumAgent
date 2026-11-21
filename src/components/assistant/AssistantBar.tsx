@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { scalarText, friendlyError, type ChatEntry, type PendingCheck } from './sse.ts';
 import { readableText, parseBatchSummary, entryBusiness, batchExplanation, preprocessingBusiness } from './presentation.ts';
 import type { AssistantSession } from './useSession';
@@ -11,6 +12,9 @@ import { annotationChoices, choiceScope, taskPositions, replyPosition } from './
 import RequestStatus from './RequestStatus';
 import ResultCard from './ResultCard';
 import ExperimentTaskCard from './ExperimentTaskCard';
+import ExperimentHistory from './ExperimentHistory';
+import ExperimentResults from './ExperimentResults';
+import InferenceTaskCard from './InferenceTaskCard';
 
 function entryText(entry: ChatEntry): string {
   switch (entry.event) {
@@ -39,6 +43,8 @@ function agentName(event: ChatEntry['event'], business = '已回复'): string {
 
 export default function AssistantBar({ session }: { session: AssistantSession }) {
   const { enabled, state, content, setContent, request, choices, records } = session;
+  const [historyOpen,setHistoryOpen] = useState(false);
+  const prepareInference=(modelId:string)=>setContent('使用模型 '+modelId+' 进行推理，数据目录为');
   const renderCheck = (state: { pending: PendingCheck; busy: boolean }) => <section className="agent-check" aria-label="人工确认">
     <span className="agent-check-icon" aria-hidden="true">!</span>
     <p>{readableText(`${state.pending.reason} · ${state.pending.tool} · ${scalarText(state.pending.summary)}`, choices, records)}</p>
@@ -52,6 +58,18 @@ export default function AssistantBar({ session }: { session: AssistantSession })
   </section>;
   return <section className="assistant-bar" aria-label="S01 助手">
     <h2>编排助手</h2>
+    <div className="experiment-history-dock">
+      <button className="experiment-history-toggle" aria-expanded={historyOpen} aria-controls="experiment-history-panel"
+        disabled={!enabled||session.loading} onClick={()=>{
+          const next=!historyOpen;
+          setHistoryOpen(next);
+          if(next&&!session.active)session.startNew();
+        }}>{historyOpen?'收起':'查看'}历史实验与归档模型</button>
+      {historyOpen&&(session.active
+        ?<ExperimentHistory sessionId={session.active.id} enabled={enabled} onInfer={prepareInference}/>
+        :<div id="experiment-history-panel" className="experiment-history"><p role="status">{session.loading?'正在打开历史实验…':'尚未打开历史实验，请重试。'}</p>
+          {!session.loading&&<button disabled={!enabled} onClick={session.startNew}>重新打开历史实验</button>}</div>)}
+    </div>
     <div className="assistant-content">
     {session.historyBefore!==null && <button disabled={!enabled} onClick={()=>void session.loadOlder()}>加载更早历史</button>}
     {(() => {
@@ -96,7 +114,18 @@ export default function AssistantBar({ session }: { session: AssistantSession })
             entry.event==='step'&&entry.data.status==='ok'&&typeof entry.data.result_summary.experiment_task_id==='string'&&session.active&&
               !state.entries.slice(0,index).some(old=>old.event==='step'&&old.data.result_summary.experiment_task_id===entry.data.result_summary.experiment_task_id)&&
               <li key={`experiment:${entry.data.result_summary.experiment_task_id}`} className="agent-msg agent-msg-ai"><div className="agent-bubble">
-                <ExperimentTaskCard taskId={entry.data.result_summary.experiment_task_id} sessionId={session.active.id} enabled={enabled}/>
+                <ExperimentTaskCard taskId={entry.data.result_summary.experiment_task_id} sessionId={session.active.id} enabled={enabled} onInfer={prepareInference}/>
+              </div></li>,
+            entry.event==='step'&&entry.data.status==='ok'&&entry.data.result_summary.status==='succeeded'&&
+              typeof entry.data.result_summary.archived_experiment_id==='string'&&session.active&&
+              <li key={`archived-experiment:${index}`} className="agent-msg agent-msg-ai"><div className="agent-bubble">
+                <ExperimentResults sessionId={session.active.id} experimentId={entry.data.result_summary.archived_experiment_id} enabled={enabled} onInfer={prepareInference}/>
+              </div></li>,
+            entry.event==='step'&&entry.data.status==='ok'&&typeof entry.data.result_summary.inference_run_id==='string'&&
+              typeof entry.data.result_summary.model_id==='string'&&session.active&&
+              !state.entries.slice(0,index).some(old=>old.event==='step'&&old.data.result_summary.inference_run_id===entry.data.result_summary.inference_run_id)&&
+              <li key={`inference:${entry.data.result_summary.inference_run_id}`} className="agent-msg agent-msg-ai"><div className="agent-bubble">
+                <InferenceTaskCard sessionId={session.active.id} modelId={entry.data.result_summary.model_id} runId={entry.data.result_summary.inference_run_id} enabled={enabled}/>
               </div></li>,
             choice&&<li key={`choice:${index}`} className="agent-msg agent-msg-ai" data-event="annotation-choice">
             <span className="agent-avatar" aria-hidden="true">AI</span>

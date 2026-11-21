@@ -81,8 +81,10 @@ class ExperimentModel:
 class ExperimentService:
     def __init__(self, paths):
         self.paths = paths
-        self.root = paths.artifact_root / "experiments"
+        self.root = paths.experiment_archive
         self.lock = Lock()
+        from .archive import ExperimentArchive
+        self.archive = ExperimentArchive(self)
 
     def folder(self, identifier):
         try:
@@ -90,7 +92,10 @@ class ExperimentService:
                 raise ValueError()
         except (ValueError, AttributeError, TypeError):
             raise DataError("EXPERIMENT_NOT_FOUND", "实验编号无效") from None
-        return self.root / identifier
+        folder = self.root / identifier
+        if folder.resolve().parent != self.root.resolve():
+            raise DataError('EXPERIMENT_NOT_FOUND', '实验目录越界')
+        return folder
 
     def get(self, identifier):
         folder = self.folder(identifier)
@@ -120,27 +125,31 @@ class ExperimentService:
             raise DataError("EXPERIMENT_BUSY", "已有数值实验正在运行")
         identifier = str(uuid4())
         folder = self.folder(identifier)
+        started = datetime.now(timezone.utc).isoformat()
+        def advance(phase):
+            write_json(folder / 'status.json', {'experiment_id': identifier, 'status': 'running',
+                       'phase': phase, 'started_at': started})
+            if progress:
+                progress(phase)
         try:
             storage.mkdir(folder, parents=True)
             write_json(folder / "config.json", config.model_dump(mode="json"))
-            write_json(folder / "status.json", {"experiment_id": identifier, "status": "running"})
-            if progress:
-                progress('checking')
+            advance('checking')
             with threadpool_limits(limits=2):
                 options = {}
                 if expected_sources is not None:
                     options['expected_sources'] = expected_sources
-                if progress is not None:
-                    options['progress'] = progress
+                options['progress'] = advance
                 result = self._execute(identifier, folder, config, **options)
-            if progress:
-                progress('reporting')
-            write_json(folder / "status.json", {"experiment_id": identifier, "status": "succeeded"})
+            advance('reporting')
+            write_json(folder / "status.json", {"experiment_id": identifier, "status": "succeeded",
+                       'started_at': started, 'finished_at': datetime.now(timezone.utc).isoformat()})
             return result
         except Exception as error:
             failure = error if isinstance(error, DataError) else DataError("EXPERIMENT_FAILED", "数值实验失败", reason=str(error))
             if folder.is_dir():
-                write_json(folder / "status.json", {"experiment_id": identifier, "status": "cancelled" if failure.code == 'EXPERIMENT_CANCELLED' else "failed", "error": failure.as_dict()})
+                write_json(folder / "status.json", {"experiment_id": identifier, "status": "cancelled" if failure.code == 'EXPERIMENT_CANCELLED' else "failed", "error": failure.as_dict(),
+                           'started_at': started, 'finished_at': datetime.now(timezone.utc).isoformat()})
             raise DataError(failure.code, failure.payload.detail, **{**failure.payload.context, "experiment_id": identifier}) from error
         finally:
             self.lock.release()
@@ -199,7 +208,7 @@ class ExperimentService:
                 raise DataError("EXPERIMENT_MODEL_INVALID", "保存后模型预测与运行结果不同")
         check_sources(source_manifest)
         config_document = config.model_dump(mode="json")
-        result = {"experiment_id": identifier, "status": "succeeded", "protocol": "explicit_train_test_v1",
+        result = {"experiment_id": identifier, "model_id": identifier, "status": "succeeded", "protocol": "explicit_train_test_v1",
                   "created_at": datetime.now(timezone.utc).isoformat(), "config": config_document,
                   "config_sha256": hashlib.sha256(encode(config_document).encode()).hexdigest(),
                   "model_sha256": sha256(model_path), "score_definition": "uncalibrated_pls_response",

@@ -9,7 +9,21 @@ export type ExperimentScore = {n:number;correct:number;accuracy:number;macro_pre
   confusion:number[][];confusion_labels:number[];macro_labels:number[];
   per_class:{label:number;name:string;support:number;precision:number|null;recall:number|null;f1:number|null}[]};
 export type ExperimentResult = {experiment_id:string;name:string;classes:Record<string,string>;processed_axis:'component'|'wavelength_nm';
-  metrics:Record<'train'|'test',ExperimentScore>;score_definition:string};
+  metrics:Record<'train'|'test',ExperimentScore>;score_definition:string;
+  model:{model_id:string;experiment_id:string;stage:string;sha256:string;wavelengths_nm:number[];preprocessing:{op:string;[key:string]:unknown}[];
+    parameters:Record<string,number|boolean>;input_stage:string;neighborhood:number;evaluation_unit:string}};
+export type ArchivedExperiment = {experiment_id:string;name:string;status:string;created_at:string;model_id:string|null;
+  train_accuracy?:number|null;test_accuracy?:number|null;evaluation_unit?:string;test_usage?:string;phase?:string|null;error?:string|null};
+export type ExperimentHistory = {items:ArchivedExperiment[];total:number;offset:number;limit:number;selected_experiment_id:string|null};
+export type ExperimentComparison = {first:string;second:string;comparable:boolean;checks:Record<string,boolean>;
+  metrics:Record<'train'|'test',ExperimentScore>[];note:string};
+export type InferenceStatus = {run_id:string;model_id:string;status:'queued'|'running'|'succeeded'|'failed'|'cancelled'|'interrupted';
+  kind:'npz'|'envi';phase:string;completed_files:number;total_files:number;completed_rows:number;total_rows:number;elapsed_seconds:number;
+  error:string|null;can_cancel:boolean;cancel_requested:boolean};
+export type InferenceResult = {run_id:string;model_id:string;model_sha256:string;kind:'npz'|'envi';classes:Record<string,string>;colors:Record<string,string>;
+  evaluation_unit:string;note:string;foreground?:{mode:string;[key:string]:unknown}|null;
+  files:{file_index:number;name:string;classified:number;excluded:number;total:number;counts:Record<string,number>;
+    shape?:number[];edges?:{left:number;right:number};exclusion_counts?:Record<string,number>;preview_wavelengths_nm?:number[]}[]};
 
 export type WorkspaceContext = { cube_id?: string; gesture_ref?: string };
 // Local validated batch models only; AgentRequest/MessageBody wire stays unchanged.
@@ -33,6 +47,16 @@ export type TaskAccepted = {status:'accepted';task_id:string;task_status:Annotat
 export type BatchCard = { result: BatchResult | null; stepStatus: string; epoch: number; generation: number; key: string; sessionId?: string; requestId?: string };
 export type MessageBody = ({ content: string; workspace?: WorkspaceContext } | { check_id: string; decision: 'approve' | 'reject' } | ({ plan_id: string } & PlanDecision)) & { request_id?: string };
 export type AgentRequest = ({ op: 'create_session' } & CreateSessionInput)
+  | {op:'inference_history';id:string;model_id:string}
+  | {op:'inference_task';id:string;model_id:string;run_id:string;action:'get'|'cancel'|'result'}
+  | {op:'inference_plot';id:string;model_id:string;run_id:string;file_index:number;kind?:'prediction'|'input'}
+  | {op:'inference_export';id:string;model_id:string;run_id:string;destination:string}
+  | {op:'experiment_history';id:string;offset?:number;limit?:number}
+  | {op:'select_experiment';id:string;experiment_id:string}
+  | {op:'compare_experiments';id:string;first_id:string;second_id:string}
+  | {op:'archived_experiment_result';id:string;experiment_id:string}
+  | {op:'archived_experiment_plot';id:string;experiment_id:string;name:string}
+  | {op:'archived_experiment_export';id:string;experiment_id:string;kind:'report'|'bundle';destination:string}
   | {op:'cancel_request'|'get_request';id:string;request_id:string}
   | {op:'experiment_task';id:string;task_id:string;action:'get'|'cancel'}
   | {op:'experiment_result';id:string;task_id:string}
@@ -104,6 +128,18 @@ export function workspaceContext(value: WorkspaceContext): WorkspaceContext {
 export function agentClient(send: InvokeAgent = invoke) {
   const forward = <T>(request: AgentRequest) => send<T>('agent_forward', { request });
   return {
+    inferenceHistory:(id:string,model_id:string)=>forward<{items:InferenceStatus[]}>({op:'inference_history',id,model_id}),
+    inferenceStatus:(id:string,model_id:string,run_id:string)=>forward<InferenceStatus>({op:'inference_task',id,model_id,run_id,action:'get'}),
+    cancelInference:(id:string,model_id:string,run_id:string)=>forward<InferenceStatus>({op:'inference_task',id,model_id,run_id,action:'cancel'}),
+    inferenceResult:(id:string,model_id:string,run_id:string)=>forward<InferenceResult>({op:'inference_task',id,model_id,run_id,action:'result'}),
+    inferencePlot:(id:string,model_id:string,run_id:string,file_index:number,kind:'prediction'|'input'='prediction')=>forward<{png_base64:string}>({op:'inference_plot',id,model_id,run_id,file_index,kind}),
+    inferenceExport:(id:string,model_id:string,run_id:string,destination:string)=>forward<{saved:boolean;bytes:number}>({op:'inference_export',id,model_id,run_id,destination}),
+    experimentHistory:(id:string,offset=0)=>forward<ExperimentHistory>({op:'experiment_history',id,offset,limit:20}),
+    selectExperiment:(id:string,experiment_id:string)=>forward<{archived_experiment_id:string;status:string}>({op:'select_experiment',id,experiment_id}),
+    compareExperiments:(id:string,first_id:string,second_id:string)=>forward<ExperimentComparison>({op:'compare_experiments',id,first_id,second_id}),
+    archivedExperimentResult:(id:string,experiment_id:string)=>forward<ExperimentResult>({op:'archived_experiment_result',id,experiment_id}),
+    archivedExperimentPlot:(id:string,experiment_id:string,name:string)=>forward<{name:string;png_base64:string}>({op:'archived_experiment_plot',id,experiment_id,name}),
+    archivedExperimentExport:(id:string,experiment_id:string,kind:'report'|'bundle',destination:string)=>forward<{saved:boolean;bytes:number}>({op:'archived_experiment_export',id,experiment_id,kind,destination}),
     experimentResult:(id:string,task_id:string)=>forward<ExperimentResult>({op:'experiment_result',id,task_id}),
     experimentPlot:(id:string,task_id:string,name:string)=>forward<{name:string;png_base64:string}>({op:'experiment_plot',id,task_id,name}),
     experimentExport:(id:string,task_id:string,kind:'report'|'bundle',destination:string)=>forward<{saved:boolean;bytes:number}>({op:'experiment_export',id,task_id,kind,destination}),
