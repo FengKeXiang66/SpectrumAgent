@@ -1,7 +1,7 @@
-"""Application-run operation ledger. Business transactions own this connection.
+"""Durable operation ledger. Business transactions own this connection.
 
-No worker platform and no cross-application recovery: this lives in the same
-TASK-51 temporary SQLite database as recipes and runs.
+Stored beside recipes and runs; startup reconciles abandoned execution leases
+without automatically repeating computations.
 """
 from contextlib import contextmanager
 from contextvars import ContextVar

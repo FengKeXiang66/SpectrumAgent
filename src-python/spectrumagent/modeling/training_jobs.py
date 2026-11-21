@@ -97,8 +97,6 @@ class TrainingJobs:
             row = db.execute('SELECT boot_id,owner,request_key,body,binding,snapshot FROM training_job WHERE id=?', (identifier,)).fetchone()
         if not row:
             return None
-        if row[0] != self.boot_id:
-            raise ModelingError('TRAINING_JOB_EXPIRED', '任务属于之前的引擎会话，不自动续跑')
         if owner is not None and row[1] != owner:
             raise ModelingError('TRAINING_SCOPE_MISMATCH', '训练任务不属于当前工作会话')
         return {'key': row[2], 'body': json.loads(row[3]), 'binding': json.loads(row[4]),
@@ -190,8 +188,8 @@ class TrainingJobs:
 
     def list(self, *, owner=None, limit=20):
         with connect_database(self.database) as db:
-            sql = 'SELECT id FROM training_job WHERE boot_id=?'
-            args = [self.boot_id]
+            sql = 'SELECT id FROM training_job WHERE 1=1'
+            args = []
             if owner is not None:
                 sql += ' AND owner=?'; args.append(owner)
             ids = [r[0] for r in db.execute(sql+' ORDER BY created_at DESC LIMIT ?', (*args, limit))]

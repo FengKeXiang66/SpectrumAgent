@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import platform
 from threading import Lock
+from time import sleep
 from uuid import UUID, uuid4
 import warnings
 
@@ -32,7 +33,16 @@ def write_json(path, value):
     temporary = path.with_name(path.name + "." + uuid4().hex + ".tmp")
     try:
         storage.resolve_write(temporary, kind="EXPERIMENT_JSON").write_text(encode(value), encoding="utf-8")
-        storage.replace(temporary, path)
+        # Windows readers briefly hold the destination without delete sharing.
+        # Keep the atomic write and allow that read to finish before publishing.
+        for attempt in range(6):
+            try:
+                storage.replace(temporary, path)
+                break
+            except PermissionError as error:
+                if getattr(error, 'winerror', None) not in (5, 32, 33) or attempt == 5:
+                    raise
+                sleep(.01 * (attempt + 1))
     finally:
         if temporary.exists():
             storage.unlink(temporary)

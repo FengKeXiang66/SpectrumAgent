@@ -36,8 +36,10 @@ Windows 桌面光谱分析工作台，采用 Tauri 2 + React + Python FastAPI。
 
 - 原始数据按引用读取，导入不等于把原始光谱复制进本仓库；请保留源文件及其路径。
 - 桌面程序默认在 `%LOCALAPPDATA%\SpectrumAgent` 保存应用配置和外壳日志。
-- 数据库、草稿、标注、处理与训练产物位于该目录的 `sessions/<时间戳>-<PID>/`。
-- **退出应用会清理本次会话数据**，崩溃残留会在下次启动时回收；需保留的结果应先显式导出到自选位置。
+- 数据库、草稿、标注、配方、数据集/训练集版本、处理与建模记录保存在该固定目录，退出或重新启动均不会删除。
+- 重启后自动读取数据目录并恢复上次全局会话；已提交的标注草稿可继续编辑，已完成的处理和建模产物可继续查看、复用和导出。
+- 退出时尚未完成的计算会在下次启动时标记为中断/失败，保留已有产物，需核对后重新提交；不会自动重复计算。画布上尚未提交的手势、候选和撤销栈不跨进程恢复。
+- 旧版本已在退出时删除的数据无法恢复；遗留的 `sessions/` 目录会保留，但不会自动合并到当前数据库。
 - 应用级设置和加密密钥跨会话保留，密钥使用 Windows DPAPI；不要把握手 token 或凭据提交到 Git。
 - 后端只监听本机随机端口；Rust 监督器验证握手和进程身份，并随桌面退出回收子进程。
 
@@ -133,6 +135,17 @@ npm.cmd run build
 ```
 
 结果写入 `dist/`，不会更新已有桌面 EXE 或冻结 Python 后端。
+
+## 持久化回归验证
+
+以下检查覆盖完整进程重启后读取标注、配方、版本、处理结果和模型，以及继续编辑与中断任务恢复。Windows 下使用较短的测试目录，避免临时路径超过系统长度限制。
+
+```powershell
+New-Item -ItemType Directory -Path '.\build' -Force | Out-Null
+& '.\.venv\Scripts\python.exe' -m pytest tests -q --basetemp '.\build\pytest'
+node --test tests/workspace-persistence.test.mjs
+cargo test --manifest-path '.\src-tauri\Cargo.toml' --lib --locked
+```
 
 ## 重新生成发布安装包
 

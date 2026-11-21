@@ -1,12 +1,11 @@
 """Cross-restart storage for non-sensitive LLM configuration.
 
-2026-11-13 ruling: a single-use session wipes its whole data root on exit,
-but the model settings configured in the settings panel must not have to be
-re-entered on the next launch. Only the six LLMSettings fields are written, as
+Model settings configured in the settings panel are restored on the next
+launch. Only the six LLMSettings fields are written, as
 one JSON file beside the DPAPI key in the permanent root. The API key itself,
 dataset paths and every processing artifact are never part of this file.
 
-The runtime database remains the in-session source of truth; this file is a
+The runtime database remains the source of truth; this file is a
 snapshot taken whenever settings are written and restored once at engine
 startup (see ``llm.restore_settings`` and ``api.settings.make_router``).
 """

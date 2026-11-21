@@ -6,7 +6,7 @@ pub mod handshake;
 pub mod health;
 pub mod logging;
 pub mod process;
-pub mod session_root;
+pub mod workspace_root;
 pub mod state;
 pub mod supervisor;
 pub mod win32;

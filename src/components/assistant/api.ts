@@ -66,6 +66,7 @@ export type AgentRequest = ({ op: 'create_session' } & CreateSessionInput)
   | {op:'annotation_task';id:string;task_id:string;action:'get'|'items'|'cancel'|'retry'|'prepare'|'focus'|'blur';after?:number;limit?:number;version?:number;request_id?:string;mode?:'failed'|'remaining';authorization_id?:string}
   | { op: 'check_batch_prepare'; id: string; dataset_version_id?: string }
   | { op: 'get_session'; id: string }
+  | { op: 'list_sessions'; query: { kind: 'global'; limit: number } }
   | { op: 'get_history'; id: string; before?: number; after?: number; limit?: number }
   | { op: 'select_cube'; id: string; cube_id: string | null } | { op: 'get_steps'; id: string } | { op: 'get_runtime' } | { op: 'send_message'; id: string; body: MessageBody };
 // 2026-11-13 simplification: one global session only. Work sessions, session
@@ -154,6 +155,7 @@ export function agentClient(send: InvokeAgent = invoke) {
       await forward<unknown>(requests.checkBatchPrepare(id, version)), id, version),
     createSession: (body: CreateSessionInput = {}) => forward<Session>(requests.createSession(body)),
     getSession: (id: string) => forward<SessionDetail>(requests.getSession(id)),
+    latestSession: async () => (await forward<{sessions: {id: string}[]}>({op: 'list_sessions', query: {kind: 'global', limit: 1}})).sessions[0]?.id ?? null,
     getHistory: (id: string, page: {before?: number; after?: number; limit?: number} = {}) => forward<HistoryPage>(requests.getHistory(id, page)),
     selectCube: (id: string, cube: string | null) => forward<SessionDetail>(requests.selectCube(id, cube)),
     sendMessage: async (id: string, body: MessageBody, onEvent?: (event:AgentEvent)=>void, shouldProceed?:()=>boolean) => {

@@ -28,11 +28,7 @@ class AppPaths:
 
     @property
     def credential_root(self) -> Path:
-        """Cross-session root for configuration and explicit experiment archives.
-
-        Other processing state remains session-scoped. Tests and legacy launches
-        without the override keep these files beside the data.
-        """
+        """Root for configuration and experiment archives, beside durable data by default."""
         override = os.environ.get("SPECTRUMAGENT_PERMANENT_ROOT")
         return Path(override) if override else self.root
 
