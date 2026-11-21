@@ -110,6 +110,8 @@ def create_app(paths, identity):
                                           training_sets=app.state.training_sets, paths=paths,
                                           experiments=app.state.experiments)
     app.state.agent_tools.experiment_dialogue.inference.service.recover()
+    from spectrumagent.storage.recovery import recover_workspace
+    recover_workspace(paths.database)
     app.state.agent_llm_factory = lambda session_id: OpenAICompatibleClient(paths.database, session_id=session_id)
     # Startup self-check: publish the built-in v2 skill and rebind sessions that still
     # hold the built-in v1 skill. Without this the upgrade only happens when a new

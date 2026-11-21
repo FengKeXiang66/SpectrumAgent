@@ -12,21 +12,21 @@ const CANVAS_ANNOTATION_TOOLS = new Set([
   'annotations.prepare_batch',
 ]);
 
-// 2026-11-13 ruling: the backend wipes all state on app restart, so the
-// persisted active-session pointer is only meaningful within one app run.
-// sessionStorage survives in-app reloads (engine retry, BootMonitor reload)
-// but starts empty for a new app process: exactly the boundary we need.
-const APP_INSTANCE_KEY = 'spectrumagent.app-instance';
-try {
-  if (typeof sessionStorage !== 'undefined' && !sessionStorage.getItem(APP_INSTANCE_KEY)) {
-    sessionStorage.setItem(APP_INSTANCE_KEY, '1');
-    if (typeof localStorage !== 'undefined') localStorage.removeItem('spectrumagent.active-session');
-  }
-} catch { /* Storage is optional; resume falls back to a fresh session. */ }
+const activeSessionKey = 'spectrumagent.active-session';
+function savedSession(): string | null {
+  try {
+    const id=localStorage.getItem(activeSessionKey);
+    return id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(id) ? id : null;
+  } catch { return null; }
+}
+function rememberSession(id: string | null) {
+  try { if (id) localStorage.setItem(activeSessionKey, id); else localStorage.removeItem(activeSessionKey); }
+  catch { /* Backend session discovery remains available. */ }
+}
 
 // 2026-11-13 simplification: the assistant owns exactly one global session.
 // Work sessions, session lists and member paging were removed; the session is
-// created lazily on the first message and resumed from the pointer above.
+// created lazily on the first message and resumed across application launches.
 export default function useSession({ enabled, generation, bootId, workspace = {}, records = [], displayName,
   onWorkspaceChange, onSessionReset, onWorkspaceDisplayChange, onWorkspaceNavigate, onBatchOpen, onBatchReset, onPreviewCandidate, onDataChanged }: {
   enabled: boolean; generation: number; bootId?: string | null; workspace?: WorkspaceContext; records?: DatasetReference[]; displayName?: string;
@@ -49,6 +49,7 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
   callbacks.current = { onBatchOpen, onBatchReset, enabled, generation, bootId };
   const sessionId = useRef<string | null>(null);
   const creatingSession=useRef<Promise<string>|null>(null);
+  const restoringSession=useRef<Promise<void>|null>(null);
   const latestRequest = useRef<string | null>(null);
   // One guard covers both views, including clicks before disabled buttons commit.
   const inFlight = useRef(false);
@@ -70,13 +71,14 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
   const lastUserMessage = useRef('');
   const currentTicket = (ticket: number) => ticket === epoch.current && callbacks.current.enabled;
   const ensureSession=async()=>{
+    if(restoringSession.current) await restoringSession.current;
     if(sessionId.current)return sessionId.current;
     if(creatingSession.current)return creatingSession.current;
     const ticket=epoch.current;
     const creation=agent.createSession({scope:{kind:'global'},request_id:crypto.randomUUID()}).then(created=>{
       if(!currentTicket(ticket))throw new Error('会话创建期间引擎已变化');
       sessionId.current=created.id;
-      if(typeof localStorage!=='undefined')localStorage.setItem('spectrumagent.active-session',created.id);
+      rememberSession(created.id);
       return created.id;
     });
     creatingSession.current=creation;
@@ -116,7 +118,7 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
     setTaskCards(current=>[...new Map([...current.filter(card=>card.sessionId===detail.id&&card.generation===generation),...restored]
       .map(card=>[card.taskId,{...current.find(old=>old.taskId===card.taskId),...card}])).values()]);
   };
-  const switchSession = async (id: string) => {
+  const switchSession = async (id: string): Promise<boolean> => {
     if (inFlight.current || activeRef.current?.request?.status === 'running' && activeRef.current.id!==id || !enabled) return false;
     const ticket = ++epoch.current;
     latestRequest.current = null;
@@ -136,9 +138,25 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
       latestRequest.current = detail.request?.status==='running' ? detail.request.request_id : null;
       historyRows.current = page.events; setHistoryBefore(page.next_before); hydrate(detail, page.events);
       if (detail.canvas_focus?.cube_id) onWorkspaceChange?.(detail.canvas_focus);
-      if (typeof localStorage !== 'undefined') localStorage.setItem('spectrumagent.active-session', id);
+      rememberSession(id);
       return true;
-    } catch (error) { if (currentTicket(ticket)) {setRecoveryFailed(true);dispatch({type: 'failed', detail: requestError(error)});} return false; }
+    } catch (error) {
+      if (currentTicket(ticket)) {
+        if (error && typeof error === 'object' && 'error' in error && ['SESSION_NOT_FOUND','SESSION_ARCHIVED'].includes(String(error.error))) {
+          rememberSession(null);
+          try {
+            const latest = await agent.latestSession();
+            if (!currentTicket(ticket)) return false;
+            if (latest && latest !== id) return switchSession(latest);
+          } catch(discoveryError) {
+            if(currentTicket(ticket)){setRecoveryFailed(true);dispatch({type:'failed',detail:requestError(discoveryError)});}
+          }
+          return false;
+        }
+        setRecoveryFailed(true);dispatch({type: 'failed', detail: requestError(error)});
+      }
+      return false;
+    }
     finally { if (currentTicket(ticket)) setLoading(false); }
   };
   const createSession = async () => {
@@ -190,11 +208,22 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
     inFlight.current=false; activeRef.current=null;sessionId.current=null;setActive(null);
     stopRequested.current=false;stopInFlight.current=false;refreshing.current=false;setStopping(false);setStopError(null);setSyncError(null);
     creatingSession.current=null;
+    restoringSession.current=null;setLoading(false);
     dispatch({type:'reset'});setBatchCards([]);setTaskCards([]);callbacks.current.onBatchReset?.();setRuntime(null);
     if (!enabled) return;
+    setLoading(true);
     void agent.getRuntime().then(value=>{if(callbacks.current.enabled && callbacks.current.generation===generation)setRuntime(value);}).catch(()=>undefined);
-    const previous=typeof localStorage!=='undefined' ? localStorage.getItem('spectrumagent.active-session') : null;
-    if (previous) void switchSession(previous);
+    const ticket=epoch.current;
+    const restoration=(async()=>{
+      try {
+        const previous=savedSession() ?? await agent.latestSession();
+        if (currentTicket(ticket) && previous) await switchSession(previous);
+      } catch(error) {
+        if(currentTicket(ticket)){setRecoveryFailed(true);dispatch({type:'failed',detail:requestError(error)});}
+      } finally { if(currentTicket(ticket))setLoading(false); }
+    })();
+    restoringSession.current=restoration;
+    void restoration.finally(()=>{if(restoringSession.current===restoration)restoringSession.current=null;});
     return ()=>{epoch.current++;};
   }, [enabled,generation]);
   useEffect(()=>{

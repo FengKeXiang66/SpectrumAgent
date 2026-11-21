@@ -9,7 +9,7 @@ use spectrum_agent::{
     engine_path::EngineSelection,
     health::{SmokeFailure, SmokeMetrics},
     logging::ShellLog,
-    session_root,
+    workspace_root,
     state::Phase,
     supervisor::{EngineSupervisor, Snapshot, SupervisorEvent, SupervisorHandle},
     win32::NativeWin32,
@@ -392,10 +392,9 @@ fn begin_shutdown(app: &tauri::AppHandle) {
             let _ = state
                 .log
                 .event("host_cleanup_completed", json!({"success":result.is_ok()}));
-            // The engine is dead and joined; wipe the session data root now.
-            // Anything left behind is swept at the next launch instead.
-            let wiped = session_root::cleanup(&state.data_root);
-            let _ = state.log.event("session_data_wiped", json!({"success":wiped.is_ok()}));
+            // Processing data is durable. Only generation-owned process and
+            // handshake resources are cleaned up by the supervisor.
+            let _ = state.log.event("workspace_data_preserved", json!({}));
             // Opt-in acceptance only: let the existing bounded observer capture
             // React's Stopping DOM after engine cleanup, without blocking the UI.
             if acceptance::enabled() {
@@ -563,21 +562,18 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         .invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, open_exports_directory, boot_probe, datasets_forward, annotations_forward, preprocess_forward, agent_forward, agent_stream, settings_forward, annotations_draft_forward, models_forward]);
     let app = builder.setup(move |app| {
             setup_log.event("single_instance_lock_acquired", json!({}))?;
-            // 2026-11-13 ruling: single-use tool. All processing state lives in a
-            // per-session directory wiped on exit; only application configuration
-            // (API-key ciphertext, LLM settings) and this shell log stay at the
-            // permanent root. Runs after the single-instance lock.
-            let session = session_root::create(&root)?;
+            // Reopen the same workspace on every launch, after the instance lock.
+            let workspace = workspace_root::open(&root)?;
             // SAFETY: setup runs before any child process or extra thread is spawned,
             // so mutating the process environment cannot race with readers.
             unsafe {
-                std::env::set_var(session_root::ENV_DATA_ROOT, &session);
-                std::env::set_var(session_root::ENV_PERMANENT_ROOT, &root);
+                std::env::set_var(workspace_root::ENV_DATA_ROOT, &workspace);
+                std::env::set_var(workspace_root::ENV_PERMANENT_ROOT, &root);
             }
             let resource = app.path().resolve("resources/backend/app.exe", tauri::path::BaseDirectory::Resource)?;
             let selection = EngineSelection::resolve(None, || resource);
-            let (handle, events) = EngineSupervisor::start_selected(selection, session.clone(), Arc::new(NativeWin32))?;
-            app.manage(Desktop { supervisor: handle.clone(), data_root: session,
+            let (handle, events) = EngineSupervisor::start_selected(selection, workspace.clone(), Arc::new(NativeWin32))?;
+            app.manage(Desktop { supervisor: handle.clone(), data_root: workspace,
                 log: setup_log.clone(), closing: AtomicBool::new(false), exit_allowed: AtomicBool::new(false) });
             if let Some(state) = app.try_state::<Desktop>() {
                 acceptance::start(app.handle().clone(), state.data_root.clone(), setup_log.clone(), started)?;

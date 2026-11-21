@@ -1,7 +1,7 @@
-// Session-scoped selected training-set version. TASK-51: this is a transient
-// UI binding, not a persisted business fact; the frozen version itself lives
-// in the session database and is always re-read from the backend.
+// Remember the selection; the version and its members are re-read from the backend.
+const key = 'spectrumagent.selected-training-set';
 let selectedId = '';
+try { selectedId = localStorage.getItem(key) ?? ''; } catch { /* Optional UI preference. */ }
 const listeners = new Set<() => void>();
 
 export const datasetVersionSelection = {
@@ -9,6 +9,7 @@ export const datasetVersionSelection = {
   set: (id: string) => {
     if (selectedId === id) return;
     selectedId = id;
+    try { localStorage.setItem(key, id); } catch { /* The backend keeps the version. */ }
     listeners.forEach(listener => listener());
   },
   subscribe: (listener: () => void) => {

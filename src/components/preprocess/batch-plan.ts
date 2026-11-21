@@ -105,21 +105,21 @@ export function createBatchPlanController(api:PreprocessApi,storage?:Pick<Storag
     invalidate() {
       epoch++;stop=true;
       if(!owner)return;
-      owner='';boot='';publish({plans:[],active:null,busy:false});
-      try{storage?.removeItem(key);}catch{/* No persistent business state is required. */}
+      owner='';boot='';state={plans:[],active:null,busy:false};
+      listeners.forEach(f=>f());
     },
     attach(nextBoot:string,nextOwner:string) {
       if(boot===nextBoot&&owner===nextOwner)return;
       epoch++;boot=nextBoot;owner=nextOwner;state={plans:[],active:null,busy:false};
       try {
         const saved=JSON.parse(storage?.getItem(key)??'null');
-        if(saved?.schema===1&&saved.boot===boot&&saved.owner===owner&&Array.isArray(saved.plans)) {
+        if(saved?.schema===1&&saved.owner===owner&&Array.isArray(saved.plans)) {
           const plans=saved.plans as Plan[];
-          if(plans.some(p=>!p||p.owner!==owner||p.boot!==boot||typeof p.id!=='string'||typeof p.recipe!=='string'||!Array.isArray(p.members)||!Array.isArray(p.batches)||
+          if(plans.some(p=>!p||p.owner!==owner||p.boot!==saved.boot||typeof p.id!=='string'||typeof p.recipe!=='string'||!Array.isArray(p.members)||!Array.isArray(p.batches)||
             p.members.some(m=>!m||typeof m.cube_id!=='string'||typeof m.name!=='string'||(m.annotation_version_id!==null&&typeof m.annotation_version_id!=='string'))||
             new Set(p.members.map(m=>m.cube_id)).size!==p.members.length||
             p.batches.some(b=>!b||!b.ref||typeof b.draftId!=='string'||!Number.isInteger(b.revision)||!Array.isArray(b.inputs)||!b.inputs.length||b.inputs.length>32||b.inputs.some(i=>!i||typeof i.cube_id!=='string'||typeof i.annotation_version_id!=='string'||i.recipe_version_id!==p.recipe))))throw new Error('Invalid plan snapshot');
-          state={plans:plans.map(p=>({...p,status:'paused',batches:p.batches.map(b=>b.status==='not_submitted'||b.status==='blocked'?b:{...b,status:'unknown',receipt:null})})),active:saved.active,busy:false};
+          state={plans:plans.map(p=>({...p,boot,status:'paused',batches:p.batches.map(b=>b.status==='not_submitted'||b.status==='blocked'?{...b,confirmation:null}:{...b,status:'unknown',receipt:null})})),active:saved.active,busy:false};
         }
       }catch{/* A malformed local snapshot never authorizes an execution. */}
       publish(state);

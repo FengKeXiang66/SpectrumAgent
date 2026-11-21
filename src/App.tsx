@@ -52,7 +52,7 @@ function reasonCode(reason: ExitReason): string {
 }
 
 export default function App() {
-  const [preprocessPlans] = useState(()=>{let storage:Storage|undefined;try{storage=typeof sessionStorage==='undefined'?undefined:sessionStorage;}catch{/* In-memory plans remain available. */}return createBatchPlanController(preprocessing,storage);});
+  const [preprocessPlans] = useState(()=>{let storage:Storage|undefined;try{storage=typeof localStorage==='undefined'?undefined:localStorage;}catch{/* In-memory plans remain available. */}return createBatchPlanController(preprocessing,storage);});
   const [status, setStatus] = useState<Snapshot>(initial);
   useEffect(()=>{preprocessPlans.invalidate();},[status.generation_id,preprocessPlans]);
   const [shellError, setShellError] = useState('');
