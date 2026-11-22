@@ -15,7 +15,6 @@ import S02 from './screens/S02';
 import S09 from './screens/S09';
 import S10 from './screens/S10';
 import S11 from './screens/S11';
-import S12 from './screens/S12';
 import { modeling } from './components/modeling/api';
 import TrainingTaskDock from './components/modeling/TrainingTaskDock';
 import { failureMessage } from './components/modeling/chart';
@@ -24,9 +23,8 @@ import { describeError } from './components/datasets/types';
 import { createCatalogController, emptyCatalog } from './components/datasets/catalog';
 import ProjectPathsPanel from './components/settings/ProjectPathsPanel';
 import AnnotationWorkbench from './components/annotation/AnnotationWorkbench';
+import ProjectLabels from './components/annotation/ProjectLabels';
 import PreprocessWorkspace from './components/preprocess/PreprocessWorkspace';
-import { createBatchPlanController } from './components/preprocess/batch-plan';
-import { preprocessing } from './components/preprocess/api';
 import ModelPanel from './components/modeling/ModelPanel';
 import AppShell from './shell/AppShell';
 import { SCREEN_TITLE, type Screen } from './shell/screens';
@@ -52,9 +50,7 @@ function reasonCode(reason: ExitReason): string {
 }
 
 export default function App() {
-  const [preprocessPlans] = useState(()=>{let storage:Storage|undefined;try{storage=typeof localStorage==='undefined'?undefined:localStorage;}catch{/* In-memory plans remain available. */}return createBatchPlanController(preprocessing,storage);});
   const [status, setStatus] = useState<Snapshot>(initial);
-  useEffect(()=>{preprocessPlans.invalidate();},[status.generation_id,preprocessPlans]);
   const [shellError, setShellError] = useState('');
   const [workspace, setWorkspace] = useState<WorkspaceContext>({});
   const [records, setRecords] = useState<CatalogRecord[]>([]);
@@ -300,10 +296,8 @@ export default function App() {
           }
           void openDataset(next.id, 's05');
         }} />
-        : <section aria-label="S05 标注工作台"><p>请先在数据屏选择数据集。</p><button onClick={() => setScreen('s03')}>返回数据屏</button></section>;
-      case 's06': return <PreprocessWorkspace records={records} phase={catalog.phase} initialRecord={selected} ensureOwnerSession={session.ensureSession} controller={preprocessPlans} bootId={status.boot_id??''} refreshVersion={Object.values(refreshVersions).reduce((a,b)=>a+b,0)}/>;
-      case 's12': return catalog.phase === 'ready' ? <S12 records={records.filter(row => row.available)} onOpenModeling={() => openScreen('s07')} />
-        : <p role="status">请先返回数据屏加载数据目录。</p>;
+        : <ProjectLabels onOpenData={() => setScreen('s03')} />;
+      case 's06': return <PreprocessWorkspace records={records} phase={catalog.phase} initialRecord={selected} refreshVersion={Object.values(refreshVersions).reduce((a,b)=>a+b,0)}/>;
       case 's07': return catalog.phase === 'ready' ? <ModelPanel records={records.filter(row => row.available)} onOpenResults={run => openScreen('s08', undefined, run)} />
         : <p role="status">请先返回数据屏加载数据目录。</p>;
       case 's08': return <S08 runId={runId} onOpen={id => openScreen('s08', undefined, id)} onBackToList={() => setRunId(null)} onClose={() => setScreen('s07')} />;

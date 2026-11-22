@@ -175,10 +175,12 @@ class InferenceRuns:
             if (run is None or run["cube_id"] != cube_id or run["status"] != "succeeded"
                     or run["annotation_version_id"] != annotation_version_id):
                 raise ModelingError("PREPROCESS_RUN_NOT_READY", "预处理 run 须成功且绑定该数据集和标注版本")
-            recipe = db.execute("SELECT pipeline FROM preprocess_recipe_version WHERE id=?", (run["recipe_version_id"],)).fetchone()
-            if (recipe is None or run["recipe_version_id"] not in cal.get("recipe_version_ids", [])
-                    or normalized_pipeline(recipe[0]) != cal.get("pipeline")):
-                raise ModelingError("RECIPE_MISMATCH", "推理须使用训练 run 绑定的配方版本")
+            from spectrumagent.preprocess.current import is_current_run
+            if not is_current_run(db,run):
+                raise ModelingError('PREPROCESS_RUN_NOT_READY','请先处理当前标注')
+            pipeline = cal.get('pipeline')
+            if pipeline is None:
+                raise ModelingError('RECIPE_MISMATCH','模型缺少已训练的预处理定义')
             provenance = cal.get("provenance")
             if provenance is not None:
                 required = {"fit_scope", "fit_sample_count", "fitted_on", "source_preprocess_run_ids",
@@ -203,7 +205,7 @@ class InferenceRuns:
             raise ModelingError("FEATURE_COUNT_MISMATCH", "原始波段数与注册模型不一致")
         if axis_sha256(dataset.wavelengths) != app["wavelength_axis_sha256"]:
             raise ModelingError("WAVELENGTH_AXIS_MISMATCH", "波长轴与注册模型不一致")
-        probe = apply_with_calibration(cal, recipe[0], np.asarray(cal.get("probe", []))[None, :])
+        probe = apply_with_calibration(cal, pipeline, np.asarray(cal.get("probe", []))[None, :])
         if probe.shape[1] != app["n_features"]:
             raise ModelingError("FEATURE_COUNT_MISMATCH", "变换后特征数与注册模型不一致")
         predict(probe, cal["model"])
@@ -229,7 +231,7 @@ class InferenceRuns:
         state = np.where(labels < 0, 0, np.where(np.isin(labels, [int(i) for i, v in index.items() if v in backgrounds]), 1, 2)).astype(np.uint8)
         if not np.any(state == 2):
             raise ModelingError("NO_FOREGROUND_PIXELS", "确认版没有前景像素")
-        return model, recipe[0], shape, state
+        return model, pipeline, shape, state
 
     def create(self, model_id, cube_id, preprocess_run_id, annotation_version_id, *, block_rows=32):
         model, pipeline, shape, state = self._prepare(model_id, cube_id, preprocess_run_id, annotation_version_id)

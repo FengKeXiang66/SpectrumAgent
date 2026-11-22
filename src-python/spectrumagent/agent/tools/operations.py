@@ -149,12 +149,6 @@ class RecipeCreateArguments(ToolInput):
     note: Annotated[str, Field(max_length=2000)] | None = None
 
 
-class RecipeVersionArguments(ToolInput):
-    recipe_id: Reference
-    steps: Annotated[list[Step], Field(max_length=8)]
-    note: Annotated[str, Field(max_length=2000)] | None = None
-
-
 class RunExportArguments(ToolInput):
     run_id: Reference
 
@@ -177,37 +171,6 @@ class InferArguments(ToolInput):
     cube_id: Reference
     preprocess_run_id: Reference
     annotation_version_id: Reference
-
-
-# ---------------------------------------------------------------- training sets
-
-
-class TrainingCandidatesArguments(ToolInput):
-    cube_ids: Annotated[list[Reference], Field(min_length=1, max_length=32)] | None = None
-    recipe_version_id: Reference | None = None
-    snapshot_ref: Reference | None = None
-    offset: Annotated[int, Field(ge=0)] = 0
-    limit: Annotated[int, Field(ge=1, le=100)] = 32 if OPEN_ACCESS else 10
-
-
-class TrainingMember(ToolInput):
-    cube_id: Reference
-    annotation_version_id: Reference
-    recipe_version_id: Reference
-
-
-class TrainingPreviewArguments(ToolInput):
-    members: Annotated[list[TrainingMember], Field(min_length=1, max_length=32)]
-    note: Annotated[str, Field(max_length=2000)] | None = None
-
-
-class VersionArguments(ToolInput):
-    version_id: Reference
-
-
-class VersionPageArguments(VersionArguments):
-    offset: Annotated[int,Field(ge=0)] = 0
-    limit: Annotated[int,Field(ge=1,le=100)] = 32
 
 
 # ---------------------------------------------------------------- settings and paths
@@ -236,19 +199,9 @@ def _recipe_version(row):
     return {"recipe_version_id": row["id"], "recipe_version_no": row.get("version_no", 1)}
 
 
-def _training_summary(row):
-    labels = row.get("label_summary") or {}
-    ordered = sorted(labels.items(), key=lambda item: (-item[1], item[0]))[:MAX_ITEMS]
-    return {"version_id": row.get("id") or row["version_id"], "member_count": row["member_count"],
-            "is_frozen": 0 if not row.get("is_frozen") else 1,
-            "label_total": sum(labels.values()), "label_kinds": len(labels),
-            "label_summary": ", ".join(f"{label(code)}:{count}" for code, count in ordered) or "无"}
-
-
 def register_operations(registry, *, datasets=None, recycle=None, runner=None, models=None,
                         inferences=None, training_sets=None, paths=None, database=None):
     book = ReferenceBook()
-    candidate_snapshots = {}
 
     # ------------------------------------------------------------ import
     def known_sources():
@@ -308,7 +261,6 @@ def register_operations(registry, *, datasets=None, recycle=None, runner=None, m
         root = book.source(arguments.source_ref)
         try:
             response = datasets.import_path(str(root), raw=arguments.raw, confirm_new=arguments.confirm_new)
-            datasets.label_imported_folders([row.id for row in response.datasets])
         except DataError as error:
             if getattr(error, "status_code", None) == 409 or error.code == "REIMPORT_ACTIVE_EXISTS":
                 return {"status": "need_confirm", "conflict": error.code,
@@ -362,10 +314,6 @@ def register_operations(registry, *, datasets=None, recycle=None, runner=None, m
             result.update(_recipe_version(versions[-1]))
         return result
 
-    def recipe_version(arguments):
-        row = runner.recipes.add_version(arguments.recipe_id, _pipeline(arguments.steps), note=arguments.note)
-        return {"recipe_id": arguments.recipe_id, "step_count": len(arguments.steps), **_recipe_version(row)}
-
     def run_export(arguments):
         row = export_run(runner, arguments.run_id)
         artifacts = row.get("artifacts") or []
@@ -396,110 +344,6 @@ def register_operations(registry, *, datasets=None, recycle=None, runner=None, m
                 "sample_prediction": finite(stats.get("sample_prediction")),
                 "out_of_domain_count": int(stats.get("out_of_domain_count", 0)),
                 "quality_label": stats.get("quality_label", "")}
-
-    # ------------------------------------------------------------ training sets
-    def latest_annotation(db, cube_id):
-        row = db.execute("SELECT id FROM annotation_version WHERE cube_id=? ORDER BY version_no DESC LIMIT 1",
-                         (str(cube_id),)).fetchone()
-        return None if row is None else row[0]
-
-    def candidates(arguments):
-        if database is None:
-            raise DataError("TOOL_NOT_IMPLEMENTED", "缺少数据库绑定")
-        if arguments.cube_ids and len(set(arguments.cube_ids))!=len(arguments.cube_ids):
-            raise DataError('INVALID_REQUEST','候选范围不能包含重复样品')
-        now = monotonic()
-        for ref in list(candidate_snapshots):
-            if candidate_snapshots[ref]['expires'] < now:
-                del candidate_snapshots[ref]
-        reference = arguments.snapshot_ref
-        if reference:
-            snapshot = candidate_snapshots.get(reference)
-            if snapshot is None or snapshot['owner'] != owner_session.get():
-                raise DataError('QUERY_SNAPSHOT_EXPIRED', '查询快照失效或不属于当前会话，请从第一页重新查询')
-            cubes,recipe=snapshot['identity']
-            if ((arguments.cube_ids is not None and set(arguments.cube_ids)!=set(cubes))
-                    or arguments.recipe_version_id is not None and arguments.recipe_version_id!=recipe):
-                raise DataError('QUERY_SCOPE_MISMATCH','续页必须沿用同一快照范围和配方；不能改成剩余样品再使用旧offset')
-        else:
-            if arguments.offset:
-                raise DataError('QUERY_PAGE_REFERENCE_REQUIRED', '续页缺少snapshot_ref；请使用上一页返回的快照和next_offset，不要改写样品范围')
-            if not arguments.cube_ids or not arguments.recipe_version_id:
-                raise DataError('QUERY_PAGE_REFERENCE_REQUIRED','首次查询须给出完整cube_ids和recipe_version_id；续页只需snapshot_ref和offset')
-            identity = (tuple(arguments.cube_ids), arguments.recipe_version_id)
-            rows = []
-            with connect_database(database) as db:
-                db.execute('PRAGMA query_only=ON')
-                db.execute('BEGIN')  # short consistent read snapshot; no write lock
-                for cube in arguments.cube_ids:
-                    item = {'cube_id': cube}
-                    try:
-                        version_id = latest_annotation(db, cube)
-                        if version_id is None:
-                            item['status'] = 'need_annotation'
-                        else:
-                            item['annotation_version_id'] = version_id
-                            run = registered_run(db, cube, version_id, arguments.recipe_version_id, discovery=True)
-                            item['status'] = 'ready' if run else 'need_preprocess'
-                            if run:
-                                item['preprocess_run_id'] = run['id']
-                    except sqlite3.Error:
-                        item['status'] = 'unknown'
-                    rows.append(item)
-            if len(candidate_snapshots) >= 128:
-                del candidate_snapshots[next(iter(candidate_snapshots))]
-            reference = 'Q-' + uuid4().hex
-            snapshot = {'rows': rows, 'owner': owner_session.get(), 'identity': identity, 'expires': now + 300}
-            candidate_snapshots[reference] = snapshot
-        rows = snapshot['rows']
-        page = rows[arguments.offset:arguments.offset + arguments.limit]
-        ready = sum(item['status'] == 'ready' for item in rows)
-        unknown = sum(item['status'] == 'unknown' for item in rows)
-        result = {'status': 'ok', 'cube_count': len(rows), 'total': len(rows), 'ready_count': ready,
-                  'need_work': len(rows) - ready - unknown, 'unknown_count': unknown, 'snapshot_ref': reference,
-                  'offset': arguments.offset, 'count': len(page), 'truncated': arguments.offset + len(page) < len(rows),
-                  'references_confirmed': False}
-        result['next_offset']=arguments.offset+len(page) if result['truncated'] else None
-        result['recipe_version_id']=snapshot['identity'][1]
-        for index, item in enumerate(page, 1):
-            result.update({f'item_{index}_{key}': value for key, value in item.items()})
-        return result
-
-    def training_preview(arguments):
-        row = training_sets.preview({"members": [member.model_dump() for member in arguments.members],
-                                     "source_note": arguments.note})
-        result = {**_training_summary(row), "reused": 1 if row.get("reused") else 0,
-                  "need_preprocess_count": len(row.get("need_preprocess") or [])}
-        return result
-
-    def training_confirm(arguments):
-        row = training_sets.confirm(arguments.version_id)
-        return _training_summary(row)
-
-    def training_list(arguments):
-        rows = training_sets.list_frozen()
-        result = {"count": len(rows), "truncated": len(rows) > MAX_ITEMS}
-        for index, row in enumerate(rows[:MAX_ITEMS], 1):
-            result[f"item_{index}_version_id"] = row["id"]
-            result[f"item_{index}_member_count"] = row["member_count"]
-            result[f"item_{index}_label_summary"] = ", ".join(
-                f"{label(code)}:{count}" for code, count in list((row.get("label_summary") or {}).items())[:MAX_ITEMS]) or "无"
-        return result
-
-    def training_members(arguments):
-        row = training_sets.resolve_members(arguments.version_id)
-        members = row.get("members") or []
-        result = {"version_id": row["version_id"], "member_count": len(members),
-                  "need_preprocess_count": len(row.get("need_preprocess") or []),
-                  'offset':arguments.offset,'count':len(members[arguments.offset:arguments.offset+arguments.limit]),
-                  'truncated':arguments.offset+arguments.limit<len(members)}
-        for index, member in enumerate(members[arguments.offset:arguments.offset+arguments.limit], 1):
-            result[f"member_{index}_cube_id"] = member["cube_id"]
-            result[f"member_{index}_annotation_version_id"] = member["annotation_version_id"]
-            result[f"member_{index}_recipe_version_id"] = member["recipe_version_id"]
-            result[f"member_{index}_n_pixels"] = member["n_pixels"]
-            result[f"member_{index}_preprocess_run_id"] = member.get("preprocess_run_id") or "缺"
-        return result
 
     # ------------------------------------------------------------ settings and paths
     def llm_set(arguments):
@@ -547,16 +391,10 @@ def register_operations(registry, *, datasets=None, recycle=None, runner=None, m
         ("datasets.delete_preview", DeletePreviewArguments, "永久删除前的影响清单预览；返回 deletion_ref，不删除任何内容", delete_preview, recycle is not None),
         ("datasets.delete", DeleteArguments, "按 deletion_ref 永久删除数据集及其产物；须 confirm=true，不确认只返回 need_confirm", delete, recycle is not None),
         ("preprocess.recipe_create", RecipeCreateArguments, "组合算子新建配方（snv、sg_smooth、sg_derivative、standardize）；返回 recipe 与首个版本引用", recipe_create, runner is not None),
-        ("preprocess.recipe_version_add", RecipeVersionArguments, "为现有配方追加新版本；内容与最新版相同会被拒绝", recipe_version, runner is not None),
         ("preprocess.run_export", RunExportArguments, "把已成功的预处理 run 导出为可下载产物；只返回产物数量与类型", run_export, runner is not None and paths is not None),
         ("modeling.register", RegisterArguments, "把成功的分类或回归训练 run 注册为模型；返回 model_id", register_model, models is not None),
         ("modeling.set_stage", StageArguments, "设置模型阶段：experiment、candidate、production；同目标只有一个生产模型", set_stage, models is not None),
         ("modeling.infer", InferArguments, "对指定样品发起批量推理；须显式给出模型、cube、预处理 run 与标注版本", infer, inferences is not None),
-        ("training_sets.candidates", TrainingCandidatesArguments, "按 cube 列表与配方解析最新标注版本与可用预处理 run；只报缺口，不自动冻结", candidates, database is not None),
-        ("training_sets.preview", TrainingPreviewArguments, "按显式成员生成训练集版本预览；返回成员数、类别分布与预处理缺口", training_preview, training_sets is not None),
-        ("training_sets.confirm", VersionArguments, "冻结一个已预览的训练集版本", training_confirm, training_sets is not None),
-        ("training_sets.list", NoArguments, "列出已冻结的训练集版本", training_list, training_sets is not None),
-        ("training_sets.members", VersionPageArguments, "分页读取训练集版本的完整成员与缺口；不返回谱值", training_members, training_sets is not None),
         ("settings.llm_set", LlmSetArguments, "配置模型服务（base_url、API Key、model、temperature、max_tokens、timeout_ms、egress 开关）；开发期允许对话直接提供连接地址与密钥", llm_set, database is not None),
         ("projects.paths_get", ProjectArguments, "读取项目数据源与输出根的登记状态；只返回是否已配置，不返回路径", project_paths, database is not None),
     ]

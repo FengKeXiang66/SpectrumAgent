@@ -232,11 +232,11 @@ class RecipeDrafts:
                                   (draft['source_recipe_version_id'],recipe_id)).fetchone()
                 latest=db.execute('SELECT id,version_no,pipeline FROM preprocess_recipe_version WHERE recipe_id=? ORDER BY version_no DESC LIMIT 1',
                                   (recipe_id,)).fetchone()
-                existing=next((row for row in (source,latest) if row is not None and self.store._pipeline(row[2])[0]==encoded),None)
+                existing=next((row for row in (latest,) if row is not None and self.store._pipeline(row[2])[0]==encoded),None)
                 if existing is not None:
                     version_id,version_no=existing[0],existing[1]
                 else:
-                    row = self.store._add_version(db,dict(id=str(uuid4()),recipe_id=recipe_id,pipeline=encoded,note=note,created_at=submissions.now()),digest)
+                    row = self.store._update_current(db,dict(id=str(uuid4()),recipe_id=recipe_id,pipeline=encoded,note=note,created_at=submissions.now()),digest)
                     version_id,version_no = row['id'],row['version_no']
             db.execute('UPDATE recipe_draft SET source_recipe_version_id=?,revision=revision+1,updated_at=? WHERE draft_id=?',
                        (version_id,submissions.now(),draft_id))

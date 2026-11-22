@@ -43,23 +43,6 @@ export type BatchDeletePreview = { cube_ids: string[]; linked_runs: { id: string
   total_bytes: number; training_runs: number; preview_token: string; expires_at: string };
 export type BatchDeleteResult = Omit<BatchDeletePreview, 'preview_token' | 'expires_at'> & {
   deletion_id: string; deleted_at: string; permanent: true; pending_directories: string[] };
-export type DatasetVersionItem = { id: string; content_hash: string; cube_count: number; created_at: string;
-  confirmed_at: string; cube_ids: string[]; is_frozen: 1 };
-export type TrainingSetMemberInput = { cube_id: string; annotation_version_id: string; recipe_version_id: string };
-export type TrainingSetOptionsInput = { content_hash_dedup: boolean };
-export type TrainingSetPreviewInput = { members: TrainingSetMemberInput[]; options?: TrainingSetOptionsInput };
-export type TrainingSetVersion = { id: string; content_hash: string; created_at: string; actor: 'local'; is_frozen: 0 | 1;
-  member_count: number; label_summary: Record<string, number>; source_note: string | null; confirmed_at: string | null };
-export type TrainingSetGap = TrainingSetMemberInput & { input_fingerprint: string };
-export type TrainingSetMember = TrainingSetGap & { label_id: string | null; n_pixels: number; preprocess_run_id: string | null };
-export type TrainingSetMembersResponse = { version_id: string; members: TrainingSetMember[]; need_preprocess: TrainingSetGap[] };
-export type TrainingSetPreviewResponse = TrainingSetVersion & TrainingSetMembersResponse & { reused: boolean; duplicate_of: string | null };
-export type TrainingSetTransport = {
-  trainingSets(): Promise<TrainingSetVersion[]>;
-  trainingSetPreview(body: TrainingSetPreviewInput): Promise<TrainingSetPreviewResponse>;
-  trainingSetConfirm(versionId: string): Promise<TrainingSetVersion>;
-  trainingSetMembers(versionId: string): Promise<TrainingSetMembersResponse>;
-};
 export type DatasetTransport = {
   get: (id: string) => Promise<DatasetRecord>;
   chooseDirectories: () => Promise<string[] | null>;
@@ -71,7 +54,6 @@ export type DatasetTransport = {
   batchDelete: (ids: string[], previewToken: string, confirm: boolean) => Promise<BatchDeleteResult>;
   preview: (id: string, selection: number | PreviewOptions) => Promise<Preview>;
   spectraMean: (id: string, region: SpectrumRegion) => Promise<MeanSpectrum>;
-  listDatasetVersions: () => Promise<DatasetVersionItem[]>;
 };
 
 export function mergeRecords(previous: DatasetRecord[], incoming: DatasetRecord[]): DatasetRecord[] {

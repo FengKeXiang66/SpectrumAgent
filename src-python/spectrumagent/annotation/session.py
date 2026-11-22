@@ -164,7 +164,7 @@ class SessionStore:
         self.registry.get(cube_id)
         with connect_database(self.database) as db:
             rows = db.execute("SELECT l.id FROM label l JOIN dataset_registry d "
-                              "ON d.project_id=l.project_id WHERE d.id=? "
+                              "ON d.project_id=l.project_id WHERE d.id=? AND l.deleted_at IS NULL "
                               "ORDER BY l.sort_order ASC,l.code ASC", (cube_id,)).fetchall()
         return tuple(row[0] for row in rows)
 
@@ -199,14 +199,22 @@ class SessionStore:
                 result = old.copy()
                 for i, label_id in enumerate(state.label_ids):
                     if label_id not in positions:
-                        raise DataError("LABEL_REMOVED", "工作态引用的标签已被删除", label_id=label_id)
+                        if np.any(old == i):
+                            raise DataError("LABEL_REMOVED", "工作态引用的标签已被删除", label_id=label_id)
+                        continue
                     result[old == i] = positions[label_id]
                 return result
             # Prepare both halves before writing; CAS failures change neither.
             labels = self.drafts.labels(cube_id)
-            undo = deque(((json.dumps(remap_document(json.loads(doc), labels, state.label_ids)), remap(old) if old is not None else None)
-                          for doc, old in state.undo_stack), maxlen=UNDO_DEPTH)
-            remap(state.label_map)  # Preserve LABEL_REMOVED even for unused labels.
+            undo = deque(maxlen=UNDO_DEPTH)
+            for doc, old in state.undo_stack:
+                try:
+                    undo.append((json.dumps(remap_document(json.loads(doc), labels, state.label_ids)),
+                                 remap(old) if old is not None else None))
+                except DataError as error:
+                    if error.code != 'LABEL_REMOVED':
+                        raise
+                    # A permanent deletion cannot be reversed by annotation undo.
         else:
             undo = state.undo_stack
         row = self.drafts.get(cube_id)
@@ -334,63 +342,10 @@ class SessionStore:
         if state.segments is None:
             raise DataError("SUPERPIXELS_REQUIRED", "请先生成超像素分割")
 
-    @managed(restore=False)
-    def confirm(self, cube_id, *, revision, overwrite=False, note=None):
-        # Preserve the original strong class/revision refusal BEFORE a cache
-        # restoration can reach the legacy working-state normalization path.
-        with self._lock:
-            row=self.drafts.get(cube_id)
-            if (row['revision'] if row else 0)!=revision:raise conflict()
-            document=row['document'] if row else self.drafts.empty(cube_id)
-            labels=self.drafts.labels(cube_id)
-            if [(c['index'],c['code']) for c in document['classes']] != [(i,label[1]) for i,label in enumerate(labels)]:
-                raise DataError('LABEL_INDEX_MISMATCH','草稿类别下标与项目标签不一致')
-            if self.resources is None:return self._confirm_current(cube_id,revision=revision,overwrite=overwrite,note=note)
-            with self.resources.lease(cube_id):
-                return self._confirm_current(cube_id,revision=revision,overwrite=overwrite,note=note)
-
-    def _confirm_current(self, cube_id, *, revision, overwrite=False, note=None):
-        """Read-only draft confirmation; commit snapshot before attempting MAT."""
-        from spectrumagent.agent.mat import MatStore
-        cube_id = str(cube_id)
-        with self._lock:
-            row = self.drafts.get(cube_id)
-            if (row["revision"] if row else 0) != revision:
-                raise conflict()
-            state = self._states.get(cube_id)
-            if state is None:
-                raise DataError("SUPERPIXELS_REQUIRED", "请先生成超像素分割")
-            self._require_segments(state)
-            document = deepcopy(row["document"] if row else self.drafts.empty(cube_id))
-            labels = self.drafts.labels(cube_id)
-            if [(c["index"], c["code"]) for c in document["classes"]] != [(i, label[1]) for i, label in enumerate(labels)]:
-                raise DataError("LABEL_INDEX_MISMATCH", "草稿类别下标与项目标签不一致")
-            label_map, conflicts = rasterize_with_conflicts_v1(document, state.label_map.shape)
-            count = int(np.count_nonzero(conflicts))
-            if count:
-                rr, cc = np.nonzero(conflicts)
-                error = DataError("OVERLAP_UNRESOLVED", "存在跨类重叠，请在画布上处理后确认", conflict_count=count,
-                                  sample_pixels=np.column_stack((rr, cc))[:20].tolist(),
-                                  bbox={"min_row": int(rr.min()), "min_col": int(cc.min()),
-                                        "max_row": int(rr.max()), "max_col": int(cc.max())})
-                error.status_code = 409
-                raise error
-            document["classes"] = [{"index": i, "code": l[1], "name": l[2], "color": l[3]} for i, l in enumerate(labels)]
-            encoded = json.dumps(document, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-            saved = self.save(cube_id, overwrite=overwrite, confirm=True, note=note, frozen=(encoded, label_map, revision))
-            result = {"version_id": saved["id"], "version_no": saved["version_no"], "snapshot_ref": saved["snapshot_ref"],
-                      "training_mat_id": None, "overlap_conflicts": 0, "n_spectra": int(np.count_nonzero(label_map >= 0))}
-            try:
-                mat = MatStore(self.registry, self.paths).generate(cube_id, saved["id"], label_map)
-                result["training_mat_id"] = mat["id"]
-            except DataError as error:
-                result["mat_error"] = str(error)
-            return result
-
     @managed(required=True)
     def save(self, cube_id, *, overwrite=False, confirm=False, note: str | None = None, frozen=None):
         if note is not None and (not isinstance(note, str) or len(note) > 2000):
-            raise DataError("INVALID_VERSION_NOTE", "版本备注须为不超过 2000 字符的文本")
+            raise DataError("INVALID_VERSION_NOTE", "保存备注须为不超过 2000 字符的文本")
         cube_id = str(cube_id)
         with self._lock:
             state = self._state(cube_id) if frozen is None else replace(
@@ -400,8 +355,9 @@ class SessionStore:
             with connect_database(self.database) as db:
                 latest = db.execute("SELECT id,version_no,created_at FROM annotation_version "
                                     "WHERE cube_id=? ORDER BY version_no DESC LIMIT 1", (cube_id,)).fetchone()
-            if overwrite and (not confirm or latest is None):
-                raise AnnotationConflict("覆写须已有版本且显式 confirm；仅覆盖最新版本")
+                latest_ref = db.execute("SELECT snapshot_ref FROM annotation_version WHERE id=?", (latest[0],)).fetchone()[0] if latest else None
+            # Saving replaces the current result; callers cannot create history.
+            overwrite = latest is not None
             started = perf_counter()
             dataset, _ = self.registry.get(cube_id)
             aggregates = aggregate_spectra(self.registry, cube_id, state.label_map,
@@ -418,8 +374,8 @@ class SessionStore:
                     if overwrite or note is not None else None)
             annotation_rows, spectrum_rows = self._aggregate_rows(
                 cube_id, version_id, state, aggregates, dataset.name, timestamp)
-            relative = PurePosixPath(cube_id, f"v{version_no}").as_posix()
-            directory = self.paths.snapshots / cube_id / f"v{version_no}"
+            relative = latest_ref if overwrite else PurePosixPath(cube_id, "current").as_posix()
+            directory = self.paths.snapshots.joinpath(*PurePosixPath(relative).parts)
             storage.mkdir(directory.parent, parents=True, exist_ok=True)
             temporary = directory.with_name(directory.name + f".{uuid4().hex}.tmp")
             backup = directory.with_name(directory.name + f".{uuid4().hex}.backup.tmp")
@@ -433,7 +389,7 @@ class SessionStore:
                     current = db.execute("SELECT id,version_no,created_at FROM annotation_version "
                                          "WHERE cube_id=? ORDER BY version_no DESC LIMIT 1", (cube_id,)).fetchone()
                     if current != latest:
-                        raise AnnotationConflict("保存期间最新版本已改变，请重试")
+                        raise AnnotationConflict("保存期间标注已改变，请重试")
                     if frozen is not None:
                         current_draft = db.execute("SELECT revision FROM annotation_draft WHERE cube_id=?", (cube_id,)).fetchone()
                         if (current_draft[0] if current_draft else 0) != frozen[2]:
@@ -578,7 +534,7 @@ class SessionStore:
             # never reappear in the read-only material column.
             rows = db.execute("SELECT sl.cube_id,l.* FROM sample_label sl JOIN label l ON l.id=sl.label_id "
                               "AND l.project_id=sl.project_id JOIN dataset_registry d ON d.id=sl.cube_id "
-                              "AND d.project_id=sl.project_id WHERE (? IS NULL OR sl.project_id=?) "
+                              "AND d.project_id=sl.project_id WHERE l.deleted_at IS NULL AND (? IS NULL OR sl.project_id=?) "
                               "ORDER BY sl.cube_id,l.sort_order,l.code", (project_id, project_id))
             wanted = None if cube_ids is None else {str(value) for value in cube_ids}
             result = {}

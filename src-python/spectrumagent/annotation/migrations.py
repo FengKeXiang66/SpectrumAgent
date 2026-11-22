@@ -115,11 +115,6 @@ CREATE TABLE IF NOT EXISTS label_alias (
 """
 
 
-# Optional post-migration hook. A real project starts with zero labels, so this
-# is None in production. Only the test suite injects legacy catalog fixtures.
-SEED_HOOK = None
-
-
 def default_project_id(db):
     return db.execute("SELECT id FROM project WHERE name=? ORDER BY created_at,id LIMIT 1", ("默认项目",)).fetchone()[0]
 
@@ -129,6 +124,9 @@ def migrate(db):
     for statement in DDL.split(";"):
         if statement.strip():
             db.execute(statement)
+    if 'deleted_at' not in {row[1] for row in db.execute('PRAGMA table_info(label)')}:
+        # Deleted labels remain read-only metadata for already saved results.
+        db.execute('ALTER TABLE label ADD COLUMN deleted_at TEXT')
     db.execute('CREATE TABLE IF NOT EXISTS annotation_confirmation_state ('
                'cube_id TEXT PRIMARY KEY,annotation_version_id TEXT NOT NULL REFERENCES annotation_version(id) ON DELETE CASCADE,'
                'draft_revision INTEGER NOT NULL,document_sha256 TEXT NOT NULL)')
@@ -140,8 +138,6 @@ def migrate(db):
                    (str(uuid4()), project_id, "材料", "材料", "enum", now()))
     # A fresh project starts with zero labels. Labels are created only when the
     # user declares them, never pre-seeded here.
-    if SEED_HOOK is not None:
-        SEED_HOOK(db, project_id)
     columns = {row[1] for row in db.execute("PRAGMA table_info(dataset_registry)")}
     if "project_id" not in columns:
         db.execute("ALTER TABLE dataset_registry ADD COLUMN project_id TEXT")

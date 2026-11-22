@@ -27,7 +27,7 @@ from spectrumagent.annotation.gestures import region_from_gesture
 from spectrumagent.data import DataError
 from spectrumagent.api.registry import display_names, safe_name
 from spectrumagent.preprocess.migrations import BUILTIN_CODE, BUILTIN_PIPELINE
-from spectrumagent.dataset_version.store import DatasetVersions
+from spectrumagent.dataset_version.store import DatasetScope
 from . import ToolInput, Reference, CubeArguments, NoArguments, _run_summary
 
 
@@ -61,7 +61,7 @@ class LabelsArguments(ToolInput):
     aliases: list[LabelAlias] = Field(default_factory=list, max_length=30)
     class_codes: Annotated[list[Reference], Field(default_factory=list, max_length=30)]
     class_names: Annotated[list[Reference], Field(default_factory=list, max_length=30)]
-    include_background: bool = True
+    include_background: bool = False
 
     @model_validator(mode="after")
     def has_any_target(self):
@@ -151,30 +151,6 @@ class BatchRunArguments(ToolInput):
         return None if value == 'null' else value
 
 
-class VersionPreviewOptions(ToolInput):
-    content_hash_dedup: bool = True
-    preview_downsample: bool = True
-
-
-class VersionPreviewArguments(ToolInput):
-    cube_ids: Annotated[list[Reference], Field(min_length=1)]
-    options: VersionPreviewOptions | None = None
-
-    @field_validator("cube_ids")
-    @classmethod
-    def explicit_uuids(cls, values):
-        return [str(UUID(value)) for value in values]
-
-
-class VersionConfirmArguments(ToolInput):
-    version_id: Reference
-
-    @field_validator("version_id")
-    @classmethod
-    def explicit_uuid(cls, value):
-        return str(UUID(value))
-
-
 class PrepareBatchArguments(ToolInput):
     # 2026-11-13 ruling: segmentation takes an explicit cube scope. Version
     # determination/freezing belongs to the step before modeling, so no frozen
@@ -261,7 +237,7 @@ class Workflows:
         self.runner, self.comparison, self.sessions, self.diffusion = runner, comparison, sessions, diffusion
         if batch_prepare is None and sessions is not None and diffusion is not None:
             from spectrumagent.annotation.prepare_batch import BatchPrepareService
-            batch_prepare = BatchPrepareService(DatasetVersions(self.datasets), diffusion.superpixels, sessions)
+            batch_prepare = BatchPrepareService(DatasetScope(self.datasets), diffusion.superpixels, sessions)
         self.batch_prepare = batch_prepare
 
     def prepare_batch(self, arguments):
@@ -304,7 +280,7 @@ class Workflows:
             return []
         live = {item[0] for item in _rows(
             self.sessions.database,
-            "SELECT l.code FROM label l JOIN dataset_registry d ON d.project_id=l.project_id WHERE d.id=?",
+            "SELECT l.code FROM label l JOIN dataset_registry d ON d.project_id=l.project_id WHERE d.id=? AND l.deleted_at IS NULL",
             (cube_id,))}
         missing = [item for item in row["document"].get("classes", []) if item.get("code") not in live]
         if not missing:
@@ -445,7 +421,10 @@ class Workflows:
             store = LabelStore(self.sessions.database)
             from spectrumagent.annotation.labels import plastic_catalog
             catalog = {item["code"]: item for item in plastic_catalog()}
-            rows = _rows(self.sessions.database, "SELECT code,name FROM label WHERE project_id=?", (project_id,))
+            retired = {row[0] for row in _rows(self.sessions.database,
+                'SELECT code FROM label WHERE project_id=? AND deleted_at IS NOT NULL', (project_id,))}
+            catalog = {code: item for code, item in catalog.items() if code not in retired}
+            rows = _rows(self.sessions.database, "SELECT code,name FROM label WHERE project_id=? AND deleted_at IS NULL", (project_id,))
             existing = {row[0] for row in rows}
             code_by_name = {row[1]: row[0] for row in rows}
             from spectrumagent.annotation.aliases import normalized, resolve, add as add_alias
@@ -455,15 +434,14 @@ class Workflows:
                 code = resolve(self.sessions.database, project_id, raw)
                 if code:
                     code_by_name[normalized(raw)] = code
-            known = set(catalog) | {"BG"}
+            known = set(catalog) | ({"BG"} - retired)
             wanted = set(arguments.class_codes)
             if wanted - existing - known:
                 raise DataError("LABEL_NOT_FOUND", "class_codes 只接受材料目录中已登记的 code；若这是用户给出的类别名称（如中文），请把原名放进 class_names 重试，平台会生成占位 code")
             # User-supplied names are registered verbatim: Chinese names are never
-            # transliterated and an unknown name gets a placeholder code, matching
-            # the folder-import convention (L001...) for the user to confirm later.
+            # transliterated and an unknown name gets an internal L001-style code.
             catalog_by_name = {item["name"]: code for code, item in catalog.items()}
-            planned, used, serial = [], set(existing) | known | wanted, 1
+            planned, used, serial = [], set(existing) | known | wanted | retired, 1
             for name in dict.fromkeys(normalized(raw) for raw in arguments.class_names):
                 if not name:
                     continue
@@ -481,6 +459,8 @@ class Workflows:
             if not _rows(self.sessions.database, "SELECT id FROM label_schema WHERE project_id=? AND tree_path='材料'", (project_id,)):
                 store.add(SchemaRequest(project_id=project_id, schema=SchemaField(name="材料", tree_path="材料", field_type="enum")))
             missing = sorted((wanted | ({"BG"} if arguments.include_background else set())) - existing)
+            if 'BG' in missing and 'BG' in retired:
+                raise DataError('LABEL_NOT_FOUND', '原背景标签已删除，请手动新建标签并明确指定')
             catalog_codes = [code for code in missing if code in catalog]
             if catalog_codes:
                 store.add(CatalogRequest(project_id=project_id, from_catalog="plastic", codes=catalog_codes))
@@ -611,7 +591,7 @@ class Workflows:
             if state.revision != arguments.revision:
                 raise conflict()
             labels = _rows(self.sessions.database, "SELECT id,code,is_background FROM label WHERE project_id="
-                           "(SELECT project_id FROM dataset_registry WHERE id=?) ORDER BY sort_order,code", (arguments.cube_id,))
+                           "(SELECT project_id FROM dataset_registry WHERE id=?) AND deleted_at IS NULL ORDER BY sort_order,code", (arguments.cube_id,))
             background = next((identifier for identifier, code, is_bg in labels if code == "BG" and is_bg), None)
             foreground = [state.label_ids.index(identifier) for identifier, _, is_bg in labels if not is_bg]
             if background is None:
@@ -708,7 +688,7 @@ class Workflows:
             if version is None:
                 # A user-created recipe sharing a code is not scientific proof
                 # that its latest content matches the requested fixed template.
-                version = store.add_version(recipe["id"], deepcopy(pipeline), note="对话固定模板；保留既有版本")
+                version = store.update_current(recipe["id"], deepcopy(pipeline), note="对话固定模板；保留既有版本")
         return {"recipe_id": recipe["id"], "recipe_version_id": version["id"], "recipe_version_no": version["version_no"],
                 "profile": arguments.profile, "display_name": name, "status": "ready",
                 "detail": "基线仅执行平台前置反射率转换；SNV 和 SG 参数取已登记模板。优劣需要实际运行比较。"}
@@ -804,25 +784,6 @@ class Workflows:
                 summary.update({f"item_{index}_{key}": value for key, value in run_provenance(self.runner, row).items()})
         return summary
 
-    def version_preview(self, arguments):
-        row = DatasetVersions(self.datasets).preview(arguments.cube_ids,
-            arguments.options.model_dump() if arguments.options is not None else None)
-        frozen = _rows(self.datasets.database, "SELECT is_frozen FROM dataset_version WHERE id=?", (row["version_id"],))
-        return {**{key: row[key] for key in ("version_id", "reused", "duplicate_of", "cube_count", "blocked")},
-                "is_frozen": frozen[0][0]}
-
-    def version_confirm(self, arguments):
-        row = DatasetVersions(self.datasets).confirm(arguments.version_id)
-        return {"version_id": row["dataset_version_id"], "is_frozen": row["is_frozen"], "confirmed_at": row["confirmed_at"]}
-
-    def version_list(self, _):
-        rows = DatasetVersions(self.datasets).list_frozen()
-        summary = {"version_count": len(rows), "truncated": False}
-        for index, row in enumerate(rows, 1):
-            summary.update({f"version_{index}_{key}": value for key, value in row.items() if key != "cube_ids"})
-            summary.update({f"version_{index}_cube_{j}_id": cube for j, cube in enumerate(row["cube_ids"], 1)})
-        return summary
-
 
 def register_workflows(registry, **services):
     workflows = Workflows(**services)
@@ -854,9 +815,6 @@ def register_workflows(registry, **services):
         ("preprocess.run_default", DefaultRunArguments, "必须显式指定已确认的 annotation_version_id 与 recipe_version_id，或用户明确授权使用的本轮实际结果；候选发现不代表确认；缺一返回 need_version，不从记忆补入、不选最新或内置默认；返回真实指标和溯源", workflows.run_default, runner is not None),
         ("preprocess.run_get", RunGetArguments, "查询真实预处理状态、指标、算子版本与比较边界；不返回产物路径或谱值", workflows.run_get, runner is not None),
         ("preprocess.run_batch", BatchRunArguments, "按显式成员批量预处理，最多32项。标注可用真实annotation_version_id或已确认的annotation_version_no，由服务端按该cube精确解析；不猜UUID、不选最新。所有引用执行前核验。重试带retry_of_submission且items只列原失败成员及修正引用，成功成员保留。缺参返回need_version", workflows.run_batch, runner is not None),
-        ("versions.preview", VersionPreviewArguments, "建模前一步：按显式 cube_ids 预览数据集版本；只返回版本与数量摘要，不返回源路径或谱值；批量分割与标注不需要先走这一步", workflows.version_preview, datasets is not None),
-        ("versions.confirm", VersionConfirmArguments, "建模前一步：按显式 version_id 冻结既有预览版本；仅冻结，不绑定配方或预处理 run；分割标注阶段不要求冻结", workflows.version_confirm, datasets is not None),
-        ("versions.list", NoArguments, "列出已冻结数据集版本及有序 cube 引用；不选最新、不列未冻结版本", workflows.version_list, datasets is not None),
     ]
     for name, arguments, description, handler, ready in tools:
         registry.register(name, arguments, description, handler if ready else None)

@@ -360,7 +360,22 @@ def remember_user(state, content, workspace=None, last_tool=None, *, recent_roun
 def observe(state, tool, arguments, result, round_id=None):
     """Only validated service results advance business state."""
     state = dict(state)
-    if tool in {'preprocess.draft_get','preprocess.draft_update'} and not result.get('error'):
+    if tool == 'workspace.save_annotation' and result.get('status') == 'saved':
+        state['annotation_id'] = result['annotation_id']
+        state['next_action'] = 'preprocess'
+        state['stages_done'] = sorted(set(state.get('stages_done') or ()) | {'annotation','save'})
+        state.pop('save_requested',None)
+        return state
+    if tool == 'workspace.preprocess':
+        state.pop('recipe_editing',None)
+        if result.get('succeeded') and not result.get('failed'):
+            state['stages_done'] = sorted(set(state.get('stages_done') or ()) | {'preprocess'})
+        return state
+    if tool == 'workspace.classify':
+        state['modeling_status'] = result.get('status','unknown')
+        if result.get('job_id'): state['last_training_job_id'] = result['job_id']
+        return state
+    if tool in {'preprocess.draft_get','preprocess.draft_update','workspace.recipe_edit'} and not result.get('error'):
         state['recipe_editing']=True
     elif tool in {'preprocess.run','preprocess.run_default','preprocess.run_batch','preprocess.draft_execute',
                   'annotations.prepare','annotations.prepare_batch','modeling.classify','modeling.regress'}:
@@ -444,7 +459,7 @@ def observe(state, tool, arguments, result, round_id=None):
         resolved = result.get("resolved_class_codes")
         if resolved or arguments.get('class_codes') or arguments.get('class_names'):
             state["class_codes"] = resolved.split(",") if resolved else (arguments.get("class_codes") or [])
-        state["include_background"] = arguments.get("include_background", True)
+        state["include_background"] = arguments.get("include_background", False)
     if tool in CANVAS_ANNOTATION_TOOLS:
         state["stage"] = "annotation"
     if tool == "annotations.propose":

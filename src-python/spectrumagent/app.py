@@ -15,11 +15,9 @@ from spectrumagent.api.preprocess import make_router as make_preprocess_router
 from spectrumagent.api.settings import make_router as make_settings_router
 from spectrumagent.api.agent import make_router as make_agent_router
 from spectrumagent.api.models import make_router as make_models_router
-from spectrumagent.api.dataset_versions import make_router as make_dataset_versions_router
-from spectrumagent.api.training_sets import make_router as make_training_sets_router
 from spectrumagent.api.experiments import make_router as make_experiments_router
 from spectrumagent.experiments.service import ExperimentService
-from spectrumagent.dataset_version.store import DatasetVersions
+from spectrumagent.dataset_version.store import DatasetScope
 from spectrumagent.agent.llm import OpenAICompatibleClient
 from spectrumagent.agent.tools import build_registry
 from spectrumagent.agent.skill import ensure_workflow_skill, upgrade_builtin_sessions, _write
@@ -76,24 +74,25 @@ def create_app(paths, identity):
     from spectrumagent.preprocess.submissions import recover_interrupted
     recover_interrupted(paths.database)
     app.state.preprocess_compare = CompareEngine(app.state.preprocess_runner)
+    from spectrumagent.api.current import make_router as make_current_router
+    app.include_router(make_current_router(app.state.annotation_sessions, app.state.preprocess_runner))
     app.include_router(make_preprocess_router(app.state.preprocess_runner, app.state.preprocess_compare))
     app.include_router(make_models_router(app.state.annotation_sessions, app.state.preprocess_runner, identity.boot_id))
     app.state.experiments = ExperimentService(paths)
     app.state.experiments.archive.recover_interrupted()
     app.include_router(make_experiments_router(app.state.experiments))
-    preview_image = next(route.endpoint for route in dataset_router.routes
-                         if route.path == '/api/v1/datasets/{identifier}/preview')
-    app.state.dataset_versions = DatasetVersions(registry, preview_image=preview_image)
-    app.state.annotation_batch = BatchPrepareService(app.state.dataset_versions, app.state.superpixel_engine,
+    app.state.dataset_scope = DatasetScope(registry)
+    app.state.annotation_batch = BatchPrepareService(app.state.dataset_scope, app.state.superpixel_engine,
                                                     app.state.annotation_sessions)
-    app.include_router(make_dataset_versions_router(app.state.dataset_versions))
-    from spectrumagent.training_set.store import TrainingSets
-    app.state.training_sets = TrainingSets(registry, paths)
-    app.include_router(make_training_sets_router(registry, paths, store=app.state.training_sets))
+    # Keep legacy tables readable for existing records and deletion cleanup.
+    from spectrumagent.training_set.migrations import migrate as migrate_legacy_training_sets
+    with connect_database(paths.database) as db:
+        migrate_legacy_training_sets(db)
+    app.state.training_sets = None
     from spectrumagent.agent.session_migrations import initialize as initialize_sessions
     from spectrumagent.agent.sessions import SessionService
     initialize_sessions(paths.database)
-    app.state.agent_sessions = SessionService(paths.database, app.state.dataset_versions, identity.boot_id)
+    app.state.agent_sessions = SessionService(paths.database, app.state.dataset_scope, identity.boot_id)
     from spectrumagent.modeling.run import TrainingRuns
     from spectrumagent.modeling.registry import ModelRegistry
     from spectrumagent.modeling.inference import InferenceRuns
@@ -105,7 +104,7 @@ def create_app(paths, identity):
                                           sessions=app.state.annotation_sessions, diffusion=app.state.diffusion_engine,
                                           catalogue_version=2, batch_prepare=app.state.annotation_batch,
                                           training=app.state.training_runs, models=app.state.model_registry,
-                                          inferences=app.state.inference_runs, versions=app.state.dataset_versions,
+                                          inferences=app.state.inference_runs, versions=app.state.dataset_scope,
                                           engine=app.state.superpixel_engine, recycle=registry.recycle,
                                           training_sets=app.state.training_sets, paths=paths,
                                           experiments=app.state.experiments)

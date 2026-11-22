@@ -1,4 +1,4 @@
-// Runtime UI projections only; business facts stay in the temporary backend DB.
+// Runtime UI projections only; saved recipes stay in the persistent backend database.
 export const recipeEvents = new EventTarget();
 export const draftEvents = new EventTarget();
 export const recipesChanged = () => recipeEvents.dispatchEvent(new Event('change'));

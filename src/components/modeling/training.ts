@@ -4,7 +4,7 @@ export type TrainingJob = { job_id: string; status: 'queued' | 'running' | 'succ
   run_id: string | null; error: unknown; engine_boot_id?: string; snapshot_version?: number; phase?: string;
   elapsed_s?: number; phase_elapsed_s?: number; cancel_requested?: boolean; cancelable?: boolean;
   completed_folds?: number[]; reused_folds?: number[]; baseline_folds?: number[]; total_folds?: number;
-  result_status?: string; retry_of?: string | null; training_set_version_id?: string | null; current?: Record<string, unknown>;
+  result_status?: string; retry_of?: string | null; current?: Record<string, unknown>;
   event_cursor?: number; band_selection?: string | null;
   eta_seconds?: number | null; stage_eta_seconds?: number | null; eta?: { state: string; method: string; samples: number; scope: string } };
 export type TrainingEvent = { seq: number; at: string; elapsed_s: number; phase: string; [key: string]: unknown };

@@ -21,6 +21,9 @@ pub enum ArtifactKind {
 #[derive(Deserialize)]
 #[serde(tag = "op", rename_all = "snake_case", deny_unknown_fields)]
 pub enum PreprocessRequest {
+    CurrentState,
+    SaveCurrentRecipe { id: String, body: Value },
+    RunCurrent { dataset_id: String, recipe_id: String },
     Submit {
         submission_ref: String,
         request: Box<PreprocessRequest>,
@@ -83,7 +86,7 @@ pub enum PreprocessRequest {
     GetRecipe {
         id: String,
     },
-    AddVersion {
+    UpdateRecipe {
         id: String,
         body: Value,
     },
@@ -166,7 +169,7 @@ pub fn parse_request(value: Value) -> Result<PreprocessRequest, ForwardError> {
         serde_json::from_value(value).map_err(|_| invalid_request())?;
     if matches!(
         request,
-        PreprocessRequest::ListRecipes | PreprocessRequest::ListOperators
+        PreprocessRequest::ListRecipes | PreprocessRequest::ListOperators | PreprocessRequest::CurrentState
     ) && extra_unit_fields
     {
         return Err(invalid_request());
@@ -186,7 +189,7 @@ impl PreprocessRequest {
                 if !matches!(
                     request.as_ref(),
                     Self::CreateRecipe { .. }
-                        | Self::AddVersion { .. }
+                        | Self::UpdateRecipe { .. }
                         | Self::CreateRun { .. }
                         | Self::CreateRunBatch { .. }
                         | Self::Compare { .. }
@@ -262,7 +265,7 @@ impl PreprocessRequest {
                 }
                 Ok(())
             }
-            Self::GetRecipe { id } | Self::AddVersion { id, .. } => uuid(id, "INVALID_RECIPE_ID"),
+            Self::SaveCurrentRecipe { id, .. } | Self::GetRecipe { id } | Self::UpdateRecipe { id, .. } => uuid(id, "INVALID_RECIPE_ID"),
             Self::GetRun { id } => uuid(id, "INVALID_RUN_ID"),
             Self::DownloadExport {
                 run_id,
@@ -300,7 +303,11 @@ impl PreprocessRequest {
                 uuid(recipe_id, "INVALID_RECIPE_ID")
             }
             Self::ListProjectRecipes { project_id } => uuid(project_id, "INVALID_PROJECT_ID"),
-            Self::ListRecipes | Self::ListOperators | Self::CreateRecipe { .. } => Ok(()),
+            Self::RunCurrent { dataset_id, recipe_id } => {
+                uuid(dataset_id, "INVALID_DATASET_ID")?;
+                uuid(recipe_id, "INVALID_RECIPE_ID")
+            }
+            Self::ListRecipes | Self::ListOperators | Self::CurrentState | Self::CreateRecipe { .. } => Ok(()),
         }
     }
 
@@ -394,6 +401,9 @@ impl PreprocessRequest {
                 Method::POST,
                 Some(json!({ "items": items })),
             ),
+            Self::CurrentState => ("/api/v1/preprocess/current".into(), Method::GET, None),
+            Self::SaveCurrentRecipe { id, body } => (format!("/api/v1/preprocess/current/recipes/{id}"), Method::PUT, Some(body.clone())),
+            Self::RunCurrent { dataset_id, recipe_id } => (format!("/api/v1/preprocess/current/datasets/{dataset_id}/run"), Method::POST, Some(json!({"recipe_id":recipe_id}))),
             Self::ListRecipes => ("/api/v1/preprocess/recipes".into(), Method::GET, None),
             Self::CreateRecipe { body } => (
                 "/api/v1/preprocess/recipes".into(),
@@ -405,9 +415,9 @@ impl PreprocessRequest {
                 Method::GET,
                 None,
             ),
-            Self::AddVersion { id, body } => (
-                format!("/api/v1/preprocess/recipes/{id}/versions"),
-                Method::POST,
+            Self::UpdateRecipe { id, body } => (
+                format!("/api/v1/preprocess/recipes/{id}/current"),
+                Method::PUT,
                 Some(body.clone()),
             ),
             Self::SelectRecipe {
@@ -804,9 +814,9 @@ mod tests {
                 None,
             ),
             (
-                json!({"op":"add_version","id":ID,"body":body}),
-                format!("/api/v1/preprocess/recipes/{ID}/versions"),
-                Method::POST,
+                json!({"op":"update_recipe","id":ID,"body":body}),
+                format!("/api/v1/preprocess/recipes/{ID}/current"),
+                Method::PUT,
                 Some(body.clone()),
             ),
             (
@@ -1009,7 +1019,7 @@ mod tests {
             ),
             (json!({"op":"get_recipe","id":"bad"}), "INVALID_RECIPE_ID"),
             (
-                json!({"op":"add_version","id":"bad","body":{}}),
+                json!({"op":"update_recipe","id":"bad","body":{}}),
                 "INVALID_RECIPE_ID",
             ),
             (
@@ -1557,4 +1567,21 @@ mod tests {
         }
         Ok(())
     }
+    #[test]
+    fn current_workspace_has_fixed_routes_and_rejects_version_commands() -> Result<(), Box<dyn std::error::Error>> {
+        for (input,path,method) in [
+            (json!({"op":"current_state"}),"/api/v1/preprocess/current".to_owned(),Method::GET),
+            (json!({"op":"save_current_recipe","id":ID,"body":{"pipeline":{"steps":[]}}}),format!("/api/v1/preprocess/current/recipes/{ID}"),Method::PUT),
+            (json!({"op":"run_current","dataset_id":ID,"recipe_id":OTHER}),format!("/api/v1/preprocess/current/datasets/{ID}/run"),Method::POST),
+        ] {
+            let (url,actual,_) = parse_request(input)?.destination(4321)?;
+            assert_eq!(url.path(),path);assert_eq!(actual,method);
+            assert_eq!(url.host_str(),Some("127.0.0.1"));assert_eq!(url.port(),Some(4321));
+        }
+        assert!(parse_request(json!({"op":"add_version","id":ID,"body":{}})).is_err());
+        assert!(parse_request(json!({"op":"current_state","path":"/health"})).is_err());
+        assert!(parse_request(json!({"op":"run_current","dataset_id":"../health","recipe_id":OTHER})).is_err());
+        Ok(())
+    }
+
 }

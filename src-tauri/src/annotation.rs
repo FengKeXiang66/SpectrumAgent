@@ -114,26 +114,8 @@ pub enum AnnotationRequest {
         id: String,
         #[serde(skip_serializing_if = "Option::is_none")]
         note: Option<String>,
-        #[serde(
-            default,
-            deserialize_with = "optional_present",
-            skip_serializing_if = "Option::is_none"
-        )]
-        overwrite: Option<bool>,
-        #[serde(
-            default,
-            deserialize_with = "optional_present",
-            skip_serializing_if = "Option::is_none"
-        )]
-        confirm: Option<bool>,
     },
-    Versions {
-        id: String,
-    },
-    VersionOverlay {
-        id: String,
-        version: String,
-    },
+    Current { id: String },
     Projects {},
     Labels {
         project_id: String,
@@ -143,7 +125,7 @@ pub enum AnnotationRequest {
     },
     Catalog {},
     PatchLabel { label_id: String, body: Value },
-    DeleteLabel { label_id: String },
+    DeleteLabel { label_id: String, #[serde(default)] confirm: bool },
     MergeLabels { body: Value },
     ImportTreePreview { body: Value },
     ImportTreeApply { body: Value },
@@ -248,8 +230,7 @@ impl AnnotationRequest {
             | Self::Working { id }
             | Self::Validate { id }
             | Self::Save { id, .. }
-            | Self::Versions { id }
-            | Self::VersionOverlay { id, .. } => Some(id),
+            | Self::Current { id } => Some(id),
             Self::Projects {} | Self::Labels { .. } | Self::AddLabel { .. } | Self::Catalog {}
             | Self::PatchLabel { .. } | Self::DeleteLabel { .. } | Self::MergeLabels { .. }
             | Self::ImportTreePreview { .. } | Self::ImportTreeApply { .. }
@@ -293,10 +274,6 @@ impl AnnotationRequest {
             },
             // TASK-04 R19: note <= 2000 Unicode characters, matching Pydantic.
             Self::Save { note, .. } => note.as_ref().is_none_or(|v| v.chars().count() <= 2000),
-            Self::VersionOverlay { version, .. } => {
-                uuid(version, "INVALID_VERSION_ID")?;
-                true
-            }
             Self::Labels { project_id } => {
                 uuid(project_id, "INVALID_PROJECT_ID")?;
                 true
@@ -324,7 +301,7 @@ impl AnnotationRequest {
                     _ => false,
                 })
             }
-            Self::DeleteLabel { label_id } => { uuid(label_id, "INVALID_LABEL_ID")?; true }
+            Self::DeleteLabel { label_id, .. } => { uuid(label_id, "INVALID_LABEL_ID")?; true }
             Self::MergeLabels { body } => {
                 let b: MergeLabelsBody = label_body(body)?;
                 uuid(&b.source_id, "INVALID_LABEL_ID")?;
@@ -404,9 +381,9 @@ impl AnnotationRequest {
                 url.set_path(&format!("/api/v1/labels/{label_id}"));
                 return Ok((url, Method::PATCH, Some(body.clone())));
             }
-            Self::DeleteLabel { label_id } => {
+            Self::DeleteLabel { label_id, confirm } => {
                 url.set_path(&format!("/api/v1/labels/{label_id}"));
-                return Ok((url, Method::DELETE, None));
+                return Ok((url, Method::DELETE, Some(serde_json::json!({"confirm":confirm}))));
             }
             Self::MergeLabels { body } => {
                 url.set_path("/api/v1/labels/merge");
@@ -441,10 +418,7 @@ impl AnnotationRequest {
             Self::Working { .. } => ("annotations/working".to_owned(), Method::GET, false),
             Self::Validate { .. } => ("annotations/validate".to_owned(), Method::POST, false),
             Self::Save { .. } => ("annotations/save".to_owned(), Method::POST, true),
-            Self::Versions { .. } => ("annotations".to_owned(), Method::GET, false),
-            Self::VersionOverlay { version, .. } => {
-                (format!("annotations/{version}/overlay"), Method::GET, false)
-            }
+            Self::Current { .. } => ("annotations".to_owned(), Method::GET, false),
             _ => return Err(invalid_request()),
         };
         url.set_path(&format!(
@@ -736,7 +710,6 @@ mod tests {
     }
 
     const ID: &str = "00000000-0000-0000-0000-000000000001";
-    const VERSION: &str = "00000000-0000-0000-0000-000000000002";
 
     #[test]
     fn get_superpixels_is_fixed_bodyless_get_and_rejects_extras() -> Result<(), ForwardError> {
@@ -803,7 +776,7 @@ mod tests {
 
     #[test]
     fn all_nine_operations_have_exact_paths_methods_and_bodies() -> Result<(), ForwardError> {
-        let cases = [
+        let cases: [(Value, String, Method, Option<Value>); 8] = [
             (
                 json!({"op":"superpixels","id":ID,"n_segments":800,"compactness":0.5,"pca_components":3,"force":true}),
                 "superpixels".into(),
@@ -843,20 +816,14 @@ mod tests {
                 None,
             ),
             (
-                json!({"op":"save","id":ID,"note":"备注","overwrite":true,"confirm":true}),
+                json!({"op":"save","id":ID,"note":"备注"}),
                 "annotations/save".into(),
                 Method::POST,
-                Some(json!({"note":"备注","overwrite":true,"confirm":true})),
+                Some(json!({"note":"备注"})),
             ),
             (
-                json!({"op":"versions","id":ID}),
+                json!({"op":"current","id":ID}),
                 "annotations".into(),
-                Method::GET,
-                None,
-            ),
-            (
-                json!({"op":"version_overlay","id":ID,"version":VERSION}),
-                format!("annotations/{VERSION}/overlay"),
                 Method::GET,
                 None,
             ),
@@ -938,8 +905,7 @@ mod tests {
             "working",
             "validate",
             "save",
-            "versions",
-            "version_overlay",
+            "current",
         ] {
             let mut input = json!({"op":op,"id":ID});
             match op {
@@ -948,7 +914,6 @@ mod tests {
                     input["geometry"] = json!({"superpixels":[0]});
                     input["action"] = json!("uncertain");
                 }
-                "version_overlay" => input["version"] = json!(VERSION),
                 _ => {}
             }
             parse_request(input.clone())?;
@@ -1116,11 +1081,6 @@ mod tests {
                 dataset.err().map(|e| e.error),
                 Some("INVALID_DATASET_ID".into())
             );
-            let version = parse_request(json!({"op":"version_overlay","id":ID,"version":bad}));
-            assert_eq!(
-                version.err().map(|e| e.error),
-                Some("INVALID_VERSION_ID".into())
-            );
         }
     }
 
@@ -1209,7 +1169,8 @@ mod tests {
             "sample_count":1,"reuse":true,"needs_naming":false,"confirmed":false});
         for (request, path, method, body) in [
             (json!({"op":"patch_label","label_id":ID,"body":{"name":"新名","shortcut_key":null}}), format!("/api/v1/labels/{ID}"), Method::PATCH, Some(json!({"name":"新名","shortcut_key":null}))),
-            (json!({"op":"delete_label","label_id":ID}), format!("/api/v1/labels/{ID}"), Method::DELETE, None),
+            (json!({"op":"delete_label","label_id":ID}), format!("/api/v1/labels/{ID}"), Method::DELETE, Some(json!({"confirm":false}))),
+            (json!({"op":"delete_label","label_id":ID,"confirm":true}), format!("/api/v1/labels/{ID}"), Method::DELETE, Some(json!({"confirm":true}))),
             (json!({"op":"merge_labels","body":{"source_id":ID,"target_id":other}}), "/api/v1/labels/merge".into(), Method::POST, Some(json!({"source_id":ID,"target_id":other}))),
             (json!({"op":"import_tree_preview","body":{"project_id":ID,"root":root,"depth":1}}), "/api/v1/labels/import-tree/preview".into(), Method::POST, Some(json!({"project_id":ID,"root":root,"depth":1}))),
             (json!({"op":"import_tree_apply","body":{"project_id":ID,"root":root,"candidates":[candidate]}}), "/api/v1/labels/import-tree/apply".into(), Method::POST, Some(json!({"project_id":ID,"root":root,"candidates":[candidate]}))),

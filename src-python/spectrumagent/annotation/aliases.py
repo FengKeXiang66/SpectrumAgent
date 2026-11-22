@@ -11,7 +11,7 @@ def normalized(name):
 def resolve(database, project, name):
     key = normalized(name)
     with connect_database(database) as db:
-        labels = db.execute('SELECT id,code,name FROM label WHERE project_id=?', (project,)).fetchall()
+        labels = db.execute('SELECT id,code,name FROM label WHERE project_id=? AND deleted_at IS NULL', (project,)).fetchall()
         aliases = db.execute('SELECT label_id FROM label_alias WHERE project_id=? AND alias=?', (project, key)).fetchall()
     hits = {row[0] for row in labels if normalized(row[2]) == key} | {row[0] for row in aliases}
     if len(hits) > 1:
@@ -27,7 +27,7 @@ def add(database, project, alias, code):
     if existing and existing != code:
         raise DataError('LABEL_AMBIGUOUS', '别名已被另一类别使用')
     with connect_database(database) as db:
-        row = db.execute('SELECT id FROM label WHERE project_id=? AND code=?', (project, code)).fetchone()
+        row = db.execute('SELECT id FROM label WHERE project_id=? AND code=? AND deleted_at IS NULL', (project, code)).fetchone()
         if not row:
             raise DataError('LABEL_NOT_FOUND', '别名必须指向项目中已存在的 code')
         db.execute('INSERT OR IGNORE INTO label_alias(project_id,alias,label_id) VALUES(?,?,?)', (project, key, row[0]))

@@ -1,4 +1,4 @@
-"""B07 append-only recipe library and R3 pure input fingerprint, no run execution."""
+"""Current recipe library and input content identity; legacy SQL names support existing workspaces."""
 from spectrumagent.storage import guard as storage
 from datetime import datetime, timezone
 import hashlib
@@ -36,6 +36,10 @@ def input_fingerprint(dataset_id, source_hashes, annotation_version_id, n_pixels
         hashes.append(digest.lower())
     payload = "|".join([dataset_id, *hashes, annotation_version_id, str(n_pixels)])
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def annotation_identity(label_map, label_index):
+    return hashlib.sha256(label_map.tobytes() + json.dumps(label_index, sort_keys=True).encode()).hexdigest()
 
 
 def _timestamp():
@@ -100,7 +104,7 @@ class RecipeStore:
         db.execute("INSERT INTO recipe_pipeline_hash (recipe_version_id,algorithm,sha256) VALUES (?,?,?)",
                        (version_id, RECIPE_HASH_ALGORITHM, digest))
 
-    def add_version(self, recipe_id, pipeline, note=None):
+    def update_current(self, recipe_id, pipeline, note=None):
         if note is not None and not isinstance(note, str):
             raise ValueError("note 须为字符串或 None")
         encoded, digest = self._pipeline(pipeline)
@@ -110,30 +114,26 @@ class RecipeStore:
         payload = dict(recipe_id=str(recipe_id), pipeline=json.loads(encoded), note=note)
         with self.lock, connect_database(self.database, timeout=10) as db:
             db.execute("BEGIN IMMEDIATE")
-            operation, fresh = submissions.begin(db, submission, 'preprocess.recipe_version_add', payload)
+            operation, fresh = submissions.begin(db, submission, 'preprocess.recipe_update', payload)
             if not fresh:
                 return submissions.receipt(operation)
-            result = self._add_version(db, row, digest)
+            result = self._update_current(db, row, digest)
             submissions.finish(db, operation['operation_id'], 'succeeded', result)
         return result
 
-    def _add_version(self, db, row, digest):
+    def _update_current(self, db, row, digest):
         from .drafts import assert_available
         recipe_id = row['recipe_id']
         encoded = row['pipeline']
         if not db.execute("SELECT 1 FROM preprocess_recipe WHERE id=?", (str(recipe_id),)).fetchone():
             raise KeyError(recipe_id)
         assert_available(db,recipe_id=recipe_id)
-        latest = db.execute("SELECT v.pipeline FROM preprocess_recipe_version v "
-                            "WHERE v.recipe_id=? ORDER BY v.version_no DESC LIMIT 1", (str(recipe_id),)).fetchone()
-        if latest is not None and self._pipeline(latest[0])[0] == encoded:
-            raise PreprocessError("RECIPE_CONTENT_UNCHANGED", "配方内容与最新版本相同", recipe_id=str(recipe_id))
-        row["version_no"] = db.execute("SELECT coalesce(max(version_no),0)+1 FROM preprocess_recipe_version WHERE recipe_id=?",
-                                       (str(recipe_id),)).fetchone()[0]
-        db.execute("INSERT INTO preprocess_recipe_version (id,recipe_id,version_no,pipeline,note,created_at) "
-                   "VALUES (:id,:recipe_id,:version_no,:pipeline,:note,:created_at)", row)
-        db.execute("INSERT INTO recipe_pipeline_hash (recipe_version_id,algorithm,sha256) VALUES (?,?,?)",
-                   (row["id"], RECIPE_HASH_ALGORITHM, digest))
+        latest = db.execute("SELECT id,version_no,created_at FROM preprocess_recipe_version WHERE recipe_id=? ORDER BY version_no DESC LIMIT 1", (str(recipe_id),)).fetchone()
+        if latest is None:
+            raise KeyError(recipe_id)
+        row.update(id=latest[0], version_no=latest[1], created_at=latest[2])
+        db.execute("UPDATE preprocess_recipe_version SET pipeline=?,note=? WHERE id=?", (encoded,row['note'],row['id']))
+        db.execute("UPDATE recipe_pipeline_hash SET algorithm=?,sha256=? WHERE recipe_version_id=?", (RECIPE_HASH_ALGORITHM,digest,row['id']))
         row.update(recipe_hash_alg=RECIPE_HASH_ALGORITHM, recipe_pipeline_sha256=digest)
         return _version(row)
 
@@ -152,7 +152,7 @@ class RecipeStore:
         result["versions"] = [_version(row) for row in db.execute(
             "SELECT v.*,h.algorithm AS recipe_hash_alg,h.sha256 AS recipe_pipeline_sha256 "
             "FROM preprocess_recipe_version v JOIN recipe_pipeline_hash h ON h.recipe_version_id=v.id "
-            "WHERE v.recipe_id=? ORDER BY v.version_no", (str(recipe_id),))]
+            "WHERE v.recipe_id=? ORDER BY v.version_no DESC LIMIT 1", (str(recipe_id),))]
         return result
 
     def list(self):

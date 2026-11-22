@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { DatasetReference } from '../datasets/types.ts';
 import { displayName } from '../datasets/types.ts';
-import { preprocessing } from '../preprocess/api.ts';
+import { currentWorkspace } from '../preprocess/current';
 import { modeling, stageLabels, inferenceWarning, mapSource, clippingMessage, paletteGradient,
   type RegisteredModel, type InferenceResult, type ConcentrationMap } from './api.ts';
 import { failureMessage } from './chart.ts';
@@ -15,11 +15,9 @@ export default function InferencePanel({ records, onClose }: { records: DatasetR
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [progress, setProgress] = useState('');
   useEffect(() => {
     let live = true;
-    void Promise.all([modeling.models(), Promise.all(records.map(async row => {
-      const runs = await preprocessing.listRuns(row.id);
-      const ready = await Promise.all(runs.filter(run => run.status === 'succeeded').map(run => preprocessing.getRun(run.id)));
-      return [row.id, ready.map(run => ({ id: run.id, version: run.annotation_version_id, recipe: run.recipe_version_id }))] as const;
-    }))]).then(([available, runs]) => { if (live) { setModels(available); setChoices(Object.fromEntries(runs)); } })
+    void Promise.all([modeling.models(), currentWorkspace.state()]).then(([available, state]) => {
+      if (live) { setModels(available); setChoices(Object.fromEntries(state.members.filter(row => records.some(record => record.id === row.cube_id)).map(row => [row.cube_id, row.run_id && row.annotation_id ? [{id:row.run_id,version:row.annotation_id,recipe:row.recipe_input_id!}] : []]))); }
+    })
       .catch(failure => { if (live) setError(failureMessage(failure)); });
     return () => { live = false; };
   }, [records]);
@@ -52,11 +50,11 @@ export default function InferencePanel({ records, onClose }: { records: DatasetR
     {error && <p role="alert">{error}</p>}
     <fieldset disabled={busy}><legend>选择模型与样品</legend>
       <label>注册模型<select value={model} onChange={e => { setModel(e.target.value); setSelected({}); }}>
-        <option value="">请选择</option>{models.map(row => <option key={row.id} value={row.id}>{row.name} v{row.version} · {stageLabels[row.stage]}</option>)}</select></label>
+        <option value="">请选择</option>{models.map(row => <option key={row.id} value={row.id}>{row.name} · {stageLabels[row.stage]}</option>)}</select></label>
       {chosen && <p>固定训练量程 {chosen.applicability.y_min}–{chosen.applicability.y_max}；{chosen.quality_label}</p>}
-      <p>每个样品选择一个已成功的预处理记录，标注版本随记录绑定。服务会核验配方版本与模型训练一致。</p>
+      <p>选择参与推理的样品，使用各样品当前的预处理结果。服务会核验配方与训练时一致。</p>
       {records.map(row => <label key={row.id}>{displayName(row)}<select value={selected[row.id] ?? ''} onChange={e => setSelected({ ...selected, [row.id]: e.target.value })}>
-        <option value="">不参与</option>{(choices[row.id] ?? []).map(run => <option key={run.id} value={run.id}>run {run.id} · 标注 {run.version} · 配方 {run.recipe}</option>)}</select></label>)}
+        <option value="">不参与</option>{(choices[row.id] ?? []).map(run => <option key={run.id} value={run.id}>使用当前处理结果</option>)}</select></label>)}
       <button disabled={!model || !Object.values(selected).some(Boolean)} onClick={() => void batch()}>开始批量推理</button>
     </fieldset>
     <p role="status">{progress}</p>

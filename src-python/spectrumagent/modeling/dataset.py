@@ -23,6 +23,19 @@ from spectrumagent.preprocess.registry import effective_pipeline
 from . import ModelingError
 
 
+def assert_current_content(dataset, labels, index, row):
+    """Do not rebuild a training input from changed files behind a stable ID."""
+    import os
+    from spectrumagent.preprocess.recipes import input_fingerprint, annotation_identity
+    files = {Path(dataset.header_path), Path(dataset.data_path)}
+    root = Path(os.path.commonpath([str(path.parent) for path in files]))
+    hashes = {path.relative_to(root).as_posix(): file_sha256(path) for path in sorted(files)}
+    count = int(np.count_nonzero(labels >= 0))
+    expected = input_fingerprint(row['cube_id'], hashes, row['annotation']['id']+':'+annotation_identity(labels,index), count)
+    if expected != row['run']['input_fingerprint']:
+        raise ModelingError('TRAINING_REFERENCE_CHANGED', '当前源数据或标注已变化，请重新预处理')
+
+
 def _inputs(registry, *, cube_ids, annotation_version_ids, preprocess_run_ids, target, task="classification", target_schema_id=None,
             recipe_version_id=None, dataset_version_ref=None):
     if not cube_ids or len(cube_ids) != len(annotation_version_ids) or len(cube_ids) != len(preprocess_run_ids):
@@ -35,7 +48,10 @@ def _inputs(registry, *, cube_ids, annotation_version_ids, preprocess_run_ids, t
             annotation = db.execute("SELECT * FROM annotation_version WHERE id=?", (str(version),)).fetchone()
             if annotation is None or annotation["cube_id"] != str(cube):
                 raise ModelingError("VERSION_CUBE_MISMATCH", "标注版本不属于对应数据集")
-            rows.append({"cube_id": str(cube), "annotation": dict(annotation)})
+            saved = dict(annotation)
+            proof = db.execute('SELECT document_sha256 FROM annotation_confirmation_state WHERE annotation_version_id=?',(str(version),)).fetchone()
+            saved['content_digest'] = proof[0] if proof else None
+            rows.append({"cube_id": str(cube), "annotation": saved})
         for row, identifier in zip(rows, preprocess_run_ids):
             run = db.execute("SELECT * FROM preprocess_run WHERE id=?", (str(identifier),)).fetchone()
             context = {"cube_id": row["cube_id"], "recipe_version_id": recipe_version_id,
@@ -47,13 +63,6 @@ def _inputs(registry, *, cube_ids, annotation_version_ids, preprocess_run_ids, t
             if recipe is None:
                 raise ModelingError("PREPROCESS_RUN_NOT_READY", "预处理配方版本不存在", **context)
             row.update(run=dict(run), pipeline=effective_pipeline(recipe[0]))
-        if dataset_version_ref is not None:
-            version = db.execute('SELECT is_frozen FROM dataset_version WHERE id=?', (str(dataset_version_ref),)).fetchone()
-            members = {item[0] for item in db.execute(
-                'SELECT cube_id FROM dataset_version_item WHERE version_id=?', (str(dataset_version_ref),))}
-            if version is None or version[0] != 1 or members != set(cube_ids):
-                raise ModelingError('DATASET_VERSION_MISMATCH', '训练数据集集合须与已冻结版本一致',
-                                    version_id=str(dataset_version_ref), cube_ids=cube_ids)
     if task == "regression":
         if not target_schema_id:
             raise ModelingError("TARGET_SCHEMA_REQUIRED", "回归须提供连续字段 target_schema_id")
@@ -92,6 +101,7 @@ def _build(registry, paths, rows):
         try:
             with np.load(folder / "label_map.npz", allow_pickle=False) as archive:
                 label_map = archive["label_map"].copy()
+            label_index = json.loads((folder / 'label_index.json').read_text('utf-8'))
         except (OSError, ValueError, KeyError) as error:
             raise ModelingError("INVALID_SNAPSHOT_REF", "无法读取确认版 label_map") from error
         if label_map.shape != shape[:2]:
@@ -116,6 +126,9 @@ def _build(registry, paths, rows):
             offset += count
             del block
         sample_means_raw.append(x.mean(axis=0))
+        dataset, _ = registry.readable(cube, raw=False)
+        assert_current_content(dataset, label_map, label_index, row)
+        del dataset
         # Each cube is fitted as a whole, explicitly acknowledged by leak.py.
         processed = operators.run(x, row["pipeline"], wavelengths=wavelengths or None).spectra
         if not np.isfinite(processed).all():
@@ -185,6 +198,7 @@ def build_sample_training_set(registry, paths, *, preprocess_run_ids, target_sch
         if count == 0:
             raise ModelingError("NO_FOREGROUND_PIXELS", "版本中没有可用的已标前景像素", cube_id=cube)
         means.append(total/count)
+        assert_current_content(dataset, labels, index, row)
         cubes.append({"cube_id": cube, "n_pixels_used": count, "annotation_version_id": row["annotation"]["id"],
                       "input_fingerprint": row["run"]["input_fingerprint"], "pipeline": row["pipeline"],
                       "source_hashes": {"header": file_sha256(Path(dataset.header_path)), "data": file_sha256(Path(dataset.data_path))}})

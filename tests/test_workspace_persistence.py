@@ -59,11 +59,6 @@ def worker(phase, folder):
         recipe_version = recipe['versions'][0]['id']
         run = app.state.preprocess_runner.run(cube_id, version_id, recipe_version)
         assert run['status'] == 'succeeded', run
-        batch = app.state.dataset_versions.preview([cube_id], {'preview_downsample': False})
-        app.state.dataset_versions.confirm(batch['version_id'])
-        training = app.state.training_sets.preview({'members': [{'cube_id': cube_id,
-            'annotation_version_id': version_id, 'recipe_version_id': recipe_version}]})
-        app.state.training_sets.confirm(training['version_id'])
         owner = app.state.agent_sessions.create()['id']
         app.state.agent_sessions.select(owner, cube_id)
         from spectrumagent.agent.state import AgentStore
@@ -108,7 +103,7 @@ def worker(phase, folder):
                        (committed_job, 'old-boot', owner, 'committed', '{}', '{}', json.dumps(committed), 'before-restart'))
             db.execute("INSERT INTO experiment_dialogue(session_id,run_status) VALUES (?,'running')", (owner,))
         refs = dict(cube=cube_id, label=label['id'], annotation=version_id, recipe=recipe['id'],
-                    run=run['id'], dataset=batch['version_id'], training=training['version_id'], owner=owner,
+                    run=run['id'], owner=owner,
                     experiment=experiment['experiment_id'], abandoned=abandoned, job=job, completed_job=completed_job,
                     committed_job=committed_job, training_rows=training_rows, inference_rows=inference_rows)
         # Record all durable output bytes before the process fully exits.
@@ -118,6 +113,9 @@ def worker(phase, folder):
         ledger.write_text(json.dumps(refs), encoding='utf-8')
     else:
         refs = json.loads(ledger.read_text('utf-8'))
+        labels = [label for schema in LabelStore(paths.database).tree(
+            LabelStore(paths.database).projects()[0]['id']) for label in schema['labels']]
+        assert [(label['id'], label['name']) for label in labels] == [(refs['label'], '测试材料')]
         for relative, digest in refs['artifacts'].items():
             assert hashlib.sha256((paths.root / relative).read_bytes()).hexdigest() == digest
         assert registry.record(refs['cube']).id
@@ -127,10 +125,11 @@ def worker(phase, folder):
         assert int((snapshot['label_map'] >= 0).sum()) == 32
         assert recipes.get(refs['recipe'])['versions'][0]['id']
         assert app.state.preprocess_runner.get(refs['run'])['status'] == 'succeeded'
-        assert app.state.dataset_versions.get_frozen(refs['dataset'])['cube_count'] == 1
-        members = app.state.training_sets.resolve_members(refs['training'])
-        assert not members['need_preprocess']
-        assert members['members'][0]['preprocess_run_id'] == refs['run']
+        from spectrumagent.preprocess.current import CurrentWorkspace
+        member = CurrentWorkspace(sessions, app.state.preprocess_runner).state()['members'][0]
+        # The second restart keeps an unsaved edit; its old processing result must
+        # become unavailable until the new annotation has been processed.
+        assert member['status'] == ('ready' if phase == 'restore' else 'need_preprocess')
         assert app.state.agent_sessions.detail(refs['owner'])['canvas_focus']['cube_id'] == refs['cube']
         assert app.state.agent_sessions.list(kind='global')['sessions'][0]['id'] == refs['owner']
         from spectrumagent.agent.state import AgentStore

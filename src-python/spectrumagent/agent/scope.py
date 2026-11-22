@@ -11,6 +11,8 @@ from .open_access import OPEN_ACCESS
 
 # Explicit, closed catalogue. Never authorize by a prefix.
 POLICIES = {
+    'workspace.current':'global', 'workspace.recipe_edit':'public', 'workspace.save_annotation':'cube', 'workspace.preprocess':'global',
+    'workspace.classify':'global', 'workspace.preflight':'global',
     'datasets.list':'discovery', 'datasets.describe':'cube', 'datasets.resolve':'discovery',
     'annotations.draft_get':'cube', 'annotations.draft_add_region':'cube',
     'annotations.status_batch':'nested',
@@ -194,11 +196,11 @@ class ScopedToolRegistry:
                     target_project = row[0] if row else None
                 if target_project is None and len(projects) == 1:
                     target_project = projects[0][0]
-                existing_codes = {row[0] for row in db.execute('SELECT code FROM label WHERE project_id=?', (target_project,))}
+                existing_codes = {row[0] for row in db.execute('SELECT code FROM label WHERE project_id=? AND deleted_at IS NULL', (target_project,))}
             if target_project and len(projects) > 1 and not any(pid == target_project and (pid in text or pname in text) for pid, pname in projects):
                 if target_project != context.get('label_project_id'):
                     raise DataError('OPERATION_NOT_AUTHORIZED', '请明确要修改标签的项目')
-            wanted = set(codes) | ({'BG'} if args.get('include_background', True) else set())
+            wanted = set(codes) | ({'BG'} if args.get('include_background', False) else set())
             if (codes and target_project == context.get('label_project_id') and not args.get('class_names')
                     and not args.get('aliases') and set(codes).issubset(context.get('class_codes', []))
                     and wanted.issubset(existing_codes)):
@@ -209,6 +211,8 @@ class ScopedToolRegistry:
             if not re.search(r'新建|创建|建立|添加|登记|标签|类别|标注', text) or re.search(r'不要.*(?:标签|类别)', text):
                 raise DataError('OPERATION_NOT_AUTHORIZED', '请明确要登记的项目标签')
             names = args.get('class_names') or []
+            if args.get('include_background', False) and not re.search(r'背景|\bBG\b', text, re.IGNORECASE):
+                raise DataError('OPERATION_NOT_AUTHORIZED', '背景标签需要用户明确声明')
             if any(value not in text for value in names + codes):
                 raise DataError('OPERATION_NOT_AUTHORIZED', '标签不在用户明确声明的类别中')
             for alias in args.get('aliases', []):
@@ -682,7 +686,7 @@ class ScopedToolRegistry:
         token = owner_session.set(self.session_id)
         try:
             from spectrumagent.preprocess import submissions
-            if self.call_round is None or name not in {'preprocess.recipe_create','preprocess.recipe_version_add',
+            if self.call_round is None or name not in {'workspace.preprocess','workspace.classify','preprocess.recipe_create','preprocess.recipe_version_add',
                     'preprocess.recipe_ensure','preprocess.run','preprocess.run_default','preprocess.run_batch','preprocess.compare',
                     'preprocess.draft_save','preprocess.draft_execute'}:
                 submission = submissions.explicit_submission(owner=self.session_id, source='conversation_explicit')

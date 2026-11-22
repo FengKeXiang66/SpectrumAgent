@@ -83,6 +83,10 @@ class LabelRef(ToolInput):
     label_id: Reference
 
 
+class LabelDelete(LabelRef):
+    confirm: bool = False
+
+
 class LabelMerge(ToolInput):
     source_id: Reference
     target_id: Reference
@@ -387,7 +391,7 @@ def register_interactive(registry, *, datasets=None, runner=None, sessions=None,
         ('modeling.regress',Regression,'按真实成功预处理引用进行PLS回归，参数与人工界面一致',regress,training is not None),
         ('labels.create',LabelCreate,'按名称和颜色新建标签',label_create,database is not None),
         ('labels.update',LabelEdit,'修改已指认标签的名称、颜色或快捷键',label_edit,database is not None),
-        ('labels.delete',LabelRef,'删除明确标签，复用引用检查，仍被标注或样品引用时拒绝删除',lambda a:labels().delete(a.label_id),database is not None),
+        ('labels.delete',LabelDelete,'永久删除可用标签并清除所有图片当前工作态的该类标注与样品关联，已保存JSON及类别保留；必须先提示影响并得到用户确认，才传confirm=true',lambda a:labels().delete(a.label_id,confirm=a.confirm),database is not None),
         ('labels.merge',LabelMerge,'合并同项目标签，复用草稿引用校验和既有事务',merge,database is not None),
         ('labels.tree_preview',TreeScope,'预览目录标签导入候选和命名要求，不修改样品',tree_preview,database is not None),
         ('labels.tree_apply',TreeApply,'按真实预览候选导入目录标签与样品关联，目录和样品变化时拒绝',tree_apply,database is not None),

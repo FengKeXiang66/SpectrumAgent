@@ -85,24 +85,6 @@ def add_draft_routes(router,runner):
                                                                           owner=str(session_id),source='ui_save')):
             return store_call(drafts.save,str(session_id),str(draft_id),**body.model_dump())
 
-    @router.post('/preprocess/sessions/{session_id}/drafts/{draft_id}/confirm')
-    def confirm(session_id:UUID,draft_id:UUID,body:DraftConfirm):
-        return drafts.confirm(str(session_id),str(draft_id),body.expected_revision,body.recipe_version_id,
-                              body.model_dump(mode='json')['inputs'],'ui_execute')
-
-    @router.post('/preprocess/sessions/{session_id}/drafts/execute')
-    def execute(session_id:UUID,body:DraftExecute,
-                reference:Annotated[UUID|None,Header(alias='X-Submission-Ref')]=None):
-        with submissions.execution_context(submissions.explicit_submission(str(reference) if reference else None,
-                                                                          owner=str(session_id),source='ui_execute')):
-            return drafts.execute(runner,str(session_id),body.confirmation_id,body.model_dump(mode='json')['inputs'])
-
-    @router.post('/preprocess/sessions/{session_id}/drafts/retry')
-    def retry(session_id:UUID,body:DraftRetry,
-              reference:Annotated[UUID,Header(alias='X-Submission-Ref')]):
-        with submissions.execution_context(submissions.explicit_submission(str(reference),owner=str(session_id),source='ui_retry')):
-            return drafts.retry(runner,str(session_id),body.confirmation_id,body.model_dump(mode='json')['inputs'],body.retry_of_submission)
-
     @router.delete('/preprocess/recipes/{recipe_id}')
     def delete(recipe_id:UUID):
         return store_call(runner.recipes.set_deleted,str(recipe_id),True)

@@ -5,6 +5,7 @@ import type { ClassificationAction, ClassificationEvaluation, Scope, Population 
 import ClassificationWorkspace, { CurvePlot, displayMetric } from './ClassificationWorkspace.tsx';
 import { failureMessage } from './chart.ts';
 import { datasets } from '../datasets/api.ts';
+import { currentWorkspace } from '../preprocess/current';
 
 type Point = { x: number; y: number };
 type Ranking = { label: number; name: string; roc_auc: number | null; ap: number | null; roc: Point[]; pr: Point[]; positive: number; negative: number; undefined_reason: string | null };
@@ -67,6 +68,14 @@ export default function ClassificationTools({ evaluation: ev, onEvaluation, insp
   const [job, setJob] = useState<Job | null>(null), [file, setFile] = useState<Export | null>(null), [format, setFormat] = useState('bundle');
   const [figure, setFigure] = useState('confusion-pixel');
   const [error, setError] = useState(''), [notice, setNotice] = useState(''), [busy, setBusy] = useState<Record<string, boolean>>({});
+  const [truthChoices,setTruthChoices] = useState<{id:string;name:string}[]>([]);
+  useEffect(() => {
+    let valid = true;
+    void currentWorkspace.state().then(state => {
+      if (valid) setTruthChoices(state.members.flatMap(row => row.annotation_id ? [{id:row.annotation_id,name:ev.cubes.find(c => c.cube_id === row.cube_id)?.name ?? row.cube_id.slice(0,8)}] : []));
+    }).catch(e => { if (valid) setError(failureMessage(e)); });
+    return () => { valid = false; };
+  }, [ev.evaluation_id]);
   const live = useRef(true), sequence = useRef<Record<string, number>>({});
   useEffect(() => { live.current = true; return () => { live.current = false; }; }, []);
   const consume = (action: string, value: unknown) => {
@@ -82,7 +91,7 @@ export default function ClassificationTools({ evaluation: ev, onEvaluation, insp
     if (action === 'choices') setChoices(value as Choices);
     if (action === 'evaluate_prediction') setIndependent(value as ClassificationEvaluation);
     if (action === 'threshold') onEvaluation(value as ClassificationEvaluation);
-    if (action === 'register') { const m = value as { id: string; version: number }; setModelId(m.id); setNotice('已登记分类版本 v' + m.version + ' · ' + m.id); }
+    if (action === 'register') { const m = value as { id: string; version: number }; setModelId(m.id); setNotice('已登记分类模型 · ' + m.id); }
     if (action === 'baseline') setNotice((value as { baseline: boolean }).baseline ? '已登记为对比基线，未改变生产阶段。' : '已清除当前范围基线。');
   };
   const request = async (action: ClassificationAction, body: Record<string, unknown> = {}, target = action as string) => {
@@ -236,15 +245,14 @@ export default function ClassificationTools({ evaluation: ev, onEvaluation, insp
         <details><summary>完整结果</summary><pre>{JSON.stringify(importance.features, null, 2)}</pre></details></>}
     </section>
     <section className="cr-panel"><h4>登记模型与批量推理</h4><div className="cr-actions"><label>名称<input value={name} onChange={e => setName(e.target.value)} /></label>
-      <button onClick={() => void request('register', { name })}>登记分类版本</button><button onClick={() => void request('baseline', { ...(modelId ? { model_id: modelId } : { name }) })}>设为对比基线</button>
+      <button onClick={() => void request('register', { name })}>登记分类模型</button><button onClick={() => void request('baseline', { ...(modelId ? { model_id: modelId } : { name }) })}>设为对比基线</button>
       <button onClick={() => void request('baseline', { ...(modelId ? { model_id: modelId } : { name }), clear: true })}>清除当前范围基线</button></div>
       <button onClick={() => { void datasets.catalog(100, 0).then(page => { if (live.current) setCatalog(page.datasets.filter(c => c.available).map(c => ({ id: c.id, name: c.display_name }))); }).catch(f => setError(failureMessage(f))); }}>选择已导入图像</button>
       {!!catalog.length && <div className="cr-table">{catalog.map(c => <label key={c.id}><input type="checkbox" checked={selectedCubes.includes(c.id)}
         onChange={e => setSelectedCubes(v => e.target.checked ? [...v, c.id] : v.filter(id => id !== c.id))} />{c.name}</label>)}</div>}
       <details><summary>通过标识指定其他图像</summary><label>图像标识（空格、逗号或换行分隔）<textarea value={cubeIds} onChange={e => setCubeIds(e.target.value)} /></label></details>
       <button disabled={backgroundBusy} onClick={() => void request('infer', { ...(modelId ? { model_id: modelId } : { name }), cube_ids: [...new Set([...selectedCubes, ...cubeIds.split(/[\s,，]+/).filter(Boolean)])], threshold })}>提交整图分类推理</button>
-      <label>冻结真值（可选，须与单图匹配）<select value={ev.cubes.some(c => c.annotation_version_id === truthVersion) ? truthVersion : ''} onChange={e => setTruthVersion(e.target.value)}><option value="">未绑定真值</option>{ev.cubes.map(c => <option key={c.cube_id} value={c.annotation_version_id}>{c.name} · 当前评价冻结版</option>)}</select></label>
-      <details><summary>指定其他冻结真值标识</summary><input aria-label="其他冻结真值标识" value={truthVersion} onChange={e => setTruthVersion(e.target.value)} /></details>
+      <label>当前标注真值（可选，须与单图匹配）<select value={truthChoices.some(c => c.id === truthVersion) ? truthVersion : ''} onChange={e => setTruthVersion(e.target.value)}><option value="">未绑定真值</option>{truthChoices.map(c => <option key={c.id} value={c.id}>{c.name} · 当前标注</option>)}</select></label>
       <p>采用冻结变换；无真值仅报告预测分布，未校准得分不代表正确概率。</p>
     </section>
     <section className="cr-panel"><h4>实验对比与引用解读</h4>

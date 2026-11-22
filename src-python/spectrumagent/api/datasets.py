@@ -9,7 +9,7 @@ from time import perf_counter
 from uuid import UUID
 import zlib
 
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, Query
 import numpy as np
 
 from spectrumagent.data import DataError
@@ -19,9 +19,6 @@ from .schemas import BandResponse, DatasetRecord, Envelope, ImportRequest, Impor
 
 MAX_PREVIEW_SIDE = 512
 MAX_JSON_VALUES = 65536
-# Desktop imports opt in to automatic material classification; plain API callers
-# (scripts, services, tests) keep pure reference registration.
-FOLDER_LABEL_HEADER = "x-spectrumagent-folder-label"
 
 
 class ColorPreview(PreviewResponse):
@@ -67,12 +64,10 @@ def make_router(registry: DatasetRegistry):
     display_lock = RLock()
 
     @router.post("/import", response_model=ImportResponse)
-    def import_dataset(request: ImportRequest, http: Request):
-        response = registry.import_path(request.path, raw=request.raw, data_path=request.data_path,
-                                        confirm_new=request.confirm_new)
-        if http.headers.get(FOLDER_LABEL_HEADER) == "1":
-            registry.label_imported_folders([record.id for record in response.datasets])
-        return response
+    def import_dataset(request: ImportRequest):
+        # Import registers data only. Categories are declared by the user.
+        return registry.import_path(request.path, raw=request.raw, data_path=request.data_path,
+                                    confirm_new=request.confirm_new)
 
     @router.get('/catalog')
     def catalog(limit: int = Query(100, ge=1, le=200), offset: int = Query(0, ge=0)):

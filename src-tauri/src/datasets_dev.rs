@@ -47,20 +47,6 @@ impl Region {
     }
 }
 
-#[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct TrainingSetMemberInput {
-    cube_id: String,
-    annotation_version_id: String,
-    recipe_version_id: String,
-}
-
-#[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct TrainingSetOptionsInput {
-    content_hash_dedup: bool,
-}
-
 #[derive(Deserialize)]
 #[serde(tag = "op", rename_all = "snake_case", deny_unknown_fields)]
 pub enum DatasetRequest {
@@ -95,7 +81,6 @@ pub enum DatasetRequest {
         confirm: bool,
         preview_token: String,
     },
-    VersionList {},
     Preview {
         id: String,
         #[serde(default)]
@@ -120,13 +105,7 @@ pub enum DatasetRequest {
         id: String,
         region: Region,
     },
-    TrainingSetList {},
-    TrainingSetPreview {
-        members: Vec<TrainingSetMemberInput>,
-        options: Option<TrainingSetOptionsInput>,
-    },
-    TrainingSetConfirm { version_id: String },
-    TrainingSetMembers { version_id: String },
+
 }
 
 fn dataset_id(id: &str) -> Result<&str, ForwardError> {
@@ -219,38 +198,6 @@ impl DatasetRequest {
                     None,
                 )
             }
-            Self::VersionList {} => (
-                "/api/v1/dataset-versions".to_owned(),
-                Method::GET,
-                None,
-                None,
-            ),
-            Self::TrainingSetList {} => (
-                "/api/v1/training-sets".to_owned(), Method::GET, None, None,
-            ),
-            Self::TrainingSetPreview { members, options } => {
-                if members.is_empty() {
-                    return Err(ForwardError::new("INVALID_DATASET_ID", "训练集成员不能为空"));
-                }
-                for member in members {
-                    dataset_id(&member.cube_id)?;
-                    dataset_id(&member.annotation_version_id)?;
-                    dataset_id(&member.recipe_version_id)?;
-                }
-                let mut body = json!({"members":members});
-                if let Some(options) = options {
-                    body["options"] = json!(options);
-                }
-                ("/api/v1/training-sets/preview".to_owned(), Method::POST, Some(body), None)
-            }
-            Self::TrainingSetConfirm { version_id } => (
-                "/api/v1/training-sets/confirm".to_owned(), Method::POST,
-                Some(json!({"version_id":dataset_id(version_id)?})), None,
-            ),
-            Self::TrainingSetMembers { version_id } => (
-                format!("/api/v1/training-sets/{}/members", dataset_id(version_id)?),
-                Method::GET, None, None,
-            ),
             Self::Preview { id, band, .. } => (
                 format!("/api/v1/datasets/{}/preview", dataset_id(id)?),
                 Method::GET,
@@ -282,9 +229,6 @@ impl DatasetRequest {
             return Err(ForwardError::new("TRANSPORT", "握手端口非法"));
         }
         url.set_path(&path);
-        if let Self::VersionList {} = self {
-            url.query_pairs_mut().append_pair("frozen", "true");
-        }
         if let Self::Catalog { limit, offset } = self {
             url.query_pairs_mut()
                 .append_pair("limit", &limit.to_string())
@@ -319,9 +263,6 @@ pub fn forward(identity: &Handshake, request: &DatasetRequest) -> Result<Value, 
         .timeout(Duration::from_secs(30)))
         .map_err(|_| ForwardError::new("TRANSPORT", "本机请求初始化失败"))?;
     let mut outgoing = client.request(method, url).bearer_auth(identity.token());
-    if matches!(request, DatasetRequest::Import { .. }) {
-        outgoing = outgoing.header("X-SpectrumAgent-Folder-Label", "1");
-    }
     if let Some(body) = body {
         outgoing = outgoing.json(&body);
     }
@@ -773,37 +714,9 @@ mod tests {
         Ok(())
     }
 
-    #[test]
-    fn version_list_is_read_only_fixed_get_and_validate_op_is_rejected() -> Result<(), Box<dyn std::error::Error>> {
-        let id = "00000000-0000-0000-0000-000000000001";
-        let request: DatasetRequest = serde_json::from_value(json!({"op":"version_list"}))?;
-        let (url, method, body) = request.destination(4321)?;
-        assert_eq!(url.path(), "/api/v1/dataset-versions");
-        assert_eq!((url.host_str(), url.port()), (Some("127.0.0.1"), Some(4321)));
-        assert_eq!(method, Method::GET);
-        assert_eq!(body, None);
-        // The import-validation feature was removed (2026-11-13 simplification):
-        // its op must fail deserialization rather than silently map anywhere.
-        assert!(serde_json::from_value::<DatasetRequest>(json!({"op":"version_validate","cube_ids":[id]})).is_err());
-        for value in [json!({"op":"version_preview","cube_ids":[id]}), json!({"op":"version_confirm","version_id":id})] {
-            assert!(serde_json::from_value::<DatasetRequest>(value).is_err());
-        }
-        Ok(())
-    }
 
-    #[test]
-    fn version_list_is_frozen_only_fixed_get() -> Result<(), Box<dyn std::error::Error>> {
-        let value = json!({"op":"version_list"});
-        let request: DatasetRequest = serde_json::from_value(value.clone())?;
-        let (url, method, body) = request.destination(4321)?;
-        assert_eq!(url.path(), "/api/v1/dataset-versions");
-        assert_eq!(url.query(), Some("frozen=true"));
-        assert_eq!(method, Method::GET);
-        assert!(body.is_none());
-        reject_extra(value);
-        assert!(serde_json::from_value::<DatasetRequest>(json!({"op":"version_list","frozen":false})).is_err());
-        Ok(())
-    }
+
+
 
     #[test]
     fn version_bindings_operation_is_removed() -> Result<(), Box<dyn std::error::Error>> {
@@ -837,56 +750,14 @@ mod tests {
         Ok(())
     }
 
-    #[test]
-    fn training_set_four_operations_use_fixed_methods_paths_and_bodies() -> Result<(), Box<dyn std::error::Error>> {
-        let id = "00000000-0000-0000-0000-000000000001";
-        let member = json!({"cube_id":id,"annotation_version_id":id,"recipe_version_id":id});
-        for (value, path, method, body) in [
-            (json!({"op":"training_set_list"}), "/api/v1/training-sets".to_owned(), Method::GET, None),
-            (json!({"op":"training_set_preview","members":[member]}), "/api/v1/training-sets/preview".to_owned(), Method::POST, Some(json!({"members":[member]}))),
-            (json!({"op":"training_set_preview","members":[member],"options":{"content_hash_dedup":false}}), "/api/v1/training-sets/preview".to_owned(), Method::POST, Some(json!({"members":[member],"options":{"content_hash_dedup":false}}))),
-            (json!({"op":"training_set_confirm","version_id":id}), "/api/v1/training-sets/confirm".to_owned(), Method::POST, Some(json!({"version_id":id}))),
-            (json!({"op":"training_set_members","version_id":id}), format!("/api/v1/training-sets/{id}/members"), Method::GET, None),
-        ] {
-            let request: DatasetRequest = serde_json::from_value(value.clone())?;
-            let (url, actual_method, actual_body) = request.destination(4321)?;
-            assert_eq!((url.host_str(),url.port()),(Some("127.0.0.1"),Some(4321)));
-            assert_eq!((url.path(),actual_method,actual_body),(path.as_str(),method,body));
-            assert_eq!(url.query(),None);
-            reject_extra(value);
-        }
-        Ok(())
-    }
+
+
 
     #[test]
-    fn training_set_rejects_unknown_nested_fields_empty_members_and_uuid_injection() -> Result<(), Box<dyn std::error::Error>> {
-        let id = "00000000-0000-0000-0000-000000000001";
-        let member = json!({"cube_id":id,"annotation_version_id":id,"recipe_version_id":id});
-        let empty: DatasetRequest = serde_json::from_value(json!({"op":"training_set_preview","members":[]}))?;
-        let failure = empty.destination(4321).err().ok_or("expected empty-member error")?;
-        assert_eq!((failure.error.as_str(),failure.detail.as_str()),("INVALID_DATASET_ID","训练集成员不能为空"));
-        for key in ["cube_id","annotation_version_id","recipe_version_id"] {
-            for bad in ["", "../health", "00000000-0000-0000-0000-000000000001?token=x"] {
-                let mut invalid=member.clone(); invalid[key]=json!(bad);
-                let request: DatasetRequest=serde_json::from_value(json!({"op":"training_set_preview","members":[invalid]}))?;
-                assert_eq!(request.destination(4321).err().map(|e|e.error),Some("INVALID_DATASET_ID".into()));
-            }
+    fn removed_version_operations_cannot_be_deserialized() {
+        for op in ["version_list","training_set_list","training_set_preview","training_set_confirm","training_set_members"] {
+            assert!(serde_json::from_value::<DatasetRequest>(json!({"op":op})).is_err());
         }
-        for op in ["training_set_confirm","training_set_members"] {
-            let request: DatasetRequest=serde_json::from_value(json!({"op":op,"version_id":"../health"}))?;
-            assert!(request.destination(4321).is_err());
-        }
-        for value in [
-            json!({"op":"training_set_preview"}),
-            json!({"op":"training_set_preview","members":[{"cube_id":id,"annotation_version_id":id}]}),
-            json!({"op":"training_set_preview","members":[{"cube_id":id,"annotation_version_id":id,"recipe_version_id":id,"preprocess_run_id":id}]}),
-            json!({"op":"training_set_preview","members":[member],"options":{"content_hash_dedup":"true"}}),
-            json!({"op":"training_set_preview","members":[member],"options":{"content_hash_dedup":true,"url":"/health"}}),
-            json!({"op":"training_set_confirm","version_id":id,"cube_ids":[id]}),
-        ] { assert!(serde_json::from_value::<DatasetRequest>(value).is_err()); }
-        // Uniqueness stays at the service boundary, not a second Rust rule.
-        let duplicate: DatasetRequest=serde_json::from_value(json!({"op":"training_set_preview","members":[member,member]}))?;
-        assert!(duplicate.destination(4321).is_ok());
-        Ok(())
     }
+
 }

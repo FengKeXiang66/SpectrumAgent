@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import type { DatasetRecord, DatasetReference, DatasetTransport, MeanSpectrum, Preview, SpectrumRegion } from '../datasets/types.ts';
 import { displayName } from '../datasets/types.ts';
 import { annotations } from './api.ts';
-import { describeAnnotationError, type AnnotationApi, type ExportResult, type Geometry, type JsonProjectionStatus, type LabelBody, type LabelSchema, type Png, type Quality, type Seed, type SegmentsMap, type SuperpixelReport, type Version, type Working } from './types.ts';
+import { describeAnnotationError, type AnnotationApi, type ExportResult, type Geometry, type JsonProjectionStatus, type LabelBody, type LabelSchema, type Png, type Quality, type Seed, type SegmentsMap, type SuperpixelReport, type Working } from './types.ts';
 import { annotationBadge } from './annotationStatus.ts';
 import SpectrumReview from './SpectrumReview.tsx';
 import { eraseAndRefresh, formatReviewCos, formatReviewNumber } from './spectrumReview.ts';
@@ -52,7 +52,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
     return()=>{void focusCallback.current?.(id,false).catch(()=>undefined);};
   },[id]);
   const [schemas, setSchemas] = useState<LabelSchema[]>([]);
-  const [versions, setVersions] = useState<Version[]>([]), [projectName, setProjectName] = useState('');
+  const [hasSaved, setHasSaved] = useState(false), [projectName, setProjectName] = useState('');
   // undefined = listing not read yet; null = engine did not return the field.
   const [projectionStatus, setProjectionStatus] = useState<JsonProjectionStatus | null | undefined>(undefined);
   const [base, setBase] = useState<Preview | null>(null), [segmentation, setSegmentation] = useState<Png | null>(null);
@@ -77,12 +77,11 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
   const [force, setForce] = useState(false), [lastSeed, setLastSeed] = useState<Seed | null>(null);
   const [lastGestureRef, setLastGestureRef] = useState<string | null>(null);
   const [draftRevision, setDraftRevision] = useState<number | null>(null);
-  const [note, setNote] = useState(''), [overwrite, setOverwrite] = useState(false);
-  const overwriteTouched = useRef(false);
-  // Survives the overwrite confirmation step so "保存并下一张" still advances.
+  const [note, setNote] = useState('');
+  // Keep save-and-next navigation attached to the save result.
   const postSave = useRef<((saved: boolean) => void) | null>(null);
   const [exportResult, setExportResult] = useState<ExportResult | null>(null), [exportStale, setExportStale] = useState(true);
-  const [quality, setQuality] = useState<Quality | null>(null), [history, setHistory] = useState<Png | null>(null), [historyId, setHistoryId] = useState('');
+  const [quality, setQuality] = useState<Quality | null>(null);
   const [lastDiffusion, setLastDiffusion] = useState<{ min: number; enqueued: boolean; blocked: number } | null>(null);
   const [preferences, setPreferences] = useState(loadPreferences), [panHeld, setPanHeld] = useState(false);
   const [help, setHelp] = useState(() => { try { return localStorage.getItem(seenKey) !== 'yes'; } catch { return true; } });
@@ -114,7 +113,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
     && working.params.k === 3 && working.params.block_size === 32 && working.params.feature_version === 'pca-global-zscore-clip3-unit-v1';
   const ready = !!segments && !!working?.params && !dirty && synchronized && batchReady;
   const selected = selectedCandidate(working, selectedKey);
-  const badge = annotationBadge(projectionStatus, versions.length);
+  const badge = annotationBadge(projectionStatus, Number(hasSaved));
   useEffect(() => {
     if (!previewCandidateRef || focusedPreview.current === previewCandidateRef) return;
     const key = candidatePreviewKey(working, previewCandidateRef);
@@ -125,14 +124,11 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
     && Number.isFinite(queueMinimum) && queueMinimum >= -1 && queueMinimum <= 1;
 
   useEffect(() => {
-    overwriteTouched.current = false;
-    setOverwrite(false); setVersions([]);
+    setHasSaved(false);
     setProjectionStatus(undefined); // never show the previous cube's badge
     setDraftRevision(null); setLastGestureRef(null);
   }, [id]);
-  useEffect(() => {
-    if (!overwriteTouched.current && versions.length) setOverwrite(true);
-  }, [versions.length]);
+
   useEffect(() => {
     onWorkspaceChange?.({ cube_id: id, gesture_ref: lastGestureRef ?? undefined });
   }, [id, lastGestureRef, onWorkspaceChange]);
@@ -154,9 +150,9 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
     else { setSegments(null); setSegmentation(null); }
   };
   const loadMetadata = async (next: Working, isLive = () => alive.current) => {
-    const [tree, listing, projects] = await Promise.all([api.labels(next.project_id), api.versions(id), api.projects()]);
+    const [tree, listing, projects] = await Promise.all([api.labels(next.project_id), api.current(id), api.projects()]);
     if (!isLive()) return;
-    setSchemas(tree); setVersions(listing.versions);
+    setSchemas(tree); setHasSaved(!!listing.current);
     // Only the backend's disk truth decides the badge; versions alone cannot.
     setProjectionStatus(listing.json_projection ?? null);
     setProjectName(projects.find(project => project.id === next.project_id)?.name ?? next.project_id);
@@ -365,14 +361,12 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
   };
   const save = async (): Promise<boolean> => {
     if (!hasLabels) { setError('本图尚无已标注像素，请先确认标签后再保存并聚合。'); postSave.current = null; return false; }
-    if (Array.from(note).length > 2000) { setError('版本备注超过 2000 字符，请缩短后再保存并聚合。'); postSave.current = null; return false; }
+    if (Array.from(note).length > 2000) { setError('保存备注超过 2000 字符，请缩短后再保存并聚合。'); postSave.current = null; return false; }
     if (!ready) { setError('工作态尚未成功读回，请先刷新后再保存并聚合。'); postSave.current = null; return false; }
-    // Overwrite is the default when a version exists: no extra confirmation step.
-    // The backend still requires an explicit confirm=true flag on every overwrite.
     const saved = await execute(async () => {
-      const result = await api.save(id, { ...(note ? { note } : {}), ...(overwrite ? { overwrite: true, confirm: true } : {}) });
+      const result = await api.save(id, { ...(note ? { note } : {}) });
       if (alive.current) { setQuality(result.quality); setExportResult(result.export); setExportStale(false); }
-    }, overwrite ? '最新版本已覆写并重新聚合。' : '新版本已保存并聚合样本谱。', true);
+    }, '当前标注已保存并聚合样本谱。', true);
     const after = postSave.current;
     postSave.current = null;
     after?.(saved);
@@ -412,6 +406,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       const target = event.target;
+      if (target instanceof HTMLElement && target.closest('dialog')) return;
       const editing = target instanceof HTMLElement && !!target.closest('input,textarea,select,[contenteditable="true"]');
       const action = resolveShortcut(event, labels, preferences, editing);
       if (!action || (busyRef.current && !clickingRef.current)) return;
@@ -441,11 +436,16 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
     if (!await execute(() => api.addLabel(body), '标签已新建；已从后端重新读取标签与工作态。', true)) throw new Error('新建未完成，请查看工作台错误详情。');
     setQuality(null);
   };
+  const deleteLabel = async (labelId: string) => {
+    if (!await execute(() => api.deleteLabel(labelId), '标签已永久删除。', true)) throw new Error('删除未完成，请查看工作台错误详情。');
+    setSelectedId(previous => previous === labelId ? null : previous);
+    setQuality(null); setExportStale(true);
+  };
   return <section className="annotation-workbench ui-page" aria-label="S05 标注工作台">
     <header className="annotation-heading">
       <div><h2>标注工作台 <small>{displayName(record)}</small></h2><p>{projectName || '读取项目中…'} · L1 辅助标注</p></div>
       {batch && <div className="annotation-hint" aria-label="临时标注批次">
-        <p>{batch.datasetVersionId ? `版本 ${batch.datasetVersionId.slice(0, 8)}` : '本次范围'} · 就绪 {batch.readyCubeIds.length} / {batch.memberCount} · 当前 {displayName(record)}</p>
+        <p>本次范围 · 就绪 {batch.readyCubeIds.length} / {batch.memberCount} · 当前 {displayName(record)}</p>
         <button disabled={busy} onClick={()=>leaveWorkbench(onReturnToAssistant)}>返回助手</button>
         <label>{batch.onDemand?'本次标注范围':'本批就绪样品'}<select value={id} disabled={busy || position < 0} onChange={event => {
           const target = navigationRecords.find(item => item.id === event.target.value);
@@ -485,7 +485,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
     <div className="annotation-columns">
       <aside className="annotation-left">
         {working && <LabelPanel labels={labels} projectId={working.project_id} selectedId={selectedId}
-          disabled={busy} allowSelection={clicking} onSelect={setSelectedId} onAdd={addLabel} />}
+          disabled={busy} allowSelection={clicking} onSelect={setSelectedId} onAdd={addLabel} onDelete={deleteLabel} />}
         <section className="annotation-card"><h3>工具</h3><div className="annotation-tools">{(['diffuse', 'click', 'brush', 'polygon', 'erase'] as const).map(next =>
           <button key={next} disabled={busy} className={tool === next ? 'selected' : ''} aria-pressed={tool === next} onClick={() => chooseTool(next)}>{commandNames[next]} <kbd>{preferences.bindings[next]}</kbd></button>)}</div></section>
         <section className="annotation-card"><h3>本图统计</h3><dl className="annotation-statistics">
@@ -556,20 +556,14 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
           </nav>
           </>}
         </section>
-        <section className="annotation-card" aria-label="版本与校验">
+        <section className="annotation-card" aria-label="保存与校验">
           <details style={{ fontSize: 13 }}>
-            <summary>版本与校验 · {overwrite ? '覆写最新版本' : '另存新版本'}</summary>
-            <label>版本备注（可选，≤2000 字符）<textarea value={note} onChange={event => setNote(event.target.value)} /></label>
-            <label><input type="checkbox" aria-label="覆写最新版本" disabled={!versions.length || busy} checked={overwrite} onChange={event => { overwriteTouched.current = true; setOverwrite(event.target.checked); postSave.current = null; }} />覆写最新版本（有历史版本时默认勾选，保存时直接覆盖）</label>
-            <p className="annotation-hint">覆写保留版本号与首次创建时间，但会替换该版本的样本谱与训练集；取消勾选可另存新版本。</p>
+            <summary>保存与校验</summary>
+            <label>备注（可选，≤2000 字符）<textarea value={note} onChange={event => setNote(event.target.value)} /></label>
             <p role="status">JSON 投影：{exportResult && !exportResult.ok ? '失败' : exportStale ? '过期' : '最新'}<small> · 仅表示本次工作态与已保存投影的相对新旧，不代表文件是否存在</small></p>
             {exportResult?.path && <div><label>JSON 绝对路径<textarea aria-label="JSON 绝对路径" rows={3} readOnly value={exportResult.path} onFocus={event => event.currentTarget.select()} /></label>
               <button disabled={busy} onClick={() => { void invoke('open_exports_directory', { cubeId: id }).catch(() => setError('无法打开 JSON 所在文件夹。')); }}>打开所在文件夹</button></div>}
-            {exportResult && !exportResult.ok && exportResult.error && <p role="alert" className="annotation-error" style={{ color: '#a12622' }}>标注已保存；JSON 投影失败：{exportResult.error}。重试须覆写，否则会多出一个版本。请勾选“覆写最新版本”后再次保存并聚合。</p>}
-            <details><summary>版本记录（{versions.length}）</summary><ul>{versions.map(version => <li key={version.id}>v{version.version_no} · {version.labeled_pixels.toLocaleString()} px · {version.created_at}
-              <button disabled={busy} onClick={() => { void execute(async () => { const png = await api.versionOverlay(id, version.id); if (alive.current) { setHistory(png); setHistoryId(version.id); } }, '历史叠加图已读取；当前工作态不变。'); }}>查看叠加图</button></li>)}</ul>
-              {history && <div className="annotation-history"><p>历史版本 UUID：{historyId} · 只读叠加图</p><img alt="历史版本标注叠加图" src={`data:image/png;base64,${history.png_base64}`} /><button onClick={() => setHistory(null)}>关闭历史图</button></div>}
-            </details>
+            {exportResult && !exportResult.ok && exportResult.error && <p role="alert" className="annotation-error" style={{ color: '#a12622' }}>标注已保存；JSON 投影失败：{exportResult.error}。请再次保存以重试导出。</p>}
             <button disabled={busy || !ready} onClick={() => { void refreshReview(); }}>校验当前工作态</button>
             {quality && <div className="annotation-quality"><h4>质量校验 · 当前原谱均值</h4><p>余弦阈值 {quality.threshold}（{quality.threshold_level}）· 可疑 {quality.suspicious.length} 项 · 高方差 {quality.high_variance.superpixel_ids.length} 项</p>
               <p className="annotation-hint">{quality.reference}</p><ul>{quality.suspicious.map(item => <li key={`${item.superpixel_id}:${item.label_index}`}>#{item.superpixel_id} · {labels[item.label_index]?.code} · {item.pixel_count} px · cos {formatReviewCos(item.cos)}</li>)}</ul>

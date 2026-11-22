@@ -72,7 +72,7 @@ export default function TrainingTaskDock({ ready, bootId, onOpenResults }: { rea
           {job.band_selection === 'ipls' && <span>全波段基线 {job.baseline_folds?.length ?? 0}/{job.total_folds ?? '—'} 折</span>}
           <span>已运行 {clock(job.elapsed_s ?? view.progress?.elapsed ?? 0)} · {active ? job.eta_seconds != null ? `全程约剩余 ${Math.max(1, Math.ceil(job.eta_seconds / 5) * 5)} 秒（同输入历史估算）` : job.stage_eta_seconds != null ? `当前阶段约剩余 ${Math.max(1, Math.ceil(job.stage_eta_seconds / 5) * 5)} 秒（估算）；全程估算中` : '剩余时间估算中' : '任务已结束'}</span>
         </div>
-        <dl className="training-identity"><div><dt>任务</dt><dd>{job.job_id}</dd></div><div><dt>冻结版本</dt><dd>{job.training_set_version_id ?? '显式绑定成员'}</dd></div>
+        <dl className="training-identity"><div><dt>任务</dt><dd>{job.job_id}</dd></div><div><dt>训练输入</dt><dd>当前样品处理结果</dd></div>
           <div><dt>阶段</dt><dd>{phases[job.phase ?? ''] ?? job.phase ?? '等待状态'}{job.current?.branch === 'final' ? ' · 最终模型' : job.current?.outer_fold != null ? ` · 外层折 ${Number(job.current.outer_fold) + 1}` : ''}</dd></div>
           {job.retry_of && <div><dt>继续自</dt><dd>{job.retry_of}</dd></div>}</dl>
         {view.progress?.status === 'unavailable' || view.progress?.status === 'reconnecting' ? <p className="training-notice" role="status">连接暂不可用；后台可能仍在运行，请继续查询原任务。</p> : null}

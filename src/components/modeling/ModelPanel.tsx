@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
 import { annotations } from '../annotation/api.ts';
 import type { LabelSchema, Project } from '../annotation/types.ts';
-import type { DatasetReference, TrainingSetMembersResponse, TrainingSetVersion } from '../datasets/types.ts';
+import type { DatasetReference } from '../datasets/types.ts';
 import { displayName } from '../datasets/types.ts';
-import { datasets } from '../datasets/api.ts';
-import { preprocessing } from '../preprocess/api.ts';
 import { modeling, type ImportResult, type Target } from './api.ts';
 import { failureMessage } from './chart.ts';
-import { datasetVersionSelection } from './dataset-version-store.ts';
+import { currentWorkspace, type CurrentMember } from '../preprocess/current';
 import RegistryPanel from './RegistryPanel.tsx';
 import InferencePanel from './InferencePanel.tsx';
 import ClassificationPanel, { PreflightCard, type ClassificationAudit, type ClassificationEvidence, type ClassificationSummary } from './ClassificationPanel.tsx';
@@ -22,8 +20,7 @@ export default function ModelPanel({ records, onOpenResults }: { records: Datase
   const [cube, setCube] = useState(records[0]?.id ?? ''), [value, setValue] = useState('');
   const [targets, setTargets] = useState<Target[]>([]), [csv, setCSV] = useState(''), [imported, setImported] = useState<ImportResult | null>(null);
   const [choices, setChoices] = useState<Record<string, { id: string; version: string }[]>>({});
-  const [versions, setVersions] = useState<TrainingSetVersion[]>([]), [versionId, setVersionId] = useState('');
-  const [members, setMembers] = useState<TrainingSetMembersResponse['members']>([]);
+  const [members, setMembers] = useState<CurrentMember[]>([]), [selected, setSelected] = useState<Record<string,boolean>>({});
   const [strategy, setStrategy] = useState<'kfold' | 'loo'>('kfold'), [folds, setFolds] = useState(5), [ratio, setRatio] = useState(1 / 3), [lv, setLV] = useState('');
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [message, setMessage] = useState('');
   const [summary, setSummary] = useState<ClassificationSummary>({ version: '', labels: 0, recipes: 0, classes: null, pixels: null });
@@ -36,12 +33,9 @@ export default function ModelPanel({ records, onOpenResults }: { records: Datase
   };
   useEffect(() => {
     let live = true;
-    void Promise.all([annotations.projects(), Promise.all(records.map(async record => {
-      const runs = await preprocessing.listRuns(record.id);
-      const ready = await Promise.all(runs.filter(row => row.status === 'succeeded').map(row => preprocessing.getRun(row.id)));
-      return [record.id, ready.map(row => ({ id: row.id, version: row.annotation_version_id }))] as const;
-    }))]).then(([projects, available]) => { if (live) { setProjects(projects); setProject(projects[0]?.id ?? ''); setChoices(Object.fromEntries(available)); } })
-      .catch(failure => { if (live) setError(JSON.stringify(failure)); });
+    void Promise.all([annotations.projects(), currentWorkspace.state()]).then(([projects, state]) => {
+      if (live) { setProjects(projects); setProject(projects[0]?.id ?? ''); setMembers(state.members.filter(row => records.some(record => record.id === row.cube_id))); setSelected(Object.fromEntries(records.map(row => [row.id,true]))); setChoices({}); }
+    }).catch(failure => { if (live) setError(failureMessage(failure)); });
     return () => { live = false; };
   }, [records]);
   useEffect(() => {
@@ -53,28 +47,9 @@ export default function ModelPanel({ records, onOpenResults }: { records: Datase
     }).catch(failure => { if (live) setError(JSON.stringify(failure)); });
     return () => { live = false; };
   }, [project]);
-  useEffect(() => {
-    if (!datasets?.trainingSets) return;
-    let live = true;
-    void datasets.trainingSets().then(rows => { if (live) setVersions(rows.filter(row => row.is_frozen === 1)); }).catch(() => { /* Version list is optional in isolated views. */ });
-    return () => { live = false; };
-  }, []);
-  const chooseVersion = async (id: string) => {
-    setVersionId(id); setMembers([]);
-    if (!id) { datasetVersionSelection.set(''); return; }
-    datasetVersionSelection.set(id);
-    if (!datasets?.trainingSetMembers) return;
-    const result = await datasets.trainingSetMembers(id);
-    if (result.version_id !== id) throw new Error('训练集成员响应与所选版本不一致');
-    setMembers(result.members);
-  };
-  useEffect(() => {
-    const saved = datasetVersionSelection.get();
-    if (saved && saved !== versionId && versions.some(version => version.id === saved)) void chooseVersion(saved);
-  }, [versions, versionId]);
   const importCSV = async (overwrite: boolean) => { setImported(await modeling.importCSV(project, csv, overwrite)); setTargets(await modeling.targets(project)); };
-  const readyRuns = members.filter(member => member.preprocess_run_id).map(member => member.preprocess_run_id!);
-  const runIds = versionId ? readyRuns : [];
+  const selectedMembers = members.filter(member => selected[member.cube_id]);
+  const runIds = selectedMembers.every(member => member.run_id) ? selectedMembers.map(member => member.run_id!) : [];
   if (view === 'registry') return <RegistryPanel onClose={() => setView('training')} />;
   if (view === 'inference') return <InferencePanel records={records} onClose={() => setView('training')} />;
   return <section className="model-panel ui-page" aria-label={task === 'regression' ? 'PLS 回归工作台' : 'PLS-DA 分类工作台'}>
@@ -87,10 +62,9 @@ export default function ModelPanel({ records, onOpenResults }: { records: Datase
     <section className="md-task-card"><h3>任务</h3>
       <nav aria-label="建模任务" className="md-seg"><button disabled={busy} aria-pressed={task === 'classification'} onClick={() => setTask('classification')}>PLS-DA 分类</button><button disabled={busy} aria-pressed={task === 'regression'} onClick={() => setTask('regression')}>PLS 回归</button></nav>
       <dl className="md-task-fields">
-        <div><dt>数据集版本</dt><dd>{task === 'regression' ? (versionId ? `${members.length} 个样品 · ${versionId.slice(0, 8)}` : '未选择') : (summary.version || '未选择')}</dd></div>
-        <div><dt>标签来源</dt><dd>{task === 'regression' ? '连续量测量值' : summary.labels ? `像素级标注 · ${summary.labels} 个版本` : '等待版本绑定'}</dd></div>
-        <div><dt>预处理配方</dt><dd>{task === 'regression' ? (versionId ? '来自版本成员' : '等待版本绑定') : summary.recipes ? `绑定版本 ${summary.recipes} 个` : '等待版本绑定'}</dd></div>
-        <div><dt>类别</dt><dd>{task === 'regression' ? '不适用' : summary.classes ? `${summary.classes} 类 · ${summary.pixels} 像素` : '读取版本中'}</dd></div>
+        <div><dt>当前样品</dt><dd>{task === 'regression' ? `${selectedMembers.length} 个` : summary.version}</dd></div>
+        <div><dt>标签来源</dt><dd>{task === 'regression' ? '连续量测量值' : `当前像素标注 · ${summary.labels} 个样品`}</dd></div>
+        <div><dt>预处理</dt><dd>{task === 'regression' ? `${runIds.length} 项就绪` : `${summary.recipes} 个配方`}</dd></div>
       </dl>
     </section>
     {task === 'classification' ? <ClassificationPanel records={records} choices={choices} busy={busy} work={work} onOpenResults={onOpenResults} embedded onSummary={setSummary} onEvidence={setEvidence} onAudit={setAudit} /> : <>
@@ -111,7 +85,7 @@ export default function ModelPanel({ records, onOpenResults }: { records: Datase
     </fieldset></>}
     </div><div className="md-col-right">
     {task === 'classification' ? <>
-      {audit && <section className="md-audit-card" aria-label="数据核对"><header className="md-card-head"><h3>数据核对</h3><span className="md-card-note">来自冻结版本</span></header>
+      {audit && <section className="md-audit-card" aria-label="数据核对"><header className="md-card-head"><h3>数据核对</h3><span className="md-card-note">来自当前结果</span></header>
         <p>{audit.count} 个成员 · 缺标注 {audit.missingLabels} · 缺预处理 {audit.missingRuns} · {audit.classes ?? '—'} 类 · {audit.pixels ?? '—'} 像素</p>
         <details><summary>查看成员明细</summary><ul className="md-audit-members">{audit.members.map((member, index) =>
           <li key={index}><span>{member.name}</span><code>{member.annotation}</code>{member.run && <code>{member.run}</code>}</li>)}</ul></details>
@@ -126,10 +100,9 @@ export default function ModelPanel({ records, onOpenResults }: { records: Datase
       </section>}
     </> : <>
     <fieldset disabled={busy}><legend>训练配置</legend>
-      <label>数据集版本<select aria-label="回归数据集版本" value={versionId} onChange={e => void work(() => chooseVersion(e.target.value))}>
-        <option value="">请选择已冻结训练集版本</option>{versions.map(version => <option key={version.id} value={version.id}>{version.member_count} 个样品 · {version.id.slice(0, 8)}</option>)}</select></label>
-      <p role="status">{versionId ? `版本 ${versionId.slice(0, 8)}：${members.length} 个成员，${readyRuns.length} 个可用预处理 run。` : '先在「数据集版本」页生成并冻结版本，再回到这里选择；建模数据以整个版本为单位。'}</p>
-      <details><summary>查看版本成员与预处理绑定</summary><ul>{members.map(member => <li key={member.cube_id}>{displayName(records.find(row => row.id === member.cube_id) ?? { id: member.cube_id, display_name: member.cube_id })} · 标注 {member.annotation_version_id.slice(0, 8)} · run {member.preprocess_run_id?.slice(0, 8) ?? '缺失'}</li>)}</ul></details>
+      <button onClick={() => void work(async () => { const state = await currentWorkspace.state(); setMembers(state.members.filter(row => records.some(record => record.id === row.cube_id))); })}>刷新当前结果</button>
+      {members.map(member => <label key={member.cube_id}><input type="checkbox" checked={!!selected[member.cube_id]} onChange={e => setSelected(old => ({...old,[member.cube_id]:e.target.checked}))} />{displayName(records.find(row => row.id === member.cube_id) ?? {id:member.cube_id,display_name:member.cube_id})} · {member.run_id ? '就绪' : '请先预处理'}</label>)}
+      <p role="status">已选 {selectedMembers.length} 个样品 · 就绪 {runIds.length} 项</p>
       <label>测试集比例<input type="number" step="any" min="0.01" max="0.99" value={ratio} onChange={e => setRatio(Number(e.target.value))} /></label>
       <label>训练集内验证<select value={strategy} onChange={e => setStrategy(e.target.value as 'kfold' | 'loo')}><option value="kfold">KFold</option><option value="loo">留一法 LOO</option></select></label>
       {strategy === 'kfold' && <label>折数<input type="number" min={2} value={folds} onChange={e => setFolds(Number(e.target.value))} /></label>}

@@ -30,7 +30,7 @@ export default function CandidateQueue({ working, labels, selectedKey, disabled,
         <li><span>留白（-1）</span><b>{stats?.blank_pixels.toLocaleString() ?? '—'} px</b></li>
       </ul>
       <button className="annotation-primary" disabled={disabled || !canSave} onClick={onSave}>保存并聚合</button>
-      <p className="annotation-hint">{canSave ? '生成标注版本与 JSON 投影；备注、覆写与校验在「版本与校验」中。'
+      <p className="annotation-hint">{canSave ? '保存当前标注与 JSON 文件；备注和校验见「保存与校验」。'
         : '本图尚无已标注像素，请先确认至少一个标签；仅浏览时可点「下一张 →」直接切换。'}</p>
     </section>
   </aside>;

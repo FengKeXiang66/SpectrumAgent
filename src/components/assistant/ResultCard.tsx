@@ -120,7 +120,7 @@ export default function ResultCard({ summary }: {summary:Scalars}) {
       error:String(summary[`item_${i+1}_error_code`]??'')}));
     content=<><p>本页 {rows.length} 项，共 {String(summary.total)} 项{summary.truncated?'；仍有下一页':''}</p>
       {rows.map((row,i)=><details key={row.id||row.name+':'+i}><summary>{row.name} · {row.id.slice(0,8)} · {row.status}</summary>
-        {row.id&&row.status==='succeeded'?<RunReport runId={row.id}/>:<p>{row.error==='VERSION_NOT_FOUND'?'标注版本引用无效，尚未生成预处理运行。':row.status==='failed'?`该成员执行失败：${row.error||'请核对执行记录'}。`:'当前结果待核对。'}</p>}</details>)}</>;
+        {row.id&&row.status==='succeeded'?<RunReport runId={row.id}/>:<p>{row.error==='VERSION_NOT_FOUND'?'当前标注引用无效，尚未生成预处理运行。':row.status==='failed'?`该成员执行失败：${row.error||'请核对执行记录'}。`:'当前结果待核对。'}</p>}</details>)}</>;
   } else if(kind==='preprocess'||kind==='compare') {
     content=<><RunReport runId={runId}/>{typeof summary.comparison_run_id==='string'&&<RunReport runId={summary.comparison_run_id}/>}</>;
   } else if(kind==='classification'||kind==='regression') {
@@ -142,13 +142,9 @@ export default function ResultCard({ summary }: {summary:Scalars}) {
           <p>{map.stats.warning}</p><pre>{JSON.stringify(map.stats,null,2)}</pre></>;
       }
       if(kind==='annotation_history') {
-        const result=await annotations.versions(cubeId);
-        const version=typeof summary.annotation_version_id==='string'?summary.annotation_version_id:null;
-        const overlay=version?await annotations.versionOverlay(cubeId,version):null;
-        return <><p>已保存 {result.versions.length} 个版本；当前工作态保持原值。</p>
-          <ul>{result.versions.map(row=><li key={row.id}>v{row.version_no} · {row.id} · 已标 {row.labeled_pixels} 像素</li>)}</ul>
-          {overlay&&<img alt="已保存标注版本叠加图" src={`data:image/png;base64,${overlay.png_base64}`}/>}
-          <p>{result.json_projection?.exists?'已生成可复用的标注 JSON。':'当前没有标注 JSON 投影。'}</p></>;
+        const result=await annotations.current(cubeId);
+        return <><p>{result.current ? `当前已保存标注：${result.current.labeled_pixels} 像素` : '尚未保存标注'}</p>
+          <p>{result.json_projection?.exists?'已生成标注 JSON。':'尚无标注 JSON。'}</p></>;
       }
       const record=await datasets.get(cubeId);
       if(kind==='spectrum') {

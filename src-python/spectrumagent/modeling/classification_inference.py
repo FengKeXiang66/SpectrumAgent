@@ -305,9 +305,9 @@ class ClassificationInference:
         store = self.models.store
         original = store.get(model["evaluation_id"])
         with connect_database(self.database) as db:
-            row = db.execute("SELECT cube_id,snapshot_ref FROM annotation_version WHERE id=?", (annotation_version_id,)).fetchone()
+            row = db.execute("SELECT a.cube_id,a.snapshot_ref FROM annotation_version a JOIN annotation_confirmation_state c ON c.annotation_version_id=a.id WHERE a.id=?", (annotation_version_id,)).fetchone()
         if not row or row[0] != manifest["cube_id"]:
-            raise ModelingError("TRUTH_MISMATCH", "真值版本与推理图像不匹配")
+            raise ModelingError("TRUTH_MISMATCH", "当前保存标注与推理图像不匹配")
         dataset, _ = self.registry.readable(manifest["cube_id"], raw=False)
         current = {k: file_sha256(Path(p)) for k, p in (("header", dataset.header_path), ("data", dataset.data_path))}
         if current != manifest["source_hashes"]:

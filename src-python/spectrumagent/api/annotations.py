@@ -12,7 +12,6 @@ from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Request
-from fastapi.responses import FileResponse
 import numpy as np
 from PIL import Image, ImageColor
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, model_validator
@@ -166,6 +165,10 @@ class DeletedLabel(Input):
     deleted: str
 
 
+class DeleteLabelRequest(Input):
+    confirm: StrictBool = False
+
+
 class MergedLabels(Input):
     target: LabelRecord
     references: dict[str, int]
@@ -243,8 +246,7 @@ class AnnotationRegionRequest(Input):
 
 class SaveRequest(Input):
     note: Annotated[str, Field(strict=True, max_length=2000)] | None = None
-    overwrite: StrictBool = False
-    confirm: StrictBool = False
+
 
 
 class DraftGesture(BaseModel):
@@ -252,11 +254,6 @@ class DraftGesture(BaseModel):
     gesture_ref: Annotated[str, Field(min_length=1)]
 
 
-class DraftConfirmRequest(BaseModel):
-    model_config = ConfigDict(strict=True, extra="forbid")
-    revision: Annotated[int, Field(ge=0)]
-    overwrite: bool = False
-    note: Annotated[str, Field(max_length=2000)] | None = None
 
 
 class DraftRegionInput(BaseModel):
@@ -325,17 +322,6 @@ def make_router(store: LabelStore, engine: SuperpixelEngine, sessions: SessionSt
     router = APIRouter(prefix="/api/v1", tags=["annotation labels"])
 
     # TASK-16：UI 入口已移除，保留供审计与未来复用；TASK-15 不走此路径（它读 exports/ 下的 JSON）。
-    @router.post("/annotations/{cube_id}/draft/confirm")
-    def confirm_draft(cube_id: UUID, request: DraftConfirmRequest):
-        return sessions.confirm(cube_id, **request.model_dump())
-
-    @router.get("/annotations/{cube_id}/versions/{version_id}/training-mat", response_class=FileResponse,
-                responses={200: {"content": {"application/octet-stream": {"schema": {"type": "string", "format": "binary"}}}}})
-    def training_mat(cube_id: UUID, version_id: UUID):
-        from spectrumagent.agent.mat import MatStore
-        mats = MatStore(sessions.registry, sessions.paths)
-        return FileResponse(mats.file(mats.get(cube_id, version_id)), media_type="application/octet-stream", filename="training_mat.mat")
-
     def change_draft(identifier, operation):
         lease = engine.resources.lease(identifier, required=False) if engine.resources else nullcontext()
         with lease, sessions._lock:
@@ -477,8 +463,8 @@ def make_router(store: LabelStore, engine: SuperpixelEngine, sessions: SessionSt
         return store.update(str(label_id), **request.model_dump(exclude_unset=True))
 
     @router.delete("/labels/{label_id}", response_model=DeletedLabel)
-    def delete_label(label_id: UUID):
-        return store.delete(str(label_id))
+    def delete_label(label_id: UUID, request: DeleteLabelRequest = DeleteLabelRequest()):
+        return store.delete(str(label_id), confirm=request.confirm)
 
     @router.post("/labels/merge", response_model=MergedLabels)
     def merge_labels(request: MergeLabelsRequest):
@@ -544,36 +530,23 @@ def make_router(store: LabelStore, engine: SuperpixelEngine, sessions: SessionSt
     @router.post("/datasets/{identifier}/annotations/save")
     def save(identifier: UUID, request: SaveRequest):
         with current_segmentation(identifier):
-            saved = sessions.save(identifier, overwrite=request.overwrite, confirm=request.confirm, note=request.note)
+            saved = sessions.save(identifier, note=request.note)
             return {key: value for key, value in saved.items() if key != "version_no"}
 
     @router.get("/datasets/{identifier}/annotations")
-    def versions(identifier: UUID):
+    def current_annotation(identifier: UUID):
         working = working_view(identifier)
         with connect_database(store.database) as db:
             db.row_factory = sqlite3.Row
             records = [dict(row) for row in db.execute(
-                "SELECT * FROM annotation_version WHERE cube_id=? ORDER BY version_no DESC", (str(identifier),))]
+                "SELECT * FROM annotation_version WHERE cube_id=? ORDER BY version_no DESC LIMIT 1", (str(identifier),))]
         for record in records:
+            record.pop("version_no", None)
             record["params"] = json.loads(record["params"])
             record["note"] = json.loads(record["note"]) if record["note"] is not None else None
         # Disk truth, not a UI-side guess: the workbench shows whether this
         # cube already has a published JSON annotation file.
-        return {"versions": records, "working": working,
+        return {"current": records[0] if records else None, "working": working,
                 "json_projection": read_projection_status(sessions.paths, identifier)}
-
-    @router.get("/datasets/{identifier}/annotations/{version}/overlay")
-    def version_overlay(identifier: UUID, version: UUID):
-        engine.registry.get(identifier)
-        # Verify the nested cube/version relation; do not expose another cube's
-        # snapshot through a valid but unrelated version UUID.
-        with connect_database(store.database) as db:
-            owner = db.execute("SELECT cube_id FROM annotation_version WHERE id=?", (str(version),)).fetchone()
-            if owner is not None and owner[0] != str(identifier):
-                error = DataError("VERSION_NOT_FOUND", "标注版本不存在", version_id=str(version))
-                error.status_code = 404  # R20: a valid UUID belonging to another cube.
-                raise error
-        snapshot = sessions.read_version(str(version))
-        return label_overlay(snapshot["label_map"], snapshot["label_index"], colors())
 
     return router

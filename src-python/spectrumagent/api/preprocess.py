@@ -169,10 +169,10 @@ def make_router(runner, comparison):
         return store_call(store.get, str(recipe_id))
 
     @router.post("/preprocess/recipes/{recipe_id}/versions", status_code=201)
-    def add_version(recipe_id: UUID, request: PreprocessVersionRequest, submission_ref: Annotated[UUID | None, Header(alias='X-Submission-Ref')] = None):
+    def update_recipe(recipe_id: UUID, request: PreprocessVersionRequest, submission_ref: Annotated[UUID | None, Header(alias='X-Submission-Ref')] = None):
         store_call(store.get, str(recipe_id))
         with submissions.execution_context(submissions.explicit_submission(str(submission_ref) if submission_ref else None)):
-            return store_call(store.add_version, str(recipe_id), request.pipeline, note=request.note)
+            return store_call(store.update_current, str(recipe_id), request.pipeline, note=request.note)
 
     @router.post("/preprocess/projects/{project_id}/recipes/{recipe_id}")
     def select_recipe(project_id: UUID, recipe_id: UUID):

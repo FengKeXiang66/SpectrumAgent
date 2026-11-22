@@ -131,8 +131,6 @@ def resolve_schema_id(db, project_id, tree_path):
 
 def label_sort_order(db, project_id, code, origin):
     """All three write paths use the R13 ordering rules here."""
-    if origin == "seed":
-        return {"BG": 0, "PE": 1, "PET": 2, "PP": 3}[code]  # §4.3 seed values.
     if origin == "catalog":
         return next(i for i, item in enumerate(plastic_catalog(), 1) if item["code"] == code)
     row = db.execute("SELECT max(sort_order) FROM label WHERE project_id=?", (project_id,)).fetchone()
@@ -159,54 +157,6 @@ def insert_label(db, request: CustomRequest, *, origin):
     return row
 
 
-FOLDER_COLORS = ("#2563eb", "#16a34a", "#d97706", "#9333ea", "#dc2626", "#0891b2")
-
-
-def folder_label_for_import(db, project_id, folder):
-    """Import-time material label derived from a cube's parent directory name.
-
-    Mirrors LabelStore.apply_tree conventions: ASCII identifiers become the code
-    verbatim (upper-cased); other names keep their original text as `name` and get
-    a neutral L001-style code, never a guessed transliteration. Returns None for
-    names that carry no classification meaning.
-    """
-    folder = (folder or "").strip()
-    if not folder or re.fullmatch(r"[A-Za-z]:", folder):
-        return None
-    taken = {row[0].upper() for row in db.execute(
-        "SELECT code FROM label WHERE project_id=?", (project_id,))}
-    if re.fullmatch(r"[A-Za-z0-9_]{1,16}", folder):
-        code = folder.upper()
-    else:
-        serial = 1
-        while f"L{serial:03d}" in taken:
-            serial += 1
-        code = f"L{serial:03d}"
-    row = db.execute("SELECT id FROM label WHERE project_id=? AND upper(code)=?",
-                     (project_id, code)).fetchone()
-    if row:
-        return row[0]
-    return insert_label(db, CustomRequest(project_id=project_id, code=code, name=folder,
-                                         tree_path="材料",
-                                         color_hex=FOLDER_COLORS[len(taken) % len(FOLDER_COLORS)]),
-                        origin="custom")["id"]
-
-
-def assign_import_folder_labels(db, samples):
-    """Bind imported cubes to their parent-folder label with source='folder'.
-
-    `samples` is a sequence of (cube_id, project_id, header_path). Idempotent by
-    the sample_label primary key, so re-importing a directory never duplicates rows.
-    """
-    for cube_id, project_id, header_path in samples:
-        folder = Path(header_path).parent.name if header_path else ""
-        label_id = folder_label_for_import(db, project_id, folder)
-        if label_id is None:
-            continue
-        db.execute("INSERT OR IGNORE INTO sample_label (project_id,cube_id,label_id,source,created_at) "
-                   "VALUES (?,?,?,'folder',?)", (project_id, str(cube_id), label_id, now()))
-
-
 class LabelStore:
     def __init__(self, database):
         self.database = database
@@ -230,7 +180,7 @@ class LabelStore:
             for schema in schemas:
                 schema["config"] = json.loads(schema["config"]) if schema["config"] is not None else None
                 schema["labels"] = [dict(row) for row in db.execute(
-                    "SELECT * FROM label WHERE schema_id=? AND project_id=? ORDER BY sort_order,code", (schema["id"], project_id))]
+                    "SELECT * FROM label WHERE schema_id=? AND project_id=? AND deleted_at IS NULL ORDER BY sort_order,code", (schema["id"], project_id))]
             return schemas
 
     def add(self, request: LabelRequest):
@@ -271,10 +221,10 @@ class LabelStore:
     @staticmethod
     def require_label(db, label_id):
         db.row_factory = sqlite3.Row
-        row = db.execute("SELECT * FROM label WHERE id=?", (str(label_id),)).fetchone()
+        row = db.execute("SELECT * FROM label WHERE id=? AND deleted_at IS NULL", (str(label_id),)).fetchone()
         if row is None:
             raise invalid("label_id", "标签不存在")
-        return dict(row)
+        return {key: row[key] for key in row.keys() if key != 'deleted_at'}
 
     def update(self, label_id, **changes):
         try:
@@ -298,24 +248,56 @@ class LabelStore:
             return row
 
     @staticmethod
-    def _draft_references(db, code):
-        """Drafts reference classes by code, so a deleted label breaks their pixels."""
-        return sum(1 for (document,) in db.execute("SELECT document_json FROM annotation_draft")
-                   if code in {item.get("code") for item in json.loads(document).get("classes", [])})
+    def _draft_references(db, code, project_id=None):
+        """Only region references use a label; an unused palette entry does not."""
+        rows = db.execute("SELECT a.document_json FROM annotation_draft a JOIN dataset_registry d ON d.id=a.cube_id "
+                          "WHERE (? IS NULL OR d.project_id=?)", (project_id, project_id))
+        count = 0
+        for (text,) in rows:
+            document = json.loads(text)
+            indices = {item['index'] for item in document['classes'] if item['code'] == code}
+            count += any(region.get('op', 'add') == 'add' and region.get('class_index') in indices
+                         for region in document['regions'])
+        return count
 
-    def delete(self, label_id):
+    def delete(self, label_id, *, confirm=False):
         with self.lock, connect_database(self.database, timeout=10) as db:
             db.execute("BEGIN IMMEDIATE")
             label = self.require_label(db, label_id)
-            references = {source: db.execute(f"SELECT count(*) FROM {table} WHERE label_id=?", (str(label_id),)).fetchone()[0]
-                          for source, table in (("annotation", "annotation"), ("training_mat", "sample_spectrum"),
-                                                ("sample_label", "sample_label"))}
-            references["draft"] = self._draft_references(db, label["code"])
-            if any(references.values()):
-                error = DataError("LABEL_IN_USE", "标签仍被引用，不能删除", references=references)
+            if confirm is not True:
+                error = DataError("LABEL_DELETE_CONFIRM_REQUIRED", "删除标签会清除该标签在所有图片当前工作态中的标注和样品关联；已保存 JSON 及类别信息保留。请确认后删除。")
                 error.status_code = 409
                 raise error
-            db.execute("DELETE FROM label WHERE id=?", (str(label_id),))
+            # No restore path: only immutable class metadata for saved results survives.
+            db.execute("UPDATE label SET deleted_at=?,shortcut_key=NULL WHERE id=?", (now(), str(label_id)))
+            db.execute("DELETE FROM label_alias WHERE label_id=?", (str(label_id),))
+            db.execute("DELETE FROM sample_label WHERE label_id=?", (str(label_id),))
+            # Keep persisted drafts valid when indices after the removed entry shift.
+            from .draft import remap_document
+            labels = db.execute("SELECT id,code,name,color_hex FROM label WHERE project_id=? AND deleted_at IS NULL ORDER BY sort_order,code",
+                                (label['project_id'],)).fetchall()
+            drafts = db.execute("SELECT a.cube_id,a.document_json,a.revision,d.payload FROM annotation_draft a JOIN dataset_registry d ON d.id=a.cube_id "
+                                "WHERE d.project_id=?", (label['project_id'],)).fetchall()
+            from .raster import rasterize, encode_rle
+            import numpy as np
+            for cube_id, text, revision, payload in drafts:
+                document = json.loads(text)
+                removed = {item['index'] for item in document['classes'] if item['code'] == label['code']}
+                mask = None
+                if any(region.get('op', 'add') == 'add' and region.get('class_index') in removed for region in document['regions']):
+                    mask = np.isin(rasterize(document, json.loads(payload)['shape']), list(removed))
+                document['regions'] = [region for region in document['regions']
+                                       if not (region.get('op', 'add') == 'add' and region.get('class_index') in removed)]
+                if mask is not None and mask.any():
+                    # Deleting a class clears its visible pixels; it must not expose
+                    # older overlapping regions of another class underneath them.
+                    document['regions'].append({'region_id': f'r-{revision + 1:04d}', 'op': 'erase',
+                        'geometry': {'type': 'pixel_set', 'rows': encode_rle(mask), 'segments_fingerprint': None},
+                        'source': 'manual', 'created_at': now()})
+                normalized = remap_document(document, labels)
+                if normalized != json.loads(text):
+                    db.execute("UPDATE annotation_draft SET document_json=?,revision=revision+1,updated_at=? WHERE cube_id=?",
+                               (json.dumps(normalized, ensure_ascii=False, sort_keys=True, separators=(',', ':')), now(), cube_id))
             return {"deleted": str(label_id)}
 
     def merge(self, source_id, target_id):
@@ -383,7 +365,7 @@ class LabelStore:
         with connect_database(self.database) as db:
             project_id = project_id or db.execute("SELECT id FROM project ORDER BY created_at,id LIMIT 1").fetchone()[0]
             self.require_project(db, project_id)
-            existing = {code.upper(): color for code, color in db.execute("SELECT code,color_hex FROM label WHERE project_id=?", (project_id,))}
+            existing = {code.upper(): color for code, color in db.execute("SELECT code,color_hex FROM label WHERE project_id=? AND deleted_at IS NULL", (project_id,))}
             folders = self._tree_directories(root, depth)
             reserved = {folder.name.upper() for folder in folders if re.fullmatch(r"[A-Za-z0-9_]{1,16}", folder.name)}
             used = set(existing) | reserved | {"BG"}
@@ -425,7 +407,7 @@ class LabelStore:
                 samples = self._registered_samples(db, project_id, folder)
                 if len(samples) != candidate.sample_count:
                     raise invalid("candidates.sample_count", "登记样品数已变化，请重新预览")
-                labels = db.execute("SELECT id FROM label WHERE project_id=? AND upper(code)=? ORDER BY code", (project_id, candidate.code)).fetchall()
+                labels = db.execute("SELECT id FROM label WHERE project_id=? AND upper(code)=? AND deleted_at IS NULL ORDER BY code", (project_id, candidate.code)).fetchall()
                 if len(labels) > 1:
                     raise invalid("code", "存在大小写冲突的既有 code，请先合并标签")
                 if labels:

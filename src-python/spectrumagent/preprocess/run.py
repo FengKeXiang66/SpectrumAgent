@@ -150,6 +150,8 @@ class RunEngine:
         self.database = registry.database
         self.operators = operators if operators is not None else builtin_registry()
         self.recipes = RecipeStore(self.database, self.operators)
+        from .current import initialize
+        initialize(self.database)
         self.executor_id = str(uuid4())
         from .drafts import RecipeDrafts
         self.drafts = RecipeDrafts(self.recipes,self)
@@ -172,6 +174,9 @@ class RunEngine:
             recipe = db.execute("SELECT pipeline FROM preprocess_recipe_version WHERE id=?", (str(recipe_version_id),)).fetchone()
             if recipe is None:
                 raise _error("RECIPE_VERSION_NOT_FOUND", "配方版本不存在", recipe_version_id=str(recipe_version_id))
+            from .current import input_identity
+            if input_identity(db, annotation_version_id, recipe_version_id) is None:
+                raise PreprocessError('CURRENT_INPUT_REQUIRED', '请使用当前已保存的标注和配方')
         pipeline = self.operators.parse_pipeline(recipe[0])
         if any(step.op == "reflectance" for step in pipeline.steps):
             raise invalid("pipeline", "反射率转换由 run 前置，不得在配方中重复施加")
@@ -198,7 +203,10 @@ class RunEngine:
         count = int((label_map >= 0).sum()) if np.any(label_map >= 0) else int((label_map == -1).sum())
         if not count:
             raise invalid("annotation_version_id", "没有可处理像素；不确定像素不参与拟合")
-        fingerprint = input_fingerprint(str(cube_id), hashes, str(annotation_version_id), count)
+        # A mutable annotation ID no longer identifies its content.
+        from .recipes import annotation_identity
+        annotation_digest = annotation_identity(label_map, label_index)
+        fingerprint = input_fingerprint(str(cube_id), hashes, str(annotation_version_id)+":"+annotation_digest, count)
         source = BoundedInput(self.registry, str(cube_id), dataset.shape, label_map, block_size, hdr, branch, guard, self.operators)
         return dataset, source, pipeline, label_index, hashes, fingerprint
 
@@ -252,6 +260,8 @@ class RunEngine:
         payload = dict(cube_id=str(cube_id), annotation_version_id=str(annotation_version_id),
                        recipe_version_id=str(recipe_version_id), block_size=block_size, guard=guard, note=note)
         with connect_database(self.database) as db:
+            from .current import input_identity
+            payload['current_input_identity'] = input_identity(db, annotation_version_id, recipe_version_id)
             old = submissions.lookup(db, submission, 'preprocess.run', payload)
         if old is not None:
             return self.get(old['run_id'])
@@ -282,6 +292,10 @@ class RunEngine:
             db.execute("INSERT INTO preprocess_run (id,cube_id,annotation_version_id,recipe_version_id,b01_branch,"
                        "input_fingerprint,status,note,created_at) VALUES (?,?,?,?,?,?,'pending',?,?)",
                        (identifier, str(cube_id), str(annotation_version_id), str(recipe_version_id), source.branch, fingerprint, note, timestamp()))
+            from .current import input_identity
+            identity = input_identity(db, annotation_version_id, recipe_version_id)
+            if identity:
+                db.execute('INSERT INTO current_run_input VALUES (?,?,?)', (identifier,*identity))
             root = self.paths.artifact_root
             directory = self.paths.preprocess_directory(project_id, cube_id, identifier)
             db.execute('UPDATE business_operation SET evidence_root=?,evidence_directory=? WHERE operation_id=?',

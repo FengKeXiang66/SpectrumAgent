@@ -229,7 +229,7 @@ export function coefficientChart(input: CoefficientInput): ChartModel[] {
   if (input.error) return unavailable('无法获取波段系数：' + failureMessage(input.error));
   if (input.loading) return [{ ...model, status: 'loading', message: '正在获取波段系数…' }];
   if (!row) return unavailable('无法获取波段系数：未提供系数产物。');
-  if (typeof row.name === 'string' && finite(row.version)) model.title = row.name + ' · v' + row.version + ' 波段系数';
+  if (typeof row.name === 'string') model.title = row.name + ' 波段系数';
   const k = row.n_features, n = row.n_wavelengths, coefs = row.coefficients, waves = row.wavelengths;
   if (!finite(k) || !Number.isInteger(k) || k < 0 || !finite(n) || !Number.isInteger(n) || n < 0
       || typeof row.comparable !== 'boolean') return unavailable('无法获取波段系数：特征或波长计数无效。');

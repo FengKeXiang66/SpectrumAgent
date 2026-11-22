@@ -77,25 +77,13 @@ class TrainingJobs:
     def freeze(self, body, *, fixed=False):
         bound = deepcopy(body)
         bound['evaluation_protocol'] = body.get('evaluation_protocol') or 'nested_group_cv'
-        version = body.get('training_set_version_id')
-        if version and not fixed:
-            from spectrumagent.training_set.store import TrainingSets
-            resolved = TrainingSets(self.runs.registry, self.runs.paths).resolve_members(version)
-            if resolved['need_preprocess']:
-                raise ModelingError('NEED_PREPROCESS', '训练集成员缺少匹配的成功预处理')
-            triples = [(m['cube_id'], m['annotation_version_id'], m['preprocess_run_id']) for m in resolved['members']]
-            supplied = list(zip(body.get('cube_ids', []), body.get('annotation_version_ids', []), body.get('preprocess_run_ids', [])))
-            if supplied and sorted(supplied) != sorted(triples):
-                raise ModelingError('TRAINING_SET_MISMATCH', '提交引用与冻结训练集不一致')
-            for key, values in zip(('cube_ids', 'annotation_version_ids', 'preprocess_run_ids'), zip(*triples)):
-                bound[key] = list(values)
         rows = _inputs(self.runs.registry, cube_ids=bound['cube_ids'], annotation_version_ids=bound['annotation_version_ids'],
                        preprocess_run_ids=bound['preprocess_run_ids'], target=body.get('target', 'label'),
                        recipe_version_id=body.get('recipe_version_id'), dataset_version_ref=body.get('dataset_version_ref'))
         with connect_database(self.database) as db:
             catalog = [list(r) for r in db.execute('SELECT id,code,name,color_hex,is_background,sort_order FROM label ORDER BY sort_order,code,id')]
         binding = {'body': bound, 'code_identity': self.code_identity, 'catalog': catalog,
-                   'references': [{'cube_id': r['cube_id'], 'annotation': r['annotation'],
+                   'references': [{'cube_id': r['cube_id'], 'annotation': {k:v for k,v in r['annotation'].items() if k not in {'note','created_at'}},
                                    'run_id': r['run']['id'], 'input_fingerprint': r['run']['input_fingerprint'],
                                    'pipeline': r['pipeline']} for r in rows]}
         return bound, binding
@@ -143,7 +131,6 @@ class TrainingJobs:
                            'snapshot_version': 1, 'cancel_requested': False, 'cancelable': True,
                            'result_status': 'none', 'completed_folds': [], 'reused_folds': [],
                            'total_folds': body.get('cv_folds', 5), 'event_cursor': 0, 'eta_seconds': None,
-                           'training_set_version_id': body.get('training_set_version_id'),
                            'band_selection': body.get('band_selection'),
                            'cube_ids': bound['cube_ids'], 'retry_of': parent}
                 with connect_database(self.database) as db:

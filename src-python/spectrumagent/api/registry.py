@@ -3,7 +3,6 @@ from spectrumagent.storage import guard as storage
 from collections import Counter
 from dataclasses import replace
 import json
-import logging
 import os
 from pathlib import Path
 import re
@@ -15,7 +14,6 @@ from pydantic import TypeAdapter
 
 from backend.database import connect_database
 from spectrumagent.annotation.migrations import default_project_id, migrate
-from spectrumagent.annotation.labels import assign_import_folder_labels
 from spectrumagent.agent.migrations import migrate as migrate_agent
 from spectrumagent.modeling.migrations import migrate as migrate_modeling
 from spectrumagent.dataset_version.migrations import migrate as migrate_dataset_versions
@@ -235,29 +233,6 @@ class DatasetRegistry:
         existing = sum(r.existing for r in records)
         return ImportResponse(datasets=records, all_datasets=all_records,
                               summary=ImportSummary(total=len(records), imported=len(records)-existing, existing=existing))
-
-    def label_imported_folders(self, cube_ids):
-        """Best-effort: the parent directory name becomes the sample's material label.
-
-        Kept in its own transaction and deliberately separate from import_path():
-        reference registration is also used by services and fixtures that expect a
-        label-free project, while a failure here must never undo a completed import.
-        """
-        ids = [str(value) for value in cube_ids]
-        if not ids:
-            return
-        try:
-            with connect_database(self.database, timeout=10) as db:
-                db.execute('BEGIN IMMEDIATE')
-                samples = []
-                for cube_id in ids:
-                    row = db.execute('SELECT project_id,payload FROM dataset_registry WHERE id=?',
-                                     (cube_id,)).fetchone()
-                    if row and row[0]:
-                        samples.append((cube_id, row[0], json.loads(row[1]).get('header_path', '')))
-                assign_import_folder_labels(db, samples)
-        except Exception:
-            logging.getLogger(__name__).warning('导入时按目录自动归类失败，数据集登记不受影响', exc_info=True)
 
     def get(self, identifier):
         self.recycle.coordinator.check(str(identifier))

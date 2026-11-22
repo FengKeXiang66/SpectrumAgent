@@ -34,7 +34,7 @@ export function BatchDatasetDialog({ dialog, onDecision }: { dialog: BatchDialog
       h('h3', null, '按数据集分组的独占产物'),
       ...preview.per_cube.map(row => h('section', { key: row.cube_id, 'aria-label': `数据集 ${row.cube_id} 的独占产物` },
         h('code', null, row.cube_id),
-        h('p', null, `标注版本 ${row.annotation_versions} · 预处理运行 ${row.preprocess_runs} · 推理运行 ${row.inference_runs}`),
+        h('p', null, `标注记录 ${row.annotation_versions} · 预处理运行 ${row.preprocess_runs} · 推理运行 ${row.inference_runs}`),
         h('p', null, `独占产物 ${byteSize(row.total_bytes)}`),
         row.directories.length ? h('ul', null, ...row.directories.map(directory => h('li', { key: directory.path },
           h('code', null, directory.path), ' · ', byteSize(directory.bytes)))) : h('p', null, '无独占产物目录。'))),
@@ -70,7 +70,7 @@ export function DatasetDialog({ dialog, onDecision }: { dialog: Dialog; onDecisi
         h('p', null, dialog.record.display_name),
         h('p', null, '原始 ENVI 源文件保持不变、不删除。以下数据库记录与程序产物将被永久删除，不可恢复；删除事件写入只增不改的审计表。'),
         h('dl', { className: 'dataset-impact' },
-          ...([['标注版本', dialog.preview.annotation_versions], ['预处理运行', dialog.preview.preprocess_runs],
+          ...([['标注记录', dialog.preview.annotation_versions], ['预处理运行', dialog.preview.preprocess_runs],
             ['训练运行', dialog.preview.training_runs], ['推理运行', dialog.preview.inference_runs]] as const)
             .map(([name, count]) => h('div', { key: name }, h('dt', null, name), h('dd', null, count)))),
         h('p', null, `产物合计 ${byteSize(dialog.preview.total_bytes)}`),

@@ -2,8 +2,6 @@ import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-dialog';
 import { normalizePath } from './paths.ts';
 import type { BatchDeletePreview, BatchDeleteResult, CatalogPage, DatasetRecord, DatasetTransport, DeletePreview, DeleteResult, ImportResponse, MeanSpectrum, Preview, PreviewOptions, SpectrumRegion } from './types.ts';
-import type { DatasetVersionItem } from './types.ts';
-import type { TrainingSetMemberInput, TrainingSetOptionsInput, TrainingSetTransport, TrainingSetVersion, TrainingSetPreviewResponse, TrainingSetMembersResponse } from './types.ts';
 
 // One auditable exit for dataset IPC. No URL, port, method or token is accepted.
 export type Request = { op: 'import'; path: string; raw: boolean; confirm_new?: boolean } | ({ op: 'preview'; id: string } & PreviewOptions)
@@ -12,10 +10,7 @@ export type Request = { op: 'import'; path: string; raw: boolean; confirm_new?: 
   | { op: 'delete'; id: string; confirm: boolean; preview_token: string }
   | { op: 'batch_preview'; ids: string[] }
   | { op: 'batch_delete'; ids: string[]; confirm: boolean; preview_token: string }
-  | { op: 'version_list' }
-  | { op: 'training_set_list' }
-  | { op: 'training_set_preview'; members: TrainingSetMemberInput[]; options?: TrainingSetOptionsInput }
-  | { op: 'training_set_confirm' | 'training_set_members'; version_id: string };
+;
 export function spectraMeanRequest(id: string, region: SpectrumRegion): Request {
   return { op: 'spectra_mean', id, region: { l0: region.l0, l1: region.l1, s0: region.s0, s1: region.s1,
     ...(region.raw === undefined ? {} : { raw: region.raw }) } };
@@ -32,7 +27,7 @@ function forward<T>(request: Request): Promise<T> {
   return invoke<T>('datasets_forward', { request });
 }
 
-export function datasetClient(chooseDirectories: DatasetTransport['chooseDirectories'], send: typeof forward = forward): DatasetTransport & TrainingSetTransport {
+export function datasetClient(chooseDirectories: DatasetTransport['chooseDirectories'], send: typeof forward = forward): DatasetTransport {
   return {
     chooseDirectories,
     get: id => send<DatasetRecord>({ op: 'get', id }),
@@ -45,13 +40,6 @@ export function datasetClient(chooseDirectories: DatasetTransport['chooseDirecto
     batchDelete: (ids, previewToken, confirm) => send<BatchDeleteResult>({ op: 'batch_delete', ids, confirm, preview_token: previewToken }),
     preview: (id, selection) => send<Preview>(previewRequest(id, selection)),
     spectraMean: (id, region) => send<MeanSpectrum>(spectraMeanRequest(id, region)),
-    listDatasetVersions: () => send<DatasetVersionItem[]>({ op: 'version_list' }),
-    trainingSets: () => send<TrainingSetVersion[]>({ op: 'training_set_list' }),
-    trainingSetPreview: body => send<TrainingSetPreviewResponse>({ op: 'training_set_preview', members: body.members.map(member => ({
-      cube_id: member.cube_id, annotation_version_id: member.annotation_version_id, recipe_version_id: member.recipe_version_id })),
-      ...(body.options === undefined ? {} : { options: { content_hash_dedup: body.options.content_hash_dedup } }) }),
-    trainingSetConfirm: versionId => send<TrainingSetVersion>({ op: 'training_set_confirm', version_id: versionId }),
-    trainingSetMembers: versionId => send<TrainingSetMembersResponse>({ op: 'training_set_members', version_id: versionId }),
   };
 }
 

@@ -114,10 +114,13 @@ def remap_document(document, labels, old_ids=None):
     positions = {row[0]: i for i, row in enumerate(labels)}
     by_code = {row[1]: i for i, row in enumerate(labels)}
     mapping = {}
+    used = {region['class_index'] for region in result['regions'] if region.get('op', 'add') == 'add'}
     for old in result["classes"]:
         target = positions.get(old_ids[old["index"]]) if old_ids is not None else by_code.get(old["code"])
         if target is None:
-            raise DataError("LABEL_REMOVED", "工作态引用的标签已被删除")
+            if old['index'] in used:
+                raise DataError("LABEL_REMOVED", "工作态引用的标签已被删除")
+            continue
         mapping[old["index"]] = target
     for region in result["regions"]:
         if region.get("op", "add") == "add":
@@ -135,7 +138,7 @@ class DraftStore:
         self.registry.get(cube_id)
         with connect_database(self.database) as db:
             return db.execute("SELECT l.id,l.code,l.name,l.color_hex FROM label l JOIN dataset_registry d "
-                              "ON d.project_id=l.project_id WHERE d.id=? ORDER BY l.sort_order ASC,l.code ASC",
+                              "ON d.project_id=l.project_id WHERE d.id=? AND l.deleted_at IS NULL ORDER BY l.sort_order ASC,l.code ASC",
                               (str(cube_id),)).fetchall()
 
     def empty(self, cube_id):

@@ -14,7 +14,7 @@ from backend.database import connect_database
 from spectrumagent.data import DataError
 from spectrumagent.data.validation import safe_error, validation_error, PARAMETER_ERRORS
 from spectrumagent.preprocess.submissions import RESERVED_INPUT_FIELDS
-from .annotations import draft_get, draft_confirm, add_region, select_candidates
+from .annotations import draft_get, add_region, select_candidates
 
 
 class ToolInput(BaseModel):
@@ -366,9 +366,6 @@ def build_registry(*, datasets=None, runner=None, comparison=None, database=None
                       (lambda arguments: add_region(sessions, arguments)) if sessions is not None else None)
     registry.register("annotations.draft_select_candidates", SLICCandidates | SAMCandidates, "SLIC、SAM 扩散算法候选",
                       (lambda arguments: select_candidates(sessions, diffusion, arguments)) if sessions is not None else None)
-    registry.register("annotations.draft_confirm", ConfirmArguments, "标注版本确认",
-                      (lambda arguments: draft_confirm(sessions, arguments)) if sessions is not None else None,
-                      human_check=True, estimate_ms=1700)
     registry.register("preprocess.run", RunArguments, "预处理运行", run if runner is not None else None)
     registry.register("preprocess.compare", CompareArguments, "预处理配方对比", compare if comparison is not None else None)
     from .training_mat import export
@@ -398,4 +395,6 @@ def build_registry(*, datasets=None, runner=None, comparison=None, database=None
             from spectrumagent.experiments.conversation import ExperimentDialogue
             from .experiments import register_experiments
             register_experiments(registry, ExperimentDialogue(experiments))
+    from .current import register_current
+    register_current(registry, sessions, runner)
     return registry

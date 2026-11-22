@@ -216,23 +216,9 @@ class TrainingRuns:
     def classify(self, *, cube_ids, annotation_version_ids, preprocess_run_ids, task="classification", target="label",
                  cv_strategy="group_kfold", cv_folds=5, seed=17, split_strategy="none", confidence_threshold=0,
                  n_components=None, max_components=None, band_selection=None, dataset_version_ref=None, recipe_version_id=None,
-                 training_set_version_id=None, evaluation_protocol=None, sample_groups=None):
+                 evaluation_protocol=None, sample_groups=None):
         from .training_state import CURRENT
         control = CURRENT.get()
-        if training_set_version_id is not None and control is None:
-            from spectrumagent.training_set.store import TrainingSets
-            resolved = TrainingSets(self.registry, self.paths).resolve_members(training_set_version_id)
-            if resolved['need_preprocess']:
-                raise ModelingError('NEED_PREPROCESS', '训练集成员缺少精确匹配的成功预处理 run，请先补跑',
-                                    version_id=resolved['version_id'], need_preprocess=resolved['need_preprocess'])
-            members = resolved['members']
-            expected = [(m['cube_id'], m['annotation_version_id'], m['preprocess_run_id']) for m in members]
-            if any((cube_ids, annotation_version_ids, preprocess_run_ids)):
-                if (len(cube_ids) != len(annotation_version_ids) or len(cube_ids) != len(preprocess_run_ids)
-                        or sorted(zip(cube_ids, annotation_version_ids, preprocess_run_ids)) != expected):
-                    raise ModelingError('TRAINING_SET_MISMATCH', '客户端输入须与已冻结训练集的解析成员完全一致')
-            cube_ids, annotation_version_ids, preprocess_run_ids = map(list, zip(*expected))
-            training_set_version_id = resolved['version_id']
         if not cube_ids or len(cube_ids) != len(annotation_version_ids) or len(cube_ids) != len(preprocess_run_ids):
             raise ModelingError("ARGUMENT_LENGTH_MISMATCH", "三个引用数组须等长且非空")
         cube_ids, annotation_version_ids, preprocess_run_ids = map(list, zip(*sorted(
@@ -257,7 +243,7 @@ class TrainingRuns:
             with self.registry.recycle.coordinator.job():
                 return train(self, rows, cv_folds=cv_folds, seed=seed, threshold=float(confidence_threshold),
                              maximum=max_components, manual=n_components, ipls=band_selection == "ipls",
-                             protocol=evaluation_protocol, training_set_ref=training_set_version_id,
+                             protocol=evaluation_protocol, training_set_ref=None,
                              dataset_version_ref=dataset_version_ref, sample_groups=sample_groups)
         rows, data, folds, _ = self._preflight_data(cube_ids=cube_ids, annotation_version_ids=annotation_version_ids,
             preprocess_run_ids=preprocess_run_ids, task=task, target=target, cv_strategy=cv_strategy,
@@ -381,7 +367,7 @@ class TrainingRuns:
                         "actor": "local", "duration_s": perf_counter()-started,
                         "env": {"python": sys.version, "numpy": np.__version__, "sklearn": sklearn.__version__},
                         "dataset_version_ref": dataset_version_ref,
-                        "training_set_ref": training_set_version_id}
+                        "training_set_ref": None}
             threshold = {"confidence_threshold": float(confidence_threshold), "uncertain_pixels": int((predicted == -2).sum()),
                          "accepted_pixels": int((predicted >= 0).sum()), "total_pixels": len(y)}
             artifacts = {

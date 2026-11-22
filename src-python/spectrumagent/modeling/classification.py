@@ -104,12 +104,12 @@ def load_data(registry, paths, rows, sample_groups=None):
         current = {"header": file_sha256(Path(dataset.header_path)), "data": file_sha256(Path(dataset.data_path))}
         if current != hashes:
             raise ModelingError("SOURCE_CHANGED", "读取训练输入期间源文件变化")
-        from spectrumagent.preprocess.recipes import input_fingerprint
+        from spectrumagent.preprocess.recipes import input_fingerprint, annotation_identity
         import os
         sources = [Path(dataset.header_path), Path(dataset.data_path)]
         source_base = Path(os.path.commonpath([str(p.parent) for p in sources]))
         source_fingerprints = {p.relative_to(source_base).as_posix(): file_sha256(p) for p in sorted(set(sources))}
-        expected = input_fingerprint(cube, source_fingerprints, row["annotation"]["id"], len(selected))
+        expected = input_fingerprint(cube, source_fingerprints, row["annotation"]["id"]+":"+annotation_identity(label_map,mapping), len(selected))
         if expected != row["run"]["input_fingerprint"]:
             raise ModelingError("TRAINING_REFERENCE_CHANGED", "当前源和标注身份与预处理引用不一致")
         cubes.append({"cube_id": cube, "group": group, "shape": list(shape), "name": dataset.name,

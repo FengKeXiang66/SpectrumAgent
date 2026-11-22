@@ -41,10 +41,9 @@ export function datasetChoices(entries: ChatEntry[], records: DatasetReference[]
     label: records.filter(record => record.id === id).map(displayName)[0] || `数据集 ${index + 1}` }));
 }
 
-export function readableText(text: string, choices: DatasetChoice[], records: DatasetReference[], versions: readonly string[] = []): string {
+export function readableText(text: string, choices: DatasetChoice[], records: DatasetReference[]): string {
   // Keep references accurate while avoiding UUID tables in ordinary replies.
   return text.replace(uuidInText, id => {
-    if (versions.some(v=>v.toLowerCase()===id.toLowerCase())) return `版本 ${shortVersion(id,versions)}`;
     const choice = choices.find(item => item.id.toLowerCase() === id.toLowerCase());
     const record = records.find(item => item.id.toLowerCase() === id.toLowerCase());
     return choice ? `${choice.index}号 ${choice.label}（${id.slice(0, 8)}）`
@@ -54,7 +53,10 @@ export function readableText(text: string, choices: DatasetChoice[], records: Da
 
 export function changedCubes(events: AgentEvent[], workspace: WorkspaceContext = {}): string[] {
   const cubes = events.flatMap(event => {
-    if (event.event !== 'step' || event.data.status !== 'ok' || !/^(annotations\.|preprocess\.)/.test(event.data.tool)) return [];
+    if (event.event !== 'step' || event.data.status !== 'ok' || !/^(annotations\.|preprocess\.|workspace\.)/.test(event.data.tool)) return [];
+    if (event.data.tool === 'workspace.preprocess') {
+      return Object.entries(event.data.result_summary).flatMap(([key,value]) => /^item_\d+_cube_id$/.test(key) && typeof value === 'string' && uuid.test(value) ? [value] : []);
+    }
     if (event.data.tool === 'annotations.prepare_batch') {
       return parseBatchSummary(event.data.result_summary)?.readyMembers.map(item => item.cubeId) ?? [];
     }
@@ -135,13 +137,6 @@ function parseAdmission(s: Scalars): BatchResult['admission'] {
   return { code, constraint, actual: s.admission_actual as number | string | null, limit: s.admission_limit as number | string | null, checkedAt: s.admission_checked_at };
 }
 
-export function shortVersion(id: string, known: readonly string[] = []): string {
-  if (!uuid.test(id)) return '无法核对';
-  const ids = [...new Set([...known.filter(v => uuid.test(v)), id].map(v => v.toLowerCase()))];
-  let length = 8;
-  while (length < id.length && ids.some(v => v !== id.toLowerCase() && v.slice(0,length) === id.slice(0,length).toLowerCase())) length++;
-  return id.slice(0,length);
-}
 
 export function sameMembers(left: readonly string[], right: readonly string[]): boolean {
   return left.length === new Set(left).size && right.length === new Set(right).size && left.length === right.length
@@ -153,7 +148,7 @@ export function batchExplanation(result: BatchResult): string {
   if (result.status === 'need_version' || result.status === 'need_scope') return '本次未执行，需要明确要处理的样品范围。';
   const a = result.admission;
   if (!a) return result.status === 'blocked' ? '本次未执行；具体准入条件未提供。' : result.detail ?? '请核查逐项结果。';
-  if (a.code === 'MEMBER_COUNT_LIMIT') return `版本包含${a.actual}个样品，当前同步批量上限为${a.limit}个，本次未开始处理。`;
+  if (a.code === 'MEMBER_COUNT_LIMIT') return `范围包含${a.actual}个样品，当前同步批量上限为${a.limit}个，本次未开始处理。`;
   if (a.code === 'RUNTIME_MEMORY_LIMIT') return '实际执行的内存准入未通过，本次未开始处理。';
   const labels: Record<string,string> = { shape:'尺寸', bands:'波段', dtype:'数据类型', item_source_bytes:'单项源字节', total_source_bytes:'总源字节', total_pixels:'总像素', members_available:'可用成员' };
   return `${labels[a.constraint] ?? '静态准入'}检查阻断：实际 ${a.actual ?? '未知'}，限制 ${a.limit ?? '未知'}；本次未执行。`;
@@ -201,7 +196,7 @@ export function candidatePreviewKey(working: Working | null, reference: string):
 }
 
 export function preprocessingBusiness(summary: Scalars): {label:string;complete:boolean} {
-  if(summary.status==='need_version')return {label:'需要核对版本 · 尚未执行',complete:false};
+  if(summary.status==='need_version')return {label:'需要核对当前输入 · 尚未执行',complete:false};
   const succeeded=Number(summary.succeeded??0),failed=Number(summary.failed??0),remaining=Number(summary.remaining_failed??0);
   if(failed||remaining)return {label:`${succeeded||Number(summary.retained_succeeded??0)?'部分完成':'执行失败'}（${succeeded} 成功，${failed} 失败${remaining?`，${remaining} 待处理`:''}）`,complete:false};
   return {label:'✓ 完成',complete:true};

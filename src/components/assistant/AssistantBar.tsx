@@ -3,10 +3,8 @@ import { scalarText, friendlyError, type ChatEntry, type PendingCheck } from './
 import { readableText, parseBatchSummary, entryBusiness, batchExplanation, preprocessingBusiness } from './presentation.ts';
 import type { AssistantSession } from './useSession';
 import './assistant.css';
-import ConfirmCard from '../annotation/ConfirmCard.ts';
 import PlanCard from './PlanCard.ts';
 import BatchPrepareCard, { batchBusinessLabel } from './BatchPrepareCard.tsx';
-import BatchVersionReview from './BatchVersionReview.tsx';
 import AsyncPrepareCard from './AsyncPrepareCard.tsx';
 import { annotationChoices, choiceScope, taskPositions, replyPosition } from './annotation-timeline.ts';
 import RequestStatus from './RequestStatus';
@@ -48,13 +46,8 @@ export default function AssistantBar({ session }: { session: AssistantSession })
   const renderCheck = (state: { pending: PendingCheck; busy: boolean }) => <section className="agent-check" aria-label="人工确认">
     <span className="agent-check-icon" aria-hidden="true">!</span>
     <p>{readableText(`${state.pending.reason} · ${state.pending.tool} · ${scalarText(state.pending.summary)}`, choices, records)}</p>
-    {state.pending.tool === 'annotations.draft_confirm' ? <ConfirmCard key={state.pending.check_id}
-      cubeId={String(state.pending.summary.cube_id ?? '')} disabled={!enabled || state.busy} approveLabel="批准" rejectLabel="拒绝"
-      onApprove={async () => { await request({ check_id: state.pending!.check_id, decision: 'approve' }); }}
-      onReject={() => void request({ check_id: state.pending!.check_id, decision: 'reject' })} /> : <>
       <button disabled={!enabled || state.busy} onClick={() => void request({ check_id: state.pending!.check_id, decision: 'approve' })}>批准</button>
       <button disabled={!enabled || state.busy} onClick={() => void request({ check_id: state.pending!.check_id, decision: 'reject' })}>拒绝</button>
-    </>}
   </section>;
   return <section className="assistant-bar" aria-label="S01 助手">
     <h2>编排助手</h2>
@@ -103,8 +96,8 @@ export default function AssistantBar({ session }: { session: AssistantSession })
               <div className="agent-text">
                 {entry.event === 'plan' && (!state.pending || !('plan_id' in state.pending) || state.pending.plan_id !== entry.data.plan_id)
                   ? <PlanCard plan={entry.data} decision={entry.decision} readOnly /> : entry.event === 'user' ? entryText(entry)
-                    : <>{readableText(actualText, choices, records,session.knownVersionIds)}
-                      {readableText(actualText, choices, records,session.knownVersionIds) !== actualText && <details className="assistant-references">
+                    : <>{readableText(actualText, choices, records)}
+                      {readableText(actualText, choices, records) !== actualText && <details className="assistant-references">
                         <summary>查看完整引用</summary><p>{actualText}</p>
                       </details>}</>}
               </div>
@@ -165,11 +158,10 @@ export default function AssistantBar({ session }: { session: AssistantSession })
               onRetry={(id,requestId,mode)=>session.retriedTask(card,id,requestId,mode)}/></div>
           </li>),...legacy.filter(item=>item.anchor===index).map(({card})=><li key={card.key} className="agent-msg agent-msg-ai" data-event="annotation-batch">
             <span className="agent-avatar" aria-hidden="true">AI</span><div className="agent-bubble">
-              <BatchPrepareCard result={card.result} knownVersions={session.knownVersionIds}
+              <BatchPrepareCard result={card.result}
                 disabled={!enabled || state.busy || !session.isBatchActive(card)}
                 onOpen={() => session.openBatch(card)} onRetry={() => session.retryBatch(card)} />
-              {card.result?.datasetVersionId && ['blocked','need_version'].includes(card.result.status)
-                && <BatchVersionReview session={session} card={card}/>}
+
             </div>
           </li>)];})}
         </ol>

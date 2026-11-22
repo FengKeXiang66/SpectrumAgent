@@ -44,6 +44,13 @@
 .annotation-labels,.annotation-tools { display:flex; flex-direction:column; gap:5px; margin-bottom:12px; }
 .annotation-label { display:flex; align-items:center; gap:7px; text-align:left; width:100%; flex-wrap:wrap; }
 .annotation-label-name { flex:1; min-width:45px; font-size:11px; color:var(--ann-muted); }
+.annotation-label-row { display:flex; flex-wrap:wrap; gap:5px; align-items:center; }
+.annotation-label-row > .annotation-label { flex:1; min-width:0; width:auto; }
+.annotation-label-delete { color:#b83227; }
+.annotation-label-confirm { width:min(440px,calc(100vw - 48px)); padding:20px; color:#263743; background:white; border:1px solid #efd0cc; border-radius:8px; box-shadow:0 12px 48px #17242c33; }
+.annotation-label-confirm::backdrop { background:#17242c66; }
+.annotation-label-confirm p { margin:0 0 8px; }
+.annotation-label-confirm button { margin-right:6px; }
 .annotation-new-label { display:flex; flex-direction:column; gap:8px; margin-top:10px; }
 .annotation-new-label > label { display:flex; flex-direction:column; font-size:11px; }
 .annotation-new-label > div { display:flex; gap:6px; }

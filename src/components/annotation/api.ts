@@ -20,11 +20,8 @@ export const requests = {
   undo: (id: string): AnnotationRequest => ({ op: 'undo', id }),
   working: (id: string): AnnotationRequest => ({ op: 'working', id }),
   validate: (id: string): AnnotationRequest => ({ op: 'validate', id }),
-  save: (id: string, p: SaveOptions = {}): AnnotationRequest => ({ op: 'save', id,
-    ...(p.note !== undefined ? { note: p.note } : {}), ...(p.overwrite !== undefined ? { overwrite: p.overwrite } : {}),
-    ...(p.confirm !== undefined ? { confirm: p.confirm } : {}) }),
-  versions: (id: string): AnnotationRequest => ({ op: 'versions', id }),
-  versionOverlay: (id: string, version: string): AnnotationRequest => ({ op: 'version_overlay', id, version }),
+  save: (id: string, p: SaveOptions = {}): AnnotationRequest => ({ op: 'save', id, ...(p.note !== undefined ? { note: p.note } : {}) }),
+  current: (id: string): AnnotationRequest => ({ op: 'current', id }),
   projects: (): AnnotationRequest => ({ op: 'projects' }),
   labels: (projectId: string): AnnotationRequest => ({ op: 'labels', project_id: projectId }),
   addLabel: (body: LabelBody): AnnotationRequest => {
@@ -44,7 +41,7 @@ export const requests = {
   patchLabel: (labelId: string, body: LabelPatch): AnnotationRequest => ({ op: 'patch_label', label_id: labelId, body: {
     ...(body.name !== undefined ? { name: body.name } : {}), ...(body.color_hex !== undefined ? { color_hex: body.color_hex } : {}),
     ...(body.shortcut_key !== undefined ? { shortcut_key: body.shortcut_key } : {}), ...(body.tree_path !== undefined ? { tree_path: body.tree_path } : {}) } }),
-  deleteLabel: (labelId: string): AnnotationRequest => ({ op: 'delete_label', label_id: labelId }),
+  deleteLabel: (labelId: string): AnnotationRequest => ({ op: 'delete_label', label_id: labelId, confirm: true }),
   mergeLabels: (body: MergeLabels): AnnotationRequest => ({ op: 'merge_labels', body: { source_id: body.source_id, target_id: body.target_id } }),
   importTreePreview: (body: ImportTreeScope): AnnotationRequest => ({ op: 'import_tree_preview', body: treeScope(body) }),
   importTreeApply: (body: ImportTreeApply): AnnotationRequest => ({ op: 'import_tree_apply', body: { ...treeScope(body), candidates: body.candidates.map(c => ({
@@ -79,7 +76,7 @@ export function annotationClient(send: InvokeAnnotation = invoke): AnnotationApi
     regions: (id, geometry, action, labelId) => forward(requests.regions(id, geometry, action, labelId)),
     undo: id => forward(requests.undo(id)), working: id => forward(requests.working(id)),
     validate: id => forward(requests.validate(id)), save: (id, p) => forward(requests.save(id, p)),
-    versions: id => forward(requests.versions(id)), versionOverlay: (id, version) => forward(requests.versionOverlay(id, version)),
+    current: id => forward(requests.current(id)),
     projects: () => forward(requests.projects()), labels: id => forward(requests.labels(id)),
     addLabel: body => forward(requests.addLabel(body)), catalog: () => forward(requests.catalog()),
     patchLabel: (id, body) => forward(requests.patchLabel(id, body)), deleteLabel: id => forward(requests.deleteLabel(id)),

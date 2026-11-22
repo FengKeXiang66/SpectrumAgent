@@ -72,7 +72,7 @@ def write_projection(paths, cube_id, project_id, source_hdr, version_no, label_m
     root = paths.exports.resolve()
     folder = root / cube_id
     generated = now()
-    meta.update(cube_id=cube_id, version_no=version_no, source_hdr=str(source), generated_at=generated)
+    meta.update(cube_id=cube_id, source_hdr=str(source), generated_at=generated)
     confidence = []
     if document is not None:
         regions = document["regions"]
@@ -93,7 +93,7 @@ def write_projection(paths, cube_id, project_id, source_hdr, version_no, label_m
         if filename.casefold() in used:
             raise ValueError("投影文件名追加 cube_id 前 8 位后仍冲突")
         manifest = {"cube_id": cube_id, "source_hdr": str(source), "generated_at": generated,
-                    "filename": filename, "requested_filename": requested, "version_no": version_no}
+                    "filename": filename, "requested_filename": requested}
         storage.mkdir(folder, parents=True, exist_ok=True)
         values = {folder / filename: text,
                   folder / (filename[:-5] + ".meta.json"): _json(meta),
@@ -144,7 +144,7 @@ def read_projection_status(paths, cube_id):
     that would take the whole versions listing (and the workbench) down.
     """
     absent = {"exists": False, "path": None, "filename": None,
-              "generated_at": None, "version_no": None, "reason": None}
+              "generated_at": None, "reason": None}
     try:
         cube = str(UUID(str(cube_id)))
     except (ValueError, TypeError, AttributeError):
@@ -166,4 +166,4 @@ def read_projection_status(paths, cube_id):
         return {**absent, "filename": filename, "reason": "missing_json"}
     return {"exists": True, "path": str(target), "filename": filename,
             "generated_at": manifest.get("generated_at"),
-            "version_no": manifest.get("version_no"), "reason": None}
+            "reason": None}

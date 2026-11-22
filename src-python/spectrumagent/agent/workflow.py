@@ -176,7 +176,7 @@ def generate(machine, *, content=None, workspace=None, continuation=None, decisi
             # A successful batch from an older user request is not completion.
             with connect_database(store.database) as db:
                 batch = db.execute("SELECT s.result_summary FROM agent_step s JOIN agent_round r ON r.id=s.round_id "
-                    "WHERE s.session_id=? AND COALESCE(r.turn_id,r.id)=? AND s.tool IN ('preprocess.run_batch','preprocess.draft_execute') "
+                    "WHERE s.session_id=? AND COALESCE(r.turn_id,r.id)=? AND s.tool IN ('preprocess.run_batch','preprocess.draft_execute','workspace.preprocess') "
                     "AND s.status='ok' ORDER BY s.rowid DESC LIMIT 1",(session_id,turn_id)).fetchone()
             preprocess_batch = json.loads(batch[0]) if batch else None
         return evaluate_task(state, {"run_status": run_status, "last_status": last_status,
@@ -575,7 +575,7 @@ def generate(machine, *, content=None, workspace=None, continuation=None, decisi
                 if visible and visible != workspace_sent:
                     workspace_sent = visible
                     yield "workspace", visible
-                if call['name'] in {'modeling.classify','modeling.regress'} and not error and last_status not in {'succeeded', 'need_version'}:
+                if call['name'] in {'modeling.classify','modeling.regress','workspace.classify'} and not error and last_status not in {'succeeded', 'need_version'}:
                     answer = ('分类训练已在后台受理，任务 ' + result['job_id'] + '。可在页面顶部训练任务中查看进度，或继续对话查询；完整指标尚未生成。'
                               if last_status == 'accepted' and result.get('job_id') else
                               '建模失败，请核对真实运行记录。' if last_status == 'failed' else '建模状态尚未确认，请先查询真实 run；不会自动重训。')

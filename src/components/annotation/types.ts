@@ -6,7 +6,7 @@ export type Geometry = { superpixels: number[] } | { polygon: Pixel[] };
 export type EditAction = 'confirm' | 'erase' | 'uncertain';
 export type SuperpixelOptions = { n_segments?: number; compactness?: number; pca_components?: number; force?: boolean };
 export type DiffuseOptions = { threshold?: number; queue_min_similarity?: number };
-export type SaveOptions = { note?: string | null; overwrite?: boolean; confirm?: boolean };
+export type SaveOptions = { note?: string | null };
 export type FieldType = 'enum' | 'bool' | 'continuous' | 'ordinal';
 export type SchemaInput = { name: string; tree_path: string; field_type: FieldType; unit?: string | null; config?: Json };
 export type LabelBody =
@@ -19,14 +19,13 @@ export type AnnotationRequest =
   | ({ op: 'superpixels'; id: string } & SuperpixelOptions)
   | ({ op: 'diffuse'; id: string; seed: Seed } & DiffuseOptions)
   | { op: 'regions'; id: string; geometry: Geometry; action: EditAction; label_id?: string | null }
-  | { op: 'undo' | 'working' | 'validate' | 'versions'; id: string }
+  | { op: 'undo' | 'working' | 'validate' | 'current'; id: string }
   | ({ op: 'save'; id: string } & SaveOptions)
-  | { op: 'version_overlay'; id: string; version: string }
   | { op: 'projects' | 'catalog' }
   | { op: 'labels'; project_id: string }
   | { op: 'add_label'; body: LabelBody }
   | { op: 'patch_label'; label_id: string; body: LabelPatch }
-  | { op: 'delete_label'; label_id: string }
+  | { op: 'delete_label'; label_id: string; confirm: boolean }
   | { op: 'merge_labels'; body: MergeLabels }
   | { op: 'import_tree_preview'; body: ImportTreeScope }
   | { op: 'import_tree_apply'; body: ImportTreeApply }
@@ -113,15 +112,15 @@ export type Quality = {
   high_variance: { d_s: (number | null)[]; tau: number | null; superpixel_ids: number[] }; completeness: Statistics;
   not_applicable: Record<string, string>;
 };
-export type VersionNote = { event: 'save' | 'overwrite'; at: string; text?: string };
-export type Version = { id: string; cube_id: string; version_no: number; snapshot_ref: string; n_pixels: number;
-  labeled_pixels: number; auto_ratio: number; params: Parameters; note: VersionNote | null; created_at: string };
+export type SaveNote = { event: 'save' | 'overwrite'; at: string; text?: string };
+export type SavedAnnotation = { id: string; cube_id: string; snapshot_ref: string; n_pixels: number;
+  labeled_pixels: number; auto_ratio: number; params: Parameters; note: SaveNote | null; created_at: string };
 // Disk truth for exports/<cube_id>/manifest.json; optional for older engines.
 export type JsonProjectionStatus = {
   exists: boolean; path: string | null; filename: string | null;
-  generated_at: string | null; version_no: number | null; reason: string | null;
+  generated_at: string | null; reason: string | null;
 };
-export type Versions = { versions: Version[]; working: Working; json_projection?: JsonProjectionStatus | null };
+export type CurrentAnnotation = { current: SavedAnnotation | null; working: Working; json_projection?: JsonProjectionStatus | null };
 export type ExportResult = { ok: boolean; path: string | null; error: string | null };
 export type Saved = { id: string; cube_id: string; snapshot_ref: string; created_at: string; note: string | null; export: ExportResult;
   quality: Quality; elapsed_seconds: number; transaction_seconds: number };
@@ -138,8 +137,8 @@ export type AnnotationApi = {
   diffuse(id: string, seed: Seed, options?: DiffuseOptions): Promise<DiffuseReport>;
   regions(id: string, geometry: Geometry, action: EditAction, labelId?: string): Promise<Omit<Working, 'overlay'>>;
   undo(id: string): Promise<Working>; working(id: string): Promise<Working>; validate(id: string): Promise<Quality>;
-  save(id: string, options?: SaveOptions): Promise<Saved>; versions(id: string): Promise<Versions>;
-  versionOverlay(id: string, version: string): Promise<Png>; projects(): Promise<Project[]>;
+  save(id: string, options?: SaveOptions): Promise<Saved>; current(id: string): Promise<CurrentAnnotation>;
+  projects(): Promise<Project[]>;
   labels(projectId: string): Promise<LabelSchema[]>; addLabel(body: LabelBody): Promise<Label | Label[] | LabelSchemaRow>;
   catalog(): Promise<CatalogItem[]>;
   patchLabel(labelId: string, body: LabelPatch): Promise<Label>;

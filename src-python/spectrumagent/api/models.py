@@ -82,10 +82,7 @@ class ClassificationRequest(BaseModel):
     n_components: Annotated[StrictInt, Field(ge=1, le=20)] | None = None
     max_components: Annotated[StrictInt, Field(ge=1, le=20)] | None = None
     band_selection: Literal["ipls"] | None = None
-    dataset_version_ref: StrictStr | None = Field(default=None, deprecated=True,
-                                                description="旧客户端兼容字段；新训练输入使用 training_set_version_id")
     recipe_version_id: StrictStr | None = None
-    training_set_version_id: StrictStr | None = None
     evaluation_protocol: Literal["nested_group_cv", "exploratory_group_cv"] | None = None
     sample_groups: dict[StrictStr, StrictStr] | None = None
 

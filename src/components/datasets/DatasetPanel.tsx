@@ -8,8 +8,7 @@ import BandCanvas from './BandCanvas';
 import './datasets.css';
 import './datasets-skin.css';
 import { annotations } from '../annotation/api.ts';
-import { labelFailure } from '../annotation/folder-label.ts';
-import type { Label } from '../annotation/types.ts';
+import { describeAnnotationError, type Label } from '../annotation/types.ts';
 
 function Thumbnail({ record, api }: { record: CatalogRecord; api: DatasetTransport }) {
   const [preview, setPreview] = useState<Preview | null>(null), [error, setError] = useState('');
@@ -37,7 +36,7 @@ export default function DatasetPanel({ api, records, phase, error, onReload, onI
     let cancelled = false;
     setMaterials({}); setMaterialError('');
     void annotations.sampleLabels().then(rows => { if (!cancelled) setMaterials(rows); })
-      .catch(failure => { if (!cancelled) setMaterialError(labelFailure(failure)); });
+      .catch(failure => { if (!cancelled) setMaterialError(describeAnnotationError(failure)); });
     return () => { cancelled = true; };
   }, [records]);
   const [checkedIds, setCheckedIds] = useState<string[]>([]);

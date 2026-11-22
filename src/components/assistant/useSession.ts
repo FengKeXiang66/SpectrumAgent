@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
-import { agent, type BatchAssessment, type BatchCard, type BatchScope, type BatchResult, type TaskCard, type MessageBody, type RuntimeInfo, type WorkspaceContext, type SessionDetail, type HistoryEvent, type CreateSessionInput } from './api.ts';
+import { agent, type BatchCard, type BatchScope, type BatchResult, type TaskCard, type MessageBody, type RuntimeInfo, type WorkspaceContext, type SessionDetail, type HistoryEvent, type CreateSessionInput } from './api.ts';
 import { initialChat, reduceChat, requestError, validateWorkspaceEvent, type WorkspaceEventData, type ChatEntry, type AgentEvent } from './sse.ts';
 import { changedCubes, datasetChoices, proposedCandidates, parseBatchSummary } from './presentation.ts';
 import type { DatasetReference } from '../datasets/types.ts';
@@ -44,7 +44,6 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
   const [runtime, setRuntime] = useState<RuntimeInfo | null>(null);
   const [batchCards, setBatchCards] = useState<BatchCard[]>([]);
   const [taskCards, setTaskCards] = useState<TaskCard[]>([]);
-  const [knownVersions, setKnownVersions] = useState<string[]>([]);
   const callbacks = useRef({ onBatchOpen, onBatchReset, enabled, generation, bootId });
   callbacks.current = { onBatchOpen, onBatchReset, enabled, generation, bootId };
   const sessionId = useRef<string | null>(null);
@@ -441,19 +440,6 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
       }
     } finally { if (epoch.current === requestEpoch) {inFlight.current = false;setStopping(false);} }
   };
-  const executeBatchVersion = async (card: BatchCard, check: BatchAssessment) => {
-    if (!isBatchActive(card) || !card.requestId || state.busy || state.pending || inFlight.current
-        || check.session_id !== sessionId.current || check.assessment !== 'within_profile') return false;
-    await request({content:'按默认配置准备我明确核对的整个冻结版本；只分割，不识别材质或保存。annotations.prepare_batch '
-      + JSON.stringify({dataset_version_id:check.dataset_version_id,retry_of:null})});
-    return true;
-  };
-  const knownVersionIds = [...new Set([...knownVersions,
-    ...state.entries.flatMap(e=>e.event==='step' && e.data.tool==='versions.list' && e.data.status==='ok'
-      ? Object.entries(e.data.result_summary).flatMap(([k,v])=>/^version_\d+_id$/.test(k) && typeof v==='string' ? [v] : []) : [])])];
-  const rememberVersions = (card: BatchCard, ids: string[]) => {
-    if (isBatchActive(card)) setKnownVersions(old=>[...new Set([...old,...ids])]);
-  };
   const startAnnotation = async(mode:'per_image'|'all',targets?:string[])=>{
     if(!enabled||inFlight.current||state.pending||loading)return;
     const cubeIds=targets?[...targets]:records.map(row=>row.id);
@@ -513,7 +499,7 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
       }
     }
   };
-  return { state, dispatch, content, setContent, runtime, request, executeBatchVersion, knownVersionIds, rememberVersions, choices, selected, selectedChoice, startNew,
+  return { state, dispatch, content, setContent, runtime, request, choices, selected, selectedChoice, startNew,
     enabled: enabled && !loading, canSend:enabled&&!loading&&!recoveryFailed&&!state.busy&&active?.request?.status!=='running', active, historyBefore, loading,
     stop, stopping, stopError, syncError, elapsedSeconds, refreshSession,
     editLastRequest:()=>setContent(lastUserMessage.current||[...state.entries].reverse().find(entry=>entry.event==='user')?.data.content||''),

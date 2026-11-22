@@ -10,7 +10,7 @@ export type RegressionBody = { task: 'regression'; preprocess_run_ids: string[];
   cv_strategy: 'kfold' | 'loo'; cv_folds: number; test_ratio: number; seed: number; n_components?: number };
 export type ClassificationBody = { task: 'classification'; cube_ids: string[]; annotation_version_ids: string[];
   preprocess_run_ids: string[]; target: 'label'; cv_strategy: 'group_kfold'; cv_folds: number; seed: number;
-  split_strategy: 'none'; confidence_threshold: number; n_components?: number; max_components?: number; band_selection?: 'ipls'; dataset_version_ref?: string; recipe_version_id?: string; training_set_version_id?: string;
+  split_strategy: 'none'; confidence_threshold: number; n_components?: number; max_components?: number; band_selection?: 'ipls'; recipe_version_id?: string;
   evaluation_protocol?: 'nested_group_cv' | 'exploratory_group_cv'; sample_groups?: Record<string, string> };
 export type TrainBody = RegressionBody | ClassificationBody;
 export type Prediction = { cube_id: string; y_true: number; y_pred: number; residual: number; set: 'calibration' | 'prediction' };
