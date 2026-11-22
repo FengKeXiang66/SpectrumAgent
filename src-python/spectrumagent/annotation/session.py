@@ -8,6 +8,7 @@ from collections import deque
 from dataclasses import dataclass, field, replace
 from copy import deepcopy
 import json
+import os
 import logging
 import sqlite3
 from pathlib import PurePosixPath
@@ -179,6 +180,7 @@ class SessionStore:
             self.resources.ensure(int(np.prod(dataset.shape[:2]))*12+32768,cube=cube_id)
         ids = self._label_ids(cube_id)
         state = self._states.get(cube_id)
+        needs_raster = state is None or state.label_map is None
         if state is None:
             dataset, _ = self.registry.readable(cube_id, raw=False)
             state = WorkingState(np.full(dataset.shape[:2], -1, dtype=np.int32), ids)
@@ -202,7 +204,7 @@ class SessionStore:
                 return result
             # Prepare both halves before writing; CAS failures change neither.
             labels = self.drafts.labels(cube_id)
-            undo = deque(((json.dumps(remap_document(json.loads(doc), labels, state.label_ids)), remap(old))
+            undo = deque(((json.dumps(remap_document(json.loads(doc), labels, state.label_ids)), remap(old) if old is not None else None)
                           for doc, old in state.undo_stack), maxlen=UNDO_DEPTH)
             remap(state.label_map)  # Preserve LABEL_REMOVED even for unused labels.
         else:
@@ -214,8 +216,12 @@ class SessionStore:
         normalized = remap_document(document, labels, old_ids)
         if normalized != document or state.label_ids != ids:
             row = self.drafts.replace(cube_id, normalized, row["revision"] if row else 0)
-        state.label_map = rasterize(normalized, state.label_map.shape)
-        state.document_json = json.dumps(normalized, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        encoded = json.dumps(normalized, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        # The draft is still read and checked on every access. Reuse only the
+        # exact projection of that document, never an independently edited map.
+        if needs_raster or state.document_json != encoded or state.label_ids != ids or os.environ.get('SPECTRUMAGENT_RASTER_CACHE')=='0':
+            state.label_map = rasterize(normalized, state.label_map.shape)
+        state.document_json = encoded
         state.revision = row["revision"] if row else 0
         state.undo_stack = undo
         state.label_ids = ids
@@ -311,7 +317,7 @@ class SessionStore:
             document, label_map = state.undo_stack[-1]
             self.drafts.replace(cube_id, json.loads(document), state.revision)
             state.undo_stack.pop()
-            state.label_map = label_map.copy()
+            if label_map is not None:state.label_map = label_map.copy()
             return self.working(cube_id)
 
     @managed(required=True)

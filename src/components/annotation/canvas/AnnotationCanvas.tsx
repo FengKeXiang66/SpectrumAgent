@@ -6,6 +6,7 @@ import type { Tool } from '../shortcuts.ts';
 import { candidateKey } from '../working.ts';
 import { boxFromPoints, fitViewport, freehandGeometry, imagePoint, rectangle, zoomAt, type Viewport } from './viewport.ts';
 import { blockAction, blockBadge, decodeSegments, hitTest, isBlockClick, type DecodedSegments } from './segments.ts';
+import type { PendingBlockEdit } from '../block-edits.ts';
 
 export type PromptMode = 'point' | 'box' | 'doodle';
 type Layer = 'base' | 'superpixels' | 'candidates' | 'confirmed';
@@ -17,6 +18,7 @@ type Props = {
   inspection: InspectionMode; onSpectrum(region: SpectrumRegion): void;
   selectedKey: string | null; tool: Tool; prompt: PromptMode; disabled: boolean; panHeld: boolean;
   brushPrompt: boolean;
+  blockClicksEnabled?: boolean; pendingClicks?: readonly PendingBlockEdit[];
   draft: Geometry | null;
   onSeed(seed: Seed): void; onGeometry(geometry: Geometry): void; onErase(geometry: Geometry): void;
   onBlockClick(id: number, uncertain: boolean): void; onBlockErase(id: number): void;
@@ -29,6 +31,7 @@ export default function AnnotationCanvas(props: Props) {
   const [viewport, setViewport] = useState<Viewport>({ scale: 1, x: 0, y: 0 });
   const [visible, setVisible] = useState<Record<Layer, boolean>>({ base: true, superpixels: true, candidates: true, confirmed: true });
   const [frames, setFrames] = useState<Frame[]>([]), [error, setError] = useState('');
+  const imageCache = useRef(new Map<string, HTMLImageElement>());
   const [points, setPoints] = useState<Pixel[]>([]);
   const drag = useRef<{ startX: number; startY: number; button: number; shiftKey: boolean;
     view: Viewport; points: Pixel[]; pan: boolean; click: boolean } | null>(null);
@@ -75,6 +78,27 @@ export default function AnnotationCanvas(props: Props) {
     context.putImageData(pixels, 0, 0);
     return scratch;
   }, [decoded, hoverId, lines, samples]);
+  const pendingFrame = useMemo(() => {
+    if (!decoded || !props.pendingClicks?.length) return null;
+    const scratch = document.createElement('canvas'); scratch.width = samples; scratch.height = lines;
+    const context = scratch.getContext('2d');
+    if (!context) return null;
+    const pixels = context.createImageData(samples, lines);
+    const colors = new Map(props.labels.map(label => [label.id, label.color_hex]));
+    const edits = new Map(props.pendingClicks.map(edit => {
+      const color = edit.action === 'confirm' ? colors.get(edit.labelId!) ?? '#38bdf8'
+        : edit.action === 'erase' ? '#f87171' : '#facc15';
+      return [edit.blockId, [1, 3, 5].map(at => Number.parseInt(color.slice(at, at + 2), 16))];
+    }));
+    for (let i = 0; i < decoded.ids.length; i++) {
+      const color = edits.get(decoded.ids[i]);
+      if (!color) continue;
+      pixels.data[4 * i] = color[0]; pixels.data[4 * i + 1] = color[1]; pixels.data[4 * i + 2] = color[2];
+      pixels.data[4 * i + 3] = (Math.floor(i / samples) + i % samples) % 8 < 3 ? 190 : 65;
+    }
+    context.putImageData(pixels, 0, 0);
+    return scratch;
+  }, [decoded, props.pendingClicks, props.labels, lines, samples]);
 
   useEffect(() => {
     const node = host.current;
@@ -102,13 +126,17 @@ export default function AnnotationCanvas(props: Props) {
     ];
     // onload/onerror instead of img.decode(): decode() can reject on a payload
     // that decodes fine elsewhere, and it never says which layer failed.
+    const nextCache = new Map<string, HTMLImageElement>();
     const load = ({ layer, png }: { layer: Layer; png: Png }) => new Promise<Frame>((resolve, reject) => {
+      const source = `data:image/png;base64,${png?.png_base64}`;
+      const cached = imageCache.current.get(source);
+      if (cached) { nextCache.set(source, cached); resolve({ layer, image: cached }); return; }
       const image = new Image();
-      image.onload = () => resolve({ layer, image });
+      image.onload = () => { nextCache.set(source, image); resolve({ layer, image }); };
       image.onerror = () => reject(new Error(`${layer} 图层`));
-      image.src = `data:image/png;base64,${png?.png_base64}`;
+      image.src = source;
     });
-    void Promise.all(images.map(load)).then(next => { if (!cancelled) setFrames(next); })
+    void Promise.all(images.map(load)).then(next => { if (!cancelled) { imageCache.current = nextCache; setFrames(next); } })
       .catch((failure: unknown) => {
         if (!cancelled) {
           setFrames([]);
@@ -118,8 +146,9 @@ export default function AnnotationCanvas(props: Props) {
     return () => { cancelled = true; };
   }, [base, segmentation, working, selectedKey]);
 
+  const baseImage = frames.find(item => item.layer === 'base')?.image;
   const mappedBase = useMemo(() => {
-    const frame = frames.find(item => item.layer === 'base');
+    const frame = baseImage ? { image: baseImage } : null;
     if (!props.manualStretch || !frame) return { image: null, error: '' };
     const scratch = document.createElement('canvas');
     scratch.width = frame.image.naturalWidth; scratch.height = frame.image.naturalHeight;
@@ -130,7 +159,7 @@ export default function AnnotationCanvas(props: Props) {
     original.data.set(applyLut(original.data, makeLut(props.lut)));
     context.putImageData(original, 0, 0);
     return { image: scratch, error: '' };
-  }, [frames, props.manualStretch, props.lut]);
+  }, [baseImage, props.manualStretch, props.lut]);
 
   useEffect(() => {
     const node = canvas.current;
@@ -153,7 +182,10 @@ export default function AnnotationCanvas(props: Props) {
       } else ctx.drawImage(frame.image, 0, 0, samples, lines);
     }
     ctx.globalAlpha = 1;
+    // This separate hatched layer acknowledges queued intentions immediately.
+    // Confirmed pixels and statistics always come from the backend PNG/snapshot.
     if (hoverFrame) ctx.drawImage(hoverFrame, 0, 0);
+    if (pendingFrame) ctx.drawImage(pendingFrame, 0, 0);
     const stroke = [...(props.draft && 'polygon' in props.draft ? props.draft.polygon : []), ...polygon, ...points];
     if (stroke.length) {
       ctx.beginPath(); ctx.moveTo(stroke[0][1] + .5, stroke[0][0] + .5);
@@ -166,7 +198,7 @@ export default function AnnotationCanvas(props: Props) {
       ctx.strokeStyle = 'white'; ctx.lineWidth = 1 / viewport.scale; ctx.stroke();
     }
     ctx.restore();
-  }, [frames, visible, viewport, size, lines, samples, polygon, points, tool, prompt, props.draft, mappedBase, props.manualStretch, props.inspection, hoverFrame]);
+  }, [frames, visible, viewport, size, lines, samples, polygon, points, tool, prompt, props.draft, mappedBase, props.manualStretch, props.inspection, hoverFrame, pendingFrame]);
 
   const location = (event: { clientX: number; clientY: number }) => {
     const box = canvas.current!.getBoundingClientRect();
@@ -195,7 +227,7 @@ export default function AnnotationCanvas(props: Props) {
           const { x, y } = location(event); const p = imagePoint(x, y, viewport, lines, samples);
           const pan = panHeld || event.button === 1;
           const click = tool === 'click' && props.inspection === 'edit';
-          if (!pan && ((props.inspection === 'edit' && disabled) || !p || (event.button !== 0 && !(click && event.button === 2)))) return;
+          if (!pan && ((props.inspection === 'edit' && disabled && !(click && props.blockClicksEnabled)) || !p || (event.button !== 0 && !(click && event.button === 2)))) return;
           event.currentTarget.setPointerCapture(event.pointerId);
           drag.current = { startX: x, startY: y, button: event.button, shiftKey: event.shiftKey,
             view: viewport, points: p ? [p] : [], pan, click };
@@ -219,7 +251,7 @@ export default function AnnotationCanvas(props: Props) {
         onPointerUp={event => {
           const current = drag.current; drag.current = null; setPoints([]);
           if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
-          if (!current || current.pan || (props.inspection === 'edit' && disabled) || !current.points.length) return;
+          if (!current || current.pan || (props.inspection === 'edit' && disabled && !(current.click && props.blockClicksEnabled)) || !current.points.length) return;
           const first = current.points[0], last = current.points[current.points.length - 1];
           if (props.inspection === 'point') { props.onSpectrum(pointRegion(last)); return; }
           if (props.inspection === 'box') { props.onSpectrum(boxRegion(first, last)); return; }

@@ -2,11 +2,11 @@ import { useState } from 'react';
 import type { Label, LabelBody } from './types.ts';
 
 type Props = {
-  labels: Label[]; projectId: string; selectedId: string | null; disabled: boolean;
+  labels: Label[]; projectId: string; selectedId: string | null; disabled: boolean; allowSelection?: boolean;
   onSelect(id: string): void; onAdd(body: LabelBody): Promise<void>;
 };
 
-export default function LabelPanel({ labels, projectId, selectedId, disabled, onSelect, onAdd }: Props) {
+export default function LabelPanel({ labels, projectId, selectedId, disabled, allowSelection = false, onSelect, onAdd }: Props) {
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState(''), [color, setColor] = useState('#2563eb');
   const [error, setError] = useState('');
@@ -24,7 +24,7 @@ export default function LabelPanel({ labels, projectId, selectedId, disabled, on
     <div className="annotation-labels">
       {labels.map(label => <button key={label.id} type="button"
         className={selectedId === label.id ? 'annotation-label selected' : 'annotation-label'}
-        disabled={disabled} aria-pressed={selectedId === label.id} onClick={() => onSelect(label.id)}>
+        disabled={disabled && !allowSelection} aria-pressed={selectedId === label.id} onClick={() => onSelect(label.id)}>
         <i className="annotation-swatch" style={{ backgroundColor: label.color_hex }} />
         <span className="annotation-label-name">{label.name}</span>
       </button>)}

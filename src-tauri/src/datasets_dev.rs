@@ -312,12 +312,11 @@ impl DatasetRequest {
 
 pub fn forward(identity: &Handshake, request: &DatasetRequest) -> Result<Value, ForwardError> {
     let (url, method, body) = request.destination(identity.port)?;
-    let client = Client::builder()
+    let client = crate::http_client::shared("domain-short", || Client::builder()
         .no_proxy()
         .redirect(reqwest::redirect::Policy::none())
         .connect_timeout(Duration::from_millis(500))
-        .timeout(Duration::from_secs(30))
-        .build()
+        .timeout(Duration::from_secs(30)))
         .map_err(|_| ForwardError::new("TRANSPORT", "本机请求初始化失败"))?;
     let mut outgoing = client.request(method, url).bearer_auth(identity.token());
     if matches!(request, DatasetRequest::Import { .. }) {

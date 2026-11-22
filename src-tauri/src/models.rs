@@ -316,15 +316,15 @@ pub fn forward(identity: &Handshake, request: &ModelRequest) -> Result<Value, Fo
 }
 pub fn forward_traced(identity: &Handshake, request: &ModelRequest, trace: &str) -> Result<Value, ForwardError> {
     let (url, method, body) = request.destination(identity.port)?;
-    let client = Client::builder()
+    let short = matches!(request,
+        ModelRequest::SubmitTraining { .. } | ModelRequest::GetTrainingJob { .. } | ModelRequest::ListTrainingJobs
+        | ModelRequest::TrainingEvents { .. } | ModelRequest::CancelTraining { .. }
+        | ModelRequest::ContinueTraining { .. } | ModelRequest::TrainingPartial { .. });
+    let client = crate::http_client::shared(if short { "models-short" } else { "domain-long" }, || Client::builder()
         .no_proxy()
         .redirect(reqwest::redirect::Policy::none())
         .connect_timeout(Duration::from_millis(500))
-        .timeout(Duration::from_secs(if matches!(request,
-            ModelRequest::SubmitTraining { .. } | ModelRequest::GetTrainingJob { .. } | ModelRequest::ListTrainingJobs
-            | ModelRequest::TrainingEvents { .. } | ModelRequest::CancelTraining { .. }
-            | ModelRequest::ContinueTraining { .. } | ModelRequest::TrainingPartial { .. }) { 15 } else { 300 }))
-        .build()
+        .timeout(Duration::from_secs(if short { 15 } else { 300 })))
         .map_err(|e| transport_error("initialize", trace, identity, Some(&e)))?;
     let mut outgoing = client.request(method, url).bearer_auth(identity.token())
         .header("X-SpectrumAgent-Request-Id", trace);

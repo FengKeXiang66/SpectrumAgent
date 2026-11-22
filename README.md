@@ -147,6 +147,31 @@ node --test tests/workspace-persistence.test.mjs
 cargo test --manifest-path '.\src-tauri\Cargo.toml' --lib --locked
 ```
 
+## 性能与内存设置
+
+性能改造继续保留上述持久化行为，不删除标注、配方、版本和建模产物。算法及 `Parameters` 默认值未改变；实测、限制、逐项风险与回退方式见 [PERFORMANCE_REPORT.txt](PERFORMANCE_REPORT.txt)。
+
+可选环境变量（设置后重启应用）：
+
+| 变量 | 用途 |
+| --- | --- |
+| `SPECTRUMAGENT_CACHE_RETAINED_MIB` | 标注驻留预算，默认 128 MiB |
+| `SPECTRUMAGENT_CACHE_RSS_FRACTION` | 物理内存占比上限，默认 0.5，须在 `(0,1]` |
+| `SPECTRUMAGENT_CACHE_MEMORY_POLICY=legacy` | 回退到旧的保守临时预算 |
+| `SPECTRUMAGENT_SOURCE_HASH_POLICY=strict` | 禁用操作内哈希去重，每次均全量校验 |
+| `SPECTRUMAGENT_RASTER_CACHE=0` | 禁用相同草稿的像素图复用 |
+| `SPECTRUMAGENT_HTTP_CLIENT_REUSE=0` | 禁用 Rust HTTP 连接池复用 |
+| `SPECTRUMAGENT_EARLY_WINDOW=0` | 恢复等待引擎就绪后显示窗口 |
+| `SPECTRUMAGENT_SLIM_BACKEND=1` | 构建时启用可选裁剪；默认关闭，保留 GDAL 驱动与数值依赖 |
+
+测量脚本：`scripts/benchmark_performance.py`（真实数据与逐字节摘要）、`scripts/benchmark_desktop_startup.py`（隔离桌面进程）、`scripts/verify_frozen_backend.py`（onedir 真实 HTTP/数值/资源冒烟）。输出应放在 `.runtime/` 等忽略目录中；测试不会更改输入数据。
+
+超像素点选支持连续点击：画布斜纹表示待同步预览，后台按点击顺序逐次落盘，每次点击保留独立撤销步骤。同步期间可切换已有标签；保存、撤销和切图等待同步完成。传输失败会停止后续点击并尝试读回实际状态，不自动重试状态未知的写入。待同步预览尚不代表落盘完成，退出前应等待同步结束。
+
+`node --test tests/annotation-clicks.test.mjs` 覆盖快速连点、标签快照、刷新期间新增点击、失败停止及卸载边界。`scripts/benchmark_annotation_clicks.py --source <数据源> --output <全新绝对目录> --refresh-every 4` 测量真实标注请求，并记录每一步像素图、撤销图及最终光谱摘要。
+
+当前分割仍使用整图 PCA/SLIC。框选提示只选择已有超像素，不等同于局部分割；面向目标物体的 ROI 掩膜分割需独立实现，并将区域信息纳入缓存与持久化标识。
+
 ## 重新生成发布安装包
 
 使用 PowerShell 7，在仓库根执行：

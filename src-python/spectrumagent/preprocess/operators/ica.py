@@ -1,12 +1,12 @@
 """B08 deterministic FastICA; the run feeds a single temporary memmap."""
 import numpy as np
-from sklearn.decomposition import FastICA
 
 from ..registry import PreprocessError
 from .pca import component_count, orient, transform, variance_meta
 
 
 def fit_ica(finite, params, *, nan_count=0):
+    from sklearn.decomposition import FastICA
     k = component_count(params, finite.shape[1])
     if len(finite) < max(2, k):
         raise PreprocessError("DECOMPOSITION_DEGENERATE", "ICA 有限谱数不足", n_spectra=len(finite))

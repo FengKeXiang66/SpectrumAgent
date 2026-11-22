@@ -211,7 +211,15 @@ export default function App() {
     window.addEventListener('keydown', shortcut);
     return () => window.removeEventListener('keydown', shortcut);
   });
-  if (status.phase === 'Starting') return null;
+  if (status.phase === 'Starting') return <div className="app" data-phase="Starting">
+    <main className="failure-page" aria-busy="true">
+      <h1>光谱数据 AI Agent</h1>
+      <section role="status" aria-live="polite"><h2>正在启动本地工作台…</h2>
+        <p>正在加载本地数据与处理服务，就绪后即可继续操作。</p>
+      </section>
+      {shellError && <p role="alert">{shellError}</p>}
+    </main>
+  </div>;
   const failure = status.failure;
   if (status.phase === 'Failed') return <div className="app" data-phase={status.phase}>
     <main className="failure-page">

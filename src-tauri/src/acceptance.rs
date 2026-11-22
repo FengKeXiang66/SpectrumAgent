@@ -25,7 +25,7 @@ const READ_DOCUMENT: &str = r#"(() => {
     localStorage:storage(localStorage),sessionStorage:storage(sessionStorage),
     phase:document.querySelector('[data-phase]')?.getAttribute('data-phase') ?? 'Starting',
     invoke:window.__spectrumAcceptanceInvoke,
-    interactive:document.querySelector('[data-phase="Ready"] #agent-input:not(:disabled)') !== null};
+    interactive:document.querySelector('[data-phase="Ready"] #composer-message:not(:disabled), [data-phase="Ready"] #agent-input:not(:disabled)') !== null};
 })()"#;
 
 pub fn enabled() -> bool {

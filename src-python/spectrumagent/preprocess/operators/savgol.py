@@ -1,11 +1,11 @@
 """B02/B03: same band axis; R7 strict order bound and fixed per-index delta."""
 import numpy as np
-from scipy.signal import savgol_filter
 
 from ..registry import invalid
 
 
 def _filter(spectra, params, order):
+    from scipy.signal import savgol_filter
     if params["mode"] == "interp" and params["window"] > spectra.shape[1]:
         raise invalid("window", "interp 窗口不得超过输入 bands")
     options = {"window_length": params["window"], "polyorder": params["polyorder"],

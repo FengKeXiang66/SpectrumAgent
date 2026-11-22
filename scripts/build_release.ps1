@@ -38,7 +38,7 @@ function Run-Step([string]$Name, [string]$Executable, [string[]]$Arguments) {
     if ($stepExit -ne 0) { throw "$Name failed (exit $stepExit). Full log: $log" }
 }
 
-$inputs = [ordered]@{version=$config.version;source_commit=(git rev-parse HEAD);build_root=$buildRoot;node=(& $node --version);python=(& $python --version);cargo=(cargo --version);features='custom-protocol';freeze_spec='scripts/backend.spec';signed=$false}
+$inputs = [ordered]@{version=$config.version;source_commit=(git rev-parse HEAD);build_root=$buildRoot;node=(& $node --version);python=(& $python --version);cargo=(cargo --version);features='custom-protocol';freeze_spec='scripts/backend.spec';slim_backend=($env:SPECTRUMAGENT_SLIM_BACKEND -eq '1');signed=$false}
 $inputs | ConvertTo-Json | Set-Content -LiteralPath "$buildRoot\build-inputs.json" -Encoding utf8
 Run-Step 'freeze' $python @('-m','PyInstaller','--noconfirm',"$root\scripts\backend.spec")
 $frozen = "$buildRoot\engine-dist\app"

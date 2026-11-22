@@ -141,12 +141,11 @@ pub fn forward(identity: &Handshake, request: &DraftRequest) -> Result<Value, Fo
         return forward_http(identity, url, method, body, false, &[]);
     }
     // Binary download uses the identical identity-first and dual 8MiB limits.
-    let client = Client::builder()
+    let client = crate::http_client::shared("domain-long", || Client::builder()
         .no_proxy()
         .redirect(reqwest::redirect::Policy::none())
         .connect_timeout(Duration::from_millis(500))
-        .timeout(Duration::from_secs(300))
-        .build()
+        .timeout(Duration::from_secs(300)))
         .map_err(|_| ForwardError::new("TRANSPORT", "本机请求初始化失败"))?;
     let response = client
         .get(url)

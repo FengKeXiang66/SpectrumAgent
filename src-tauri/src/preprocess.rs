@@ -543,8 +543,7 @@ pub fn validate_generation(generation: u64, current: &Snapshot) -> Result<(), Fo
 
 pub fn forward(identity: &Handshake, request: &PreprocessRequest) -> Result<Value, ForwardError> {
     let (url, method, body) = request.destination(identity.port)?;
-    let client = client_builder()
-        .build()
+    let client = crate::http_client::shared("domain-long", client_builder)
         .map_err(|_| ForwardError::new("TRANSPORT", "本机请求初始化失败"))?;
     let mut outgoing = client.request(method, url).bearer_auth(identity.token());
     if let PreprocessRequest::Submit { submission_ref, .. } = request {

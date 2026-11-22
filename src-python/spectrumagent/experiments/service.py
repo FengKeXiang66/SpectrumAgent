@@ -2,9 +2,10 @@
 from datetime import datetime, timezone
 import hashlib
 import json
+import os
 from pathlib import Path
 import platform
-from threading import Lock
+from threading import Lock, RLock
 from time import sleep
 from uuid import UUID, uuid4
 import warnings
@@ -28,7 +29,30 @@ def encode(value):
     return json.dumps(value, ensure_ascii=False, allow_nan=False, indent=2)
 
 
+_JSON_LOCKS=tuple(RLock() for _ in range(16))
+
+
+def _json_lock(path):
+    # Bounded stripes avoid a lock object for every historical artifact. Keep a
+    # poller from repeatedly opening the destination during atomic replacement.
+    return _JSON_LOCKS[hash(os.path.normcase(os.path.abspath(path)))%len(_JSON_LOCKS)]
+
+
+def read_json(path):
+    """Read a complete status snapshot, tolerating transient Windows sharing."""
+    with _json_lock(path):
+        for attempt in range(6):
+            try:return json.loads(Path(path).read_text('utf-8'))
+            except PermissionError:
+                if os.name!='nt' or attempt==5:raise
+                sleep(.01*(attempt+1))
+
+
 def write_json(path, value):
+    with _json_lock(path):return _write_json(path,value)
+
+
+def _write_json(path, value):
     path = Path(path)
     temporary = path.with_name(path.name + "." + uuid4().hex + ".tmp")
     try:
@@ -110,7 +134,7 @@ class ExperimentService:
     def get(self, identifier):
         folder = self.folder(identifier)
         try:
-            status = json.loads((folder / "status.json").read_text("utf-8"))
+            status = read_json(folder / "status.json")
         except FileNotFoundError:
             error = DataError("EXPERIMENT_NOT_FOUND", "实验不存在")
             error.status_code = 404

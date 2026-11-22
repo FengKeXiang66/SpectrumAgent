@@ -404,7 +404,7 @@ def make_router(store: LabelStore, engine: SuperpixelEngine, sessions: SessionSt
         with connect_database(store.database) as db:
             return dict(db.execute("SELECT id,color_hex FROM label"))
 
-    def working_view(identifier, *, with_overlay=True):
+    def working_view(identifier, *, with_overlay=True, snapshot=None):
         lease = engine.resources.lease(identifier, required=False, restore=False) if engine.resources else nullcontext()
         with lease, sessions._lock:
             engine.registry.get(identifier)  # Existing not-found boundary, no independent source opening.
@@ -415,7 +415,7 @@ def make_router(store: LabelStore, engine: SuperpixelEngine, sessions: SessionSt
             if state.segments is None:
                 return {"superpixel_count": 0, "params": None, "statistics": {}, "overlay": None,
                         "blocks": {"label": [], "purity": [], "label_count": []}, **context}
-            working = sessions._working_snapshot(identifier)
+            working = snapshot if snapshot is not None else sessions._working_snapshot(identifier)
             return {"superpixel_count": len(np.unique(state.segments)), "params": working["params"],
                     "statistics": working["statistics"],
                     "blocks": block_summary(state.segments, working["label_map"], engine.resources),
@@ -523,9 +523,9 @@ def make_router(store: LabelStore, engine: SuperpixelEngine, sessions: SessionSt
     @router.post("/datasets/{identifier}/annotations/regions")
     def regions(identifier: UUID, request: AnnotationRegionRequest):
         with current_segmentation(identifier) as state:
-            sessions.edit(identifier, geometry_mask(state, request.geometry),
-                          action=request.action, label_id=request.label_id, geometry=request.geometry.model_dump())
-            return working_view(identifier, with_overlay=False)
+            snapshot = sessions.edit(identifier, geometry_mask(state, request.geometry),
+                                     action=request.action, label_id=request.label_id, geometry=request.geometry.model_dump())
+            return working_view(identifier, with_overlay=False, snapshot=snapshot)
 
     @router.post("/datasets/{identifier}/annotations/undo")
     def undo(identifier: UUID):

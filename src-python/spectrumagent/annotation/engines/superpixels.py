@@ -10,15 +10,15 @@ from ctypes import wintypes
 from io import BytesIO
 from pathlib import Path
 import math
-from threading import RLock
+import os
+from contextlib import contextmanager
+from threading import RLock, get_ident
 from time import perf_counter
 
 import numpy as np
 import sklearn
 import skimage
 from PIL import Image, ImageDraw
-from sklearn.decomposition import IncrementalPCA
-from skimage.segmentation import slic
 
 from spectrumagent.data import DataError
 
@@ -76,7 +76,7 @@ class Features:
     zscore: np.ndarray
     mean: np.ndarray
     std: np.ndarray
-    pca: IncrementalPCA
+    pca: "IncrementalPCA"
 
 
 class ReadableRows:
@@ -95,6 +95,7 @@ class ReadableRows:
 
 def pca_features(dataset, components, block_size):
     """Two independent disk passes; original blocks are never retained."""
+    from sklearn.decomposition import IncrementalPCA
     lines, samples, bands = dataset.shape
     tail_samples = (lines % block_size or min(lines, block_size)) * samples
     if components > min(bands, min(lines, block_size) * samples, tail_samples):
@@ -175,6 +176,7 @@ def boundary_ratio(zscore5, segments):
 
 
 def slic_map(feature, n_segments, compactness):
+    from skimage.segmentation import slic
     return slic(feature, n_segments=n_segments, compactness=compactness,
                 channel_axis=2, convert2lab=False, start_label=0,
                 enforce_connectivity=True).astype(np.int32, copy=False)
@@ -259,8 +261,23 @@ class SuperpixelEngine:
         self.lock = RLock()
         self.cache = {}
         self.resources = None
+        self._identity_scopes = {}
 
-    def source_identity(self, cube_id):
+    @contextmanager
+    def identity_scope(self,cube_id):
+        """Memoize only within one locked operation, never across user actions."""
+        if os.environ.get('SPECTRUMAGENT_SOURCE_HASH_POLICY')=='strict':
+            yield
+            return
+        key=(get_ident(),str(cube_id))
+        scope=self._identity_scopes.setdefault(key,{'depth':0,'value':None,'paths':None})
+        scope['depth']+=1
+        try:yield
+        finally:
+            scope['depth']-=1
+            if not scope['depth']:self._identity_scopes.pop(key,None)
+
+    def source_identity(self, cube_id, *, full=False):
         """Streaming header+data identity; reject mutations during the scan."""
         from spectrumagent.dataset_version.store import cube_content_hash
         from spectrumagent.preprocess.run import file_sha256
@@ -270,10 +287,15 @@ class SuperpixelEngine:
             return tuple((s.st_dev, s.st_ino, s.st_size, s.st_mtime_ns, s.st_ctime_ns)
                          for s in (p.stat() for p in paths))
         before = signature()
+        scope=self._identity_scopes.get((get_ident(),str(cube_id)))
+        if (not full and scope is not None and scope['paths']==paths and scope['value'] is not None
+                and scope['value'][1]==before):
+            return scope['value']
         digest = cube_content_hash(*(file_sha256(p) for p in paths))
         if signature() != before:
             raise DataError("SOURCE_CHANGED", "源文件在校验期间变化，请重新核查")
         self.registry.readable(cube_id, raw=False)
+        if scope is not None:scope.update(value=(digest,before),paths=paths)
         return digest, before
 
     def prepare_with_action(self, cube_id, sessions, params=Parameters(), *, force=False):

@@ -7,6 +7,7 @@ pub mod health;
 pub mod logging;
 pub mod process;
 pub mod workspace_root;
+pub mod http_client;
 pub mod state;
 pub mod supervisor;
 pub mod win32;

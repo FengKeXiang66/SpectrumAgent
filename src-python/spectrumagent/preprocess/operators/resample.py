@@ -1,6 +1,5 @@
 """B06/R8/R9: linear/spline, no extrapolation, median-interval FWHM proxy."""
 import numpy as np
-from scipy.interpolate import CubicSpline
 
 from ..registry import invalid
 
@@ -14,6 +13,7 @@ def resample(spectra, params):
     if params["method"] == "linear":
         output = np.stack([np.interp(target, source, row, left=np.nan, right=np.nan) for row in spectra])
     else:
+        from scipy.interpolate import CubicSpline
         # A NaN source row cannot be fitted. Preserve it explicitly, without filling.
         valid = np.isfinite(spectra).all(axis=1)
         output = np.full((len(spectra), len(target)), np.nan, np.float64)

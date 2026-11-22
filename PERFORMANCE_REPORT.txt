@@ -1,0 +1,174 @@
+SpectrumAgent 性能与内存改造记录（2026-11-22）
+
+产品边界
+用户确认继续保留本地持久化；本任务书中旧的“退出删除会话”要求不再适用。
+没有改 PCA/IPCA、SLIC、refine、spectral_statistics、boundary_ratio、PLS 的数值运算或参数默认值。
+不改变 invoke、HTTP 路径、请求/响应 schema。135 条路径的 OpenAPI 规范化 SHA256 前后一致：
+7fdf7f2b6b3439a9ff8164be8b22699fc7a32ebe9b9445b341f12e7bdc45bddf
+
+验证材料与环境
+基线源码是本地 Git 967ac449958fd08c5cc2d7e8a6429362c219f9bc 的独立只读快照。
+使用 REPORT.md 中真实 plastic 数据集的全部 11 个文件，每幅 [231,640,200]、uint16、59,136,000 数据字节。
+默认超像素参数：n_segments=200, compactness=0.5, pca_components=5, k=3, block_size=32。
+两个版本的数值测量均限制 BLAS 工作线程为 2；没有改变产品的线程数默认值。
+基线和改造版批量准备全部图像后逐张编辑，每幅编辑 5 次并保存真实标注快照。
+segments、initial_segments、mean_spectra、std_spectra、PCA zscore、label_map、全部 spectra 数组逐字节 SHA256 均相同。
+原始资料保存在 .runtime/perf/ 下，未把含临时握手信息的运行目录加入 Git。
+没有清空 Windows 文件缓存，也没有重启系统，不能把这些数字当作冷盘/系统重启测量。
+
+主要结果
+1. 完整生成 11 幅图的源文件哈希读取：5,204,195,480 -> 1,301,048,870 字节，减少 75%。
+2. 生成过程临时预算峰值：1,955,926,016 -> 396,637,184 字节，减少约 79.7%。
+   这是准入估算，不是实际物理内存。首次完整流程采样 RSS 峰值约 597 -> 578 MB，不能宣称实际内存下降 80%。
+3. 独立顺序复测（复用已有磁盘分割缓存）：
+   - Python 新进程启动到 create_app 返回，3 次中位数：2.249 -> 2.071 秒，约快 7.9%。
+   - 标注编辑服务耗时：每幅图 5 次编辑平均值的跨图中位数 422 -> 312 ms，约快 26.0%。
+   - 11 项目录查询平均：68.0 -> 14.4 ms，约快 78.8%。
+   - 重启恢复 11 幅分割：8.39 -> 7.10 秒，约快 15.3%。
+   这些标注数字是后端服务时间，不等于所有前端绘制/IPC/交互的端到端时间。
+4. 无构建竞争的顺序完整复测（各自新建应用/分割缓存，基线先运行，仍使用正常 OS 文件缓存）：
+   - 11 幅图完整生成：56.89 -> 47.56 秒，约快 16.4%。
+   - 标注耗时中位数：381 -> 309 ms，约快 18.9%；目录查询 82.1 -> 13.2 ms，约快 83.9%。
+   - Python 新进程启动 3 次中位数：2.399 -> 2.238 秒，约快 6.7%；采样 RSS 峰值 618 -> 589 MB。
+   - 两轮均完成全量生成后逐图编辑、保存；7 类数组/摘要在全部 11 幅图中逐字节一致。
+   原始结果为 baseline-clean/results.json、after-clean/results.json，汇总及逐图对照为 clean-summary.json。
+   初轮曾测得 52.88 -> 62.69 秒，但改造版当时与冻结构建竞争 CPU/IO，不能用那轮判断算法退化。
+   不改变数值计算，也不以删验证、减少数据或更改线程/算法参数来制造更快的数字。
+5. 实际 debug 桌面进程，仅切换首窗策略的对照：
+   - 等待 Ready 再显示：首窗 3.250 秒；对话框首次可用 3.423 秒。
+   - Starting 就显示：首窗 0.594 秒；对话框首次可用 3.412 秒。
+   首窗约提前 82%，不是后端就绪提速。使用独立 LOCALAPPDATA/WebView2 测试目录。
+   初次沙箱内 WebView2 停在初始化前；以上可见窗口数据来自宿主隔离测试，而非推算。
+6. onedir 原配置/可选裁剪配置实际冻结体积：321,280,014 -> 320,358,373 字节，仅少 921,641 字节（约 0.29%）。
+   该收益很小，故裁剪默认关闭。不声称安装包减少几十 MB；没有生成本轮正式 NSIS 安装包。
+   两个候选后端均通过实际进程 GeoTIFF、multiprocessing、JSON 资源逐字节检查、HTTP PLS/PNG 报告与 PCA/SLIC。
+
+逐项实现、原因、风险、回退
+
+A. 内存准入按使用场景估算
+   文件：annotation/segmentation_resources.py。
+   外层租约以 <=32 行 float64 光谱缓冲、像素掩码、栅格/图像临时空间估算；生成另计 IPCA/SVD 行块、特征图、校验与输出。
+   原来外层和生成层各按全立方体乘 32 预留，嵌套计数近 2 GB。新值仍有安全余量。
+   保留默认 128 MiB 驻留上限、50% 物理内存门槛，以及磁盘预算、原子发布与回滚。
+   风险：估算不是所有库/硬件的峰值保证，真实内存不足仍会拒绝，不承诺任意规模永不 OOM。
+   回退：SPECTRUMAGENT_CACHE_MEMORY_POLICY=legacy。预算可通过 CACHE_RETAINED_MIB、CACHE_RSS_FRACTION 调整。
+   验证：模拟 2 GiB 内存、600 MiB 既有 RSS 时，报告尺寸编辑可准入，而旧估算拒绝；真实 11 图完整批量与逐张标注通过。
+
+B. 撤销历史不丢失
+   文件：annotation/session.py、annotation/segmentation_resources.py。
+   冷图淘汰时保留精确的历史标注文档，仅释放每份历史中可由该文档重建的 int32 像素图。
+   不清空历史、不缩短 30 步深度、不丢手势/候选。再次撤销仍调用原 rasterize 规则重建。
+   原 durable ref/完整性校验保留；没有可核验磁盘副本时，不淘汰唯一分割副本。
+   风险：冷图首次恢复/撤销多一次栅格化；候选/手势等独有内容过大时仍需拒绝，而不能为释放内存丢失它们。
+   验证：34 次编辑、LRU 淘汰后完整撤销最后 30 步，每步与原像素图精确相同。
+   回退：恢复 _compact_undo 调用及 None-map 兼容分支；当前进程中的冷历史应先正常退出再切换旧代码。
+
+C. 只在同一操作内合并重复 SHA256
+   文件：annotation/engines/superpixels.py、annotation/segmentation_resources.py。
+   scope 按线程与 cube 隔离，只在一次锁内操作中使用完整 stat 签名去重；独立操作仍重新全量哈希。
+   恢复/生成附接的最后校验强制全量哈希，并位于已有回滚边界内。
+   size/mtime/inode 即使相同也不能证明内容相同，因此没有实现跨操作永久签名缓存或用周期性抽检替代验证。
+   风险：仍有首尾全文件读取，换取 SOURCE_CHANGED 语义。头/数据不可读和内容变化仍拒绝旧缓存。
+   验证：同尺寸修改且恢复 mtime、跨线程独立请求、强制校验、操作结束后重新全量哈希。
+   回退：SPECTRUMAGENT_SOURCE_HASH_POLICY=strict。
+
+D. 复用相同权威草稿的栅格图
+   文件：annotation/session.py。
+   每次仍读数据库草稿和类别；只有文档 JSON、类别顺序均相同且像素图仍驻留时才跳过重复 rasterize。
+   草稿更新、类别变化、淘汰和撤销均重新使用原栅格化实现，未另写增量算法。
+   风险：只适用于草稿是权威来源的现有架构，不能把内部数组当作外部编辑接口。
+   回退：SPECTRUMAGENT_RASTER_CACHE=0。
+
+E. 目录去掉 N+1 数据库读取
+   文件：api/registry.py。
+   名称、总数、页数据仍使用同一 SQLite 读快照；直接核验该页元数据，仍逐项读取真实头并检查文件大小/字段。
+   没有用陈旧的“available=true”永久缓存替代源检查。
+   验证：禁止 catalog 调用逐项 get() 的测试通过，删除一个真实数据文件后准确标记该项不可用。
+   风险与回退：仅此文件中的 _read_stored 提取和 catalog 调用替换，可独立恢复到 readable()。
+
+F. Rust HTTP Client 复用
+   文件：http_client.rs 及各域 forwarder。
+   按固定超时配置共享 Client，闲置连接 15 秒、每主机最多保留 2 条；每次请求单独设置 Bearer token。
+   no_proxy、禁止重定向、超时、响应上限、身份优先校验和代次检查全部保留。
+   验证：同一连接承接两代不同 token，不泄漏前代认证；全部 Rust 转发/边界测试通过。
+   回退：SPECTRUMAGENT_HTTP_CLIENT_REUSE=0。
+
+G. 有边界的延迟导入与首窗加载态
+   文件：superpixels.py、operators/{savgol,resample,ica}.py、experiments/pipeline.py、modeling/training_jobs.py、App.tsx、main.rs。
+   IPCA/SLIC/SG/ICA 等计算依赖延迟到实际使用，训练代码身份在第一次 freeze 训练输入时计算，仍在执行准入之前。
+   未延迟路由注册、Pydantic schema、迁移、恢复和工作流发布；没有让 health 提前声称后台服务已经 Ready。
+   使用现有 Starting/Ready/Failed 状态，Starting 页不挂载可操作业务页面，也未新增 IPC 事件。
+   风险：首次对应计算可能承担一次依赖导入成本。首窗提早不等于所有业务立即可用。
+   回退：SPECTRUMAGENT_EARLY_WINDOW=0 可恢复旧窗口行为；局部 import 移回模块级可撤销导入优化。
+   修正了 opt-in 验收探针的旧输入框 selector，使其同时识别 composer-message 和旧 agent-input。
+
+H. 可选冻结裁剪
+   文件：scripts/backend.spec、scripts/build_release.ps1。
+   SPECTRUMAGENT_SLIM_BACKEND=1 才排除测试子模块、rasterio.rio 命令行模块、未用 GUI 工具包，并指定 Agg/SVG。
+   保留所有业务包 JSON、GDAL/PROJ、数值依赖、PNG/SVG 以及原科学生成逻辑；构建输入记录该开关。
+   未用的 pysptools 安装在 venv 中，并不意味着旧 onedir 已包含它；原包审计未发现它，不能宣称删除了其 13 MB。
+   风险：未来若新增被排除的 GUI/CLI 功能需显式加入；当前收益不足以默认启用。
+   回退：不设置 SPECTRUMAGENT_SLIM_BACKEND，原构建路径不变。
+
+I. Windows 状态文件瞬态读取占用
+   文件：experiments/service.py、experiments/inference.py。
+   全量回归实际复现了原子替换时读 status.json 偶发 PermissionError；高频轮询还可能反复占用目标文件导致写入重试耗尽。
+   用固定 16 个可重入锁按规范路径分配，协调本进程的 JSON 读写，不随历史文件数量积累锁对象。
+   原子替换和落盘审计保留；Windows 瞬态占用仍最多 6 次短重试，每个重试循环总等待 <=150 ms。
+   不缓存状态、不修改终态判断；真正权限失败仍抛原异常。
+   验证：并发原子写入/轮询测试和既有推理测试。
+
+J. 超像素连续点选（用户后续反馈）
+   文件：AnnotationWorkbench.tsx、canvas/AnnotationCanvas.tsx、LabelPanel.tsx、block-edits.ts、api/annotations.py。
+   原链路每次点选都令画布 busy，完成 POST regions、GET working 及 PNG 重载后才再次允许点击；等待中的后续点击直接被忽略。
+   现在立即用独立斜纹层显示点击意图，按序提交每一次点击，捕获当时的标签/动作，最多每 4 次提交刷新一次权威工作态。
+   单次慢点击仍在提交完成后立即读回，不为凑够 4 次而等待。候选队列、像素图与统计均以后端读回为准，预览不充当已保存结果。
+   支持同步期间切换已有标签；保存、撤销、生成分割、切图和修改标签结构继续等待同步结束。
+   不合并区域写入，不减少持久化/audit，不合并撤销步骤，不放宽源文件或分割一致性检查；请求路径和响应结构不变。
+   PNG 解码按当前图层内容复用，缓存只保留当前可见输入；手动 LUT 不因标注叠加图变化而重复转换底图。
+   后端直接复用本次 edit 已产生的权威快照，避免为同一个 POST 再生成一次相同的像素副本与统计。
+   真实 [231,640,200] 图像、默认分割参数、12 次混合点选实测：
+     - POST 次数 12 -> 12，独立撤销步骤 12 -> 12；GET working 次数 12 -> 3。
+     - 同步 HTTP 服务总耗时 6.002 -> 4.999 秒，约快 16.7%；不含 Tauri IPC、用户点击间隔及浏览器绘制。
+     - 每一步 label_map、全部 undo 像素图、最终 label_map 与保存的全部 spectra 摘要一致。
+   材料：clicks-before/results.json、clicks-after/results.json、clicks-summary.json，基线为修改本轮点击链路前的源码快照。
+   浏览器隔离工作台人为增加 800 ms 传输延迟，快速连点 6 次均接收并按序提交；切换标签、右键擦除、Shift 不确定操作均通过。
+   模拟断连时接收了 7 次点击但只发送首个请求，立即停止剩余请求、读回状态并显示中断数量，没有自动重放。
+   这些浏览器检查使用模拟传输，真实数值一致性由上述真实 HTTP/落盘测量和 Python 测试证明。
+   风险：后台吞吐仍受源完整性校验和审计落盘限制；持续点击可能形成队列，斜纹仍是待同步意图，退出前应等待同步结束。
+   传输失败可能发生在已提交后，不能把超时当作未写入；故停止后续点击，先恢复实际状态，未发送的意图需用户核对后重选。
+   回退：恢复本节所列前端文件的本轮点击链路及后端 snapshot 参数替换，可独立于前轮内存/启动改造撤销。
+
+ROI 局部分割说明（本轮没有新增此模式）
+当前 pca_features、slic_map、refine 和光谱统计均基于整幅图像，点击标注不会重新运行 PCA/SLIC。
+超像素算法本身支持 ROI：scikit-image 的 slic(mask=...) 只在掩膜为 True 的区域生成超像素。
+官方说明：https://scikit-image.org/docs/stable/auto_examples/segmentation/plot_mask_slic.html
+可先由用户框选/多边形圈出物体；矩形裁剪实现较直接，不规则掩膜能更精确排除背景。掩膜只定义处理范围，不自动赋材料标签。
+仅给 SLIC 加 mask 不会自动减少当前全图 PCA 和原谱扫描；若要节省这些开销，需定义 ROI 内 PCA、局部扫描及原图坐标回映。
+ROI 内统计和边界可能改变分割结果；应保留整图默认模式，另存 ROI 几何/掩膜、模式及参数到持久化和缓存标识。
+现有超像素编号、画布解码、块摘要、扩散邻接和磁盘验证还须明确处理区域外像素，不能只加一个 mask 参数就当作完整功能。
+
+明确暂不实施的高风险项
+- 不合并所有 SQLite 恢复事务、不引入全局跨线程连接池：目前无法证明足够收益，且容易改变 CAS/事务/行工厂/审计边界。
+- 不跳过每次写入的 guard，也不减少审计落盘、日志 flush：这是可核查性与科研正确性边界。
+- 不删除握手自检、health 身份验证，不放宽启动超时，20/40 ms 监督器轮询仅占毫秒级，不是主瓶颈。
+- 不把 6 组状态查询改成新的 SSE 接口：现有 SSE 是聊天流，并不是这些后台任务的事件源；新增流会改变契约。
+  大部分查询已只在活动任务/断线恢复期间运行，保留终态停止与取消/代次检查。
+- 不裁剪 rasterio 驱动或删除 matplotlib；当前 GeoTIFF 与科研报告导出确实依赖它们。
+- 不调整 PCA 行块、SLIC 参数、BLAS 默认线程数，也不更换数据精度或重写浮点归约。
+
+复现与限制
+连续点击改造后：Python 43 passed、1 skipped；前端类型检查/生产构建、4 个点击队列测试及 3 个 workspace 持久化测试通过，git diff --check 通过。
+前轮 Rust 86 个库测试、11 个桌面测试及 1 个文档测试通过，本轮点击改造没有修改 Rust。
+前轮冻结候选 freeze-release-candidate 的实际进程 GeoTIFF、multiprocessing、JSON 资源、PLS/PNG 报告和 PCA/SLIC 均通过。
+该候选 onedir 为 320,359,440 字节，不包含本轮点击链路变更；需要重新冻结并构建外壳后才能用于本轮桌面发布验收。
+pytest tests -q --basetemp .\build\pytest
+cargo test --manifest-path .\src-tauri\Cargo.toml --locked --offline
+npm run build
+node --test tests/workspace-persistence.test.mjs
+node --test tests/annotation-clicks.test.mjs
+python scripts/benchmark_performance.py --output <新的绝对输出目录> --source <plastic 目录>
+python scripts/benchmark_annotation_clicks.py --output <新的绝对输出目录> --source <plastic 目录> --refresh-every 4
+python scripts/verify_frozen_backend.py <onedir/app.exe> <新的绝对输出目录>
+scripts/build_release.ps1 的离线工具链/NSIS 前置资源在本机不全，因此未执行正式安装包构建、安装/卸载验收。
+提供了可执行的源码和冻结验证，不把 debug 启动或 backend onedir 冒烟冒充正式安装态验证。

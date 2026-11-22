@@ -6,11 +6,12 @@ sessions. All memory accounting/reservations use the first two reentrant locks.
 An operation leases its cube; visible canvases hold a separate, releasable pin.
 """
 from collections import OrderedDict, deque
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from copy import copy
 from dataclasses import asdict
 from functools import wraps
 import sys
+import os
 from time import perf_counter
 from weakref import WeakSet
 
@@ -64,10 +65,13 @@ def managed(*,required=False,restore=True):
 
 
 class SegmentationResources:
-    def __init__(self,paths,engine,sessions,*,retained_limit=RETAINED_LIMIT,store=None):
+    def __init__(self,paths,engine,sessions,*,retained_limit=None,store=None):
         self.engine,self.sessions=engine,sessions
         self.store=store or SegmentationStore(paths)
-        self.retained_limit=retained_limit
+        self.retained_limit=retained_limit if retained_limit is not None else int(os.environ.get('SPECTRUMAGENT_CACHE_RETAINED_MIB',128))*1024**2
+        self.rss_fraction=float(os.environ.get('SPECTRUMAGENT_CACHE_RSS_FRACTION',RSS_FRACTION))
+        if self.retained_limit<=0 or not 0<self.rss_fraction<=1:raise ValueError('Invalid annotation memory budget')
+        self.legacy_memory=os.environ.get('SPECTRUMAGENT_CACHE_MEMORY_POLICY')=='legacy'
         self._pins={};self._lru=OrderedDict();self._canvas_focus={}
         self._temporary=0;self.peak_temporary_bytes=0
         self.failed=set()
@@ -86,6 +90,26 @@ class SegmentationResources:
     def _touch(self,cube):
         self._lru.pop(cube,None);self._lru[cube]=None
 
+    @staticmethod
+    def editing_workspace_bytes(shape):
+        h,w,b=shape
+        # Original reflectance is read in <=32-row float64 buffers. Allow three
+        # buffers for bounded spectral aggregation plus pixel masks/PNG/raster IO.
+        return min(h,Parameters().block_size)*w*b*8*3+h*w*64+8*1024**2
+
+    def generation_workspace_bytes(self,shape,params):
+        h,w,b=shape
+        # IPCA/SVD operates on a row block, never a complete scaled cube. Include
+        # disposable float64 blocks, SVD work, both PCA maps and output validation.
+        block=min(h,params.block_size)*w*b*8
+        return block*6+b*b*8*8+h*w*(128+max(5,params.pca_components)*24)+self.expected_bytes(shape,params)*3+8*1024**2
+
+    @staticmethod
+    def _compact_undo(state):
+        # Each entry already owns the exact authoritative annotation document.
+        # Rasterizing it reproduces the map; discard only that redundant array.
+        state.undo_stack=deque(((doc,None) for doc,_ in state.undo_stack),maxlen=state.undo_stack.maxlen)
+
     def _evict(self,cube):
         cached=self.engine.cache.get(cube)
         state=self.sessions._states.get(cube)
@@ -93,6 +117,7 @@ class SegmentationResources:
         if self._pins.get(cube) or cube in self._canvas_focus.values():return False
         if not ref:
             if cached is None and state is not None and state.segments is None and state.label_map is not None:
+                self._compact_undo(state)
                 state.label_map=None;self._lru.pop(cube,None);return True
             return False
         # Do not discard the only copy. Integrity is rechecked on every reload.
@@ -101,6 +126,7 @@ class SegmentationResources:
         except (DataError,OSError):return False
         self.engine.cache.pop(cube,None)
         if state is not None:
+            self._compact_undo(state)
             state.segments=None
             state.label_map=None # reconstructible from unchanged authoritative draft
         self._lru.pop(cube,None)
@@ -128,7 +154,7 @@ class SegmentationResources:
     @contextmanager
     def temporary(self,amount):
         from .prepare_batch import physical_memory_bytes
-        if amount<0 or memory_bytes()[0]+self._temporary+amount>physical_memory_bytes()*RSS_FRACTION:raise budget_error()
+        if amount<0 or memory_bytes()[0]+self._temporary+amount>physical_memory_bytes()*self.rss_fraction:raise budget_error()
         self._temporary+=amount;self.peak_temporary_bytes=max(self.peak_temporary_bytes,self._temporary)
         try:yield
         finally:self._temporary-=amount
@@ -136,7 +162,8 @@ class SegmentationResources:
     @contextmanager
     def lease(self,cube,*,required=True,restore=True):
         cube=str(cube)
-        with self.engine.registry.recycle.coordinator.job(),self.engine.lock,self.sessions._lock:
+        with self.engine.registry.recycle.coordinator.job(),self.engine.lock,self.sessions._lock,\
+                getattr(self.engine,'identity_scope',lambda _:nullcontext())(cube):
             dataset,_=self.engine.registry.get(cube)
             if cube in self.failed:raise fail('CACHE_UNAVAILABLE')
             nested = self._pins.get(cube,0)>0
@@ -144,7 +171,9 @@ class SegmentationResources:
             ref=None;workspace=None;workspace_entered=False
             try:
                 if not nested:
-                    workspace=self.temporary(int(np.prod(dataset.shape))*32+int(np.prod(dataset.shape[:2]))*128+8*1024**2)
+                    amount=(int(np.prod(dataset.shape))*32+int(np.prod(dataset.shape[:2]))*128+8*1024**2
+                            if self.legacy_memory else self.editing_workspace_bytes(dataset.shape))
+                    workspace=self.temporary(amount)
                     workspace.__enter__();workspace_entered=True
                 cached=(self.engine.cache.get(cube) or (None,None))[1]
                 result=self._read(cube)[0] if restore and not (nested and cached is not None) else cached
@@ -165,8 +194,8 @@ class SegmentationResources:
                         self.store.pins[(cube,ref)]-=1
                         if not self.store.pins[(cube,ref)]:self.store.pins.pop((cube,ref))
 
-    def _source(self,cube,expected,signature=None):
-        actual=self.engine.source_identity(cube)
+    def _source(self,cube,expected,signature=None,*,full=False):
+        actual=self.engine.source_identity(cube,full=True) if full else self.engine.source_identity(cube)
         if actual[0]!=expected or (signature is not None and actual[1]!=signature):
             raise DataError('SOURCE_CHANGED','源文件在分割读取或提交期间变化，原工作态未覆盖')
         return actual
@@ -236,7 +265,7 @@ class SegmentationResources:
             if state is None or state.segments is None or state.segmentation_ref!=info['ref'] or mismatch:
                 self.ensure((unique_bytes(result) if origin=='disk' else 0)+result.segments.nbytes*3+65536,cube=cube)
                 self._attach(cube,result)
-            self._source(cube,identity,signature)
+            self._source(cube,identity,signature,full=True)
             self.engine.cache[cube]=(info['params'],result);self._touch(cube)
             self.ensure(0,cube=cube)
         except BaseException:
@@ -288,7 +317,8 @@ class SegmentationResources:
             try:
                 # Disk admission precedes any numerical work. The conservative
                 # estimate includes payload headers, report and validation IO.
-                with self.store.reserve(expected+4*1024**2),self.temporary(h*w*b*32+expected*3):
+                generation=h*w*b*32+expected*3 if self.legacy_memory else self.generation_workspace_bytes(dataset.shape,params)
+                with self.store.reserve(expected+4*1024**2),self.temporary(generation):
                     result=self.engine.generate(cube,params,force=force)
                     if result.report.get('shape')!=list(dataset.shape) or result.segments.shape!=tuple(dataset.shape[:2]):raise fail()
                     if previous is None:self.engine.cache.pop(cube,None)
@@ -303,7 +333,7 @@ class SegmentationResources:
                     result.report=self.store.inspect(cube,ref=ref,content_hash=identity)['report']
                     verify()
                     self._attach(cube,result)
-                    verify()
+                    self._source(cube,identity,signature,full=True)
                     self.engine.cache[cube]=(params,result);self._touch(cube)
                     self.ensure(0,cube=cube)
                 action='reused' if (not force and previous is not None and result is previous[1]) else 'generated'

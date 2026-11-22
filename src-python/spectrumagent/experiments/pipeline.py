@@ -1,8 +1,5 @@
 """Training-only fitted transformations with a serializable parameter definition."""
 import numpy as np
-from scipy.signal import savgol_filter
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
 
 from spectrumagent.data import DataError
 
@@ -15,6 +12,7 @@ class SpectralPipeline:
     @staticmethod
     def _step(X, step, fitted=None):
         if step.op == "savgol":
+            from scipy.signal import savgol_filter
             X = savgol_filter(X, step.window, step.polyorder, deriv=step.derivative,
                               delta=step.delta_nm, mode=step.mode, axis=1)
         elif step.op == "l2":
@@ -27,6 +25,8 @@ class SpectralPipeline:
             X = (X-X.mean(axis=1, keepdims=True))/std
         else:
             if fitted is None:
+                from sklearn.decomposition import PCA
+                from sklearn.preprocessing import StandardScaler
                 fitted = (PCA(n_components=step.n_components, svd_solver="full") if step.op == "pca"
                           else StandardScaler(with_std=step.op == "standard_scale"))
                 fitted.fit(X)

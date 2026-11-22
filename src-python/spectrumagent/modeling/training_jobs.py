@@ -53,10 +53,18 @@ class TrainingJobs:
     def __init__(self, runs, boot_id=None):
         self.runs, self.database = runs, runs.database
         self.boot_id = boot_id or str(uuid4())
-        self.code_identity = code_identity()
+        self._code_identity = None
         self.lock, self.submission_lock = RLock(), Lock()
         self.jobs = {}
         self.log = structlog.get_logger('engine.training')
+
+    @property
+    def code_identity(self):
+        # Listing historical results needs no classifier imports or source scan.
+        # Freeze still computes the exact same identity before admitting training.
+        with self.lock:
+            if self._code_identity is None:self._code_identity=code_identity()
+            return self._code_identity
 
     @staticmethod
     def validate_id(identifier):

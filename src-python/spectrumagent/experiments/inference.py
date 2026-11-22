@@ -23,7 +23,7 @@ from spectrumagent.data.readers import open_envi
 from spectrumagent.storage import guard as storage
 from .inputs import record_source, check_sources, mapping_weights, sha256
 from .schema import InputModel, Quality
-from .service import write_json, save_arrays
+from .service import write_json, read_json, save_arrays
 
 
 def class_palette(classes):
@@ -183,7 +183,7 @@ class InferenceService:
 
     def status(self, model_id, run_id, owner=None):
         try:
-            value = json.loads((self.folder(model_id, run_id) / 'status.json').read_text('utf-8'))
+            value = read_json(self.folder(model_id, run_id) / 'status.json')
         except FileNotFoundError:
             error = DataError('INFERENCE_NOT_FOUND', '推理记录不存在')
             error.status_code = 404

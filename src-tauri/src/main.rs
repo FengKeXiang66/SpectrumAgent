@@ -426,6 +426,10 @@ fn show_window(app: &tauri::AppHandle, log: &ShellLog, generation: u64, activate
     }
 }
 
+fn early_window_enabled() -> bool {
+    std::env::var("SPECTRUMAGENT_EARLY_WINDOW").as_deref() != Ok("0")
+}
+
 fn start_boot_monitor(app: &tauri::AppHandle, log: &ShellLog, generation: u64) {
     let Some(state) = app.try_state::<Mutex<BootMonitor>>() else { return; };
     let Ok(mut monitor) = state.lock() else { return; };
@@ -575,6 +579,10 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             let (handle, events) = EngineSupervisor::start_selected(selection, workspace.clone(), Arc::new(NativeWin32))?;
             app.manage(Desktop { supervisor: handle.clone(), data_root: workspace,
                 log: setup_log.clone(), closing: AtomicBool::new(false), exit_allowed: AtomicBool::new(false) });
+            if early_window_enabled() {
+                let generation = handle.snapshot().map(|status| status.generation_id).unwrap_or(1);
+                show_window(app.handle(), &setup_log, generation, true);
+            }
             if let Some(state) = app.try_state::<Desktop>() {
                 acceptance::start(app.handle().clone(), state.data_root.clone(), setup_log.clone(), started)?;
             }
@@ -595,8 +603,12 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
                             }
                         } else if snapshot.phase == Phase::Starting
                             && let Some(window) = host.get_webview_window("main") {
-                            let hidden = window.hide().is_ok();
-                            let _ = event_log.event("window_hidden", json!({"generation_id":snapshot.generation_id,"success":hidden,"visible":window.is_visible().ok()}));
+                            if early_window_enabled() {
+                                show_window(&host, &event_log, snapshot.generation_id, false);
+                            } else {
+                                let hidden = window.hide().is_ok();
+                                let _ = event_log.event("window_hidden", json!({"generation_id":snapshot.generation_id,"success":hidden,"visible":window.is_visible().ok()}));
+                            }
                         }
                         last_phase = snapshot.phase;
                     }

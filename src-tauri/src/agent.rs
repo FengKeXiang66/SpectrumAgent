@@ -817,13 +817,12 @@ pub(crate) fn forward_http_scoped(
     protected: (&[&str], &[&str]),
 ) -> Result<Value, ForwardError> {
     let (secrets, error_secrets) = protected;
-    let client = Client::builder()
+    let client = crate::http_client::shared("agent", || Client::builder()
         .no_proxy()
         .redirect(reqwest::redirect::Policy::none())
         .connect_timeout(Duration::from_millis(500))
         // Reuse #05's bounded long-running operation timeout.
-        .timeout(Duration::from_secs(300))
-        .build()
+        .timeout(Duration::from_secs(300)))
         .map_err(|_| ForwardError::new("TRANSPORT", "本机请求初始化失败"))?;
     let mut outgoing = client.request(method, url).bearer_auth(identity.token());
     if let Some(body) = body {
@@ -901,8 +900,8 @@ fn save_experiment_export(identity: &Handshake, url: Url, destination: &str, lim
     use std::io::Write;
     let path = std::path::Path::new(destination);
     if path.exists() { return Err(ForwardError::new("EXPORT_DESTINATION_EXISTS", "保存位置已有文件，请选择新文件名")); }
-    let response = Client::builder().no_proxy().redirect(reqwest::redirect::Policy::none())
-        .connect_timeout(Duration::from_secs(2)).timeout(Duration::from_secs(60)).build()
+    let response = crate::http_client::shared("experiment-export", || Client::builder().no_proxy().redirect(reqwest::redirect::Policy::none())
+        .connect_timeout(Duration::from_secs(2)).timeout(Duration::from_secs(60)))
         .map_err(|_|ForwardError::new("TRANSPORT","无法初始化导出连接"))?
         .get(url).bearer_auth(identity.token()).send()
         .map_err(|_|ForwardError::new("TRANSPORT","无法读取实验报告"))?;
@@ -970,10 +969,10 @@ pub fn forward_stream(
     }
     let (mut url, method, body) = request.destination(identity.port)?;
     url.query_pairs_mut().append_pair("progress", "true");
-    let client = Client::builder().no_proxy()
+    let client = crate::http_client::shared("agent", || Client::builder().no_proxy()
         .redirect(reqwest::redirect::Policy::none())
         .connect_timeout(Duration::from_millis(500))
-        .timeout(Duration::from_secs(300)).build()
+        .timeout(Duration::from_secs(300)))
         .map_err(|_| ForwardError::new("TRANSPORT", "本机请求初始化失败"))?;
     let response = client.request(method, url).bearer_auth(identity.token())
         .json(&body).send()

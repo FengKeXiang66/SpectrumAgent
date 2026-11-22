@@ -281,6 +281,11 @@ class DatasetRegistry:
     def readable(self, identifier, raw=None):
         stored, default = self.get(identifier)
         mode = default if raw is None else raw
+        return self._read_stored(stored, mode), mode
+
+    @staticmethod
+    def _read_stored(stored, mode):
+        """Validate the exact ledger snapshot supplied by the caller."""
         try:
             current = read_header(Path(stored.header_path), Path(stored.data_path), raw=mode)
         except DataError as error:
@@ -293,7 +298,7 @@ class DatasetRegistry:
         for field in ("shape", "dtype", "interleave", "wavelengths", "fwhm"):
             if getattr(current, field) != getattr(stored, field):
                 raise DataError("SOURCE_CHANGED", "源元数据与登记记录不一致", field=field)
-        return current, mode
+        return current
 
     def catalog(self, *, limit=100, offset=0):
         self.recycle.coordinator.check()
@@ -307,7 +312,7 @@ class DatasetRegistry:
         for identifier, payload, raw in rows:
             dataset = TypeAdapter(SpectrumDataSet).validate_json(payload)
             try:
-                self.readable(identifier)
+                self._read_stored(dataset, bool(raw))
                 available = True
             except DataError:
                 available = False

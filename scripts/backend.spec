@@ -16,8 +16,11 @@ CONF["distpath"] = str(OUTPUT / "engine-dist")
 CONF["workpath"] = str(OUTPUT / "engine-build")
 Path(CONF["workpath"]).mkdir(parents=True, exist_ok=True)
 
-hiddenimports = (collect_submodules("rasterio") + collect_submodules("uvicorn")
-                 + collect_submodules("spectrumagent") + collect_submodules("spectral")
+slim = os.environ.get("SPECTRUMAGENT_SLIM_BACKEND") == "1"
+runtime_module = lambda name: not any(part in {"tests", "testing"} for part in name.split("."))
+hiddenimports = (collect_submodules("rasterio", filter=(lambda name: runtime_module(name) and not name.startswith("rasterio.rio")) if slim else lambda name: True)
+                 + collect_submodules("uvicorn")
+                 + collect_submodules("spectrumagent") + collect_submodules("spectral", filter=runtime_module if slim else lambda name: True)
                  # savefig selects this backend by output suffix at runtime;
                  # the automatic matplotlib hook only sees use("Agg").
                  + ["matplotlib.backends.backend_svg"])
@@ -27,8 +30,8 @@ datas = collect_data_files("rasterio") + collect_data_files("spectrumagent")
 a = Analysis(
     [str(ROOT / "backend" / "__main__.py")],
     pathex=[str(ROOT), str(ROOT / "src-python")], binaries=[], datas=datas,
-    hiddenimports=hiddenimports, hookspath=[], hooksconfig={},
-    runtime_hooks=[], excludes=[], noarchive=False, optimize=0,
+    hiddenimports=hiddenimports, hookspath=[], hooksconfig={"matplotlib":{"backends":["Agg","svg"]}} if slim else {},
+    runtime_hooks=[], excludes=["pysptools","pytest","_pytest","IPython","tkinter","PyQt5","PyQt6","PySide2","PySide6"] if slim else [], noarchive=False, optimize=0,
 )
 pyz = PYZ(a.pure)
 exe = EXE(

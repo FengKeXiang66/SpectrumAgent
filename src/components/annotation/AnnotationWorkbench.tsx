@@ -19,6 +19,7 @@ import './annotation.css';
 import './annotation-skin.css';
 import type { WorkspaceContext } from '../assistant/api.ts';
 import { candidatePreviewKey } from '../assistant/presentation.ts';
+import { createBlockEditQueue, type BlockEditQueue, type PendingBlockEdit } from './block-edits.ts';
 
 type Props = { record: DatasetRecord; records: DatasetReference[]; datasets: DatasetTransport;
   api?: AnnotationApi; onNavigate(record: DatasetReference): void;
@@ -93,6 +94,9 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
     return()=>guardCallback.current?.(false);
   },[busy,draft]);
   const alive = useRef(true), busyRef = useRef(true);
+  const clickQueue = useRef<BlockEditQueue | null>(null), clickingRef = useRef(false);
+  const [clicking, setClicking] = useState(false);
+  const [pendingClicks, setPendingClicks] = useState<readonly PendingBlockEdit[]>([]);
   const loadTicket = useRef(0);
   const segmentationRef = useRef<string | null>(null);
   const seenRefresh = useRef(refreshVersion);
@@ -163,6 +167,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
     const ticket = ++loadTicket.current;
     const isLive = () => !disposed && alive.current && ticket === loadTicket.current;
     alive.current = true;
+    busyRef.current = true; setBusy(true); setSynchronized(false);
     setSegments(null); setSegmentation(null);
     setQuality(null);
     setExportResult(null); setExportStale(true);
@@ -226,6 +231,17 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
   };
   useEffect(() => { try { localStorage.setItem(preferenceKey, JSON.stringify(preferences)); } catch { /* Optional preferences only. */ } }, [preferences]);
 
+  const recoverWorking = async (isLive: () => boolean) => {
+    try {
+      if (!isLive()) return;
+      const loaded = await api.getSuperpixels(id);
+      if (!isLive()) return;
+      applyRead(loaded);
+      const recovered = await readWorking(api, id);
+      await loadMetadata(recovered, isLive);
+      if (isLive()) { applyWorking(recovered); setSynchronized(loaded.status === 'ready'); }
+    } catch { /* Leave editing disabled until a successful explicit refresh. */ }
+  };
   const execute = async (operation: () => Promise<unknown>, success: string, metadata = false, afterRead?: (next: Working) => void): Promise<boolean> => {
     if (busyRef.current) return false;
     const ticket = loadTicket.current;
@@ -243,18 +259,49 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
     } catch (failure) {
       // A transport failure can follow a successful server write. Re-read the
       // sidecar instead of enabling edits against an obsolete queue/geometry.
-      try {
-        if (!isLive()) return false;
-        const loaded = await api.getSuperpixels(id);
-        if (!isLive()) return false;
-        applyRead(loaded);
-        const recovered = await readWorking(api, id);
-        await loadMetadata(recovered, isLive);
-        if (isLive()) { applyWorking(recovered); setSynchronized(loaded.status === 'ready'); }
-      } catch { /* Leave editing disabled until a successful explicit refresh. */ }
+      await recoverWorking(isLive);
       if (isLive()) setError(describeAnnotationError(failure));
       return false;
     } finally { if (isLive()) { setBusy(false); busyRef.current = false; } }
+  };
+  useEffect(() => {
+    const ticket = loadTicket.current;
+    const isLive = () => alive.current && ticket === loadTicket.current;
+    const queue = createBlockEditQueue({
+      submit: edit => api.regions(id, { superpixels: [edit.blockId] }, edit.action, edit.labelId),
+      read: () => readWorking(api, id),
+      onRead: next => {
+        if (isLive()) { applyWorking(next); setMessage('点击标注已读回，可继续点选。'); }
+      },
+      onPending: next => { if (isLive()) setPendingClicks(next); },
+      onActive: active => {
+        if (!isLive()) return;
+        clickingRef.current = active; setClicking(active);
+        busyRef.current = active; setBusy(active);
+        if (active) {
+          guardCallback.current?.(true);
+          setError(''); setQuality(null); setExportStale(true); setDraft(null);
+          setMessage('可连续点选；点击正在按顺序保存。');
+        }
+      },
+      onError: async (failure, interrupted) => {
+        if (!isLive()) return;
+        setSynchronized(false);
+        await recoverWorking(isLive);
+        if (isLive()) {
+          setError(`${describeAnnotationError(failure)}\n${interrupted} 次点击的同步已中断；已尝试读取实际标注，请核对后重新点击未完成区域。`);
+          setMessage('点击同步中断；未自动重试，避免重复提交。');
+        }
+      },
+    });
+    clickQueue.current = queue;
+    setPendingClicks([]); setClicking(false); clickingRef.current = false;
+    return () => { queue.dispose(); if (clickQueue.current === queue) clickQueue.current = null; };
+  }, [api, datasets, id]);
+  const editBlock = (blockId: number, action: 'confirm' | 'uncertain' | 'erase') => {
+    if (!ready || (busyRef.current && !clickingRef.current)) return;
+    if (action === 'confirm' && !selectedId) { setError('请先选择一个已登记标签。'); return; }
+    clickQueue.current?.enqueue({ blockId, action, ...(action === 'confirm' ? { labelId: selectedId! } : {}) });
   };
   useEffect(() => {
     if (seenRefresh.current === refreshVersion || busy) return;
@@ -367,8 +414,9 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
       const target = event.target;
       const editing = target instanceof HTMLElement && !!target.closest('input,textarea,select,[contenteditable="true"]');
       const action = resolveShortcut(event, labels, preferences, editing);
-      if (!action || busyRef.current) return;
+      if (!action || (busyRef.current && !clickingRef.current)) return;
       if ('labelId' in action) { event.preventDefault(); setSelectedId(action.labelId); return; }
+      if (busyRef.current) return;
       if (event.repeat && action.command !== 'pan') return;
       event.preventDefault();
       switch (action.command) {
@@ -437,7 +485,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
     <div className="annotation-columns">
       <aside className="annotation-left">
         {working && <LabelPanel labels={labels} projectId={working.project_id} selectedId={selectedId}
-          disabled={busy} onSelect={setSelectedId} onAdd={addLabel} />}
+          disabled={busy} allowSelection={clicking} onSelect={setSelectedId} onAdd={addLabel} />}
         <section className="annotation-card"><h3>工具</h3><div className="annotation-tools">{(['diffuse', 'click', 'brush', 'polygon', 'erase'] as const).map(next =>
           <button key={next} disabled={busy} className={tool === next ? 'selected' : ''} aria-pressed={tool === next} onClick={() => chooseTool(next)}>{commandNames[next]} <kbd>{preferences.bindings[next]}</kbd></button>)}</div></section>
         <section className="annotation-card"><h3>本图统计</h3><dl className="annotation-statistics">
@@ -450,7 +498,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
       <div className="annotation-center">
         <section className="annotation-card">
           <div className="annotation-tabs" role="tablist" aria-label="标注分段">{([['superpixels', '超像素'], ['diffuse', '扩散'], ['prompt', '提示分割'], ['review', '谱线复核']] as const).map(([value, title]) =>
-            <button role="tab" key={value} aria-selected={tab === value} disabled={value === 'review' && (busy || !ready)} onClick={() => { setTab(value); setDraft(null); if (value === 'review') { void refreshReview(); } else if (value !== 'superpixels') { setTool('diffuse'); setPrompt(value === 'diffuse' ? 'point' : 'box'); } }}>{title}</button>)}</div>
+            <button role="tab" key={value} aria-selected={tab === value} disabled={busy || (value === 'review' && !ready)} onClick={() => { setTab(value); setDraft(null); if (value === 'review') { void refreshReview(); } else if (value !== 'superpixels') { setTool('diffuse'); setPrompt(value === 'diffuse' ? 'point' : 'box'); } }}>{title}</button>)}</div>
           {tab === 'review' ? <SpectrumReview quality={quality} labels={labels} bands={record.dataset.shape[2]} wavelengths={record.dataset.wavelengths}
             disabled={busy || !ready} onRefresh={() => { void refreshReview(); }} onBlockErase={blockId => { void reviewBlockErase(blockId); }} /> : <>
           <p className="annotation-hint">{tab === 'superpixels' ? '先生成超像素；参数变化后重新生成，已有像素标注保留。' : tab === 'diffuse' ? '单击种子区域，按当前阈值扩散；候选由人工确认标签。' : '选择单击、半开框选或涂鸦提示，生成一个候选。多边形也可直接选区编辑。'}</p>
@@ -484,10 +532,12 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
             manualStretch={displayStretch === 'manual'} lut={displayLut}
             inspection={inspection} onSpectrum={region => { void readSpectrum(region); }}
             tool={tool} prompt={prompt} disabled={busy || !ready} panHeld={panHeld} draft={draft} brushPrompt={tab === 'prompt'}
+            blockClicksEnabled={ready && (!busy || clicking)} pendingClicks={pendingClicks}
             onSeed={seed => { void diffuse(seed); }} onGeometry={value => { setDraft(value); setSelectedKey(null); setMessage('多边形已选；选择标签后确认，或标记为不确定。'); }}
             onErase={value => { void edit('erase', value); }}
-            onBlockClick={(blockId, uncertain) => { void edit(uncertain ? 'uncertain' : 'confirm', { superpixels: [blockId] }); }}
-            onBlockErase={blockId => { void edit('erase', { superpixels: [blockId] }); }} />
+            onBlockClick={(blockId, uncertain) => editBlock(blockId, uncertain ? 'uncertain' : 'confirm')}
+            onBlockErase={blockId => editBlock(blockId, 'erase')} />
+          {pendingClicks.length > 0 && <p role="status">正在同步 {pendingClicks.length} 次点击，可继续点选或切换标签。斜纹是待同步预览，统计以后台读回为准；同步完成后再保存、撤销、切图或退出。</p>}
           {spectrumBusy && <p role="status">正在读取光谱…</p>}{spectrumError && <p role="alert">{spectrumError}</p>}
           {spectrum && <SpectrumReadout spectrum={spectrum} wavelengths={record.dataset.wavelengths} />}
           <div className="annotation-actions">
