@@ -193,7 +193,9 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
         await loadMetadata(next, isLive);
         if (!isLive()) return;
         if (isLive() && loadFailure) setError(describeAnnotationError(loadFailure));
-        if (isLive()) setMessage(loaded?.status === 'ready'
+        if (isLive()) setMessage(loadFailure
+          ? '分割读取失败；可刷新工作态后重试，仍失败时请核查后显式重新准备。'
+          : loaded?.status === 'ready'
           ? '超像素已就绪。请选择标签，然后点击超像素块赋类；下一张将保留当前草稿。'
           : '尚未准备分割；可显式生成超像素，已有像素标注保留。');
         if (isLive()) setSynchronized(loaded?.status === 'ready');
@@ -258,6 +260,37 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
       await recoverWorking(isLive);
       if (isLive()) setError(describeAnnotationError(failure));
       return false;
+    } finally { if (isLive()) { setBusy(false); busyRef.current = false; } }
+  };
+  const refreshWorkState = async () => {
+    if (busyRef.current) return;
+    const ticket = loadTicket.current;
+    const isLive = () => alive.current && ticket === loadTicket.current;
+    busyRef.current = true; setBusy(true); setSynchronized(false); setError(''); setMessage('正在刷新工作态与超像素…');
+    try {
+      // Reconcile project label changes before attempting to attach segmentation.
+      const next = await readWorking(api, id);
+      if (!isLive()) return;
+      applyWorking(next);
+      const loaded = await api.getSuperpixels(id);
+      if (!isLive()) return;
+      applyRead(loaded);
+      // Attachment can restore block summaries or invalidate old candidates.
+      const attached = await readWorking(api, id);
+      if (!isLive()) return;
+      applyWorking(attached);
+      await loadMetadata(attached, isLive);
+      if (!isLive()) return;
+      setSynchronized(loaded.status === 'ready');
+      setMessage(loaded.status === 'ready'
+        ? '工作态与超像素已刷新。'
+        : '工作态已刷新；尚未准备分割，可显式生成超像素，已有像素标注保留。');
+    } catch (failure) {
+      if (isLive()) {
+        setSegments(null); setSegmentation(null); setSynchronized(false);
+        setError(describeAnnotationError(failure));
+        setMessage('刷新未完成，超像素尚不可用；请核查错误后重试。');
+      }
     } finally { if (isLive()) { setBusy(false); busyRef.current = false; } }
   };
   useEffect(() => {
@@ -460,7 +493,7 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
       <span className="annotation-json-status-detail">{badge.detail}</span>
     </div>
     <p className="annotation-note">机器只给候选区域，不赋标签。L2 的簇命名、历史迁移与自动赋标属阶段二；当前先积累人工确认的标注。</p>
-    <div className="annotation-status"><p role="status">{message}</p><button disabled={busy} onClick={() => { void execute(async () => {}, '工作态已只读刷新。', true); }}>刷新工作态</button><button onClick={() => setHelp(!help)}>快捷键 / 设置</button></div>
+    <div className="annotation-status"><p role="status">{message}</p><button disabled={busy} onClick={() => { void refreshWorkState(); }}>刷新工作态</button><button onClick={() => setHelp(!help)}>快捷键 / 设置</button></div>
     {error && <pre className="annotation-error" role="alert">{error}</pre>}
     {batch && !busy && !batchReady && <p className="annotation-warning" role="alert">当前批次分割已失效或参数已变化，点选暂不可用。请返回助手重新核验，或按单图流程核查后重试。</p>}
     {help && <div className="annotation-shortcut-help" role="dialog" aria-label="标注快捷键，可查可改可关闭" aria-modal="false">
