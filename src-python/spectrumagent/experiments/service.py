@@ -196,7 +196,19 @@ class ExperimentService:
         source_manifest = {**train.sources, **test.sources}
         if expected_sources is not None and {key: item['sha256'] for key, item in source_manifest.items()} != expected_sources:
             raise DataError('EXPERIMENT_INPUT_CHANGED', '实验输入自方案核验后发生变化，请重新检查并展示方案')
-        storage.for_database(self.paths.database).add_sources([item["path"] for item in source_manifest.values()])
+        external_sources = []
+        for item in source_manifest.values():
+            path = Path(item['path'])
+            # Replays are managed outputs. External-input registration would reject
+            # their location inside the workspace. Verify the owning run and digest.
+            replay_root = (self.paths.exports / 'center-replays').resolve()
+            if path.parent.parent == replay_root:
+                from .center_replay import verified_output
+                item['center_replay_id'] = verified_output(path, item['sha256'])
+            else:
+                external_sources.append(path)
+        if external_sources:
+            storage.for_database(self.paths.database).add_sources(external_sources)
         if set(train.y.tolist()) != set(config.classes):
             raise DataError("EXPERIMENT_CLASSES_MISSING", "训练数据必须覆盖所有声明类别")
         write_json(folder / "sources.json", source_manifest)

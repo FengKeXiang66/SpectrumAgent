@@ -110,6 +110,12 @@ class ExperimentDialogue:
     def __init__(self, service):
         self.service, self.database = service, service.paths.database
         with connect_database(self.database) as db:
+            db.execute('''CREATE TABLE IF NOT EXISTS experiment_group_split (
+                session_id TEXT PRIMARY KEY REFERENCES agent_session(id), document TEXT NOT NULL)''')
+            db.execute('''CREATE TABLE IF NOT EXISTS experiment_pairing (
+                session_id TEXT PRIMARY KEY REFERENCES agent_session(id), report_json TEXT NOT NULL)''')
+            if 'replay_id' not in {r[1] for r in db.execute('PRAGMA table_info(experiment_pairing)')}:
+                db.execute('ALTER TABLE experiment_pairing ADD COLUMN replay_id TEXT')
             db.execute('''CREATE TABLE IF NOT EXISTS experiment_selection (
                 session_id TEXT PRIMARY KEY REFERENCES agent_session(id), experiment_id TEXT NOT NULL)''')
             db.execute('''CREATE TABLE IF NOT EXISTS experiment_dialogue (
@@ -140,6 +146,82 @@ class ExperimentDialogue:
             return None
         return dict(zip(('revision', 'document', 'sources', 'active', 'reviewed_revision', 'review_turn', 'run_status', 'experiment_id', 'review_sources_json'),
                         (row[0], json.loads(row[1]), json.loads(row[2]), *row[3:])))
+
+    def pairing_answer(self, session_id, content, check=lambda: None):
+        from .pairing import PAGE, PREPARE_REPLAY, REPLAY, details, directories, inventory, overview
+        page = PAGE.fullmatch(content.strip())
+        if page or REPLAY.match(content):
+            with connect_database(self.database) as db:
+                row = db.execute('SELECT report_json FROM experiment_pairing WHERE session_id=?', (session_id,)).fetchone()
+            if row is None:
+                return '当前会话还没有配对预览。'
+            report = json.loads(row[0])
+            if page:
+                return details(report, page[1], int(page[2] or 1))
+            from .center_replay import replay
+            tail = content[REPLAY.match(content).end():].strip(' ，,：:；;。！!\n\t')
+            location = PATHS.fullmatch(tail)
+            if tail and not location:
+                return '请发送“核验中心取谱”，或在其后加一个用双引号括起的发布目录。'
+            if not location and not report.get('manifest_path'):
+                return '请在“核验中心取谱”后提供发布目录，或附来源清单重新进行配对预览。'
+            release = Path(location['quoted'] or location['bare']) if location else Path(report['manifest_path']).parent
+            if not self.service.lock.acquire(blocking=False):
+                return '已有数值任务运行，请在结束后再核验中心取谱。'
+            try:
+                with connect_database(self.database) as db:
+                    db.execute('UPDATE experiment_pairing SET replay_id=NULL WHERE session_id=?', (session_id,))
+                run,stats = replay(report,release,self.service.paths.exports/'center-replays',check)
+                with connect_database(self.database) as db:
+                    changed = db.execute('UPDATE experiment_pairing SET replay_id=? WHERE session_id=? AND report_json=?',
+                                         (run.name, session_id, row[0])).rowcount
+                return ('中心取谱核验通过。\n' + '\n'.join(
+                    f"{role}：{s['images']} 幅，{s['exact']}/{s['centers']} 条 X3 逐值一致，标签、波长轴一致。"
+                    for role,s in stats.items()) + f'\n新光谱与核验记录：{run}\n' +
+                    (f'如需按归档参数拟合，可发送“{PREPARE_REPLAY}”，审阅后确认执行。' if changed else '会话配对清单已更新。'))
+            except (OSError, KeyError, ValueError, DataError) as error:
+                detail = error.payload.detail if isinstance(error, DataError) else str(error)
+                return '中心取谱核验未完成：' + detail
+            finally:
+                self.service.lock.release()
+        try:
+            report = inventory(directories(content, PATHS))
+        except (OSError, ValueError) as error:
+            return '未生成新的配对预览。' + str(error)
+        with connect_database(self.database) as db:
+            db.execute('INSERT INTO experiment_pairing(session_id,report_json) VALUES (?,?) ON CONFLICT(session_id) DO UPDATE '
+                       'SET report_json=excluded.report_json,replay_id=NULL', (session_id, json.dumps(report, ensure_ascii=False)))
+        return overview(report)
+
+    def prepare_replay(self, session_id):
+        from .center_replay import CLASSES
+        from spectrumagent.agent.tools.experiments import DraftUpdate
+        with connect_database(self.database) as db:
+            row = db.execute('SELECT replay_id FROM experiment_pairing WHERE session_id=?',(session_id,)).fetchone()
+        if not row or not row[0]:
+            raise DataError('CENTER_REPLAY_REQUIRED','请先在本会话完成中心取谱核验')
+        run = self.service.paths.exports/'center-replays'/row[0]
+        summary = json.loads((run/'核验.json').read_text('utf-8'))
+        specs = {}
+        for role,title,filename in [('train','训练','训练光谱.npz'),('test','测试','测试V2光谱.npz')]:
+            path = run/filename
+            if sha256(path) != summary['splits'][title]['output_sha256']:
+                raise DataError('CENTER_REPLAY_CHANGED','重新生成的光谱文件发生变化，请重新核验')
+            self.capture(session_id, f'"{path}"')
+            record = self._read(session_id)
+            reference = next(ref for ref,value in record['sources'].items() if value == str(path))
+            specs[role] = dict(kind='npz',source_refs=[reference],spectra_key='X3',labels_key='y',
+                               wavelengths_key='wavelengths_nm',input_stage='neighborhood_mean',
+                               neighborhood=3,evaluation_unit='center_pixel')
+        self.update(session_id,DraftUpdate(expected_revision=record['revision'],reset=True,
+            name='五分类中心取谱复现 '+run.name[:8], **specs, axis=dict(kind='archive',role='train'),
+            classes=[dict(label=k,name=v) for k,v in CLASSES.items()], test_usage='development_regression',
+            preprocessing=[dict(op='savgol',window=15,polyorder=2,derivative=2,delta_nm=5.,mode='interp'),
+                           dict(op='l2'),dict(op='center')],model=dict(n_components=12,scale=False,max_iter=1000),
+            additional_metrics=['kappa']))
+        # A separate confirmation now belongs to the new training draft.
+        with connect_database(self.database) as db:
+            db.execute('UPDATE inference_draft SET active=0 WHERE session_id=?', (session_id,))
 
     def handles(self, session_id, content):
         if HISTORY.search(content):

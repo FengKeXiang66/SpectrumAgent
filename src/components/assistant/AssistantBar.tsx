@@ -70,6 +70,12 @@ export default function AssistantBar({ session }: { session: AssistantSession })
       // into a collapsible "执行日志" panel; errors surface via the alert below.
       const requestStart=state.entries.reduce((last,entry,index)=>entry.event==='user'?index:last,0);
       const logs = state.entries.slice(Math.max(0,requestStart)).filter(entry => entry.event === 'step');
+      const centerStep = logs.find(entry => entry.event === 'step' && entry.data.status === 'ok' && entry.data.result_summary.center_action);
+      const splitReady = logs.some(entry => entry.event === 'step' && entry.data.tool === 'experiments.group_split'
+        && entry.data.status === 'ok' && entry.data.result_summary.split_ready === true);
+      const centerAction = centerStep?.event === 'step' ? centerStep.data.result_summary.center_action : null;
+      const centerCommand = centerAction === 'verify_centers' ? '核验中心取谱'
+        : centerAction === 'prepare_training' ? '用本次取谱结果新建训练方案' : null;
       const modeChoices=annotationChoices(state.entries);
       const tasks=taskPositions(state.entries,session.taskCards??[]);
       const legacy=(session.batchCards??[]).map(card=>({card,start:state.entries.findIndex(entry=>!!card.requestId&&entry.requestId===card.requestId)}))
@@ -165,6 +171,12 @@ export default function AssistantBar({ session }: { session: AssistantSession })
             </div>
           </li>)];})}
         </ol>
+        {splitReady && !state.busy && !state.pending && <div>
+          <button type="button" disabled={!enabled || session.loading} onClick={() => void request({ content:'划分明细 第1页' })}>查看逐图明细</button>
+          <button type="button" disabled={!enabled || session.loading} onClick={() => void request({ content:'确认保存划分' })}>确认保存划分</button>
+        </div>}
+        {centerCommand && !state.busy && !state.pending && <button type="button" disabled={!enabled || session.loading}
+          onClick={() => void request({ content: centerCommand })}>{centerCommand}</button>}
         {logs.length > 0 && <details className="assistant-logs" aria-label="执行日志">
           <summary>执行日志（{logs.length}）</summary>
           <ol>{logs.map((entry, index) => entry.event === 'step' ? <li key={index} className="agent-tool" data-event="step">

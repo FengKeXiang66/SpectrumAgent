@@ -58,7 +58,7 @@ def result_answer(result):
     return '\n'.join(lines)
 
 
-def generate(machine, content):
+def generate(machine, content, *, pairing=False, group_split=False):
     from .state import State
     dialogue, store, session = machine.tools.experiment_dialogue, machine.store, machine.session_id
     row = None
@@ -92,6 +92,48 @@ def generate(machine, content):
                           for item in page['items']] + ['可在“历史实验”中选择，或说明要查看哪个实验；不会重新训练。'])
 
     try:
+        if group_split:
+            from spectrumagent.experiments.conversation import PATHS
+            from spectrumagent.experiments.group_split import answer
+            row = store.new_round(session, content, [], 'running')
+            yield 'progress', {'phase': 'tool', 'tool': 'experiments.group_split'}
+            start_split = perf_counter_ns()
+            try:
+                reply, status = answer(dialogue,session,content,PATHS)
+            except (ValueError,OSError,DataError) as error:
+                reply = error.payload.detail if isinstance(error,DataError) else str(error)
+                yield from finish('数据划分 · '+reply, clarify=True)
+                return
+            if status == 'ready':
+                step = store.add_step(row,'experiments.group_split',{},'ok',{'split_ready':True},
+                                      (perf_counter_ns()-start_split)//1_000_000)
+                yield machine._step_event(step)
+            yield from finish('数据划分 · '+reply, clarify=status == 'needs_input',
+                              outcome='needs_input' if status == 'needs_input' else 'succeeded')
+            return
+        if pairing:
+            from spectrumagent.experiments.pairing import PREPARE_REPLAY, REPLAY
+            row = store.new_round(session, content, [], 'running')
+            if content.strip(' 。！!') == PREPARE_REPLAY:
+                dialogue.prepare_replay(session)
+                yield from present()
+                return
+            operation = 'center_replay' if REPLAY.match(content) else 'pairing_preview'
+            yield 'progress', {'phase': 'tool', 'tool': 'experiments.' + operation}
+            started = perf_counter_ns()
+            control = getattr(machine, 'control', None)
+            answer = dialogue.pairing_answer(session, content, control.check if control else lambda: None)
+            action = None
+            if answer.startswith('ENVI 原图与标注配对预览') and '可发送“核验中心取谱”' in answer:
+                action = 'verify_centers'
+            elif answer.startswith('中心取谱核验通过') and PREPARE_REPLAY in answer:
+                action = 'prepare_training'
+            if action:
+                step = store.add_step(row, 'experiments.' + operation, {}, 'ok', {'center_action': action},
+                                      (perf_counter_ns() - started) // 1_000_000)
+                yield machine._step_event(step)
+            yield from finish(answer, outcome='succeeded' if answer.startswith('中心取谱核验通过') else 'needs_input')
+            return
         safe_content = dialogue.capture(session, content)
         # The user-visible journal retains the original input; model history is separately redacted.
         row = store.new_round(session, content, [], 'running')

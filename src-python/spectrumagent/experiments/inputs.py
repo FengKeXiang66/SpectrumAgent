@@ -69,6 +69,15 @@ def mapping_weights(source, target, window, nearest_tolerance):
     return weights
 
 
+def quality_mask(mapped, used, quality):
+    valid = (np.isfinite(mapped).all(axis=-1) & (mapped.mean(axis=-1) > quality.min_mean)
+             & (mapped.std(axis=-1) > quality.min_std)
+             & ((used == 0).mean(axis=-1) <= quality.max_zero_fraction))
+    if quality.saturation is not None:
+        valid &= (used < quality.saturation).all(axis=-1)
+    return valid
+
+
 def roi_maps(path, shape, classes, header_hash=None):
     """Separate region identities prevent mixing adjacent ROIs of the same class."""
     if path.suffix.lower() == ".npz":
@@ -183,11 +192,7 @@ def image_samples(spec, target, classes):
             raw = raw.astype(np.float64)
             mapped = (raw / float(dataset.metadata["scale_factor"])) @ weights
             used = raw[:, :, weights.sum(axis=1) > 0]
-            q = spec.quality
-            valid = (np.isfinite(mapped).all(axis=2) & (mapped.mean(axis=2) > q.min_mean)
-                     & (mapped.std(axis=2) > q.min_std) & ((used == 0).mean(axis=2) <= q.max_zero_fraction))
-            if q.saturation is not None:
-                valid &= (used < q.saturation).all(axis=2)
+            valid = quality_mask(mapped, used, spec.quality)
             region_block = regions[low:high]
             minimum = minimum_filter(region_block, spec.neighborhood, mode="constant", cval=0)
             maximum = maximum_filter(region_block, spec.neighborhood, mode="constant", cval=0)

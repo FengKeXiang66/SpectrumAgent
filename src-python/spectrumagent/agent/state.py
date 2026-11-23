@@ -361,6 +361,16 @@ class StateMachine:
     def _dispatch(self, **kwargs):
         if self._workflow_enabled():
             dialogue = getattr(self.tools, 'experiment_dialogue', None)
+            if dialogue and kwargs.get('content'):
+                from spectrumagent.experiments.conversation import PATHS
+                from spectrumagent.experiments.pairing import requested
+                from spectrumagent.experiments.group_split import requested as split_requested
+                if split_requested(kwargs['content'], PATHS):
+                    from .experiment_flow import generate
+                    return generate(self, kwargs['content'], group_split=True)
+                if requested(kwargs['content'], PATHS):
+                    from .experiment_flow import generate
+                    return generate(self, kwargs['content'], pairing=True)
             if kwargs.get('content') is not None and dialogue and dialogue.inference.handles(self.session_id,kwargs['content']):
                 from .inference_flow import generate as inference_generate
                 return inference_generate(self,kwargs['content'])
@@ -420,7 +430,7 @@ class StateMachine:
         from .conversation import journal_messages
         journal = journal_messages(self.store.database, self.session_id, getattr(self, 'request_id', None), machine=self)
         if journal is not None:
-            return journal
+            return self._pairing_history(journal)
         prior = self.store.rounds(self.session_id, exclude_round_id=exclude_round_id, limit=limit, include_incomplete=True)
         messages = []
         seen_turns = set()
@@ -436,6 +446,24 @@ class StateMachine:
                 messages.append({"role": "assistant", "content": prior_round["assistant_content"]})
             if prior_round['status'] == 'error':
                 messages.append({'role': 'system', 'content': '该轮失败或中断；已记录的工具结果保留，未记录的结果未知。重试前须核对真实状态，不得自动重复写操作。'})
+        return self._pairing_history(messages)
+
+    @staticmethod
+    def _pairing_history(messages):
+        # These local inventory pages include user paths and discovered filenames.
+        from spectrumagent.experiments.conversation import PATHS
+        from spectrumagent.experiments.pairing import requested
+        from spectrumagent.experiments.group_split import requested as split_requested
+        for message in messages:
+            text = message.get('content')
+            if not isinstance(text, str):
+                continue
+            if message['role'] == 'user' and (requested(text, PATHS) or split_requested(text, PATHS)):
+                message['content'] = '查看本地原图与标注配对预览'
+            elif message['role'] == 'assistant' and text.startswith((
+                    'ENVI 原图与标注配对预览', '配对明细 ·', '未配对原图 ·', '配对异常 ·', '未生成新的配对预览。',
+                    '中心取谱核验通过', '中心取谱核验未完成', '数据划分 ·')):
+                message['content'] = '本地配对信息已展示给用户。'
         return messages
 
     def _chat(self, messages, tools):
