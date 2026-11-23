@@ -6,7 +6,7 @@ import type { TrainingEvent, TrainingJob } from './training';
 import './training-progress.css';
 
 const phases: Record<string, string> = { queued: '等待训练', validation: '校验绑定引用', prepared: '输入与分折已核验', source_verify: '核验源数据',
-  dataset: '读取像素与应用配方', dataset_image: '图像读取完成', check: '泄漏与类别覆盖检查', run: '建立训练记录',
+  dataset: '读取像素与应用配方', dataset_image: '图像读取完成', check: '训练诊断记录', run: '建立训练记录',
   inner_preprocess: '折内拟合预处理', lv: '选择潜变量', ipls: '扫描 iPLS 区间', fit: '拟合分类模型',
   outer: '外层留出评价', fold_complete: '外层评价完成', baseline_complete: '全波段基线完成', checkpoint: '保存完成单元',
   reused: '复用已完成单元', summarize: '汇总评价', publish: '保存正式结果', fit_warning: '拟合警告' };
@@ -20,7 +20,10 @@ export function eventText(event: TrainingEvent): string {
   if (event.phase === 'lv' || event.phase === 'ipls') detail = `${event.completed}/${event.total} · RMSECV=${metric(event.rmsecv)}${event.selection ? ` · ${event.selection === 'selected' ? '选中区间' : '全波段'}` : ''}`;
   if (event.phase === 'dataset') detail = `图像 ${Number(event.image_index) + 1}/${event.total_images} · 行 ${event.rows_read}/${event.total_rows}`;
   if (event.phase === 'dataset_image') detail = `图像 ${event.completed}/${event.total} · 有效 ${event.valid} · 非有限谱 ${event.invalid} · 未标注 ${event.unlabeled} · 留白 ${event.annotation_uncertain}`;
-  if (event.phase === 'check') detail = `${event.passed ? '通过' : '阻断'} · 跨折分组 ${event.group_violations} · 重复 ${event.duplicate_count}${Array.isArray(event.warnings) ? ' · ' + event.warnings.join('；') : ''}`;
+  if (event.phase === 'check') detail = (event.status === 'skipped'
+    ? '光谱相似度与数据泄漏检查已跳过'
+    : `${event.passed ? '通过' : '未通过'} · 跨折分组 ${event.group_violations} · 重复 ${event.duplicate_count}`)
+    + (Array.isArray(event.warnings) && event.warnings.length ? ' · ' + event.warnings.join('；') : '');
   if (event.phase === 'fold_complete') { const score = object(object(object(event.metrics).all_labeled).pixel); detail = `全体像素 OA=${metric(score.oa)} · Kappa=${metric(score.kappa)}`; }
   if (event.phase === 'checkpoint' || event.phase === 'reused') detail = String(event.unit ?? '');
   if (event.phase === 'fit_warning') detail = String(event.code ?? '');

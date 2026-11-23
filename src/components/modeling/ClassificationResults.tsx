@@ -53,7 +53,7 @@ export default function ClassificationResults({ result }: { result: Classificati
       </section>;
     })}</div>
     <details><summary>逐折分类指标</summary><pre>{JSON.stringify(confusion.folds, null, 2)}</pre></details>
-    <details><summary>分类泄漏预检</summary><pre>{JSON.stringify(result.leak_report, null, 2)}</pre></details>
+    <details><summary>训练诊断记录</summary><pre>{JSON.stringify(result.leak_report, null, 2)}</pre></details>
     <p>随机种子 {confusion.manifest.seed}；代码版本 {confusion.manifest.code_version ?? '不适用'}。</p>
     {result.bands && <section className="classification-bands" aria-label="iPLS 波段选择结果">
       <h3>iPLS 波段选择结果</h3>

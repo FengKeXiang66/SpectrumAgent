@@ -84,30 +84,54 @@ def test_train_only_fit_matches_sklearn_and_artifacts_survive_reload(tmp_path, w
     assert caught.value.code == "EXPERIMENT_ARTIFACT_CHANGED"
 
 
-@pytest.mark.parametrize("problem", ["same_file", "identical_spectra", "nan", "wrong_axis", "unknown_class", "missing_class"])
+@pytest.mark.parametrize("overlap", ["same_file", "identical_spectra", "same_sample_id"])
+def test_overlapping_train_test_inputs_can_train(overlap, tmp_path, workspace, monkeypatch):
+    body = config_for(tmp_path)
+    if overlap == 'same_file':
+        body['test'] = copy.deepcopy(body['train'])
+    elif overlap == 'identical_spectra':
+        with np.load(body['train']['paths'][0]) as train, np.load(body['test']['paths'][0]) as test:
+            values = {key: test[key].copy() for key in test.files}
+            values['X'][0] = train['X'][0]
+        np.savez(body['test']['paths'][0], **values)
+    else:
+        from spectrumagent.experiments import service
+        load = service.load_input
+
+        def with_shared_sample(*args, **kwargs):
+            data = load(*args, **kwargs)
+            for row in data.origins:
+                row['sample_id'] = 'shared-sample'
+            return data
+
+        monkeypatch.setattr(service, 'load_input', with_shared_sample)
+    result = ExperimentService(workspace).run(ExperimentConfig.model_validate(body))
+    assert result['status'] == 'succeeded'
+    assert result['split_checks']['status'] == 'skipped'
+    assert result['split_checks']['same_file'] is None
+    assert result['split_checks']['exact_duplicate_spectrum'] is None
+    assert result['split_checks']['physical_sample_independence'] == 'not_checked'
+    assert (ExperimentService(workspace).folder(result['experiment_id']) / 'model.joblib').is_file()
+
+
+@pytest.mark.parametrize("problem", ["nan", "wrong_axis", "unknown_class", "missing_class"])
 def test_bad_inputs_fail_before_model_fit(problem, tmp_path, workspace, monkeypatch):
     body = config_for(tmp_path)
-    if problem == "same_file":
-        body["test"] = copy.deepcopy(body["train"])
+    path = Path(body["test"]["paths"][0])
+    with np.load(path) as archive:
+        values = {k: archive[k].copy() for k in archive.files}
+    if problem == "nan":
+        values["X"][0, 0] = np.nan
+    elif problem == "wrong_axis":
+        values["wavelengths_nm"] += 1
+    elif problem == "unknown_class":
+        values["y"][0] = 99
     else:
-        path = Path(body["test"]["paths"][0])
-        with np.load(path) as archive:
-            values = {k: archive[k].copy() for k in archive.files}
-        if problem == "identical_spectra":
-            with np.load(body["train"]["paths"][0]) as train:
-                values["X"][0] = train["X"][0]
-        elif problem == "nan":
-            values["X"][0, 0] = np.nan
-        elif problem == "wrong_axis":
-            values["wavelengths_nm"] += 1
-        elif problem == "unknown_class":
-            values["y"][0] = 99
-        else:
-            path = Path(body["train"]["paths"][0])
-            with np.load(path) as train:
-                values = {k: train[k].copy() for k in train.files}
-            values["y"][:] = 1
-        np.savez(path, **values)
+        path = Path(body["train"]["paths"][0])
+        with np.load(path) as train:
+            values = {k: train[k].copy() for k in train.files}
+        values["y"][:] = 1
+    np.savez(path, **values)
     def forbidden(*args):
         pytest.fail("invalid input reached model fitting")
     monkeypatch.setattr("spectrumagent.experiments.service.ExperimentModel.fit", forbidden)

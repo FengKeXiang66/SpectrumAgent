@@ -72,7 +72,7 @@ export default function S08({ runId, onOpen, onBackToList, onClose }: {
         <p>交叉验证最小建议 LV：{result.best_lv ?? '不适用'}；使用 LV：{result.selected_lv ?? '不适用'}{sweep ? `；拐点法建议 LV：${sweep.elbow_lv}` : ''}</p>
         {result.quality_label && <strong role="status">{result.quality_label}</strong>}
         <dl>{Object.entries(metricLabels).map(([key, label]) => <div key={key}><dt>{label}</dt><dd>{result.metrics?.[key] ?? '不适用'}</dd></div>)}</dl>
-        <details><summary>划分与泄漏预检</summary><pre>{JSON.stringify(result.leak_report, null, 2)}</pre></details>
+        <details><summary>训练诊断记录</summary><pre>{JSON.stringify(result.leak_report, null, 2)}</pre></details>
         {result.error != null && <pre role="alert">{JSON.stringify(result.error, null, 2)}</pre>}
       </section>}
       {chartsRequested && result?.task !== 'classification' && <RegressionCharts charts={regressionCharts({ result, sweep, runError, sweepError, loading: chartLoading })} />}

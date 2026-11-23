@@ -34,6 +34,8 @@ def test_current_data_flows_through_processing_training_and_prediction(workspace
         data[:,:,index] += .5
         data[:4,:,6] += .15
         data[4:,:,7] += .15
+        # Spectra can be nearly parallel while carrying useful class variation.
+        data = .5 + data*.001
         envi.save_image(str(source / f'cube-{index}.hdr'), data, ext='.dat',
                         metadata={'wavelength': list(range(1100,1180,10))})
         cube = str(registry.import_path(str(source / f'cube-{index}.hdr')).datasets[0].id)
@@ -99,8 +101,27 @@ def test_current_data_flows_through_processing_training_and_prediction(workspace
                     preprocess_run_ids=[members[c]['run_id'] for c in cubes],
                     cv_strategy='group_kfold',cv_folds=3,seed=17,split_strategy='none',
                     evaluation_protocol='nested_group_cv',n_components=1,max_components=2)
+        diagnostic = app.state.training_runs.preflight(**{k: v for k, v in body.items()
+                                                        if k not in ('n_components', 'max_components')})
+        assert diagnostic['status'] == 'failed'
+        assert diagnostic['leak_report']['near_duplicate_spectra']['pair_count'] > 0
+
+        def forbidden_check(*args, **kwargs):
+            pytest.fail('training must not run spectral similarity or leakage diagnostics')
+
+        from spectrumagent.modeling import leak, run
+        for module in (leak, run):
+            for name in ('preflight_report', 'sample_preflight_report'):
+                monkeypatch.setattr(module, name, forbidden_check)
         result = app.state.training_runs.classify(**body)
         assert result['status'] == 'succeeded', result
+        assert result['leak_report']['status'] == 'skipped'
+        assert result['leak_report']['passed'] is None
+        for protocol in (None, 'exploratory_group_cv'):
+            trained = app.state.training_runs.classify(**{**body, 'evaluation_protocol': protocol})
+            assert trained['status'] == 'succeeded', trained
+            assert trained['leak_report']['status'] == 'skipped'
+            assert trained['leak_report']['passed'] is None
         from spectrumagent.modeling.classification_operations import operations_for
         ops = operations_for(registry,workspace)
         model = ops.models.register(result['evaluation']['evaluation_id'],'当前分类模型')
@@ -123,6 +144,8 @@ def test_current_data_flows_through_processing_training_and_prediction(workspace
             assert response.status_code == 200, response.text
         regression = app.state.training_runs.regress(preprocess_run_ids=body['preprocess_run_ids'],target_schema_id=schema,cv_folds=2,n_components=1,max_components=1)
         assert regression['status'] == 'succeeded', regression
+        assert regression['leak_report']['status'] == 'skipped'
+        assert regression['leak_report']['passed'] is None
         regression_model = app.state.model_registry.register(regression['run_id'],'当前回归模型')
         prediction = app.state.inference_runs.create(regression_model['id'],cubes[0],members[cubes[0]]['run_id'],annotation)
         assert prediction['status'] == 'succeeded', prediction

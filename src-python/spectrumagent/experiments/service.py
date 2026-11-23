@@ -19,7 +19,7 @@ from threadpoolctl import threadpool_limits
 
 from spectrumagent.data import DataError
 from spectrumagent.storage import guard as storage
-from .inputs import load_input, check_split, check_sources, sha256
+from .inputs import load_input, check_sources, sha256
 from .pipeline import SpectralPipeline
 from .report import metrics, representative_curves, curve_plot, html_report
 from .schema import ExperimentConfig
@@ -197,7 +197,6 @@ class ExperimentService:
         if expected_sources is not None and {key: item['sha256'] for key, item in source_manifest.items()} != expected_sources:
             raise DataError('EXPERIMENT_INPUT_CHANGED', '实验输入自方案核验后发生变化，请重新检查并展示方案')
         storage.for_database(self.paths.database).add_sources([item["path"] for item in source_manifest.values()])
-        check_split(train, test)
         if set(train.y.tolist()) != set(config.classes):
             raise DataError("EXPERIMENT_CLASSES_MISSING", "训练数据必须覆盖所有声明类别")
         write_json(folder / "sources.json", source_manifest)
@@ -247,8 +246,9 @@ class ExperimentService:
                   "config_sha256": hashlib.sha256(encode(config_document).encode()).hexdigest(),
                   "model_sha256": sha256(model_path), "score_definition": "uncalibrated_pls_response",
                   "metrics": scores, "datasets": summaries, "fit_warnings": model.fit_warnings,
-                  "split_checks": {"same_file": False, "exact_duplicate_spectrum": False,
-                                   "physical_sample_independence": "only_explicit_image_sample_ids_checked"},
+                  "split_checks": {"status": "skipped", "reason": "训练不执行光谱重复或数据泄漏检查。",
+                                   "same_file": None, "exact_duplicate_spectrum": None,
+                                   "physical_sample_independence": "not_checked"},
                   "environment": {"python": platform.python_version(), "numpy": np.__version__,
                                   "scipy": scipy.__version__, "sklearn": sklearn.__version__, "joblib": joblib.__version__},
                   "code_sha256": {p.name: sha256(p) for p in sorted(Path(__file__).parent.glob("*.py"))}}

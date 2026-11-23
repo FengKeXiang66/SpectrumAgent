@@ -114,11 +114,6 @@ export default function ClassificationPanel({ records, busy, work, onOpenResults
       if (sequence.live) {
         const uncertain = !!reason && typeof reason === 'object' && 'error' in reason && reason.error === 'TRAINING_STATUS_UNAVAILABLE';
         if (!uncertain) setTraining(null);
-        const alerts = extractNearDuplicates(reason);
-        if (alerts.length) {
-          preflightAlerts.set(alerts);
-          note(`训练被预检阻断：发现 ${alerts.length} 对近似重复样品，请检查样品是否重复。`);
-        }
       }
       if (sequence.live) setTrainingError(failureMessage(reason));
     } finally { sequence.training = false; }
@@ -135,7 +130,7 @@ export default function ClassificationPanel({ records, busy, work, onOpenResults
       {members.map(member => <label key={member.cube_id}><input type="checkbox" checked={!!selected[member.cube_id]} onChange={e => setSelected(old => ({...old,[member.cube_id]:e.target.checked}))} />{displayName(records.find(row => row.id === member.cube_id) ?? {id:member.cube_id,display_name:member.cube_id})} · {member.status === 'ready' ? '就绪' : member.status === 'need_annotation' ? '请先标注' : '请先预处理'}</label>)}
       {inputError && <p role="alert">{inputError}</p>}
       {!!missingRuns.length && <p>选中的样品尚有 {missingRuns.length} 项需要预处理。</p>}
-      <p>训练至少需要 5 个样品；预检至少需要 4 个样品。</p>
+      <p>训练至少需要 5 个样品；可选诊断至少需要 4 个样品，诊断结果不影响训练。</p>
       {metadataError && <p role="alert">{metadataError}</p>}
     </fieldset>
     <fieldset disabled={busy || !!training || loading}><legend>分组验证与超参</legend>
@@ -144,8 +139,8 @@ export default function ClassificationPanel({ records, busy, work, onOpenResults
       </select></label>
       <details className="md-help"><summary>划分与校验说明</summary>
         <p>外层5折GroupKFold评价；内层分组选LV及波段。无物理样品身份时按图像组代理。</p>
-        <p>同一样品的全部像素始终在同一侧；训练前强制泄漏预检，失败即阻断。</p>
-        <p>不设每类最小组数；训练折缺类时允许继续，并在预检和结果中标明覆盖情况。</p>
+        <p>同一样品的全部像素始终在同一侧；可直接训练，不执行光谱相似度或数据泄漏检查。</p>
+        <p>不设每类最小组数；训练折缺类时允许继续，并在诊断和结果中标明覆盖情况。</p>
         <p>训练前会核验当前标注与配方是否发生变化。</p>
       </details>
       <label>随机种子<input type="number" step={1} value={seed} onChange={event => setSeed(Number(event.target.value))} /></label>
@@ -163,8 +158,8 @@ export default function ClassificationPanel({ records, busy, work, onOpenResults
         setPreflight(result);
         const alerts = extractNearDuplicates(result);
         if (alerts.length) preflightAlerts.set(alerts);
-        note(alerts.length ? `分类预检已返回：发现 ${alerts.length} 对近似重复样品，请检查样品是否重复。` : '分类预检已返回，结果见预检卡片。');
-      })}>分类预检</button>
+        note(alerts.length ? `可选诊断已返回：发现 ${alerts.length} 对近似重复样品，不影响训练。` : '可选诊断已返回，结果见诊断卡片；不影响训练。');
+      })}>可选诊断（不影响训练）</button>
       <button className="modeling-primary" disabled={!ready || !!training} onClick={() => {
         if (!ready || sequence.training || training) return;
         try { return train(body()); } catch (reason) { setTrainingError(failureMessage(reason)); }
@@ -230,7 +225,7 @@ export function PreflightCard({ preflight, records = [] }: { preflight: unknown;
     state: supportWarnings.length ? 'warning' : 'pass',
     description: [...supportWarnings, ...supportClasses.map(c => `${c.name}：${c.groups} 组 / ${c.pixels} 像素`)].join('；') });
   return <section className="classification-preflight" aria-label="分类预检结果">
-    <header className="md-card-head"><h3>分类预检结果</h3><span className="md-card-note" data-state={blocked ? 'bad' : undefined}>{blocked ? '未通过 · 已阻断训练' : report.passed === true ? '预检通过' : '请查看预检详情'}</span></header>
+    <header className="md-card-head"><h3>分类诊断结果</h3><span className="md-card-note" data-state={blocked ? 'bad' : undefined}>{blocked ? '发现问题 · 不影响训练' : report.passed === true ? '诊断通过 · 不影响训练' : '请查看诊断详情'}</span></header>
     <div className="preflight-steps">{steps.map(step => <div key={step.key} className="preflight-step" data-preflight-step={step.key} data-state={step.state}>
       <span className="preflight-state" aria-label={step.state === 'pass' ? '通过' : step.state === 'neutral' ? '提示' : '需关注'}>{step.state === 'pass' ? '✓' : '!'}</span>
       <div><h4>{step.title}</h4><p>{step.description}</p></div>

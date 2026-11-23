@@ -68,7 +68,7 @@ export default function S09({ records }: { records: DatasetReference[] }) {
         <p>使用 LV：{result.selected_lv ?? '不适用'}；交叉验证最小建议 LV：{result.best_lv ?? '不适用'}</p>
         {result.quality_label && <strong role="status">{result.quality_label}</strong>}
         <dl>{Object.entries(result.metrics ?? {}).map(([key, value]) => <div key={key}><dt>{metricLabels[key] ?? key}</dt><dd>{value ?? '不适用'}</dd></div>)}</dl>
-        <details><summary>泄漏预检</summary><pre>{JSON.stringify(result.leak_report, null, 2)}</pre></details>
+        <details><summary>训练诊断记录</summary><pre>{JSON.stringify(result.leak_report, null, 2)}</pre></details>
       </section>}
     </section>
     <section aria-label="分类运行台账"><h3>分类运行</h3><p>OA / Kappa 使用样品级指标；无分类训练产物时显示不适用。</p>

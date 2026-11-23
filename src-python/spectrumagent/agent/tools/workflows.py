@@ -334,7 +334,7 @@ class Workflows:
             summary.update(annotation_saved=current_saved,saved_version_available=bool(latest),annotation_policy='foreground_with_optional_background',
                            effective_label_count=len({int(x) for x in np.unique(state.label_map) if x >= 0}),
                            saved_foreground_label_count=foreground,coverage_confirmation='not_recorded',
-                           training_admission='saved_snapshot_available_preflight_required' if foreground else 'need_saved_foreground' if latest else 'need_saved_annotation')
+                           training_admission='saved_snapshot_available' if foreground else 'need_saved_foreground' if latest else 'need_saved_annotation')
             if restored:
                 summary["restored_label_count"] = len(restored)
                 for index, item in enumerate(restored, 1):

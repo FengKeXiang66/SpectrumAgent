@@ -17,7 +17,7 @@ from backend.database import connect_database
 from . import ModelingError
 from .cv import plan_folds, kennard_stone
 from .dataset import _build, _inputs, build_sample_training_set
-from .leak import preflight_report, sample_preflight_report
+from .leak import preflight_report, sample_preflight_report, skipped_training_report
 from .metrics import _regression, REGRESSION_METRICS, classification_scores, classification_fold_summary
 from spectrumagent.preprocess.run import code_version
 from spectrumagent.data import DataError
@@ -52,7 +52,7 @@ class TrainingRuns:
                         _json(error) if error is not None else None, identifier))
 
     def _preflight_data(self, *, cube_ids, annotation_version_ids, preprocess_run_ids, task, target, cv_strategy, cv_folds, seed, split_strategy="none",
-                        recipe_version_id=None, dataset_version_ref=None):
+                        recipe_version_id=None, dataset_version_ref=None, check_leakage=True):
         rows = _inputs(self.registry, cube_ids=cube_ids, annotation_version_ids=annotation_version_ids,
                        preprocess_run_ids=preprocess_run_ids, target=target, task=task,
                        recipe_version_id=recipe_version_id, dataset_version_ref=dataset_version_ref)
@@ -70,7 +70,7 @@ class TrainingRuns:
         # All schema/reference/shape/CV validation completes before INSERT.
         data = _build(self.registry, self.paths, rows)
         folds = plan_folds(data["y"], data["groups"], task=task, strategy=cv_strategy, folds=cv_folds, seed=seed)
-        report = preflight_report(data["meta"], folds, strategy=cv_strategy)
+        report = preflight_report(data["meta"], folds, strategy=cv_strategy) if check_leakage else skipped_training_report()
         return rows, data, folds, report
 
     def preflight(self, *, cube_ids, annotation_version_ids, preprocess_run_ids, task, target, cv_strategy, cv_folds, seed, split_strategy="none",
@@ -245,18 +245,15 @@ class TrainingRuns:
                              maximum=max_components, manual=n_components, ipls=band_selection == "ipls",
                              protocol=evaluation_protocol, training_set_ref=None,
                              dataset_version_ref=dataset_version_ref, sample_groups=sample_groups)
-        rows, data, folds, _ = self._preflight_data(cube_ids=cube_ids, annotation_version_ids=annotation_version_ids,
+        rows, data, folds, report = self._preflight_data(cube_ids=cube_ids, annotation_version_ids=annotation_version_ids,
             preprocess_run_ids=preprocess_run_ids, task=task, target=target, cv_strategy=cv_strategy,
             cv_folds=cv_folds, seed=seed, split_strategy=split_strategy,
-            recipe_version_id=recipe_version_id, dataset_version_ref=dataset_version_ref)
+            recipe_version_id=recipe_version_id, dataset_version_ref=dataset_version_ref, check_leakage=False)
         if [cube["cube_id"] for cube in data["meta"]["cubes"]] != cube_ids:
             raise ModelingError("MODEL_INPUT_UNAVAILABLE", "训练指纹与输入数据集逐位不一致",
                                 cube_ids=cube_ids, version_id=dataset_version_ref)
-        report = sample_preflight_report(data["meta"], folds, data["sample_means_raw"])
         report["group_by"] = "sample_id"
         report["sample_ids"] = {str(cube["group"]): cube["cube_id"] for cube in data["meta"]["cubes"]}
-        if not report["passed"]:
-            raise ModelingError("LEAK_PREFLIGHT_FAILED", "泄漏预检阻断训练", leak_report=report)
         X, y, groups = data["X"], data["y"], data["groups"]
         if band_selection == "ipls" and X.shape[1] < 20:
             raise ModelingError("INSUFFICIENT_IPLS_FEATURES", "iPLS 需要至少 20 个特征列，不能减少区间数", n_features=X.shape[1])
@@ -418,9 +415,7 @@ class TrainingRuns:
         if task != "regression" or split_strategy != "ks" or cv_strategy not in ("kfold", "loo"):
             raise ModelingError("INVALID_CV_PARAMS", "整样谱回归支持 KS 外层及 KFold/LOO 内层")
         data = build_sample_training_set(self.registry, self.paths, preprocess_run_ids=preprocess_run_ids, target_schema_id=target_schema_id)
-        report = sample_preflight_report(data["meta"], [], data["X_raw"])
-        if not report["passed"]:
-            raise ModelingError("LEAK_PREFLIGHT_FAILED", "泄漏预检阻断训练", leak_report=report)
+        report = skipped_training_report()
         X, y, groups = data["X"], data["y"], data["groups"]
         split = kennard_stone(X, y, groups.tolist(), test_ratio=test_ratio)
         train, test = split["train_idx"], split["test_idx"]
@@ -434,7 +429,6 @@ class TrainingRuns:
             maximum = min(maximum, max_components)
         if maximum < 1 or n_components is not None and not 1 <= n_components <= maximum:
             raise ModelingError("INVALID_LV", "LV 必须不超过内层训练样品数减一及特征数", maximum=maximum)
-        report = sample_preflight_report(data["meta"], inner, data["X_raw"])
         report["coverage_repaired"] = split["coverage_repaired"]
         params = {"n_samples": len(y), "n_pixels_used": data["meta"]["n_pixels_used"],
                   "excluded_without_target": data["meta"]["excluded_without_target"], "test_ratio": test_ratio,

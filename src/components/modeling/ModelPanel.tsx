@@ -54,7 +54,7 @@ export default function ModelPanel({ records, onOpenResults }: { records: Datase
   if (view === 'inference') return <InferencePanel records={records} onClose={() => setView('training')} />;
   return <section className="model-panel ui-page" aria-label={task === 'regression' ? 'PLS 回归工作台' : 'PLS-DA 分类工作台'}>
     <header className="md-page-head"><div><h2>建模训练</h2>
-      <p className="md-subtitle">分类与回归双轨。样本集划分与泄漏检测在这里一次做完，不留到结果阶段再补救。</p></div>
+      <p className="md-subtitle">分类与回归双轨。选择处理就绪的样品即可训练，光谱相似度与数据泄漏诊断不作为训练前置条件。</p></div>
       <span className="md-head-task">当前任务：{task === 'regression' ? 'PLS 回归' : 'PLS-DA 分类'}</span></header>
     <p role="status">{message}</p>{error && <pre role="alert">{error}</pre>}
     <div className="md-workbench">

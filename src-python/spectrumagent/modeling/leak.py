@@ -12,6 +12,12 @@ GLOBAL_FIT_OPERATORS = frozenset({"standardize", "msc", "emsc", "pca", "mnf", "i
 SMOKE_ALLOW_NEAR_DUPLICATE = False
 
 
+def skipped_training_report():
+    """Record omitted diagnostics without claiming that any checks passed."""
+    return {"status": "skipped", "passed": None,
+            "reason": "训练不执行光谱相似度或数据泄漏检查。"}
+
+
 def preflight_report(meta, folds, *, strategy):
     overlaps = [{"fold_index": fold["fold_index"],
                  "overlap_groups": sorted(set(fold["train_groups"]) & set(fold["test_groups"]))} for fold in folds]

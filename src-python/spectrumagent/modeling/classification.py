@@ -19,7 +19,7 @@ from .cv import plan_folds
 from .dataset import _inputs
 from .evaluation import Evaluations, encode, digest, stamp, summarize
 from .inference import apply_with_calibration
-from .leak import sample_preflight_report
+from .leak import skipped_training_report
 from .training_state import CURRENT, TrainingCancelled, checkpoint, emit, stage
 
 
@@ -300,15 +300,11 @@ def train(engine, rows, *, cv_folds, seed, threshold, maximum, manual, ipls, pro
     outer = plan_folds(y, groups, task="classification", strategy="group_kfold", folds=cv_folds, seed=seed)
     if protocol == "nested_group_cv" and any(len(f["train_groups"]) < 2 for f in outer):
         raise ModelingError("INSUFFICIENT_NESTED_GROUPS", "外层训练侧至少需两个组用于内层选优")
-    raw_means = np.stack([X[data["cube_index"] == i].mean(axis=0) for i in range(len(rows))])
-    report = sample_preflight_report({"cubes": data["cubes"]}, outer, raw_means)
+    report = skipped_training_report()
     report["class_support"] = class_support_report(y, groups, data["classes"], outer, protocol=protocol, seed=seed)
     report["group_kind"] = data["group_kind"]
     report["preprocess_full_fit"] = {"acknowledged": False, "affected_steps": [], "reason": "所有数据拟合仅限各层训练侧"}
-    emit('check', passed=report['passed'], group_violations=report['group_cross_fold']['violation_count'],
-         duplicate_count=report['duplicate_content']['duplicate_count'], warnings=report['class_support']['warnings'])
-    if not report["passed"]:
-        raise ModelingError("LEAK_PREFLIGHT_FAILED", "分组或近重复预检阻断训练", leak_report=report)
+    emit('check', status=report['status'], warnings=report['class_support']['warnings'])
     if control:
         control.prepare(data, outer, protocol, threshold, report['class_support'])
     identifier = str(uuid4())
