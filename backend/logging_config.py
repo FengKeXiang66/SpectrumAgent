@@ -24,13 +24,13 @@ class DailyJsonFile(logging.Handler):
         try:
             day = datetime.now().strftime("%Y%m%d")
             if self.stream is None or day != self.day:
+                path = storage.resolve_write(self.directory / f"engine-{day}.jsonl", kind="FILE_OPEN")
+                stream = path.open("a", encoding="utf-8")
                 if self.stream is not None:
                     self.stream.close()
-                self.stream = (storage.resolve_write(self.directory / f"engine-{day}.jsonl", kind="FILE_OPEN")).open(
-                    "a", encoding="utf-8"
-                )
+                self.stream = stream
                 self.day = day
-            storage.resolve_write(self.directory / f"engine-{day}.jsonl", kind="LOG_APPEND")
+            # The open stream stays bound to the file authorized above.
             self.stream.write(self.format(record) + "\n")
             self.stream.flush()
         except Exception:

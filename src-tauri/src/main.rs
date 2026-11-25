@@ -29,6 +29,7 @@ use tauri_plugin_opener::OpenerExt;
 struct Desktop {
     supervisor: SupervisorHandle,
     data_root: PathBuf,
+    permanent_root: PathBuf,
     log: ShellLog,
     closing: AtomicBool,
     exit_allowed: AtomicBool,
@@ -260,6 +261,29 @@ async fn open_exports_directory(
         .await
         .map_err(|_| "打开投影目录的工作线程失败。".to_owned())?
         .map_err(|_| "无法打开 JSON 所在文件夹。".to_owned())
+}
+
+#[tauri::command]
+async fn open_inference_report(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, Desktop>,
+    model_id: String,
+    run_id: String,
+) -> Result<(), String> {
+    let root = state.permanent_root.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        let canonical_root = root.canonicalize().map_err(|_| "实验归档目录不可用。".to_owned())?;
+        let report = spectrum_agent::agent::inference_report_path(&canonical_root,&model_id,&run_id)
+            .map_err(|_| "模型和推理任务必须使用规范 UUID。".to_owned())?;
+        let requested = spectrum_agent::agent::inference_report_path(&root,&model_id,&run_id)
+            .map_err(|_| "模型和推理任务必须使用规范 UUID。".to_owned())?;
+        let actual = requested.canonicalize().map_err(|_| "请先生成并核验对比报告。".to_owned())?;
+        if actual != report || !actual.is_file() {
+            return Err("报告路径越出归档或已变化。".to_owned());
+        }
+        app.opener().open_path(requested.to_string_lossy().into_owned(),None::<&str>)
+            .map_err(|_| "无法在系统浏览器打开对比报告。".to_owned())
+    }).await.map_err(|_| "打开对比报告的工作线程失败。".to_owned())?
 }
 
 #[cfg(test)]
@@ -560,10 +584,10 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init());
     #[cfg(debug_assertions)]
-    let builder = builder.invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, open_exports_directory, boot_probe, datasets_forward, annotations_forward, preprocess_forward, agent_forward, agent_stream, settings_forward, annotations_draft_forward, models_forward]);
+    let builder = builder.invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, open_exports_directory, open_inference_report, boot_probe, datasets_forward, annotations_forward, preprocess_forward, agent_forward, agent_stream, settings_forward, annotations_draft_forward, models_forward]);
     #[cfg(not(debug_assertions))]
     let builder = builder
-        .invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, open_exports_directory, boot_probe, datasets_forward, annotations_forward, preprocess_forward, agent_forward, agent_stream, settings_forward, annotations_draft_forward, models_forward]);
+        .invoke_handler(tauri::generate_handler![engine_status, retry_engine, run_smoke, open_data_directory, open_exports_directory, open_inference_report, boot_probe, datasets_forward, annotations_forward, preprocess_forward, agent_forward, agent_stream, settings_forward, annotations_draft_forward, models_forward]);
     let app = builder.setup(move |app| {
             setup_log.event("single_instance_lock_acquired", json!({}))?;
             // Reopen the same workspace on every launch, after the instance lock.
@@ -577,7 +601,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             let resource = app.path().resolve("resources/backend/app.exe", tauri::path::BaseDirectory::Resource)?;
             let selection = EngineSelection::resolve(None, || resource);
             let (handle, events) = EngineSupervisor::start_selected(selection, workspace.clone(), Arc::new(NativeWin32))?;
-            app.manage(Desktop { supervisor: handle.clone(), data_root: workspace,
+            app.manage(Desktop { supervisor: handle.clone(), data_root: workspace, permanent_root: root.clone(),
                 log: setup_log.clone(), closing: AtomicBool::new(false), exit_allowed: AtomicBool::new(false) });
             if early_window_enabled() {
                 let generation = handle.snapshot().map(|status| status.generation_id).unwrap_or(1);

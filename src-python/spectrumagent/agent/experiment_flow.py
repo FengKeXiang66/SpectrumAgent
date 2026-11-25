@@ -5,7 +5,8 @@ from time import perf_counter_ns
 from spectrumagent.data import DataError
 from .execution import RequestCancelled
 from .llm import _json, validate_tool_response
-from spectrumagent.experiments.conversation import CANCEL, CONFIRM, HISTORY
+from spectrumagent.experiments.conversation import CANCEL, CONFIRM, HISTORY, PARAMETER_EDIT, PATHS
+from spectrumagent.experiments.inputs import split_check_text
 
 
 EXPERIMENT_PROMPT = """你是高光谱训练测试实验助手。把自然语言需求转成可校验草稿，通过工具推进，不生成科学数值。
@@ -13,7 +14,9 @@ EXPERIMENT_PROMPT = """你是高光谱训练测试实验助手。把自然语言
 输入源S引用来自本机解析，路径、谱矩阵不进入模型。用input_inspect核对NPZ实际字段与维度，不能根据X3等名字猜测已执行的处理。
 训练与测试角色、类别编号对应的材质名称、已完成的处理阶段、空间邻域、评价单位、波长单位都要明确；不能猜物理含义。
 可提供NPZ文件或目录。原图用roi_images，逐项明确header_ref、roi_ref、sample_id，可选data_ref、centers_ref；不自动匹配同名文件、不猜ROI材质。
-先读draft_get获得真实revision。draft_update只传新给出或明确修正的字段；train/test/model对象会合并，preprocessing与classes列表会完整替换，所以应保留已确认项目。
+用户指定 NPZ 分组字段才填 groups_key；原图批次可通过 batch 记录。每类抽样上限 max_per_class 和 sampling_seed 只写训练侧，用户未要求时保留原值。
+若草稿是从已保存划分生成的基线，训练和测试成员由清单固定，无需用户重复指定。取谱参数两侧共用，通过任意一侧roi_images更新即可。sampling_stride=1表示取全部通过筛选的中心，其他正整数表示行列等间距步长。
+先读draft_get获得真实revision。draft_update只传新给出或明确修正的字段。调整既有预处理时用 preprocessing_edit，action 为 update / insert / remove，index 从 1 开始，step 指定 op 与本次变更参数。修改 SG 窗口只传 action=update、index 和 step={op:savgol,window:指定值}。只有用户明确要替换整组时才传 preprocessing 或 classes。
 preprocessing的顺序就是执行顺序；只说“归一化”须区分L2、SNV或标准化。SG窗口、多项式阶数、导数阶数、delta_nm不全时保留已知值并追问。
 已完成邻域均值的NPZ选neighborhood_mean，不重复计算；纯矩阵无法重算空间邻域。axis可选archive从某角色NPZ波长字段读取，或用户给出的nm网格。
 PLS-DA需明确n_components、scale与max_iter；tol缺省为1e-6。只在用户明确接受默认方案时应用你已说明的建议，不以测试表现选参数。
@@ -49,6 +52,7 @@ def result_answer(result):
         for item in metrics['per_class']:
             lines.append(f"{name} {item['name']}：样本 {item['support']}，precision {number(item['precision'])}，recall {number(item['recall'])}，F1 {number(item['f1'])}。")
     test = result['metrics']['test']
+    lines.append(split_check_text(result.get('split_checks'), show_conflicts=False))
     lines.append('评价单位：' + test['evaluation_unit'] + '；测试用途：' + test['purpose'] + '。')
     if test['purpose'] == 'development_regression':
         lines.append('本次测试用于既有数据的开发复现核验，不能当作新的独立泛化成绩。')
@@ -58,10 +62,66 @@ def result_answer(result):
     return '\n'.join(lines)
 
 
-def generate(machine, content, *, pairing=False, group_split=False):
+def explain_result(dialogue, session, content):
+    focus = dialogue.focus(session)
+    identifier = re.search(r'\b[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\b',content)
+    if identifier:
+        focus = ('experiment', identifier[0], None)
+    if not focus:
+        draft = dialogue.inference.read(session)
+        if draft and draft['run_id']:
+            focus = ('inference', draft['document']['model_id'], draft['run_id'])
+    if focus and focus[0] == 'inference':
+        _, model, run = focus
+        state = dialogue.inference.service.status(model, run, owner=session)
+        if state['status'] != 'succeeded':
+            return '当前推理尚无已完成的结果。请在任务卡查看状态。'
+        result = dialogue.inference.service.result(model, run)
+        files = result['files']
+        total, classified = sum(row['total'] for row in files), sum(row['classified'] for row in files)
+        lines = [f'当前关联的是无真值推理，判断错分需要真值。已分类 {classified}/{total}。']
+        lines.append('预测分布：' + '、'.join(
+            f"{name} {sum(row['counts'].get(label, 0) for row in files)}/{classified}"
+            for label,name in result['classes'].items()))
+        reasons = {'brightness':'亮度', 'side_edges':'侧边', 'quality_or_neighborhood':'质量或邻域', 'image_boundary':'图像边界'}
+        if any(row.get('exclusion_counts') for row in files):
+            lines.append('未分类原因：' + '、'.join(f"{name} {sum(row.get('exclusion_counts', {}).get(key, 0) for row in files)}"
+                                                   for key,name in reasons.items()) + f'（共 {total-classified}）')
+        return '\n'.join(lines)
+
+    result = dialogue.service.get(focus[1]) if focus else dialogue.result(session)
+    if not result or result['status'] != 'succeeded':
+        return '请先选择一项已完成的训练测试实验，或查询已完成的推理结果。'
+    score = result['metrics']['test']
+    labels, matrix = score['confusion_labels'], score['confusion']
+    names = {item['label']:item['name'] for item in score['per_class']}
+    unit = {'center_pixel':'中心像元', 'spectrum':'光谱样本'}.get(score['evaluation_unit'], score['evaluation_unit'])
+    lines = [f"已归档测试结果 {result['experiment_id'][:8]}。按{unit}计，共 {score['n']}，预测正确 {score['correct']}。"]
+    lines.append(split_check_text(result.get('split_checks'), show_conflicts=False))
+    requested = [i for i,label in enumerate(labels) if re.search(
+        (r'(?<![A-Za-z0-9])' + re.escape(names[label]) + r'(?![A-Za-z0-9])')
+        if names[label].isascii() else re.escape(names[label]), content, re.I)]
+    for index in requested or range(len(labels)):
+        actual, correct = matrix[index], matrix[index][index]
+        predicted = [row[index] for row in matrix]
+        name = names[labels[index]]
+        wrong = '、'.join(f'{names[label]} {actual[i]}' for i,label in enumerate(labels) if i != index and actual[i])
+        false_positives = '、'.join(f'{names[label]} {predicted[i]}' for i,label in enumerate(labels) if i != index and predicted[i])
+        lines.append(f'{name} 混淆矩阵摘要。真值 {sum(actual)} 条，判对 {correct} 条' +
+                     (f'，错分到 {wrong}' if wrong else '') + f'。预测为 {name} 共 {sum(predicted)} 条' +
+                     (f'，其中其他真值为 {false_positives}' if false_positives else '') + '。')
+    lines.append('这些计数定位了混淆类别。确认原因还需查看相关样本、标注与采集条件。')
+    return '\n'.join(lines)
+
+
+def generate(machine, content, *, pairing=False, group_split=False, study=False, explain=False, retrain=False, explain_with_edit=False,
+             confirmation=None, missing_confirmation=False, pairing_intake_action=None, paired_training=None, wavelength_action=False):
     from .state import State
     dialogue, store, session = machine.tools.experiment_dialogue, machine.store, machine.session_id
     row = None
+    facts = ''
+    control = getattr(machine, 'control', None)
+    check = control.check if control else None
 
     def finish(answer, *, clarify=False, outcome='needs_input'):
         store.save_answer(row['id'], answer)
@@ -70,10 +130,23 @@ def generate(machine, content, *, pairing=False, group_split=False):
                 'task_result': outcome, 'step_count': len(store.steps(session, row['id'])),
                 'request_status': 'finished', 'reply_status': 'needs_input' if clarify else 'replied'}
 
-    def present():
-        view = dialogue.presented(session, row['turn_id'])
-        answer = '当前实验方案（修订 ' + str(view['revision']) + '）：\n' + view['plan'] + '\n\n' + view['question']
+    def draft_reply(view, title):
+        card = dialogue.draft_presentation(session, view, check)
+        if facts:
+            card['draft_notes'] = facts
+        step = store.add_step(row, 'experiments.draft_presentation', {}, 'ok', card, 0)
+        yield machine._step_event(step)
+        answer = title + view['plan'] + '\n\n' + view['question']
+        if 'wavelength_label' in card:
+            answer += '\n\n' + card['draft_todo'] + '\n' + card['wavelength_label']
+            answer += '\n可回复“采用波长建议”更新方案。'
+        if facts:
+            answer = facts + '\n\n' + answer
         yield from finish(answer, clarify=True)
+
+    def present():
+        view = dialogue.presented(session, row['turn_id'], check=check)
+        yield from draft_reply(view, f"当前实验方案（修订 {view['revision']}）：\n")
 
     def open_history(identifier):
         summary = dialogue.select(session, identifier)
@@ -92,20 +165,148 @@ def generate(machine, content, *, pairing=False, group_split=False):
                           for item in page['items']] + ['可在“历史实验”中选择，或说明要查看哪个实验；不会重新训练。'])
 
     try:
+        from spectrumagent.experiments.pairing import TRAIN_COMMAND
+        from spectrumagent.experiments.wavelength_proposal import ADOPT as ADOPT_GRID, CROP, AUTO_STUDY
+        if wavelength_action:
+            row = store.new_round(session, content, [], 'running')
+            try:
+                if match := ADOPT_GRID.fullmatch(content.strip()):
+                    dialogue.apply_wavelength(session, int(match[1]) if match[1] else None)
+                elif match := CROP.fullmatch(content.strip()):
+                    dialogue.apply_wavelength(session, bounds=tuple(map(float, match.groups())), check=check)
+                yield from present()
+            except (OSError, ValueError, DataError) as error:
+                detail = error.payload.detail if isinstance(error, DataError) else str(error)
+                yield from finish(dialogue.redact(session,detail), clarify=True)
+            return
+        if paired_training:
+            row = store.new_round(session,content,[],'running')
+            if paired_training == 'offer':
+                step = store.add_step(row,'experiments.pairing_review',{},'ok',{'paired_training_available':True},0)
+                yield machine._step_event(step)
+                yield from finish(f'可以沿用本次配对的训练和测试来源。请发送“{TRAIN_COMMAND}”或点击下方按钮建立草稿，再设置波长、模型或寻优。',clarify=True)
+                return
+            try:
+                yield 'progress', {'phase':'tool','tool':'experiments.paired_training'}
+                dialogue.prepare_paired_baseline(session, check)
+                yield from present()
+            except (OSError, ValueError, KeyError, TypeError, DataError) as error:
+                detail = error.payload.detail if isinstance(error,DataError) else str(error)
+                yield from finish('配对转训练方案未完成。'+dialogue.redact(session,detail),clarify=True)
+            return
+        if pairing_intake_action:
+            from spectrumagent.experiments.pairing_intake import respond
+            row = store.new_round(session, content, [], 'running')
+            answer, ready = respond(dialogue,store,session,content,pairing_intake_action)
+            scanned = answer.startswith('ENVI 原图与标注配对预览')
+            if ready or scanned:
+                operation = 'pairing_preview' if scanned else 'pairing_review'
+                summary = {'pairing_ready':ready, 'paired_training_available':scanned and TRAIN_COMMAND in answer}
+                if scanned:
+                    summary['pairing_preview_id'] = dialogue.pairing_preview_id(session)
+                if scanned and '可发送“核验中心取谱”' in answer:
+                    summary['center_action'] = 'verify_centers'
+                step = store.add_step(row,'experiments.'+operation,{},'ok',summary,0)
+                yield machine._step_event(step)
+            yield from finish(answer,clarify=not scanned and pairing_intake_action!='cancel',
+                              outcome='succeeded' if scanned or pairing_intake_action=='cancel' else 'needs_input')
+            return
+        if study:
+            from spectrumagent.experiments.study import ADOPT, QUERY, UPPER_BOUND_HINT, CONFIRM as STUDY_CONFIRM
+            row = store.new_round(session,content,[],'running')
+            text = content.strip()
+            manager = dialogue.study
+            prior_study_confirmation = None
+            try:
+                adoption = ADOPT.fullmatch(text)
+                if adoption or QUERY.fullmatch(text) or text.strip('。！! ') == '取消寻优':
+                    latest = manager.latest(session)
+                    identifier = (adoption[3] if adoption else None) or (latest or {}).get('study_id')
+                    if not identifier:
+                        yield from finish('当前会话尚无寻优任务。',clarify=True)
+                        return
+                    if adoption:
+                        result = manager.result(session,identifier)
+                        choice = int(adoption[2]) if adoption[2] else result['best' if adoption[1]=='最高分方案' else 'recommended']
+                        manager.adopt(session,identifier,choice)
+                        facts = f'已加载寻优 {identifier[:8]} 的候选 {choice}。请审阅正式训练与留出集评价方案。'
+                        if result.get('sampling'):
+                            classes = {str(item['label']):item['name'] for item in dialogue._read(session)['document']['classes']}
+                            facts += '\n寻优训练缓存各类抽样数／合格数为 ' + '、'.join(
+                                f'{classes[label]} {count["selected"]}/{count["eligible"]}'
+                                for label,count in result['sampling']['class_counts'].items()) + '。'
+                        yield from present()
+                        return
+                    if text.strip('。！! ') == '取消寻优':
+                        manager.cancel(session,identifier)
+                        yield from finish('已请求取消寻优。',outcome='working')
+                        return
+                    state = manager.status(session,identifier)
+                elif STUDY_CONFIRM.fullmatch(text) or CONFIRM.fullmatch(text):
+                    state = manager.submit(session,row['turn_id'],text)
+                else:
+                    if PATHS.search(text):
+                        yield from finish('请先用训练数据路径配置训练草稿，再对该草稿发起寻优。',clarify=True)
+                        return
+                    if shortcut := AUTO_STUDY.fullmatch(text):
+                        record = dialogue._read(session)
+                        if not record or record['revision'] != int(shortcut[1]) or record['run_status'] != 'idle':
+                            yield from finish('草稿已更新，请查看当前实验方案再发起寻优。', clarify=True)
+                            return
+                        text = f'寻优，折数 {shortcut[2]}'
+                    prior_study_confirmation = dialogue.confirmation(session)
+                    reply, card = manager.prepare(session,row['turn_id'],text,structured=True)
+                    step = store.add_step(row,'experiments.study_preview',{},'ok',card,0)
+                    yield machine._step_event(step)
+                    yield from finish(reply,clarify=True)
+                    return
+                step = store.add_step(row,'experiments.study',{},'ok',{'study_id':state['study_id']},0)
+                yield machine._step_event(step)
+                reply = '寻优任务状态见任务卡。'
+                if state['status']=='succeeded':
+                    result = manager.result(session,state['study_id'])
+                    reply = f'寻优已完成。最高分候选 {result["best"]}，1-SE 推荐候选 {result["recommended"]}。'
+                    if result.get('component_upper_reached'):
+                        reply += '\n' + UPPER_BOUND_HINT
+                yield from finish(reply,outcome='succeeded' if state['status']=='succeeded' else 'working')
+            except (ValueError,OSError,KeyError,TypeError,DataError) as error:
+                message = error.payload.detail if isinstance(error,DataError) else str(error)
+                if (prior_study_confirmation and prior_study_confirmation[0]=='study'
+                        and dialogue.confirmation(session)==prior_study_confirmation):
+                    yield machine._step_event(store.add_step(row,'experiments.study_preview_retained',{},'ok',
+                        {'retained_study_preview_id':prior_study_confirmation[2]},0))
+                    message += '\n上一张寻优方案仍待确认，可以继续使用原卡片上的确认按钮。'
+                yield from finish(dialogue.redact(session,'寻优 · '+message),clarify=True)
+            return
+        if explain or missing_confirmation:
+            row = store.new_round(session, content, [], 'running')
+            if missing_confirmation:
+                yield from finish('当前没有有效的待确认方案。请重新展示要执行的训练或推理方案。', clarify=True)
+            else:
+                yield from finish(explain_result(dialogue, session, content), outcome='succeeded')
+            return
         if group_split:
-            from spectrumagent.experiments.conversation import PATHS
-            from spectrumagent.experiments.group_split import answer
+            from spectrumagent.experiments.group_split import BASELINE, answer
             row = store.new_round(session, content, [], 'running')
             yield 'progress', {'phase': 'tool', 'tool': 'experiments.group_split'}
             start_split = perf_counter_ns()
+            baseline = BASELINE.fullmatch(content.strip(' 。！!'))
             try:
+                if baseline:
+                    dialogue.prepare_split_baseline(session, baseline[1])
+                    view = dialogue.presented(session, row['turn_id'], check=check)
+                    step = store.add_step(row, 'experiments.group_split', {}, 'ok',
+                                          {'split_baseline_ready':view['can_run']}, (perf_counter_ns()-start_split)//1_000_000)
+                    yield machine._step_event(step)
+                    yield from draft_reply(view, '当前基线训练方案：\n')
+                    return
                 reply, status = answer(dialogue,session,content,PATHS)
-            except (ValueError,OSError,DataError) as error:
+            except (ValueError,OSError,KeyError,TypeError,DataError) as error:
                 reply = error.payload.detail if isinstance(error,DataError) else str(error)
                 yield from finish('数据划分 · '+reply, clarify=True)
                 return
-            if status == 'ready':
-                step = store.add_step(row,'experiments.group_split',{},'ok',{'split_ready':True},
+            if status in {'ready', 'saved'}:
+                step = store.add_step(row,'experiments.group_split',{},'ok',{'split_' + status:True},
                                       (perf_counter_ns()-start_split)//1_000_000)
                 yield machine._step_event(step)
             yield from finish('数据划分 · '+reply, clarify=status == 'needs_input',
@@ -121,22 +322,39 @@ def generate(machine, content, *, pairing=False, group_split=False):
             operation = 'center_replay' if REPLAY.match(content) else 'pairing_preview'
             yield 'progress', {'phase': 'tool', 'tool': 'experiments.' + operation}
             started = perf_counter_ns()
-            control = getattr(machine, 'control', None)
-            answer = dialogue.pairing_answer(session, content, control.check if control else lambda: None)
+            answer = dialogue.pairing_answer(session, content, check or (lambda: None))
             action = None
             if answer.startswith('ENVI 原图与标注配对预览') and '可发送“核验中心取谱”' in answer:
                 action = 'verify_centers'
             elif answer.startswith('中心取谱核验通过') and PREPARE_REPLAY in answer:
                 action = 'prepare_training'
-            if action:
-                step = store.add_step(row, 'experiments.' + operation, {}, 'ok', {'center_action': action},
+            scanned = answer.startswith('ENVI 原图与标注配对预览')
+            if scanned or action or TRAIN_COMMAND in answer:
+                summary = {'paired_training_available':TRAIN_COMMAND in answer}
+                if scanned:
+                    summary['pairing_preview_id'] = dialogue.pairing_preview_id(session)
+                if action:
+                    summary['center_action'] = action
+                step = store.add_step(row, 'experiments.' + operation, {}, 'ok', summary,
                                       (perf_counter_ns() - started) // 1_000_000)
                 yield machine._step_event(step)
             yield from finish(answer, outcome='succeeded' if answer.startswith('中心取谱核验通过') else 'needs_input')
             return
+        if retrain:
+            row = store.new_round(session, content, [], 'running')
+            dialogue.resume_training(session)
+            dialogue.invalidate_review(session)
+            if re.fullmatch(r'(?:请|帮我)?(?:换个?|改一下|改一改|调整一下)(?:光谱)?预处理(?:[，, ]*(?:重训|重新训练|再训)(?:一次)?)?[。！! ]*', content.strip()):
+                view = dialogue.view(session)
+                view.update(can_run=False, question='请指定要改的预处理步骤或参数。你可以指定修改、插入或删除某一步。')
+                yield from draft_reply(view, '当前实验方案：\n')
+                return
+        if explain_with_edit:
+            facts = explain_result(dialogue, session, content)
         safe_content = dialogue.capture(session, content)
         # The user-visible journal retains the original input; model history is separately redacted.
-        row = store.new_round(session, content, [], 'running')
+        if row is None:
+            row = store.new_round(session, content, [], 'running')
         if re.fullmatch(r'(?:请)?(?:查看|查询|打开|展示)?(?:上次|最近一次)(?:的)?实验(?:结果|报告)?[。！!\s]*', content.strip()):
             page = dialogue.service.archive.list(limit=1)
             if page['items']:
@@ -151,7 +369,7 @@ def generate(machine, content, *, pairing=False, group_split=False):
             task = dialogue.tasks.active(session)
             if task:
                 dialogue.tasks.cancel(session, task)
-                yield from finish('已请求取消实验，将在下一个安全阶段边界停止。停止对话不会自动取消后台实验。', outcome='working')
+                yield from finish('已请求取消实验。准备数据时在当前文件、摘要分块或取谱行块的检查点停止，其他阶段在下一个安全检查点停止。', outcome='working')
                 return
             dialogue.cancel(session)
             yield from finish('已退出本次实验对话，草稿保留；可说“继续数值实验”恢复。', outcome='cancelled')
@@ -162,7 +380,7 @@ def generate(machine, content, *, pairing=False, group_split=False):
                 machine.control.begin('tool')
             started = perf_counter_ns()
             try:
-                result = dialogue.tasks.submit(session, content, row['turn_id'])
+                result = dialogue.tasks.submit(session, content, row['turn_id'], confirmation=confirmation)
             except Exception as error:
                 summary = {'error': error.code if isinstance(error, DataError) else 'EXPERIMENT_FAILED'}
                 step = store.add_step(row, 'experiments.run', {}, 'error', summary, (perf_counter_ns() - started) // 1_000_000)
@@ -188,17 +406,30 @@ def generate(machine, content, *, pairing=False, group_split=False):
                     yield from finish(history_choices(), clarify=bool(page['total']))
                 return
             answer = result_answer(result)
+            if result and result.get('status') == 'succeeded':
+                dialogue.select(session, result['experiment_id'])
             if result and result.get('status') == 'failed':
                 answer += '\n已记录失败：' + result.get('error', {}).get('error', 'EXPERIMENT_FAILED')
             yield from finish(answer, outcome='succeeded' if result and result.get('status') == 'succeeded' else 'needs_input')
             return
-        tools = [tool for tool in machine.tools.snapshot() if tool['function']['name'].startswith('experiments.')]
+        tools = [tool for tool in machine.tools.snapshot() if tool['function']['name'].startswith('experiments.')
+                 and not tool['function']['name'].startswith('experiments.inference_')]
         version = store.skill(session)
         history = machine._history_messages(version, exclude_turn_id=row['turn_id'])
-        for _ in range(6):
+        correction = None
+        correction_used = False
+        for _ in range(7):
             view = dialogue.view(session)
             messages = [{'role': 'system', 'content': EXPERIMENT_PROMPT},
                         {'role': 'system', 'content': _json({'experiment_draft': view, 'input_sources': dialogue.source_summary(session)})}]
+            if retrain:
+                messages.append({'role':'system', 'content':
+                    '用户要在现有训练／测试数据上修改方案再训练。保留当前数据、类型、划分、波长轴和未要求变更的参数，不使用 reset。'
+                    '用户未指明要改哪一步或改成什么值时，先澄清，由用户选择，不得擅自更改步骤。'})
+            if facts:
+                messages.append({'role':'system', 'content':'本地核验的结果事实如下。只按事实解释，同时继续处理用户的改参或训练要求。\n'+facts})
+            if correction:
+                messages.append({'role':'system', 'content':correction})
             messages.extend(history)
             messages.append({'role': 'user', 'content': safe_content})
             for round_ in store.turn_rounds(session, row['turn_id']):
@@ -210,8 +441,15 @@ def generate(machine, content, *, pairing=False, group_split=False):
             reply = machine._chat(messages, tools)
             validate_tool_response(reply)
             if not reply.tool_calls:
-                if HISTORY.search(content):
+                if correction:
+                    raise DataError('TOOL_ARGS_INVALID', correction)
+                if HISTORY.search(content) and not (retrain or facts):
                     yield from finish(dialogue.redact(session, reply.content) if reply.content else history_choices())
+                    return
+                if retrain and reply.content:
+                    dialogue.invalidate_review(session)
+                    view.update(can_run=False, question=dialogue.redact(session, reply.content))
+                    yield from draft_reply(view, '当前实验方案：\n')
                     return
                 if view['can_run'] or not reply.content:
                     yield from present()
@@ -224,9 +462,28 @@ def generate(machine, content, *, pairing=False, group_split=False):
                     or names.count('experiments.draft_update') > 1
                     or 'experiments.draft_update' in names and names[-1] != 'experiments.draft_update'):
                 raise DataError('EXPERIMENT_TOOL_PROTOCOL', '请先查询输入，再一次更新实验草稿')
-            calls = [{'id': call.id, 'name': call.name,
-                      'arguments': machine.tools.validate(call.name, call.arguments_json).model_dump(mode='json', exclude_unset=True)}
-                     for call in reply.tool_calls]
+            try:
+                calls = [{'id': call.id, 'name': call.name,
+                          'arguments': machine.tools.validate(call.name, call.arguments_json).model_dump(mode='json', exclude_unset=True)}
+                         for call in reply.tool_calls]
+                explicit_combination = bool(re.search(r'(?:整套|全部|整个|完整).{0,10}预处理|预处理.{0,10}(?:整套|全部|完整)',safe_content)
+                                            or len(re.findall(r'(?i)\b(?:sg\d*|savgol|l2|snv|pca|center|standard_scale)\b|中心化|标准化',safe_content)) >= 2
+                                            and re.search(r'组合|依次|然后|再(?:做|接|用)|并(?:做|用|加)|后接|加上|\+|＋|→',safe_content))
+                if (PARAMETER_EDIT.search(safe_content) and not explicit_combination
+                        and dialogue._read(session)['document'].get('preprocessing')
+                        and any(call['name'] == 'experiments.draft_update' and 'preprocessing' in call['arguments'] for call in calls)):
+                    raise DataError('TOOL_ARGS_INVALID', '局部预处理修改请使用 preprocessing_edit，保留其他步骤。')
+            except DataError as error:
+                if error.code != 'TOOL_ARGS_INVALID':
+                    raise
+                fields = error.payload.context.get('fields', [])
+                detail = '；'.join(f"{field['field']}：{field['message']}（期望 {field['expected']}）" for field in fields)
+                if correction_used:
+                    raise DataError('TOOL_ARGS_INVALID', detail or error.payload.detail) from error
+                correction_used = True
+                correction = '上一组工具参数未通过校验，未执行。仅重试一次，请按字段修正：' + (detail or error.payload.detail)
+                continue
+            correction = None
             store.round_status(row['id'], 'done')
             row = store.new_round(session, content, calls, 'running', turn_id=row['turn_id'])
             for call in calls:
@@ -252,6 +509,8 @@ def generate(machine, content, *, pairing=False, group_split=False):
             if names[-1] == 'experiments.draft_update':
                 yield from present()
                 return
+        if correction:
+            raise DataError('TOOL_ARGS_INVALID', correction)
         yield from present()
     except (GeneratorExit, RequestCancelled):
         if row is not None:

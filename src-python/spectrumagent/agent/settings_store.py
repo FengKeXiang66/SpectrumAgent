@@ -1,7 +1,7 @@
 """Cross-restart storage for non-sensitive LLM configuration.
 
 Model settings configured in the settings panel are restored on the next
-launch. Only the six LLMSettings fields are written, as
+launch. Only the LLMSettings fields are written, as
 one JSON file beside the DPAPI key in the permanent root. The API key itself,
 dataset paths and every processing artifact are never part of this file.
 
@@ -17,7 +17,7 @@ from pathlib import Path
 
 DIRECTORY = "config"
 FILENAME = "llm_settings.json"
-FIELDS = frozenset({"base_url", "model", "temperature", "max_tokens",
+FIELDS = frozenset({"base_url", "model", "router_model", "temperature", "max_tokens",
                     "timeout_ms", "egress_enabled"})
 PERMANENT_ROOT_ENV = "SPECTRUMAGENT_PERMANENT_ROOT"
 
@@ -68,8 +68,9 @@ def load(root: Path) -> dict | None:
         values = json.loads(config_path(root).read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return None
-    if not isinstance(values, dict) or set(values) != set(FIELDS):
+    if not isinstance(values, dict) or set(values) not in (FIELDS, FIELDS - {"router_model"}):
         return None
+    values.setdefault("router_model", "")
     if any(not isinstance(values[key], str) for key in FIELDS - {"egress_enabled"}):
         return None
     if not isinstance(values["egress_enabled"], bool):

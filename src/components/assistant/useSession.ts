@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
-import { agent, type BatchCard, type BatchScope, type BatchResult, type TaskCard, type MessageBody, type RuntimeInfo, type WorkspaceContext, type SessionDetail, type HistoryEvent, type CreateSessionInput } from './api.ts';
+import { agent, type BatchCard, type BatchScope, type BatchResult, type TaskCard, type MessageBody, type RuntimeInfo, type WorkspaceContext, type SessionDetail, type SessionSummary, type HistoryEvent, type CreateSessionInput } from './api.ts';
 import { initialChat, reduceChat, requestError, validateWorkspaceEvent, type WorkspaceEventData, type ChatEntry, type AgentEvent } from './sse.ts';
 import { changedCubes, datasetChoices, proposedCandidates, parseBatchSummary } from './presentation.ts';
 import type { DatasetReference } from '../datasets/types.ts';
@@ -24,9 +24,22 @@ function rememberSession(id: string | null) {
   catch { /* Backend session discovery remains available. */ }
 }
 
-// 2026-11-13 simplification: the assistant owns exactly one global session.
-// Work sessions, session lists and member paging were removed; the session is
-// created lazily on the first message and resumed across application launches.
+const SESSION_PAGE_SIZE = 20;
+
+function summarize(detail: SessionDetail): SessionSummary {
+  const {id,title,created_at,updated_at,pending,request,history_watermark} = detail;
+  return {id,title,created_at,updated_at,pending:Boolean(pending),request,history_watermark};
+}
+
+function newSessionSummary(created: Pick<SessionSummary,'id'|'title'|'created_at'>): SessionSummary {
+  const {id,title,created_at}=created;
+  return {id,title,created_at,updated_at:created_at,pending:false,request:null,history_watermark:0};
+}
+
+function sessionOrder(a: SessionSummary, b: SessionSummary) {
+  return b.updated_at.localeCompare(a.updated_at) || b.id.localeCompare(a.id);
+}
+
 export default function useSession({ enabled, generation, bootId, workspace = {}, records = [], displayName,
   onWorkspaceChange, onSessionReset, onWorkspaceDisplayChange, onWorkspaceNavigate, onBatchOpen, onBatchReset, onPreviewCandidate, onDataChanged }: {
   enabled: boolean; generation: number; bootId?: string | null; workspace?: WorkspaceContext; records?: DatasetReference[]; displayName?: string;
@@ -55,6 +68,14 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
   const epoch = useRef(0);
   const [active, setActive] = useState<SessionDetail | null>(null);
   const activeRef = useRef<SessionDetail | null>(null);
+  const [sessions, setSessions] = useState<SessionSummary[]>([]);
+  const [sessionsCursor, setSessionsCursor] = useState<string | null>(null);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [sessionsError, setSessionsError] = useState<string | null>(null);
+  const [archivingSessionId, setArchivingSessionId] = useState<string | null>(null);
+  const sessionRows = useRef<SessionSummary[]>([]);
+  const listOperation = useRef<{overrides: Map<string, SessionSummary | null>} | null>(null);
+  const sessionOperation = useRef<symbol | null>(null);
   const [historyBefore, setHistoryBefore] = useState<number | null>(null);
   const historyRows = useRef<HistoryEvent[]>([]);
   const localEntries=useRef<{after:number;entries:ChatEntry[]}[]>([]);
@@ -69,7 +90,56 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
   const refreshing = useRef(false);
   const lastUserMessage = useRef('');
   const currentTicket = (ticket: number) => ticket === epoch.current && callbacks.current.enabled;
+  function setSessionRows(rows: SessionSummary[]) {
+    sessionRows.current = rows;
+    setSessions(rows);
+  }
+  function updateSessionRow(id: string, row: SessionSummary | null) {
+    listOperation.current?.overrides.set(id,row);
+    const rows = sessionRows.current.filter(item=>item.id!==id);
+    if (row) rows.push(row);
+    setSessionRows(rows.sort(sessionOrder));
+  }
+  function setSessionDetail(detail: SessionDetail) {
+    activeRef.current=detail;
+    setActive(detail);
+    updateSessionRow(detail.id,summarize(detail));
+  }
+  async function fetchSessions(cursor?: string) {
+    if (!callbacks.current.enabled || listOperation.current) return;
+    const operation = {overrides:new Map<string, SessionSummary | null>()};
+    const startingGeneration = callbacks.current.generation;
+    const current = () => listOperation.current===operation && callbacks.current.enabled && callbacks.current.generation===startingGeneration;
+    listOperation.current=operation;
+    setSessionsLoading(true);
+    setSessionsError(null);
+    try {
+      const page = await agent.listSessions({limit:SESSION_PAGE_SIZE,cursor});
+      if (!current()) return;
+      const rows = new Map((cursor ? sessionRows.current : []).map(item=>[item.id,item]));
+      for (const item of page.sessions) if (!rows.has(item.id)) rows.set(item.id,item);
+      for (const [id,item] of operation.overrides) {
+        if (item) rows.set(id,item);
+        else rows.delete(id);
+      }
+      const next=[...rows.values()].sort(sessionOrder);
+      setSessionRows(next);
+      setSessionsCursor(page.next_cursor);
+      return next;
+    } catch (error) {
+      if (current()) setSessionsError(requestError(error));
+    } finally {
+      if (listOperation.current===operation) {
+        listOperation.current=null;
+        setSessionsLoading(false);
+      }
+    }
+  }
+  const refreshSessions=()=>fetchSessions();
+  const loadMoreSessions=()=>sessionsCursor ? fetchSessions(sessionsCursor) : Promise.resolve(undefined);
+
   const ensureSession=async()=>{
+    if (sessionOperation.current) throw new Error('请等待会话切换或移除完成');
     if(restoringSession.current) await restoringSession.current;
     if(sessionId.current)return sessionId.current;
     if(creatingSession.current)return creatingSession.current;
@@ -78,6 +148,7 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
       if(!currentTicket(ticket))throw new Error('会话创建期间引擎已变化');
       sessionId.current=created.id;
       rememberSession(created.id);
+      updateSessionRow(created.id,newSessionSummary(created));
       return created.id;
     });
     creatingSession.current=creation;
@@ -117,14 +188,19 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
     setTaskCards(current=>[...new Map([...current.filter(card=>card.sessionId===detail.id&&card.generation===generation),...restored]
       .map(card=>[card.taskId,{...current.find(old=>old.taskId===card.taskId),...card}])).values()]);
   };
-  const switchSession = async (id: string): Promise<boolean> => {
-    if (inFlight.current || activeRef.current?.request?.status === 'running' && activeRef.current.id!==id || !enabled) return false;
+  function clearSession() {
     const ticket = ++epoch.current;
-    latestRequest.current = null;
-    setLoading(true); setRecoveryFailed(false); setSyncError(null); sessionId.current = null; activeRef.current = null; setActive(null);
-    dispatch({type: 'reset'}); setContent(''); setBatchCards([]);setTaskCards([]);
+    latestRequest.current=null; lastUserMessage.current='';
+    setRecoveryFailed(false); setSyncError(null); setStopError(null); setStopping(false);
+    stopRequested.current=false; stopInFlight.current=false; refreshing.current=false;
+    sessionId.current=null; activeRef.current=null; setActive(null);
+    dispatch({type:'reset'}); setContent(''); setBatchCards([]); setTaskCards([]);
     callbacks.current.onBatchReset?.(); onWorkspaceChange?.({}); onSessionReset?.();
-    historyRows.current = []; localEntries.current=[]; setHistoryBefore(null);
+    historyRows.current=[]; localEntries.current=[]; setHistoryBefore(null);
+    return ticket;
+  }
+  const openSession = async (id: string, ticket = clearSession()): Promise<boolean> => {
+    setLoading(true);
     try {
       const detail = await agent.getSession(id);
       if (!currentTicket(ticket)) return false;
@@ -133,7 +209,7 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
       const page = await agent.getHistory(id);
       if (!currentTicket(ticket)) return false;
       if (page.session_id !== id) throw new Error('会话返回范围不一致');
-      sessionId.current = id; activeRef.current = detail; setActive(detail);
+      sessionId.current=id; setSessionDetail(detail);
       latestRequest.current = detail.request?.status==='running' ? detail.request.request_id : null;
       historyRows.current = page.events; setHistoryBefore(page.next_before); hydrate(detail, page.events);
       if (detail.canvas_focus?.cube_id) onWorkspaceChange?.(detail.canvas_focus);
@@ -143,10 +219,11 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
       if (currentTicket(ticket)) {
         if (error && typeof error === 'object' && 'error' in error && ['SESSION_NOT_FOUND','SESSION_ARCHIVED'].includes(String(error.error))) {
           rememberSession(null);
+          updateSessionRow(id,null);
           try {
-            const latest = await agent.latestSession();
+            const latest = sessionRows.current[0]?.id ?? await agent.latestSession();
             if (!currentTicket(ticket)) return false;
-            if (latest && latest !== id) return switchSession(latest);
+            if (latest && latest !== id) return await openSession(latest,ticket);
           } catch(discoveryError) {
             if(currentTicket(ticket)){setRecoveryFailed(true);dispatch({type:'failed',detail:requestError(discoveryError)});}
           }
@@ -158,22 +235,81 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
     }
     finally { if (currentTicket(ticket)) setLoading(false); }
   };
+  function beginSessionChange() {
+    if (!enabled || loading || state.busy || inFlight.current || sessionOperation.current ||
+        restoringSession.current || activeRef.current?.request?.status==='running') return null;
+    const operation=Symbol();
+    sessionOperation.current=operation;
+    return operation;
+  }
+  function endSessionChange(operation: symbol) {
+    if (sessionOperation.current===operation) sessionOperation.current=null;
+  }
+  const clearSessionsError = () => setSessionsError(null);
+  const switchSession = async (id: string): Promise<boolean> => {
+    clearSessionsError();
+    if (activeRef.current?.id===id) return true;
+    const operation=beginSessionChange();
+    if (!operation) return false;
+    try { return await openSession(id); }
+    finally { endSessionChange(operation); }
+  };
   const createSession = async () => {
-    if (inFlight.current || activeRef.current?.request?.status === 'running' || !enabled || loading) return;
-    const ticket = ++epoch.current;
-    setBatchCards([]); callbacks.current.onBatchReset?.();
+    const current=activeRef.current;
+    if (current && !current.title && current.history_watermark===0 && !state.entries.length && !state.pending) return;
+    const operation=beginSessionChange();
+    if (!operation) return;
+    const ticket=epoch.current;
     setLoading(true);
     try {
-      const body: CreateSessionInput = {scope: {kind: 'global'}, request_id: crypto.randomUUID()};
-      const created = await agent.createSession(body);
+      const body: CreateSessionInput = {scope:{kind:'global'},request_id:crypto.randomUUID()};
+      const created=await agent.createSession(body);
       if (!currentTicket(ticket)) return;
-      setLoading(false); await switchSession(created.id);
-    } catch (error) { if (currentTicket(ticket)) dispatch({type: 'failed', detail: requestError(error)}); }
-    finally { if (currentTicket(ticket)) setLoading(false); }
+      updateSessionRow(created.id,newSessionSummary(created));
+      await openSession(created.id);
+    } catch (error) {
+      if (currentTicket(ticket)) setSessionsError(requestError(error));
+    } finally {
+      if (currentTicket(ticket)) setLoading(false);
+      endSessionChange(operation);
+    }
   };
   const startNew = () => { void createSession(); };
+  const archiveSession = async (id: string): Promise<boolean> => {
+    const operation=beginSessionChange();
+    if (!operation) return false;
+    let ticket=epoch.current;
+    const wasCurrent=sessionId.current===id;
+    let archived=false;
+    setArchivingSessionId(id);
+    setSessionsError(null);
+    if (wasCurrent) setLoading(true);
+    try {
+      const receipt=await agent.archiveSession(id);
+      if (!currentTicket(ticket)) return false;
+      if (!receipt.archived || receipt.session_id!==id) throw new Error('会话归档回执不一致');
+      archived=true;
+      updateSessionRow(id,null);
+      if (wasCurrent) {
+        rememberSession(null);
+        ticket=clearSession();
+        const next=sessionRows.current[0]?.id ?? await agent.latestSession();
+        if (currentTicket(ticket) && next && next!==id) await openSession(next,ticket);
+      }
+      return true;
+    } catch (error) {
+      if (currentTicket(ticket)) setSessionsError(requestError(error));
+      return archived;
+    } finally {
+      if (currentTicket(ticket)) {
+        setArchivingSessionId(null);
+        if (wasCurrent) setLoading(false);
+      }
+      endSessionChange(operation);
+    }
+  };
   const selectCube = async (cube: string | null) => {
-    if (!sessionId.current || inFlight.current || state.pending || loading || !enabled) return false;
+    if (!sessionId.current || inFlight.current || sessionOperation.current || state.pending || loading || !enabled) return false;
     const id=sessionId.current, ticket=++epoch.current;
     // Selection invalidates old card actions; App retains an already-open
     // batch's ready subset while moving to another member of that subset.
@@ -182,7 +318,7 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
     try {
       const detail=await agent.selectCube(id,cube);
       if (!currentTicket(ticket) || sessionId.current!==id || detail.id!==id) return false;
-      activeRef.current=detail;setActive(detail);onWorkspaceChange?.(cube ? {cube_id:cube} : {});
+      setSessionDetail(detail);onWorkspaceChange?.(cube ? {cube_id:cube} : {});
       return true;
     } catch (error) {if (currentTicket(ticket)) dispatch({type:'failed',detail:requestError(error)});return false;}
     finally {if (currentTicket(ticket))setLoading(false);}
@@ -208,15 +344,18 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
     stopRequested.current=false;stopInFlight.current=false;refreshing.current=false;setStopping(false);setStopError(null);setSyncError(null);
     creatingSession.current=null;
     restoringSession.current=null;setLoading(false);
+    sessionOperation.current=null;listOperation.current=null;setSessionRows([]);setSessionsCursor(null);
+    setSessionsLoading(false);setSessionsError(null);setArchivingSessionId(null);
     dispatch({type:'reset'});setBatchCards([]);setTaskCards([]);callbacks.current.onBatchReset?.();setRuntime(null);
     if (!enabled) return;
     setLoading(true);
     void agent.getRuntime().then(value=>{if(callbacks.current.enabled && callbacks.current.generation===generation)setRuntime(value);}).catch(()=>undefined);
     const ticket=epoch.current;
+    const listing=refreshSessions();
     const restoration=(async()=>{
       try {
-        const previous=savedSession() ?? await agent.latestSession();
-        if (currentTicket(ticket) && previous) await switchSession(previous);
+        const previous=savedSession() ?? (await listing)?.[0]?.id;
+        if (currentTicket(ticket) && previous) await openSession(previous);
       } catch(error) {
         if(currentTicket(ticket)){setRecoveryFailed(true);dispatch({type:'failed',detail:requestError(error)});}
       } finally { if(currentTicket(ticket))setLoading(false); }
@@ -242,7 +381,7 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
       const page=await agent.getHistory(id);
       if(!currentTicket(ticket)||sessionId.current!==id||latestRequest.current!==anchor||inFlight.current)return;
       if(detail.id!==id||page.session_id!==id||callbacks.current.bootId&&detail.boot_id!==callbacks.current.bootId)throw new Error('会话身份校验失败');
-      activeRef.current=detail;setActive(detail);setRecoveryFailed(false);setStopError(null);setSyncError(null);
+      setSessionDetail(detail);setRecoveryFailed(false);setStopError(null);setSyncError(null);
       historyRows.current=page.events;setHistoryBefore(page.next_before);hydrate(detail,page.events);
       latestRequest.current=detail.request?.status==='running'?detail.request.request_id:null;
       if(detail.request?.status!=='running'){setStopping(false);stopRequested.current=false;}
@@ -308,7 +447,7 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
     return true;
   };
   const request = async (body: MessageBody) => {
-    if (!enabled || recoveryFailed || inFlight.current || loading || activeRef.current?.request?.status === 'running') return;
+    if (!enabled || recoveryFailed || inFlight.current || sessionOperation.current || loading || activeRef.current?.request?.status === 'running') return;
     if ('content' in body && !body.content.trim()) return;
     if ('check_id' in body && (!state.pending || !('check_id' in state.pending) || state.pending.check_id !== body.check_id)) return;
     if ('plan_id' in body && (!state.pending || !('plan_id' in state.pending) || state.pending.plan_id !== body.plan_id)) return;
@@ -410,7 +549,7 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
         if (currentTicket(requestEpoch) && sessionId.current===id) {
           if(detail.id!==id||page.session_id!==id||!detail.boot_id
             ||callbacks.current.bootId&&detail.boot_id!==callbacks.current.bootId)throw {error:'SESSION_IDENTITY_MISMATCH'};
-          activeRef.current=detail;setActive(detail);historyRows.current=page.events;setHistoryBefore(page.next_before);
+          setSessionDetail(detail);historyRows.current=page.events;setHistoryBefore(page.next_before);
           hydrate(detail,page.events);setRecoveryFailed(false);setSyncError(null);
         }
       } catch(error) {
@@ -434,14 +573,14 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
         const id=sessionId.current;
         if (id) {
           try { const detail=await agent.getSession(id);const page=await agent.getHistory(id);
-            if(currentTicket(requestEpoch)&&sessionId.current===id){activeRef.current=detail;setActive(detail);setRecoveryFailed(false);historyRows.current=page.events;setHistoryBefore(page.next_before);hydrate(detail,page.events);}
+            if(currentTicket(requestEpoch)&&sessionId.current===id){setSessionDetail(detail);setRecoveryFailed(false);historyRows.current=page.events;setHistoryBefore(page.next_before);hydrate(detail,page.events);}
           } catch { /* Unknown remains unknown. A new send requires an explicit user action. */ }
         }
       }
     } finally { if (epoch.current === requestEpoch) {inFlight.current = false;setStopping(false);} }
   };
   const startAnnotation = async(mode:'per_image'|'all',targets?:string[])=>{
-    if(!enabled||inFlight.current||state.pending||loading)return;
+    if(!enabled||inFlight.current||sessionOperation.current||state.pending||loading)return;
     const cubeIds=targets?[...targets]:records.map(row=>row.id);
     if(!cubeIds.length)return;
     const ticket=epoch.current;inFlight.current=true;setLoading(true);
@@ -455,7 +594,7 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
       setTaskCards(current=>[...current,{taskId:accepted.task_id,sessionId:id,generation,requestId,targetCubeIds:cubeIds,onDemand:mode==='per_image',authorizationId:accepted.flow_id}]);
       const detail=await agent.getSession(id);
       const page=await agent.getHistory(id);
-      if(currentTicket(ticket)){activeRef.current=detail;setActive(detail);historyRows.current=page.events;setHistoryBefore(page.next_before);hydrate(detail,page.events);}
+      if(currentTicket(ticket)){setSessionDetail(detail);historyRows.current=page.events;setHistoryBefore(page.next_before);hydrate(detail,page.events);}
     } catch(e){if(currentTicket(ticket))dispatch({type:'failed',detail:requestError(e)});}
     finally {if(currentTicket(ticket)){inFlight.current=false;setLoading(false);}}
   };
@@ -495,12 +634,15 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
       await agent.focusCanvas(id,cubeId,focused);
       if(focused&&!activeRef.current){
         const detail=await agent.getSession(id);
-        if(currentTicket(ticket)&&sessionId.current===id){activeRef.current=detail;setActive(detail);}
+        if(currentTicket(ticket)&&sessionId.current===id){setSessionDetail(detail);}
       }
     }
   };
   return { state, dispatch, content, setContent, runtime, request, choices, selected, selectedChoice, startNew,
-    enabled: enabled && !loading, canSend:enabled&&!loading&&!recoveryFailed&&!state.busy&&active?.request?.status!=='running', active, historyBefore, loading,
+    enabled: enabled && !loading, canSend:enabled&&!loading&&!archivingSessionId&&!recoveryFailed&&!state.busy&&active?.request?.status!=='running',
+    active, activeSessionId:sessionId.current, historyBefore, loading, sessions, sessionsCursor, sessionsLoading, sessionsError, archivingSessionId,
+    refreshSessions, loadMoreSessions, archiveSession, clearSessionsError,
+    sessionControlsDisabled:!enabled||loading||state.busy||inFlight.current||!!archivingSessionId||active?.request?.status==='running',
     stop, stopping, stopError, syncError, elapsedSeconds, refreshSession,
     editLastRequest:()=>setContent(lastUserMessage.current||[...state.entries].reverse().find(entry=>entry.event==='user')?.data.content||''),
     continueRequest:()=>request({content:'请先核对上一请求的真实执行结果，仅继续尚未执行的部分，保留已完成结果，不重复执行已完成操作。'}),

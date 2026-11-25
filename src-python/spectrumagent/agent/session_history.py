@@ -129,6 +129,8 @@ class SessionHistory:
         hashed=digest(body)
         with connect_database(self.database) as db:
             db.execute('BEGIN IMMEDIATE')
+            if db.execute('SELECT 1 FROM agent_session_archive WHERE session_id=?', (sid,)).fetchone():
+                raise _failure('SESSION_ARCHIVED','会话已从列表移除',404)
             old=_rows(db,'SELECT * FROM agent_session_request WHERE session_id=? AND request_id=?',(sid,request))
             if old:
                 row=old[0]
@@ -137,8 +139,10 @@ class SessionHistory:
                 return request,row
             if db.execute("SELECT 1 FROM agent_session_request WHERE session_id=? AND status='running'",(sid,)).fetchone():
                 raise _failure('SESSION_BUSY','当前会话仍在执行',409)
+            now = _now()
             db.execute('INSERT INTO agent_session_request(session_id,request_id,payload_hash,input_kind,boot_id,status,created_at) VALUES (?,?,?,?,?,?,?)',
-                       (sid,request,hashed,'content' if 'content' in body else 'decision',self.boot_id,'running',_now()))
+                       (sid,request,hashed,'content' if 'content' in body else 'decision',self.boot_id,'running',now))
+            db.execute('UPDATE agent_session SET updated_at=? WHERE id=?', (now,sid))
         return request,None
 
     def finish(self, sid, request, status, complete):

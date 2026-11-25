@@ -3,10 +3,12 @@ import json
 from pathlib import Path
 from uuid import uuid4
 
+import numpy as np
+import pytest
 from fastapi.testclient import TestClient
 
-from test_experiment_conversation import application, workspace
-from spectrumagent.experiments.group_split import propose, requested
+from test_experiment_conversation import application, wait_task, workspace
+from spectrumagent.experiments.group_split import BASELINE_COMMAND, propose, requested
 from spectrumagent.experiments.conversation import PATHS
 
 
@@ -88,20 +90,97 @@ def test_known_sample_cannot_cross_batch_and_multilabel_group():
     assert not requested('训练原图：“D:/fixed”，测试原图：“D:/test”，标注已划分',PATHS)
 
 
+def test_saved_split_to_baseline_http(tmp_path, application, monkeypatch):
+    msg, mapping = demo_data(tmp_path/'baseline')
+    for hdr in mapping.parent.joinpath('原图').glob('*.hdr'):
+        hdr.write_text(hdr.read_text().replace('samples=4', 'samples=8').replace('lines=4', 'lines=8')
+                       + 'wavelength units=nm\n')
+        base = {'PE':[10,90], 'PP':[90,10], 'PET':[45,55]}[hdr.stem.split('-')[0]]
+        data = np.broadcast_to(np.asarray(base, dtype='<u2'), (8,8,2)).copy()
+        hdr.with_suffix('.img').write_bytes(data.tobytes())
+        roi = mapping.parent/'标注'/(hdr.stem+'.json')
+        annotation = json.loads(roi.read_text('utf-8'))
+        annotation.update(imageHeight=8, imageWidth=8)
+        annotation['shapes'][0]['points'][1] = [7,7]
+        roi.write_text(json.dumps(annotation), encoding='utf-8')
+    dialogue = application.state.agent_tools.experiment_dialogue
+    with TestClient(application) as client:
+        client.headers['Authorization'] = 'Bearer ' + application.state.testing_identity.token
+        sid = client.post('/api/v1/agent/sessions', json={}).json()['id']
+        def chat(content, owner=sid):
+            return client.post(f'/api/v1/agent/sessions/{owner}/messages',
+                               json={'content':content, 'request_id':str(uuid4())}).text
+        assert '缺少实物编号' in chat(msg)
+        assert '先确认保存划分' in chat(BASELINE_COMMAND)
+        assert '分组交叉 0' in chat(f'提供分组表 “{mapping}”')
+        assert 'split_saved' in chat('确认保存划分')
+        (path,) = (dialogue.service.paths.exports/'split-plans').glob('*.json')
+        reply = chat(BASELINE_COMMAND)
+        assert 'split_baseline_ready' in reply and '采样步长：3' in reply and '测试侧未覆盖：PET' in reply
+        assert dialogue.tasks.latest(sid) is None
+        from spectrumagent.agent.execution import RequestCancelled, RequestControl
+        from spectrumagent.experiments import inputs
+        config = dialogue._config(dialogue._read(sid))
+        control = RequestControl(str(uuid4()))
+        real_hash = inputs.sha256
+        def cancel_on_hash(file, check=None):
+            control.cancel()
+            return real_hash(file, check)
+        with monkeypatch.context() as m:
+            m.setattr(inputs, 'sha256', cancel_on_hash)
+            with pytest.raises(RequestCancelled):
+                dialogue.review_sources(config, check=control.check)
+        assert 'experiment_task_id' in chat('确认执行')
+        task = wait_task(dialogue.tasks, sid, dialogue.tasks.latest(sid))
+        assert task['status'] == 'succeeded', task
+        folder = dialogue.service.folder(task['experiment_id'])
+        assert (folder/'split_plan.json').read_bytes() == path.read_bytes()
+        rows = json.loads(path.read_bytes())['rows']
+        for role, title in (('train','训练'), ('test','测试')):
+            origins = json.loads((folder/(role+'_origins.json')).read_bytes())
+            assert {row['source'] for row in origins} == {row['hdr'] for row in rows if row['split'] == title}
+            assert len(origins) == sum(row['split'] == title for row in rows)*4
+            assert {(row['row'],row['col']) for row in origins} == {(3,3),(3,6),(6,3),(6,6)}
+            with np.load(folder/(role+'_prepared.npz')) as prepared:
+                assert len(prepared['X']) == len(origins) == len(prepared['y'])
+        assert dialogue.service.archive.load_model(task['experiment_id']).config.split_manifest.split_id == path.stem
+        second = client.post('/api/v1/agent/sessions', json={}).json()['id']
+        assert 'split_baseline_ready' in chat(f'{BASELINE_COMMAND} “{path}”', second)
+        from spectrumagent.agent.tools.experiments import DraftUpdate
+        revision = dialogue.view(second)['revision']
+        updated = dialogue.update(second, DraftUpdate(expected_revision=revision,
+                                  train={'kind':'roi_images', 'sampling_stride':2}))
+        assert updated['plan'].count('采样步长：2') == 2
+        assert '没有有效的待确认方案' in chat('确认执行', second)
+        dialogue.presented(second, str(uuid4()))
+        annotation = Path(rows[0]['annotation'])
+        annotation.write_bytes(annotation.read_bytes() + b'\n')
+        assert 'experiment_task_id' in chat('确认执行', second)
+        failed = wait_task(dialogue.tasks, second, dialogue.tasks.latest(second))
+        assert failed['error'] == 'EXPERIMENT_INPUT_CHANGED'
+        assert '已变化' in chat(f'{BASELINE_COMMAND} “{path}”', second)
+
+
 def test_explicit_one_image_per_object_and_preassigned_role(tmp_path, application):
     from spectrumagent.experiments.group_split import answer
     dialogue = application.state.agent_tools.experiment_dialogue
     from test_experiment_conversation import AgentStore
     owner = AgentStore(dialogue.database).create_session()['id']
     msg,_ = demo_data(tmp_path/'new')
+    for hdr in (tmp_path/'new'/'原图').glob('*.hdr'):
+        hdr.write_text(hdr.read_text()+'wavelength units=Nanometers\n')
     assert answer(dialogue,owner,msg,PATHS)[1] == 'needs_input'
     assert answer(dialogue,owner,'每张图都是独立样品',PATHS)[1] == 'ready'
     image = next((tmp_path/'new'/'原图').glob('PE-*.hdr'))
     text,status = answer(dialogue,owner,f'指定测试组：“{image}”',PATHS)
     assert status == 'ready' and str(image) in text
+    assert answer(dialogue,owner,'确认保存划分',PATHS)[1] == 'saved'
+    dialogue.prepare_split_baseline(owner,None)
+    review = dialogue.presented(owner,'by-image')
+    assert review['split_checks']['physical_sample_independence']=='declared_one_image_one_sample'
+    assert '按用户声明每图独立实物无交叉' in review['plan'] and '实物独立性未知' not in review['plan']
     ann = next((tmp_path/'new'/'标注').glob('*.json'))
     doc = json.loads(ann.read_text(encoding='utf8'))
     ann.write_text(json.dumps(dict(doc,dataset_split='fiveclass_test')),encoding='utf8')
-    import pytest
     with pytest.raises(ValueError,match='已有明确用途'):
         answer(dialogue,owner,msg,PATHS)

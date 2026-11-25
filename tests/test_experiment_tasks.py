@@ -78,3 +78,29 @@ def test_cancel_at_initial_boundary_leaves_queryable_status(application, tmp_pat
         service.run(ExperimentConfig.model_validate(config_for(tmp_path)), progress=cancel)
     result = service.get(caught.value.payload.context['experiment_id'])
     assert result['status'] == 'cancelled'
+def test_task_id_and_results_survive_backend_reopening(application, tmp_path):
+    from uuid import uuid4
+    from fastapi.testclient import TestClient
+    from backend.identity import EngineIdentity
+    from spectrumagent.app import create_app
+    from spectrumagent.agent.state import AgentStore
+
+    dialogue, owner = prepared(application, tmp_path)
+    task = dialogue.tasks.submit(owner, '确认执行', 'restart-test-submit')
+    done = wait_task(dialogue.tasks, owner, task['task_id'])
+    assert done['status'] == 'succeeded'
+    other = AgentStore(dialogue.database).create_session()['id']
+    interrupted_id = str(uuid4())
+    interrupted = {**dialogue.tasks.rows[task['task_id']], 'task_id':interrupted_id, 'session_id':other,
+                   'status':'running', 'phase':'preparing', 'finished_at':None, 'experiment_id':None}
+    dialogue.tasks._persist(interrupted)
+    identity = EngineIdentity()
+    fresh = create_app(dialogue.service.paths, identity)
+    prefix = '/api/v1/agent/sessions'
+    with TestClient(fresh) as client:
+        client.headers['Authorization'] = 'Bearer ' + identity.token
+        receipt = prefix + f'/{owner}/experiments/{task["task_id"]}'
+        assert client.get(receipt).json()['status'] == 'succeeded'
+        assert client.get(receipt+'/result').json()['experiment_id'] == done['experiment_id']
+        broken = client.get(prefix + f'/{other}/experiments/{interrupted_id}').json()
+        assert broken['status'] == 'interrupted' and broken['failed_phase'] == 'preparing'

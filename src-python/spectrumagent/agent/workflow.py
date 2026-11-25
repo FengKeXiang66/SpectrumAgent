@@ -10,7 +10,7 @@ from spectrumagent.data.validation import PARAMETER_ERRORS, INPUT_ERRORS, parame
 from . import context as memory
 from .llm import _json, validate_tool_response
 from .open_access import OPEN_ACCESS
-from .execution import RequestCancelled
+from .execution import RequestCancelled, numerical_confirmation
 
 
 READ_TOOLS = {"datasets.list", "datasets.resolve", "datasets.describe", "annotations.context",
@@ -76,10 +76,23 @@ def _workspace(state):
 
 
 def _messages(machine, version, state, content, turn_id):
+    from spectrumagent.experiments.pairing import CAPABILITY
     result = [{"role": "system", "content": version["system_prompt"]},
               {"role": "system", "content": _json({"task_state": {
                   k: v for k, v in state.items() if k not in {'canvas_focus', 'operation_authorization','preprocess_selection'}
               }})}]
+    result.append({'role':'system', 'content':CAPABILITY + '\n'
+                   '1. 用户泛泛咨询用本地高光谱数据训练分类模型且尚未说明数据形态时，先简明说明以下两条路线，'
+                   '再问用户手头是已有配套标注或 NPZ，还是只有未标注原图。不要把去设置页登记数据源当成默认第一步。\n'
+                   '2. 路线 A：已有 ENVI 原图和外部 ROI 标注 JSON，或已有训练和测试 NPZ，可直接走本机实验流程。'
+                   '无需到设置页登记数据源，无需调用 sources.scan 或 datasets.import 导入工作台，'
+                   '也无需建项目标签、重新做画布标注、编辑工作台预处理配方或把原图和标注先转为 NPZ。'
+                   '用户可以直接在对话框中粘贴本地文件或目录路径，也可以点输入框旁的「选择目录」或「选择文件」带入。'
+                   '本机后端接收路径并脱敏为内部引用后才与模型交互。不要把“路径不进入模型上下文”解释成“路径不能发进对话”。\n'
+                   '3. 路线 B：只有未标注原图，且需要在软件画布上人工点选时，走工作台流程。'
+                   '先在设置界面登记数据源，再用 sources.scan 和 datasets.import 导入，随后建标签、做超像素画布标注、按配方预处理并训练。\n'
+                   '4. 前后一致地说明当前路线的入口。工作台已导入数据集为 0 只描述工作台状态，不能据此要求路线 A 先登记。'
+                   '同一条建议中不要一边说本地路径不能发进对话，一边让用户发目录。'})
     if state.get('preprocess_selection'):
         result.append({'role':'system','content':_json({'confirmed_preprocess_inputs':state['preprocess_selection']['inputs'],
             'policy':'本轮用户明确选择已展示方案后，服务端绑定的完整版本范围。执行须显式传入这些引用，不换为最新，不添加成员。'})})
@@ -524,16 +537,26 @@ def generate(machine, *, content=None, workspace=None, continuation=None, decisi
                                    and state.get("save_requested") == call_cube == state.get("selected_cube_id"))
                 if call['name'] == 'annotations.draft_confirm' and call_cube and hasattr(machine.tools,'save_authorized'):
                     save_authorized = machine.tools.save_authorized(call_cube)
-                if not OPEN_ACCESS and (forced or tool.human_check and not ((not fullchain and _authorized(state, call_cube)) or save_authorized)):
+                numerical = numerical_confirmation(call)
+                if numerical is not None or not OPEN_ACCESS and (forced or tool.human_check and not ((not fullchain and _authorized(state, call_cube)) or save_authorized)):
                     summary = {key: value for key, value in call["arguments"].items()
                                if key in {"cube_id", "revision", "class_code", "overwrite"} and value is not None}
+                    if numerical is not None:
+                        summary.update(numerical)
                     if forced:
                         summary.update(forced)
                         summary['partial_confirmation_token']=machine.tools.partial_tokens[call['arguments']['dataset_version_id']]
                     step = store.add_step(row, call["name"], call["arguments"], "human_check_pending", summary, 0, tool_call_id=call["id"])
                     machine.state = State.HUMAN_CHECK
                     public_summary={k:v for k,v in summary.items() if k!='partial_confirmation_token'}
-                    yield "human_check", {"check_id": step["id"], "tool": call["name"], "summary": public_summary, "reason": (mapping + "\n" if mapping else "") + ('部分成员可用，确认仍创建完整范围会话' if forced else "标注版本确认")}
+                    if numerical is not None:
+                        reason = '请核对训练或推理输入，确认后提交。'
+                    elif forced:
+                        reason = '部分成员可用，确认仍创建完整范围会话'
+                    else:
+                        reason = '标注版本确认'
+                    yield "human_check", {"check_id": step["id"], "tool": call["name"], "summary": public_summary,
+                                          "reason":(mapping+"\n" if mapping else "")+reason}
                     return
                 previous = [step for batch in store.turn_rounds(session_id, turn_id)
                             for step in store.steps(session_id, batch["id"])

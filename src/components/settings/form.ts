@@ -3,7 +3,7 @@ import { configFields, type LLMConfig, type LLMVerify, type SettingsApi } from '
 export type FormState = { values: LLMConfig; keyInput: string; hasKey: boolean | null;
   phase: 'loading' | 'ready' | 'saving' | 'load_error'; error: string; message: string;
   modelStatus: LLMVerify | null };
-export const emptyForm = (): FormState => ({ values: { base_url: '', model: '', temperature: '', max_tokens: '', timeout_ms: '', egress_enabled: true },
+export const emptyForm = (): FormState => ({ values: { base_url: '', model: '', router_model: '', temperature: '', max_tokens: '', timeout_ms: '', egress_enabled: true },
   keyInput: '', hasKey: null, phase: 'loading', error: '', message: '', modelStatus: null });
 
 export function validateConfig(value: LLMConfig): string {

@@ -12,6 +12,7 @@
     "allow-run-smoke",
     "allow-open-data-directory",
     "allow-open-exports-directory",
+    "allow-open-inference-report",
     "allow-boot-probe",
     "allow-datasets-forward",
     "allow-annotations-forward",

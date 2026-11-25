@@ -10,6 +10,7 @@ fn main() {
             "run_smoke",
             "open_data_directory",
             "open_exports_directory",
+            "open_inference_report",
             "boot_probe",
             // Permission is declarative; the handler enforces fixed routes and identity.
             "datasets_forward",

@@ -68,7 +68,8 @@ class WriteGuard:
         self.output_settings_loaded = False
         self._output_root_failed = False  # Latch failure until a new process binds its settings.
         self.temp_root = Path(temp_root or tempfile.gettempdir()).resolve()
-        self.sources = {Path(path).resolve() for path in source_roots}
+        self._source_inventory = (frozenset(), frozenset())
+        self._remember_sources(Path(path).resolve() for path in source_roots)
         self.audit_database = self.root / 'db' / 'write-audit.sqlite3'
         self.buffer = deque(maxlen=buffer_limit)
         self.overflow_count = 0
@@ -84,13 +85,29 @@ class WriteGuard:
     def roots(self):
         return tuple(path for path in (self.root, self.output_root, self.temp_root, self.archive_root) if path is not None)
 
+    @property
+    def sources(self):
+        return self._source_inventory[0]
+
+    def _remember_sources(self, paths):
+        sources, ancestors = self._source_inventory
+        new = frozenset(paths) - sources
+        if new:
+            # Publish both indexes together for readers checking a resolved target.
+            self._source_inventory = (sources | new, ancestors.union(parent for path in new for parent in path.parents))
+
+    def _overlaps_source(self, target, *, deleting=False):
+        sources, ancestors = self._source_inventory
+        return (target in sources or any(parent in sources for parent in target.parents)
+                or deleting and target in ancestors)
+
     @contextmanager
     def _audit_connect(self):
         # Private fixed-path channel. Never connect_database/resolve_write:
         # business transactions must not lock their own audit INSERT out.
         with self.lock:
             target = self.audit_database.resolve()
-            if not target.is_relative_to(self.root) or any(target.is_relative_to(source) for source in self.sources):
+            if not target.is_relative_to(self.root) or self._overlaps_source(target):
                 self.database_ready = self.ready = False
                 raise DataError('WRITE_TO_SOURCE_DENIED', '审计固定路径越界，已拒绝写任务')
             if self._audit_connection is None:
@@ -149,8 +166,7 @@ class WriteGuard:
                     self._reported_overflow = self.overflow_count
 
     def _check_source_overlap(self):
-        if any(source.is_relative_to(root) or root.is_relative_to(source)
-               for source in self.sources for root in self.roots):
+        if any(self._overlaps_source(root, deleting=True) for root in self.roots):
             raise DataError('STORAGE_SELF_CHECK_FAILED', '数据源目录与可写根重叠')
 
     def self_check(self):
@@ -203,8 +219,7 @@ class WriteGuard:
             reason = ''
             if not any(target.is_relative_to(root) for root in self.roots):
                 reason = 'WRITE_TO_SOURCE_DENIED'
-            if any(target.is_relative_to(source) or (deleting and source.is_relative_to(target))
-                   for source in self.sources):
+            if self._overlaps_source(target, deleting=deleting):
                 reason = 'WRITE_TO_SOURCE_DENIED'
             if deleting and target in self.roots:
                 reason = 'WRITE_TO_SOURCE_DENIED'
@@ -233,12 +248,12 @@ class WriteGuard:
     def add_sources(self, paths):
         candidates = {Path(path).resolve() for path in paths}
         with self.lock:
-            previous = self.sources.copy()
-            self.sources.update(candidates)
+            previous = self._source_inventory
+            self._remember_sources(candidates)
             try:
                 self._check_source_overlap()
             except DataError:
-                self.sources = previous
+                self._source_inventory = previous
                 self._audit('REGISTER_SOURCE', self.root, 'DENY', 'STORAGE_SELF_CHECK_FAILED')
                 raise
             self.resolve_write(self.audit_database, kind='SOURCE_REGISTER')
@@ -258,7 +273,7 @@ def _existing_sources(guard, database):
     sources = set()
     for path in (guard.audit_database, Path(database)):
         target = path.resolve()
-        if not target.is_relative_to(guard.root) or any(target.is_relative_to(source) for source in guard.sources):
+        if not target.is_relative_to(guard.root) or guard._overlaps_source(target):
             guard._audit('SOURCE_INVENTORY', target, 'DENY', 'WRITE_TO_SOURCE_DENIED')
             raise DataError('WRITE_TO_SOURCE_DENIED', '存储数据库路径越界，已拒绝写任务')
     if guard.audit_database.is_file():
@@ -295,10 +310,11 @@ def _prepare(paths, *, output_root=None, source_roots=(), temp_root=None):
                     guard.temp_root = Path(temp_root).resolve()
                 if source_roots:
                     guard.ready = False
-                    guard.sources.update(Path(path).resolve() for path in source_roots)
+                    guard._remember_sources(Path(path).resolve() for path in source_roots)
         _current = guard
         if not guard.inventory_ready:
-            guard.sources.update(_existing_sources(guard, paths.database))
+            with guard.lock:
+                guard._remember_sources(_existing_sources(guard, paths.database))
             guard.inventory_ready = True
     return guard
 

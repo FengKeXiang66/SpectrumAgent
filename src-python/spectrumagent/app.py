@@ -109,6 +109,8 @@ def create_app(paths, identity):
                                           training_sets=app.state.training_sets, paths=paths,
                                           experiments=app.state.experiments)
     app.state.agent_tools.experiment_dialogue.inference.service.recover()
+    app.state.agent_tools.experiment_dialogue.tasks.recover()
+    app.state.agent_tools.experiment_dialogue.study.recover()
     from spectrumagent.storage.recovery import recover_workspace
     recover_workspace(paths.database)
     app.state.agent_llm_factory = lambda session_id: OpenAICompatibleClient(paths.database, session_id=session_id)

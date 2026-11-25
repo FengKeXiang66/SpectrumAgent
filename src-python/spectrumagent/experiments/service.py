@@ -19,10 +19,10 @@ from threadpoolctl import threadpool_limits
 
 from spectrumagent.data import DataError
 from spectrumagent.storage import guard as storage
-from .inputs import load_input, check_sources, sha256
+from .inputs import CheckedStream, check_sources, check_split, enforce_split, load_input, record_source, sha256, split_preflight
 from .pipeline import SpectralPipeline
 from .report import metrics, representative_curves, curve_plot, html_report
-from .schema import ExperimentConfig
+from .schema import ExperimentConfig, TrainingSampling
 
 
 def encode(value):
@@ -72,9 +72,9 @@ def _write_json(path, value):
             storage.unlink(temporary)
 
 
-def save_arrays(path, **arrays):
+def save_arrays(path, *, check=None, **arrays):
     with storage.resolve_write(path, kind="EXPERIMENT_ARRAYS").open("wb") as stream:
-        np.savez_compressed(stream, **arrays)
+        np.savez_compressed(CheckedStream(stream,check) if check else stream, **arrays)
 
 
 class ExperimentModel:
@@ -143,17 +143,19 @@ class ExperimentService:
             return json.loads((folder / "result.json").read_text("utf-8"))
         return status
 
-    def artifact(self, identifier, name):
+    def artifact(self, identifier, name, *, check=None):
         result = self.get(identifier)
         manifest = result.get("artifacts", {})
         if name not in manifest:
             raise DataError("EXPERIMENT_ARTIFACT_NOT_FOUND", "实验产物不存在")
         path = self.folder(identifier) / name
-        if not path.is_file() or sha256(path) != manifest[name]["sha256"]:
+        if not path.is_file() or sha256(path,check) != manifest[name]["sha256"]:
             raise DataError("EXPERIMENT_ARTIFACT_CHANGED", "实验产物缺失或校验失败")
         return path
 
-    def run(self, config: ExperimentConfig, *, expected_sources=None, progress=None):
+    def run(self, config: ExperimentConfig, *, expected_sources=None, progress=None, on_detail=None):
+        if config.training_sampling is not None:
+            config = config.model_copy(update={'training_sampling':None})
         # BLAS thread limits are process-wide; serial execution avoids overlap.
         if not self.lock.acquire(blocking=False):
             raise DataError("EXPERIMENT_BUSY", "已有数值实验正在运行")
@@ -168,12 +170,16 @@ class ExperimentService:
         try:
             storage.mkdir(folder, parents=True)
             write_json(folder / "config.json", config.model_dump(mode="json"))
+            if on_detail:
+                on_detail(experiment_id=identifier)
             advance('checking')
             with threadpool_limits(limits=2):
                 options = {}
                 if expected_sources is not None:
                     options['expected_sources'] = expected_sources
                 options['progress'] = advance
+                if on_detail:
+                    options['on_detail'] = on_detail
                 result = self._execute(identifier, folder, config, **options)
             advance('reporting')
             write_json(folder / "status.json", {"experiment_id": identifier, "status": "succeeded",
@@ -188,16 +194,54 @@ class ExperimentService:
         finally:
             self.lock.release()
 
-    def _execute(self, identifier, folder, config, *, expected_sources=None, progress=None):
+    def _execute(self, identifier, folder, config, *, expected_sources=None, progress=None, on_detail=None):
         if progress:
             progress('preparing')
-        train = load_input(config.train, config.wavelengths_nm, config.classes)
-        test = load_input(config.test, config.wavelengths_nm, config.classes)
-        source_manifest = {**train.sources, **test.sources}
+        split_source = {}
+        if config.split_manifest:
+            from .group_split import load_saved_plan, manifest_path
+            reference = config.split_manifest
+            try:
+                path = manifest_path(self.paths.exports, reference.split_id)
+                sides = load_saved_plan(path, reference.sha256)
+                for role, title in (('train', '训练'), ('test', '测试')):
+                    spec = getattr(config, role)
+                    expected = [(row['hdr'], row['img'], row['annotation'], row['sample_id'] or row['hdr'])
+                                for row in sides[title]]
+                    if spec.kind != 'roi_images' or expected != [
+                            (member.header_path, member.data_path, member.roi_path, member.sample_id)
+                            for member in spec.members]:
+                        raise ValueError('训练与测试图像必须与已保存划分一致')
+                record_source(path, split_source)
+                split_bytes = path.read_bytes()
+                if hashlib.sha256(split_bytes).hexdigest() != reference.sha256:
+                    raise ValueError('划分清单已变化，请重新加载并审阅')
+            except (OSError, ValueError, KeyError, TypeError) as error:
+                raise DataError('EXPERIMENT_INPUT_CHANGED', str(error)) from error
+        def prepare(role):
+            spec = getattr(config, role)
+            if on_detail:
+                def input_progress(**details):
+                    on_detail(**({'role':role, **details} if details else {}))
+                return load_input(spec, config.wavelengths_nm, config.classes, progress=input_progress)
+            return load_input(spec, config.wavelengths_nm, config.classes)
+
+        train, test = prepare('train'), prepare('test')
+        if config.split_manifest:
+            for title, data in (('训练',train),('测试',test)):
+                for row in sides[title]:
+                    if row.get('img_sha256') and data.sources[row['img']]['sha256'] != row['img_sha256']:
+                        raise DataError('EXPERIMENT_INPUT_CHANGED', 'IMG 内容与配对清单不一致，请重新配对。')
+        source_manifest = {**train.sources, **test.sources, **split_source}
         if expected_sources is not None and {key: item['sha256'] for key, item in source_manifest.items()} != expected_sources:
             raise DataError('EXPERIMENT_INPUT_CHANGED', '实验输入自方案核验后发生变化，请重新检查并展示方案')
+        _, split_checks = split_preflight(config, source_manifest)
+        split_checks = check_split(split_checks, train, test)
+        enforce_split(config.test_usage, split_checks)
         external_sources = []
         for item in source_manifest.values():
+            if item['path'] in split_source:
+                continue
             path = Path(item['path'])
             # Replays are managed outputs. External-input registration would reject
             # their location inside the workspace. Verify the owning run and digest.
@@ -211,6 +255,11 @@ class ExperimentService:
             storage.for_database(self.paths.database).add_sources(external_sources)
         if set(train.y.tolist()) != set(config.classes):
             raise DataError("EXPERIMENT_CLASSES_MISSING", "训练数据必须覆盖所有声明类别")
+        if train.sampling:
+            config = config.model_copy(update={'training_sampling':TrainingSampling.model_validate(train.sampling)})
+            write_json(folder / 'config.json', config.model_dump(mode='json'))
+        if split_source:
+            storage.resolve_write(folder / 'split_plan.json', kind='EXPERIMENT_SPLIT').write_bytes(split_bytes)
         write_json(folder / "sources.json", source_manifest)
         model = ExperimentModel(config)
         if progress:
@@ -232,7 +281,10 @@ class ExperimentService:
             save_arrays(folder / (role + "_prepared.npz"), X=data.X, y=data.y, wavelengths_nm=config.wavelengths_nm)
             save_arrays(folder / (role + "_predictions.npz"), truth=data.y, prediction=prediction, responses=responses,
                         classes=model.classes_)
-            write_json(folder / (role + "_origins.json"), data.origins)
+            if data.sampling:
+                summaries[role]['sampling'] = data.sampling
+            write_json(folder / (role + "_origins.json"),
+                       {'sampling':data.sampling, 'origins':data.origins} if data.sampling else data.origins)
         if progress:
             progress('reporting')
         for role, data, features in (("train", train, train_features), ("test", test, test_features)):
@@ -251,16 +303,14 @@ class ExperimentService:
                                      for start in range(0, len(data.X), 8192)])
             if not np.array_equal(actual, predictions[role]):
                 raise DataError("EXPERIMENT_MODEL_INVALID", "保存后模型预测与运行结果不同")
-        check_sources(source_manifest)
+        check_sources(source_manifest, on_detail)
         config_document = config.model_dump(mode="json")
         result = {"experiment_id": identifier, "model_id": identifier, "status": "succeeded", "protocol": "explicit_train_test_v1",
                   "created_at": datetime.now(timezone.utc).isoformat(), "config": config_document,
                   "config_sha256": hashlib.sha256(encode(config_document).encode()).hexdigest(),
                   "model_sha256": sha256(model_path), "score_definition": "uncalibrated_pls_response",
                   "metrics": scores, "datasets": summaries, "fit_warnings": model.fit_warnings,
-                  "split_checks": {"status": "skipped", "reason": "训练不执行光谱重复或数据泄漏检查。",
-                                   "same_file": None, "exact_duplicate_spectrum": None,
-                                   "physical_sample_independence": "not_checked"},
+                  "split_checks": split_checks,
                   "environment": {"python": platform.python_version(), "numpy": np.__version__,
                                   "scipy": scipy.__version__, "sklearn": sklearn.__version__, "joblib": joblib.__version__},
                   "code_sha256": {p.name: sha256(p) for p in sorted(Path(__file__).parent.glob("*.py"))}}

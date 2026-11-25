@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { agent, type ExperimentResult } from './api';
 import { InferenceHistory } from './InferenceTaskCard';
+import type { OpenInferenceView } from './InferenceResultsView';
 
 const number=(value:number|null|undefined)=>value==null?'未定义':value.toFixed(6);
 const units:Record<string,string>={center_pixel:'中心像元',spectrum:'光谱样本'};
 type Reference = {taskId:string;experimentId?:never}|{taskId?:never;experimentId:string};
-type ResultProps = Reference & {sessionId:string;enabled:boolean;onInfer?:(modelId:string)=>void};
+type ResultProps = Reference & {sessionId:string;enabled:boolean;onInfer?:(modelId:string)=>void;onCommand?:(content:string)=>void;onInferenceView?:OpenInferenceView};
 function Plot({sessionId,taskId,experimentId,name,enabled}:ResultProps & {name:string}) {
   const [image,setImage]=useState(''),[error,setError]=useState(''),[retry,setRetry]=useState(0);
   useEffect(()=>{
@@ -19,7 +20,7 @@ function Plot({sessionId,taskId,experimentId,name,enabled}:ResultProps & {name:s
     :image?<img className="experiment-plot" alt={name.includes('processed')?'各类别处理后均值与标准差曲线':'各类别输入均值与标准差曲线'} src={image}/>:<p role="status">正在读取已保存的曲线…</p>;
 }
 
-export default function ExperimentResults({sessionId,taskId,experimentId,enabled,onInfer}:ResultProps) {
+export default function ExperimentResults({sessionId,taskId,experimentId,enabled,onInfer,onCommand,onInferenceView}:ResultProps) {
   const [result,setResult]=useState<ExperimentResult|null>(null),[error,setError]=useState(''),[retry,setRetry]=useState(0);
   const [role,setRole]=useState<'train'|'test'>('test'),[stage,setStage]=useState<'input'|'processed'>('input');
   const [saving,setSaving]=useState(false),[message,setMessage]=useState('');
@@ -50,14 +51,17 @@ export default function ExperimentResults({sessionId,taskId,experimentId,enabled
     <h4>{result.name} · 训练与测试结果</h4>
     <p>实验 {result.experiment_id.slice(0,8)}。下列数值直接读取已保存产物，不重新训练。</p>
     <p>实验与对应模型已自动归档，退出再打开后可从“历史实验与归档模型”找回。</p>
+    <p className="experiment-note" style={{whiteSpace:'pre-line'}}>{result.split_check_text}</p>
+    {result.split_warning&&<p className="agent-error" role="alert" style={{border:'2px solid',padding:'0.6rem',fontWeight:'bold'}}>{result.split_warning}</p>}
+    {result.training_sampling&&<p>训练抽样 · 每类上限 {result.training_sampling.max_per_class} · 种子 {result.training_sampling.sampling_seed}
+      <br/>抽样数／合格数 {Object.entries(result.training_sampling.class_counts).map(([id,item])=>`${result.classes[id]} ${item.selected}／${item.eligible}`).join('、')}</p>}
     <details className="experiment-model"><summary>归档模型与处理方案（实验阶段）</summary>
       <p>模型编号：{result.model.model_id}<br/>SHA-256：{result.model.sha256}</p>
       <p>目标波长：{result.model.wavelengths_nm[0]}–{result.model.wavelengths_nm.at(-1)} nm，共 {result.model.wavelengths_nm.length} 个通道；空间邻域：{result.model.neighborhood}。</p>
       <pre>{JSON.stringify({输入阶段:result.model.input_stage,预处理:result.model.preprocessing,PLSDA参数:result.model.parameters},null,2)}</pre>
       <p>模型保留训练时拟合的预处理参数。推理复用此方案，不重新训练。</p>
     </details>
-    {onInfer&&<><button disabled={!enabled} onClick={()=>onInfer(result.model.model_id)}>使用此模型推理</button><p>点击后在底部补充推理数据文件或目录，再发送；核对方案后另行确认执行。</p></>}
-    <InferenceHistory sessionId={sessionId} modelId={result.model.model_id} enabled={enabled}/>
+    <InferenceHistory sessionId={sessionId} modelId={result.model.model_id} enabled={enabled} onView={onInferenceView}/>
     <div role="group" aria-label="评价数据选择">
       <button aria-pressed={role==='train'} onClick={()=>setRole('train')}>训练集拟合</button>
       <button aria-pressed={role==='test'} onClick={()=>setRole('test')}>测试数据</button>
@@ -84,6 +88,11 @@ export default function ExperimentResults({sessionId,taskId,experimentId,enabled
     <button disabled={!enabled||saving} onClick={()=>void save('report')}>导出完整HTML报告</button>
     <button disabled={!enabled||saving} onClick={()=>void save('bundle')}>导出报告与指标包</button>
     <p>导出包包含报告、指标、混淆矩阵、曲线、配置与来源记录；不含模型、逐样本预测和原始数据。</p>
+    <div role="group" aria-label="后续操作">
+      {onCommand&&<><button disabled={!enabled} onClick={()=>onCommand(`解释实验 ${result.experiment_id} 的测试混淆情况`)}>解释测试混淆情况</button>
+        <button disabled={!enabled} onClick={()=>onCommand(`基于此数据寻优 ${result.experiment_id}`)}>基于此数据寻优</button></>}
+      {onInfer&&<button disabled={!enabled} onClick={()=>onInfer(result.model.model_id)}>使用此模型推理</button>}
+    </div>
     {message&&<p role="status">{message}</p>}
   </section>;
 }

@@ -2,15 +2,18 @@
 import base64
 import csv
 import colorsys
+import hashlib
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from io import BytesIO
+from itertools import islice
 import json
 from pathlib import Path
 from threading import Event, RLock, Thread
-from time import time
+from time import monotonic, time
 from typing import Annotated, Literal, Union
 from uuid import uuid4
-from zipfile import ZipFile, ZIP_DEFLATED
+from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED, ZIP_STORED
 
 import numpy as np
 from PIL import Image
@@ -21,15 +24,47 @@ from threadpoolctl import threadpool_limits
 from spectrumagent.data import DataError
 from spectrumagent.data.readers import open_envi
 from spectrumagent.storage import guard as storage
-from .inputs import record_source, check_sources, mapping_weights, sha256
+from . import inference_report
+from .inputs import CheckedStream, file_snapshot, record_source, check_sources, mapping_weights, sha256
 from .schema import InputModel, Quality
+from .exclusions import ExclusionRules
 from .service import write_json, read_json, save_arrays
 
 
-def class_palette(classes):
+BACKGROUND_COLORS = {'brightness': (0, 0, 0), 'other': (224, 224, 224)}
+MATERIAL_COLORS = {'PE': (255, 62, 62), 'PP': (38, 211, 79), 'PET': (63, 118, 255),
+                   'EPS': (255, 163, 35), '纸': (177, 99, 215)}
+
+
+_EXPORT_BLOCK = 1024*1024
+
+
+def _read_small_export_file(path, item):
+    try:
+        with path.open('rb') as source:
+            data = source.read(item['bytes']+1)
+        inference_report.verify_digest(hashlib.sha256(data).hexdigest(),len(data),item)
+        return data
+    except (OSError,KeyError,TypeError) as error:
+        raise DataError('INFERENCE_ARTIFACT_CHANGED', '推理产物缺失或校验失败') from error
+
+
+def class_palette(classes, materials):
     fixed = [(31,119,180),(255,127,14),(44,160,44),(214,39,40),(148,103,189),(140,86,75),(227,119,194),(127,127,127),(188,189,34),(23,190,207)]
-    return {str(label): fixed[i] if len(classes)<=len(fixed) else tuple(int(v*255) for v in colorsys.hsv_to_rgb(i/len(classes),.65,.85))
+    return {str(label): MATERIAL_COLORS.get(materials[int(label)],
+                fixed[i] if len(classes)<=len(fixed) else tuple(int(v*255) for v in colorsys.hsv_to_rgb(i/len(classes),.65,.85)))
             for i,label in enumerate(classes)}
+
+
+def classification_preview(labels, accepted, reasons, palette):
+    rgb = np.empty((*labels.shape, 3), np.uint8)
+    rgb[:] = BACKGROUND_COLORS['other']
+    rgb[reasons == 1] = BACKGROUND_COLORS['brightness']
+    for label, color in palette.items():
+        rgb[accepted & (labels == int(label))] = color
+    image = Image.fromarray(rgb)
+    image.thumbnail((1200, 1200), Image.Resampling.NEAREST)
+    return image
 
 
 class NPZInference(InputModel):
@@ -72,6 +107,7 @@ class ENVIInference(InputModel):
     nearest_tolerance_nm: Annotated[float, Field(ge=0, allow_inf_nan=False)]
     quality: Quality
     foreground: Annotated[Union[NoForeground,BrightnessEdges],Field(discriminator='mode')] = NoForeground(mode='none')
+    exclusions: ExclusionRules | None = None
 
 
 class InferenceConfig(InputModel):
@@ -79,18 +115,46 @@ class InferenceConfig(InputModel):
     input: Annotated[Union[NPZInference, ENVIInference], Field(discriminator='kind')]
 
 
-def files_for(spec):
+def file_entries(spec, check=None):
     extension = '.npz' if spec.kind == 'npz' else '.hdr'
     files = []
     for value in spec.paths:
         path = Path(value).expanduser()
         if not path.is_absolute() or not path.exists():
             raise DataError('INFERENCE_INPUT_INVALID', '推理输入须为存在的绝对文件或目录路径')
-        files.extend(sorted(path.rglob('*' + extension)) if path.is_dir() else [path])
-    files = [path.resolve() for path in files]
-    if not files or len(files) != len(set(files)) or any(path.suffix.lower() != extension for path in files):
+        if check:
+            check()
+        if path.is_dir():
+            found = []
+            for entry in path.rglob('*' + extension):
+                if check:
+                    check()
+                if entry.is_file():
+                    found.append(entry)
+            files.extend((entry,path) for entry in sorted(found))
+        else:
+            files.append((path, None))
+    resolved = [path.resolve() for path,_ in files]
+    if not resolved or len(resolved) != len(set(resolved)) or any(path.suffix.lower() != extension for path in resolved):
         raise DataError('INFERENCE_INPUT_INVALID', '没有找到对应格式的输入，或包含重复文件')
-    return files
+    return [(real, path, root) for real,(path,root) in zip(resolved,files)]
+
+
+def filtered_files(spec, check=None):
+    included, excluded = [], []
+    for path, entry, root in file_entries(spec, check):
+        if check:
+            check()
+        reason = spec.exclusions.reason(entry,root) if spec.kind=='envi' and spec.exclusions else ''
+        if reason:
+            excluded.append({'file':entry.relative_to(root).as_posix() if root else entry.name,
+                             'reason':reason,'source':str(path)})
+        else:
+            included.append(path)
+    if not included:
+        details = '、'.join(f"{row['file']}（{row['reason']}）" for row in excluded[:8])
+        raise DataError('INFERENCE_INPUT_INVALID', f'输入已全部按用户规则排除（{len(excluded)} 幅）。{details}')
+    return included,excluded
 
 
 def envi_mapping(path, spec, target):
@@ -104,9 +168,10 @@ def envi_mapping(path, spec, target):
     return dataset, weights
 
 
-def npz_values(path, spec, target):
-    with np.load(path, allow_pickle=False) as archive:
-        X, waves = archive[spec.spectra_key].copy(), archive[spec.wavelengths_key].copy()
+def npz_values(path, spec, target, check=None):
+    with path.open('rb') as stream:
+        with np.load(CheckedStream(stream,check) if check else stream, allow_pickle=False) as archive:
+            X, waves = archive[spec.spectra_key].copy(), archive[spec.wavelengths_key].copy()
     if (waves.shape != (len(target),) or not np.array_equal(waves, target)):
         raise DataError('INFERENCE_AXIS_INVALID', '推理NPZ波长必须与模型目标波长逐项一致，不能按列号猜测')
     if X.ndim != 2 or X.shape[1] != len(target) or not len(X) or X.dtype.kind not in 'iuf' or not np.isfinite(X).all():
@@ -119,6 +184,7 @@ class InferenceService:
         self.experiments = experiments
         self.lock = RLock()
         self.active = {}
+        self.report_lock = RLock()
 
     def folder(self, model_id, run_id):
         base = self.experiments.folder(model_id) / 'inferences'
@@ -129,8 +195,8 @@ class InferenceService:
             raise DataError('INFERENCE_NOT_FOUND', '推理任务不存在')
         return folder
 
-    def inspect(self, config):
-        metadata = self.experiments.archive.model_metadata(config.model_id)
+    def inspect(self, config, *, check=None, on_file=None, register=True):
+        metadata = self.experiments.archive.model_metadata(config.model_id,check=check)
         spec = config.input
         if spec.kind == 'npz':
             stage = metadata['input_stage']
@@ -140,14 +206,24 @@ class InferenceService:
                 raise DataError('INFERENCE_STAGE_MISMATCH', '输入阶段、邻域或评价单位与模型训练定义不同；不重复平均或重新拟合预处理')
         elif metadata['evaluation_unit'] != 'center_pixel':
             raise DataError('INFERENCE_STAGE_MISMATCH', '该模型按光谱样本训练，不能直接冒充整图像元分类模型')
-        files, manifest = files_for(spec), {}
-        for path in files:
-            record_source(path, manifest)
+        files, excluded = filtered_files(spec, check)
+        manifest, images = {}, {}
+        for index,path in enumerate(files,1):
+            if check:
+                check()
+            record_source(path, manifest, check)
             if spec.kind == 'npz':
-                npz_values(path, spec, metadata['wavelengths_nm'])
+                npz_values(path, spec, metadata['wavelengths_nm'], check)
             else:
                 dataset, _ = envi_mapping(path, spec, metadata['wavelengths_nm'])
-                record_source(dataset.data_path, manifest)
+                binary = Path(dataset.data_path).resolve()
+                image = file_snapshot(binary, check)
+                if register and image['change_time'] is None:
+                    # Some filesystems do not expose a change timestamp.
+                    record_source(binary, manifest, check)
+                    if file_snapshot(binary,check) != image:
+                        raise DataError('INFERENCE_SOURCE_CHANGED', 'IMG 在核验期间发生变化。')
+                images[str(path)] = {'path':str(binary),'snapshot':image,'shape':list(dataset.shape)}
                 if metadata['neighborhood'] > min(dataset.shape[:2]):
                     raise DataError('INFERENCE_INPUT_INVALID', '模型要求的邻域大于输入图像尺寸')
                 fg=spec.foreground
@@ -155,9 +231,14 @@ class InferenceService:
                     wave=np.asarray(dataset.wavelengths)*(1000 if spec.wavelength_unit=='um' else 1)
                     if fg.left_min+fg.right_min>=dataset.shape[1] or np.any(np.min(np.abs(wave[:,None]-fg.wavelengths_nm),axis=0)>spec.nearest_tolerance_nm):
                         raise DataError('INFERENCE_FOREGROUND_INVALID','前景规则的边缘宽度或探测波长与原图不兼容')
-        storage.for_database(self.experiments.paths.database).add_sources(list(manifest))
-        check_sources(manifest)
-        return {'sources': manifest, 'model_sha256': metadata['sha256'], 'files': [str(p) for p in files]}
+            if on_file:
+                on_file(index)
+        if register:
+            sources = list(manifest) + [item['path'] for item in images.values()]
+            storage.for_database(self.experiments.paths.database).add_sources(list(dict.fromkeys(sources)))
+        return {'sources': manifest, 'images':images, 'model_sha256': metadata['sha256'], 'files': [str(p) for p in files],
+                'excluded_files':excluded,
+                'config_sha256':hashlib.sha256(config.model_dump_json().encode()).hexdigest()}
 
     def submit(self, owner, config, reviewed):
         with self.lock:
@@ -170,7 +251,7 @@ class InferenceService:
                 write_json(folder / 'config.json', config.model_dump(mode='json'))
                 write_json(folder / 'review.json', reviewed)
                 state = {'run_id': run_id, 'model_id': config.model_id, 'kind': config.input.kind, 'owner_session_id': owner,
-                         'status': 'queued', 'phase': 'checking', 'completed_files': 0, 'total_files': len(reviewed['files']),
+                         'status': 'queued', 'phase': 'checking', 'checked_files': 0, 'completed_files': 0, 'total_files': len(reviewed['files']),
                          'completed_rows': 0, 'total_rows': 0, 'started_at': time(), 'finished_at': None, 'error': None}
                 write_json(folder / 'status.json', state)
                 self.active[(config.model_id, run_id)] = (owner, Event())
@@ -195,6 +276,10 @@ class InferenceService:
             value['can_cancel'] = bool(active and active[0] == owner)
         value['elapsed_seconds'] = max(0, (value['finished_at'] or time()) - value['started_at'])
         return value
+
+    def has_active(self, owner):
+        with self.lock:
+            return any(session_id == owner for session_id, _ in self.active.values())
 
     def cancel(self, owner, model_id, run_id):
         with self.lock:
@@ -226,56 +311,124 @@ class InferenceService:
     def _work(self, config, run_id, reviewed, state):
         folder = self.folder(config.model_id, run_id)
         cancel = self.active[(config.model_id, run_id)][1]
-        def progress(**fields):
+        last_update = 0.
+        def check():
             if cancel.is_set():
                 raise DataError('INFERENCE_CANCELLED', '推理已在数据批次边界取消')
+
+        def progress(**fields):
+            nonlocal last_update
+            check()
+            phase_changed = fields.get('phase',state['phase']) != state['phase']
             state.update(status='running', **fields)
-            write_json(folder / 'status.json', state)
+            now = monotonic()
+            checked = fields.get('checked_files')
+            if phase_changed or now-last_update>=.15 or checked in (1,state['total_files']):
+                write_json(folder / 'status.json', state)
+                last_update = now
+
+        def verify_image(info, fallback_digest=None):
+            binary = info['path']
+            try:
+                matches = file_snapshot(binary,check) == info['snapshot']
+                if matches and fallback_digest and info['snapshot']['change_time'] is None:
+                    matches = sha256(binary,check) == fallback_digest
+            except OSError:
+                matches = False
+            if not matches:
+                raise DataError('INFERENCE_SOURCE_CHANGED', 'IMG 在审阅后或读取期间发生变化，请重新核对。')
+
         try:
             progress(phase='checking')
-            current = self.inspect(config)
-            if current != reviewed:
+            current = self.inspect(config, check=check, on_file=lambda count:progress(checked_files=count), register=False)
+            sources = dict(current['sources'])
+            images = current['images']
+            if 'images' in reviewed:
+                previous = {key:value for key,value in reviewed.items() if key!='sources'}
+                matches = previous == {key:value for key,value in current.items() if key!='sources'}
+                matches = matches and all(reviewed['sources'].get(key)==value for key,value in sources.items())
+            else:
+                # Old drafts recorded every byte hash. Reuse those hashes at each file boundary.
+                previous = {key:value for key,value in reviewed.items() if key!='sources'}
+                matches = previous == {key:value for key,value in current.items() if key not in ('sources','images')}
+                matches = matches and all(reviewed['sources'].get(key)==value for key,value in sources.items())
+                matches = matches and set(reviewed['sources']) == set(sources)|{item['path'] for item in images.values()}
+            if not matches:
                 raise DataError('INFERENCE_SOURCE_CHANGED', '输入文件、目录成员或模型在方案确认后发生变化，请重新核对')
-            model = self.experiments.archive.load_model(config.model_id)
-            write_json(folder / 'sources.json', current['sources'])
+            check()
+            model = self.experiments.archive.load_model(config.model_id,check=check)
+            check()
             rows = []
+            relative = inference_report.relative_paths(current['files'],config.input.paths)
             with threadpool_limits(limits=2):
                 for index, value in enumerate(current['files']):
                     progress(phase='predicting', completed_files=index, completed_rows=0, total_rows=0)
                     path = Path(value)
                     if config.input.kind == 'npz':
-                        X = npz_values(path, config.input, model.config.wavelengths_nm)
+                        X = npz_values(path, config.input, model.config.wavelengths_nm, check)
                         responses = []
                         for start in range(0, len(X), 8192):
                             progress(completed_rows=start, total_rows=len(X))
                             responses.append(model.decision_function(X[start:start+8192], model.config.wavelengths_nm))
                         responses = np.concatenate(responses)
                         prediction = model.classes_[responses.argmax(axis=1)]
-                        save_arrays(folder / f'{index}.npz', prediction=prediction, responses=responses)
+                        save_arrays(folder / f'{index}.npz', check=check, prediction=prediction, responses=responses)
                         with storage.resolve_write(folder / f'{index}.csv', kind='INFERENCE_CSV').open('w', encoding='utf-8-sig', newline='') as stream:
-                            writer = csv.writer(stream)
+                            writer = csv.writer(CheckedStream(stream,check))
                             writer.writerow(['index', 'class_id', 'class_name'])
                             writer.writerows((i, int(label), model.config.classes[int(label)]) for i, label in enumerate(prediction))
                         excluded, total = 0, len(prediction)
                     else:
-                        prediction, excluded, total, image_info = self._image(path, config.input, model, folder, index, progress)
-                    rows.append({'file_index': index, 'name': path.name, 'classified': len(prediction), 'excluded': excluded, 'total': total,
+                        info = images[value]
+                        binary = info['path']
+                        verify_image(info)
+                        if binary not in sources:
+                            record_source(binary,sources,check)
+                        original = reviewed['sources'].get(binary)
+                        if original and original['sha256'] != sources[binary]['sha256']:
+                            raise DataError('INFERENCE_SOURCE_CHANGED', 'IMG 内容与审阅时的摘要不同。')
+                        verify_image(info)
+                        prediction, excluded, total, image_info = self._image(path, config.input, model, folder, index, progress, check)
+                        verify_image(info,sources[binary]['sha256'])
+                        check_sources({value:sources[value]},check)
+                    rows.append({'file_index': index, 'name': path.name, 'relative_path': relative[index], 'classified': len(prediction), 'excluded': excluded, 'total': total,
                                  'counts': {str(label): int((prediction == label).sum()) for label in model.classes_}})
                     if config.input.kind=='envi':
                         rows[-1].update(image_info)
                     progress(completed_files=index+1, completed_rows=state['total_rows'])
             progress(phase='reporting')
-            check_sources(current['sources'])
-            self.experiments.artifact(config.model_id, 'model.joblib')
+            write_json(folder / 'sources.json', sources)
             result = {'run_id': run_id, 'model_id': config.model_id, 'kind': config.input.kind,
                       'created_at': datetime.now(timezone.utc).isoformat(), 'model_sha256': current['model_sha256'],
                       'classes': model.config.model_dump(mode='json')['classes'], 'files': rows,
-                      'colors': {key:'#'+''.join(f'{value:02x}' for value in color) for key,color in class_palette(model.classes_).items()},
+                      'colors': {key:'#%02x%02x%02x' % color for key,color in class_palette(model.classes_, model.config.classes).items()},
+                      'background_colors': {key:'#%02x%02x%02x' % color for key,color in BACKGROUND_COLORS.items()}
+                      if config.input.kind == 'envi' else None,
                       'evaluation_unit': model.config.train.evaluation_unit, 'score_definition': 'uncalibrated_pls_response',
                       'foreground': config.input.foreground.model_dump(mode='json') if config.input.kind=='envi' else None,
+                      'excluded_files': current['excluded_files'],
                       'note': '闭集分类；无真值标签，不计算准确率。PLS响应不是概率。未分类像元含边界、质量或已声明前景规则排除，均不代表已识别背景或未知类。'}
-            result['artifacts'] = {path.name: {'sha256': sha256(path), 'bytes': path.stat().st_size}
+            result['artifacts'] = {path.name: {'sha256': sha256(path,check), 'bytes': path.stat().st_size}
                                    for path in folder.iterdir() if path.is_file() and path.name not in {'status.json', 'result.json'}}
+            for info in images.values():
+                verify_image(info,sources[info['path']]['sha256'])
+            files, excluded = filtered_files(config.input,check)
+            if [str(path) for path in files]!=current['files'] or excluded!=current['excluded_files']:
+                raise DataError('INFERENCE_SOURCE_CHANGED', '推理期间输入目录成员发生变化。')
+            check_sources({key:sources[key] for key in current['files']},check)
+            self.experiments.artifact(config.model_id, 'model.joblib',check=check)
+            check()
+            if config.input.kind=='envi':
+                try:
+                    inference_report.build_report(folder.resolve(), result, config.model_dump(mode='json'),
+                                                  current['files'], check)
+                except (OSError, DataError) as error:
+                    if isinstance(error,DataError) and error.code=='INFERENCE_CANCELLED':
+                        raise
+                    # The comparison is derived and may be retried after the numerical result is saved.
+                    import logging
+                    logging.getLogger(__name__).warning('INFERENCE_REPORT_NOT_GENERATED')
+            check()
             write_json(folder / 'result.json', result)
             state.update(status='succeeded', finished_at=time())
         except Exception as error:
@@ -321,7 +474,7 @@ class InferenceService:
         rgb=np.uint8(np.nan_to_num(np.clip((preview-low)/np.maximum(high-low,1),0,1))*255)
         return level,left,right,rgb,wave[preview_ids].tolist()
 
-    def _image(self, path, spec, model, folder, index, progress):
+    def _image(self, path, spec, model, folder, index, progress, check):
         dataset, weights = envi_mapping(path, spec, model.config.wavelengths_nm)
         height, width = dataset.shape[:2]
         k, q = model.config.train.neighborhood, spec.quality
@@ -329,7 +482,8 @@ class InferenceService:
         level,left,right,preview,preview_waves=self._image_context(dataset,spec,model.config.wavelengths_nm,progress)
         preview_image=Image.fromarray(preview)
         preview_image.thumbnail((1200,1200),Image.Resampling.NEAREST)
-        preview_image.save(storage.resolve_write(folder/f'{index}_input.png',kind='INFERENCE_PREVIEW'))
+        with storage.resolve_write(folder/f'{index}_input.png',kind='INFERENCE_PREVIEW').open('wb') as stream:
+            preview_image.save(CheckedStream(stream,check),format='PNG')
         reasons=np.full((height,width),3,np.uint8)
         reasons[:radius]=4
         if radius:
@@ -358,6 +512,9 @@ class InferenceService:
             safe = minimum_filter(valid.astype(np.uint8), k, mode='constant', cval=0)[first-low:last-low] > 0
             if level is not None:
                 safe &= np.isfinite(level[first:last])&(level[first:last]>spec.foreground.threshold)
+            if not safe.any():
+                progress(completed_rows=last, total_rows=height)
+                continue
             padded = np.pad(mapped, ((radius, radius), (radius, radius), (0, 0)))
             total = np.zeros((last-first, width, len(model.config.wavelengths_nm)), np.float64)
             for dr in range(-radius, radius+1):
@@ -372,31 +529,36 @@ class InferenceService:
             labels[first:last][safe] = prediction
             accepted[first:last] = safe
             progress(completed_rows=last, total_rows=height)
-        if not accepted.any():
-            raise DataError('INFERENCE_EMPTY', '没有通过完整邻域和质量筛选的像元')
         reasons[accepted]=0
-        save_arrays(folder / f'{index}.npz', prediction_map=labels, valid_mask=accepted, exclusion_reason=reasons)
-        palette = class_palette(model.classes_)
-        rgb = np.full((height, width, 3), 224, np.uint8)
-        for label in model.classes_:
-            rgb[accepted & (labels == label)] = palette[str(label)]
-        image = Image.fromarray(rgb)
-        image.thumbnail((1200, 1200), Image.Resampling.NEAREST)
-        image.save(storage.resolve_write(folder / f'{index}.png', kind='INFERENCE_MAP'))
+        save_arrays(folder / f'{index}.npz', check=check, prediction_map=labels, valid_mask=accepted, exclusion_reason=reasons)
+        palette = class_palette(model.classes_, model.config.classes)
+        image = classification_preview(labels, accepted, reasons, palette)
+        with storage.resolve_write(folder/f'{index}.png',kind='INFERENCE_MAP').open('wb') as stream:
+            image.save(CheckedStream(stream,check),format='PNG')
         counts={name:int((reasons==code).sum()) for code,name in ((1,'brightness'),(2,'side_edges'),(3,'quality_or_neighborhood'),(4,'image_boundary'))}
         return labels[accepted], int((~accepted).sum()), height*width, {'shape':[height,width],'edges':{'left':left,'right':right},
                 'exclusion_counts':counts,'preview_wavelengths_nm':preview_waves}
 
-    def result(self, model_id, run_id):
-        if self.status(model_id, run_id)['status'] != 'succeeded':
+    def _saved_result(self, folder, model_id, run_id):
+        if self.status(model_id,run_id)['status'] != 'succeeded':
             raise DataError('INFERENCE_NOT_READY', '推理尚未成功完成')
-        return json.loads((self.folder(model_id, run_id) / 'result.json').read_text('utf-8'))
+        return read_json(inference_report.archive_path(folder,'result.json'))
+
+    def result(self, model_id, run_id):
+        folder = self.folder(model_id,run_id).resolve()
+        result = self._saved_result(folder,model_id,run_id)
+        if result.get('kind')=='envi' and any('relative_path' not in row for row in result['files']):
+            config, files = inference_report.archived_inputs(folder,result)
+            for row, path in zip(result['files'],inference_report.relative_paths(files,config['input']['paths'])):
+                row.setdefault('relative_path',path)
+        return result
 
     def artifact(self, model_id, run_id, name):
-        result = self.result(model_id, run_id)
+        folder = self.folder(model_id,run_id).resolve()
+        result = self._saved_result(folder,model_id,run_id)
         item = result['artifacts'].get(name)
-        path = self.folder(model_id, run_id) / name
-        if not item or Path(name).name != name or not path.is_file() or sha256(path) != item['sha256']:
+        path = inference_report.archive_path(folder,name)
+        if not item or not path.is_file() or sha256(path) != item['sha256']:
             raise DataError('INFERENCE_ARTIFACT_CHANGED', '推理产物缺失或校验失败')
         return path
 
@@ -409,16 +571,67 @@ class InferenceService:
             raise DataError('INFERENCE_RESULT_TOO_LARGE', '分类预览超过显示上限')
         return {'png_base64': base64.b64encode(data).decode('ascii')}
 
-    def export(self, model_id, run_id):
-        result = self.result(model_id, run_id)
-        if sum(item['bytes'] for item in result['artifacts'].values()) > 64*1024*1024:
-            raise DataError('INFERENCE_RESULT_TOO_LARGE', '推理包超过64MiB导出上限；归档产物仍保留')
-        output = BytesIO()
-        with ZipFile(output, 'w', compression=ZIP_DEFLATED) as archive:
-            archive.writestr('result.json', json.dumps(result, ensure_ascii=False, indent=2))
-            for name in result['artifacts']:
-                archive.write(self.artifact(model_id, run_id, name), name)
-        data = output.getvalue()
-        if len(data) > 64*1024*1024:
-            raise DataError('INFERENCE_RESULT_TOO_LARGE', '推理包超过64MiB导出上限')
-        return data
+    def _ensure_report(self, folder, result):
+        with self.report_lock:
+            cached = inference_report.report_cache(folder,result)
+            if cached is not None:
+                return cached
+            config, files = inference_report.archived_inputs(folder,result)
+            return inference_report.build_report(folder,result,config,files)
+
+    def prepare_report(self, model_id, run_id):
+        folder = self.folder(model_id,run_id).resolve()
+        result = self._saved_result(folder,model_id,run_id)
+        if result['kind']!='envi':
+            raise DataError('INFERENCE_REPORT_UNAVAILABLE', '对比报告适用于 ENVI 整图推理')
+        items = self._ensure_report(folder,result)
+        name = inference_report.REPORT
+        try:
+            path = inference_report.archive_path(folder,name)
+            inference_report.verify_digest(sha256(path),path.stat().st_size,items[name])
+        except (OSError,KeyError,TypeError) as error:
+            raise DataError('INFERENCE_ARTIFACT_CHANGED', '对比报告缺失或校验失败') from error
+        return {'ready':True}
+
+    def export(self, model_id, run_id, *, output=None):
+        folder = self.folder(model_id,run_id).resolve()
+        result = self._saved_result(folder,model_id,run_id)
+        artifacts = result['artifacts']
+        if result.get('kind')=='envi':
+            with self.report_lock:
+                report_items = inference_report.report_cache(folder,result) or {}
+            if artifacts.keys() & report_items.keys():
+                raise DataError('INFERENCE_ARTIFACT_CHANGED', '对比报告和原推理产物重名')
+            artifacts = {**artifacts, **report_items}
+        target = output if output is not None else BytesIO()
+        paths = inference_report.export_paths(folder,artifacts)
+        with ZipFile(target,'w',compression=ZIP_DEFLATED) as archive, ThreadPoolExecutor(max_workers=8) as readers:
+            archive.writestr('result.json',json.dumps(result,ensure_ascii=False,indent=2))
+            # Read small files in bounded batches (at most 16 MiB). Large
+            # members still stream into the ZIP even if their size is unknown.
+            while batch := list(islice(paths,16)):
+                pending = {}
+                for name, path in batch:
+                    if name in ('result.json','status.json',inference_report.MANIFEST):
+                        raise DataError('INFERENCE_ARTIFACT_CHANGED', '推理产物名称不合法')
+                    item = artifacts[name]
+                    size = item.get('bytes')
+                    if isinstance(size,int) and 0<=size<=_EXPORT_BLOCK:
+                        pending[name] = readers.submit(_read_small_export_file,path,item)
+                for name, path in batch:
+                    member = ZipInfo(name)
+                    member.compress_type = ZIP_DEFLATED if path.suffix.lower() in ('.json','.csv','.html') else ZIP_STORED
+                    if name in pending:
+                        archive.writestr(member,pending[name].result())
+                        continue
+                    digest, size = hashlib.sha256(), 0
+                    try:
+                        with path.open('rb') as source, archive.open(member,'w',force_zip64=True) as destination:
+                            while block := source.read1(_EXPORT_BLOCK):
+                                digest.update(block)
+                                size += len(block)
+                                destination.write(block)
+                        inference_report.verify_digest(digest.hexdigest(),size,artifacts[name])
+                    except (OSError,KeyError,TypeError) as error:
+                        raise DataError('INFERENCE_ARTIFACT_CHANGED', '推理产物缺失或校验失败') from error
+        return target.getvalue() if output is None else None

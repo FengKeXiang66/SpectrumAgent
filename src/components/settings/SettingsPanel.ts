@@ -9,11 +9,12 @@ export type SettingsPanelViewProps = { state: FormState; dialogRef?: RefObject<H
 
 export function SettingsPanelView(p: SettingsPanelViewProps) {
   const disabled = p.state.phase !== 'ready';
-  const fields = (['base_url', 'model', 'temperature', 'max_tokens', 'timeout_ms'] as const).map(field =>
+  const fields = (['base_url', 'model', 'router_model', 'temperature', 'max_tokens', 'timeout_ms'] as const).map(field =>
     h('label', { key: field, className: 'settings-field' }, field,
-      h('input', { name: field, value: p.state.values[field], disabled,
-        type: field === 'base_url' ? 'url' : field === 'model' ? 'text' : 'number',
+      h('input', { name: field, value: p.state.values[field] ?? "", disabled,
+        type: field === 'base_url' ? 'url' : field === 'model' || field === 'router_model' ? 'text' : 'number',
         ...(field === 'base_url' ? { placeholder: '例如：https://api.siliconflow.cn/v1' } : {}),
+        ...(field === 'router_model' ? { placeholder: '选填，留空复用主模型' } : {}),
         ...(field === 'model' ? { placeholder: '例如：deepseek-ai/DeepSeek-V4-Flash' } : {}),
         ...(field === 'temperature' ? { step: 'any' } : {}),
         ...(field === 'max_tokens' || field === 'timeout_ms' ? { min: 1, step: 1 } : {}),
@@ -31,7 +32,7 @@ export function SettingsPanelView(p: SettingsPanelViewProps) {
     h('p', { className: 'settings-hint' },
       'base_url 填写服务商的 API 基地址，例如 https://api.siliconflow.cn/v1（以 /v1 结尾）。不要带 /chat/completions、查询参数或密钥：程序会自动在基地址后拼接 /chat/completions，多写一次会导致 404。',
       h('br'),
-      'model 填写服务商给出的模型 ID，例如 deepseek-ai/DeepSeek-V4-Flash。temperature、max_tokens、timeout_ms 可留空，留空表示由服务商决定；timeout_ms 为毫秒数。'),
+      'model 填写服务商给出的模型 ID，例如 deepseek-ai/DeepSeek-V4-Flash。router_model 可选，留空复用主模型。temperature、max_tokens、timeout_ms 可留空，留空表示由服务商决定；timeout_ms 为毫秒数。'),
     h('p', { className: `key-status${p.state.hasKey ? ' configured' : ''}`,
       role: 'status', 'aria-label': 'API KEY 配置状态' },
       p.state.hasKey === null ? '正在读取 API KEY 配置状态…' : p.state.hasKey ? 'API KEY 已配置' : 'API KEY 未配置'),

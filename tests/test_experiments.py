@@ -84,11 +84,13 @@ def test_train_only_fit_matches_sklearn_and_artifacts_survive_reload(tmp_path, w
     assert caught.value.code == "EXPERIMENT_ARTIFACT_CHANGED"
 
 
-@pytest.mark.parametrize("overlap", ["same_file", "identical_spectra", "same_sample_id"])
+@pytest.mark.parametrize("overlap", ["same_file", "copied_file", "identical_spectra", "same_sample_id"])
 def test_overlapping_train_test_inputs_can_train(overlap, tmp_path, workspace, monkeypatch):
     body = config_for(tmp_path)
     if overlap == 'same_file':
         body['test'] = copy.deepcopy(body['train'])
+    elif overlap == 'copied_file':
+        Path(body['test']['paths'][0]).write_bytes(Path(body['train']['paths'][0]).read_bytes())
     elif overlap == 'identical_spectra':
         with np.load(body['train']['paths'][0]) as train, np.load(body['test']['paths'][0]) as test:
             values = {key: test[key].copy() for key in test.files}
@@ -105,12 +107,17 @@ def test_overlapping_train_test_inputs_can_train(overlap, tmp_path, workspace, m
             return data
 
         monkeypatch.setattr(service, 'load_input', with_shared_sample)
+    if overlap != 'identical_spectra':
+        with pytest.raises(DataError) as caught:
+            ExperimentService(workspace).run(ExperimentConfig.model_validate(body))
+        assert caught.value.code == 'EXPERIMENT_SPLIT_OVERLAP'
+    body['test_usage'] = 'development_regression'
     result = ExperimentService(workspace).run(ExperimentConfig.model_validate(body))
     assert result['status'] == 'succeeded'
-    assert result['split_checks']['status'] == 'skipped'
-    assert result['split_checks']['same_file'] is None
-    assert result['split_checks']['exact_duplicate_spectrum'] is None
-    assert result['split_checks']['physical_sample_independence'] == 'not_checked'
+    assert result['split_checks']['status'] == 'completed'
+    assert result['split_checks']['duplicate_test_spectra'] == {
+        'same_file':36, 'copied_file':36, 'identical_spectra':1, 'same_sample_id':0}[overlap]
+    assert result['split_checks']['physical_sample_independence'] == ('overlap' if overlap == 'same_sample_id' else 'unknown')
     assert (ExperimentService(workspace).folder(result['experiment_id']) / 'model.joblib').is_file()
 
 

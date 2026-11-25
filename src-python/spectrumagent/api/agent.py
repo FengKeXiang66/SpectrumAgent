@@ -1,15 +1,38 @@
 """R9/R10 Agent HTTP adapters: preflight failures or finite SSE event streams."""
+from pathlib import Path
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Request, Query
 from pydantic import BaseModel, ConfigDict, Field
-from starlette.responses import StreamingResponse
+from starlette.responses import FileResponse, StreamingResponse
 from starlette.responses import Response
 
 from spectrumagent.agent.llm import OpenAICompatibleClient, _json
 from spectrumagent.agent.state import AgentStore, StateMachine
 from spectrumagent.agent.skill import active_skill, ensure_workflow_skill, _write
 from backend.database import connect_database
+from spectrumagent.storage import guard
+
+
+class ZipDownload(FileResponse):
+    """Stage verified bundles on disk and release the file when the response ends."""
+
+    def __init__(self, write):
+        self.staging = guard.temporary_directory(prefix='spectrum-export-')
+        path = Path(self.staging.__enter__()) / 'results.zip'
+        try:
+            with guard.resolve_write(path, kind='EXPERIMENT_EXPORT').open('xb') as output:
+                write(output)
+            super().__init__(path, media_type='application/octet-stream')
+        except BaseException:
+            self.staging.__exit__(None, None, None)
+            raise
+
+    async def __call__(self, scope, receive, send):
+        try:
+            await super().__call__(scope, receive, send)
+        finally:
+            self.staging.__exit__(None, None, None)
 
 
 class AgentInput(BaseModel):
@@ -173,6 +196,80 @@ def make_router(database, tools, llm_factory=None, runtime_info=None, *, session
     def inference_service(session_id):
         return experiment_archive(session_id).dialogue.inference.service
 
+    @router.get('/sessions/{session_id}/pairing-view')
+    def pairing_view(session_id: UUIDText, preview_id: UUIDText | None = None,
+                     section: Literal['pairs', 'unused', 'issues'] = 'pairs',
+                     offset: int = Query(default=0, ge=0), limit: int = Query(default=20, ge=1, le=50),
+                     search: str = Query(default='', max_length=200),
+                     role: Literal['训练', '测试'] | None = None,
+                     label: str | None = Query(default=None, max_length=100)):
+        report = experiment_archive(session_id).dialogue.pairing_report(session_id)
+        if not report or preview_id and report['preview_id'] != preview_id:
+            return {'status':'stale' if report else 'empty', 'preview_id':report['preview_id'] if report else None}
+        pairs = report['pairs']
+        match = search.strip().casefold()
+        items = []
+        for index, entry in enumerate(report[section]):
+            if section == 'pairs':
+                if ((role and entry['role'] != role) or (label and label not in entry['labels'])
+                        or match and not any(match in str(entry[key]).casefold() for key in ('hdr','annotation','labels'))):
+                    continue
+                items.append({'index':index, **{key:entry[key] for key in ('role','hdr','annotation','labels','regions')}})
+            elif match in entry.casefold():
+                items.append({'index':index, 'text':entry})
+        return {'status':'ready', 'preview_id':report['preview_id'], 'items':items[offset:offset+limit], 'total':len(items),
+                'labels':sorted({name for pair in pairs for name in pair['labels']}),
+                'counts':{key:len(report[key]) for key in ('pairs','unused','issues')}}
+
+    @router.get('/sessions/{session_id}/pairing-view/{preview_id}/files/{index}/{kind}')
+    def pairing_file(session_id: UUIDText, preview_id: UUIDText, index: int,
+                     kind: Literal['hdr', 'annotation']):
+        import hashlib
+        report = experiment_archive(session_id).dialogue.pairing_report(session_id)
+        if not report or report['preview_id'] != preview_id:
+            raise _failure('PAIRING_STALE', '该配对预览已替换，请打开最新预览。', 409)
+        if not 0 <= index < len(report['pairs']):
+            raise _failure('PAIRING_ROW_NOT_FOUND', '这条配对记录已不可用。', 404)
+        row = report['pairs'][index]
+        path = Path(row[kind])
+        if path.suffix.lower() != {'hdr':'.hdr','annotation':'.json'}[kind] or path.resolve() != path:
+            raise _failure('PAIRING_FILE_INVALID', '只能预览这条配对记录中的 HDR 或 JSON 文本。', 422)
+        limit = 1024 * 1024
+        try:
+            with path.open('rb') as stream:
+                data = stream.read(limit+1)
+            if len(data)>limit:
+                raise _failure('PAIRING_FILE_TOO_LARGE', '文件超过 1 MiB，请使用本机编辑器查看。', 413)
+            if row.get(kind+'_sha256') and hashlib.sha256(data).hexdigest() != row[kind+'_sha256']:
+                raise _failure('PAIRING_FILE_CHANGED', '文件自配对后发生变化，请重新预览。', 409)
+            try:
+                text = data.decode('utf-8-sig')
+            except UnicodeDecodeError:
+                if kind != 'hdr':
+                    raise
+                text = data.decode('gb18030')
+        except (OSError, UnicodeError):
+            raise _failure('PAIRING_FILE_UNREADABLE', '文件无法读取或文本编码不受支持。', 422) from None
+        if chr(0) in text:
+            raise _failure('PAIRING_FILE_UNREADABLE', '无法预览二进制文件。', 422)
+        return {'name':path.name, 'text':text}
+
+    @router.get('/sessions/{session_id}/foreground-probe')
+    def foreground_probe(session_id: UUIDText):
+        return experiment_archive(session_id).dialogue.inference.probe_result(session_id)
+
+    @router.get('/sessions/{session_id}/studies/{study_id}')
+    def study_status(session_id: UUIDText, study_id: UUIDText):
+        return experiment_archive(session_id).dialogue.study.status(session_id,study_id)
+
+    @router.get('/sessions/{session_id}/studies/{study_id}/result')
+    def study_result(session_id: UUIDText, study_id: UUIDText):
+        return experiment_archive(session_id).dialogue.study.result(session_id,study_id)
+
+    @router.post('/sessions/{session_id}/studies/{study_id}/cancel')
+    def cancel_study(session_id: UUIDText, study_id: UUIDText):
+        return experiment_archive(session_id).dialogue.study.cancel(session_id,study_id)
+
     @router.get('/sessions/{session_id}/experiment-history/{model_id}/inferences')
     def inference_history(session_id: UUIDText, model_id: UUIDText):
         return {'items': inference_service(session_id).history(model_id)}
@@ -180,6 +277,10 @@ def make_router(database, tools, llm_factory=None, runtime_info=None, *, session
     @router.get('/sessions/{session_id}/experiment-history/{model_id}/inferences/{run_id}')
     def inference_task(session_id: UUIDText, model_id: UUIDText, run_id: UUIDText):
         return inference_service(session_id).status(model_id,run_id,session_id)
+
+    @router.post('/sessions/{session_id}/experiment-history/{model_id}/inferences/{run_id}/focus')
+    def focus_inference(session_id: UUIDText, model_id: UUIDText, run_id: UUIDText):
+        return experiment_archive(session_id).dialogue.inference.focus_run(session_id,model_id,run_id)
 
     @router.post('/sessions/{session_id}/experiment-history/{model_id}/inferences/{run_id}/cancel')
     def cancel_inference(session_id: UUIDText, model_id: UUIDText, run_id: UUIDText):
@@ -193,10 +294,15 @@ def make_router(database, tools, llm_factory=None, runtime_info=None, *, session
     def inference_plot(session_id: UUIDText, model_id: UUIDText, run_id: UUIDText, file_index: int, kind: Literal['prediction','input']='prediction'):
         return inference_service(session_id).plot(model_id,run_id,file_index,kind)
 
+    @router.post('/sessions/{session_id}/experiment-history/{model_id}/inferences/{run_id}/report')
+    def prepare_inference_report(session_id: UUIDText, model_id: UUIDText, run_id: UUIDText):
+        return inference_service(session_id).prepare_report(model_id,run_id)
+
     @router.get('/sessions/{session_id}/experiment-history/{model_id}/inferences/{run_id}/export', response_class=Response,
                 responses={200: {'content': {'application/octet-stream': {'schema': {'type':'string','format':'binary'}}}}})
     def export_inference(session_id: UUIDText, model_id: UUIDText, run_id: UUIDText):
-        return Response(inference_service(session_id).export(model_id,run_id),media_type='application/octet-stream')
+        service = inference_service(session_id)
+        return ZipDownload(lambda output: service.export(model_id, run_id, output=output))
 
     @router.get('/sessions/{session_id}/experiment-history')
     def experiment_history(session_id: UUIDText, request: Request,
@@ -225,7 +331,10 @@ def make_router(database, tools, llm_factory=None, runtime_info=None, *, session
     @router.get('/sessions/{session_id}/experiment-history/{experiment_id}/export/{kind}', response_class=Response,
                 responses={200: {'content': {'application/octet-stream': {'schema': {'type': 'string', 'format': 'binary'}}}}})
     def export_archived_experiment(session_id: UUIDText, experiment_id: UUIDText, kind: str):
-        data = experiment_archive(session_id).export(session_id, None, kind, experiment_id=experiment_id)
+        results = experiment_archive(session_id)
+        if kind == 'bundle':
+            return ZipDownload(lambda output: results.export(session_id, None, kind, experiment_id=experiment_id, output=output))
+        data = results.export(session_id, None, kind, experiment_id=experiment_id)
         return Response(data, media_type='application/octet-stream')
 
     @router.get('/sessions/{session_id}/experiments/{task_id}/result')
@@ -239,7 +348,10 @@ def make_router(database, tools, llm_factory=None, runtime_info=None, *, session
     @router.get('/sessions/{session_id}/experiments/{task_id}/export/{kind}', response_class=Response,
                 responses={200: {'content': {'application/octet-stream': {'schema': {'type': 'string', 'format': 'binary'}}}}})
     def export_experiment_result(session_id: UUIDText, task_id: UUIDText, kind: str):
-        data = experiment_results(session_id).export(session_id, task_id, kind)
+        results = experiment_results(session_id)
+        if kind == 'bundle':
+            return ZipDownload(lambda output: results.export(session_id, task_id, kind, output=output))
+        data = results.export(session_id, task_id, kind)
         return Response(data, media_type='application/octet-stream')
 
     @router.post('/sessions/{session_id}/annotation-flow')
@@ -430,10 +542,15 @@ def make_router(database, tools, llm_factory=None, runtime_info=None, *, session
         result['effective_tool_count']=len(scoped(session_id).snapshot())
         return result
 
+    def experiment_active(session_id):
+        dialogue = getattr(tools(), 'experiment_dialogue', None)
+        return bool(dialogue and (dialogue.tasks.active(session_id) or dialogue.study.has_active(session_id)
+                                  or dialogue.inference.service.has_active(session_id)))
+
     @router.post('/sessions/{session_id}/archive')
     def archive_session(session_id: UUIDText, request: Request):
         queries(request,set())
-        return session_service.archive(session_id)
+        return session_service.archive(session_id, experiment_active=experiment_active)
 
     @router.get('/sessions/{session_id}/members')
     def list_members(session_id: UUIDText, request: Request, after: int = Query(default=0,ge=0), limit: int = Query(default=50,ge=1,le=100)):

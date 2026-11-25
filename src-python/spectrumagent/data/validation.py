@@ -20,15 +20,31 @@ _RULES = {
     'greater_than_equal': ('at least minimum', '数值不得小于声明的下限'),
     'less_than_equal': ('at most maximum', '数值不得大于声明的上限'),
     'literal_error': ('declared enum', '请选择声明的枚举值'),
-    'union_tag_invalid': ('declared operator', '请选择支持的算子'),
+    'union_tag_invalid': ('declared discriminator', '请使用字段声明的类型或算子'),
+    'union_tag_not_found': ('required discriminator', '请补充声明的类型或算子标识'),
     'json_invalid': ('JSON', '请提供合法 JSON'),
 }
 _MESSAGES = {
     'window 必须为奇数': ('odd_window', 'odd integer', 'window 必须为奇数；请选择正奇数窗口'),
     'polyorder 必须严格小于 window': ('polynomial_window', 'polyorder < window', '请使 polyorder 严格小于 window'),
     'interp 窗口不得超过输入 bands': ('input_bands', 'window <= input bands', 'interp 窗口不得超过该步骤输入的有效波段数；请缩小 window'),
+    '边缘亮度上下界或探测波长不合法': ('foreground_bounds', 'ordered bounds and unique bands', '边缘亮度下限须小于上限，探测波长不得重复'),
 }
-_SEGMENTS = frozenset('pipeline steps params op version window polyorder mode order zero_std method code name description note recipe recipe_id recipe_version_id source_recipe_version_id cube_id annotation_version_id annotation_version_no retry_of_submission run_id items members source_ref draft_id expected_revision revision action steps snv sg_smooth sg_derivative standardize body response'.split())
+_SEGMENTS = frozenset('''
+    pipeline steps params op version window polyorder mode order zero_std method code name description note
+    recipe recipe_id recipe_version_id source_recipe_version_id cube_id annotation_version_id annotation_version_no
+    retry_of_submission run_id items members source_ref draft_id expected_revision revision action snv sg_smooth
+    sg_derivative standardize body response
+    axis grid archive saved_native start_nm stop_nm step_nm role kind train test roi_images npz envi
+    input input_stage evaluation_unit source_refs spectra_key labels_key wavelengths_key groups_key
+    header_ref roi_ref sample_id batch data_ref centers_ref neighborhood sampling_stride max_per_class sampling_seed
+    wavelength_unit mapping_window_nm nearest_tolerance_nm
+    classes label preprocessing preprocessing_edit index step savgol derivative delta_nm center standard_scale
+    l2 epsilon ddof pca model n_components scale max_iter tol model_id reset additional_metrics test_usage
+    quality min_mean min_std max_zero_fraction saturation
+    foreground brightness_edges none wavelengths_nm threshold left_min right_min edge_search_columns
+    edge_bad_fraction edge_low edge_high exclusions exclusions_ref name_fragments prefixes
+'''.split())
 
 
 def location(parts, allowed_fields=()):

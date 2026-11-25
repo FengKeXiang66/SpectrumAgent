@@ -1,7 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { normalizePath } from '../datasets/paths.ts';
 
-export type LLMConfig = { base_url: string; model: string; temperature: string; max_tokens: string; timeout_ms: string; egress_enabled: boolean };
+export type LLMConfig = { base_url: string; model: string; router_model?: string; temperature: string; max_tokens: string; timeout_ms: string; egress_enabled: boolean };
 export type LLMSettings = LLMConfig & { has_key: boolean };
 export type LLMVerify = { status: 'available' | 'unavailable' | 'disabled' | 'unconfigured' | 'unknown'; detail: string; latency_ms?: number | null };
 export type ProjectPaths = { source_path: string; output_root: string; data_root: string; output_enabled: boolean };
@@ -13,7 +13,7 @@ export type SettingsRequest = { op: 'get_llm' } | { op: 'put_llm'; body: LLMConf
 export type InvokeSettings = <T>(command: string, args: { request: SettingsRequest }) => Promise<T>;
 
 export function configFields(value: LLMConfig): LLMConfig {
-  return { base_url: value.base_url, model: value.model, temperature: value.temperature,
+  return { base_url: value.base_url, model: value.model, router_model: value.router_model ?? '', temperature: value.temperature,
     max_tokens: value.max_tokens, timeout_ms: value.timeout_ms, egress_enabled: value.egress_enabled };
 }
 export const requests = {

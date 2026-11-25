@@ -66,6 +66,7 @@ export type PendingPlan = PlanEventData;
 export type ChatState = { entries: ChatEntry[]; pending: PendingCheck | PendingPlan | null; busy: boolean; executing: boolean; error: string | null; phase?:string;preExecution?:boolean };
 export const initialChat: ChatState = { entries: [], pending: null, busy: false, executing: false, error: null };
 const TOOL_PHASES:Record<string,string> = {
+  'experiments.inference_inspect':'正在核验推理输入',
   'datasets.list':'正在读取数据目录', 'datasets.resolve':'正在核对数据范围',
   'datasets.describe':'正在读取数据概况', 'preprocess.recipes':'正在读取预处理配方',
   'preprocess.recipe_ensure':'正在准备预处理配方', 'preprocess.run':'正在预处理数据',

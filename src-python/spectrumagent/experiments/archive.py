@@ -62,12 +62,12 @@ class ExperimentArchive:
         rows.sort(key=lambda row: (row['created_at'], row['experiment_id']), reverse=True)
         return {'items': rows[offset:offset + limit], 'total': len(rows), 'offset': offset, 'limit': limit}
 
-    def model_metadata(self, identifier):
+    def model_metadata(self, identifier, *, check=None):
         record = self.service.get(identifier)
         if record['status'] != 'succeeded':
             raise DataError('EXPERIMENT_MODEL_NOT_READY', '只有成功实验才有可复用的完整模型')
-        self.service.artifact(identifier, 'model.joblib')
-        config = json.loads(self.service.artifact(identifier, 'config.json').read_text('utf-8'))
+        self.service.artifact(identifier, 'model.joblib',check=check)
+        config = json.loads(self.service.artifact(identifier, 'config.json',check=check).read_text('utf-8'))
         return {'model_id': record.get('model_id', identifier), 'experiment_id': identifier,
                 'name': config['name'], 'stage': 'experiment', 'format': 'explicit_plsda_joblib_v1',
                 'sha256': record['model_sha256'], 'classes': config['classes'],
@@ -76,15 +76,21 @@ class ExperimentArchive:
                 'neighborhood': config['train']['neighborhood'],
                 'evaluation_unit': config['train']['evaluation_unit'], 'environment': record['environment']}
 
-    def load_model(self, identifier):
+    def load_model(self, identifier, *, check=None):
         """Internal inference boundary; never accept an arbitrary pickle path."""
         from .service import ExperimentModel
-        metadata = self.model_metadata(identifier)
+        metadata = self.model_metadata(identifier,check=check)
         environment = metadata['environment']
         if environment['sklearn'] != sklearn.__version__ or environment['joblib'] != joblib.__version__:
             raise DataError('EXPERIMENT_MODEL_ENVIRONMENT_CHANGED', '当前模型依赖版本与训练时不同，拒绝直接复用')
         try:
-            model = joblib.load(self.service.artifact(identifier, 'model.joblib'))
+            path = self.service.artifact(identifier,'model.joblib',check=check)
+            if check:
+                from .inputs import CheckedStream
+                with path.open('rb') as stream:
+                    model = joblib.load(CheckedStream(stream,check))
+            else:
+                model = joblib.load(path)
             config = self.service.get(identifier)['config']
             if not isinstance(model, ExperimentModel) or model.config.model_dump(mode='json') != config:
                 raise ValueError('model/config mismatch')

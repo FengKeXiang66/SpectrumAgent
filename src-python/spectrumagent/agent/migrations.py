@@ -4,7 +4,7 @@
 DDL = r"""-- G1：LLM 配置（非敏感，key 不在此表，2026-11-12 起 key 密文另存 credential_store 独立文件，仍不入库）
 CREATE TABLE IF NOT EXISTS llm_settings (
   key   TEXT PRIMARY KEY,
-  value TEXT NOT NULL              -- 设置屏保存 body，六键设置默认五文本键为空且egress_enabled为1
+  value TEXT NOT NULL              -- 模型配置默认留空，egress_enabled 默认为 1
 );
 -- 供值：value 全部来自 PUT /settings/llm 的 body 或启动播种（播种值=空串=未配置，禁预置厂商）
 
@@ -119,8 +119,8 @@ CREATE TABLE IF NOT EXISTS agent_plan_action (
 );
 """
 
-SETTING_KEYS = ("base_url", "model", "temperature", "max_tokens", "timeout_ms", "egress_enabled")
-SETTING_DEFAULTS = {"base_url": "", "model": "", "temperature": "", "max_tokens": "",
+SETTING_KEYS = ("base_url", "model", "router_model", "temperature", "max_tokens", "timeout_ms", "egress_enabled")
+SETTING_DEFAULTS = {"base_url": "", "model": "", "router_model": "", "temperature": "", "max_tokens": "",
                     "timeout_ms": "", "egress_enabled": "1"}
 
 

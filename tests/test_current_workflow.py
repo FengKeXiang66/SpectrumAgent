@@ -96,6 +96,24 @@ def test_current_data_flows_through_processing_training_and_prediction(workspace
             app.state.agent_tools.resolve('training_sets.confirm')
         assert missing.value.code == 'TOOL_NOT_FOUND'
 
+        from test_experiment_conversation import machine_for
+        from spectrumagent.agent.llm import ChatResult, ToolCall
+        import json
+
+        class LocalTrainingModel:
+            def chat(self,messages,tools):
+                assert any(tool['function']['name']=='workspace.classify' for tool in tools)
+                return ChatResult(content=None,finish_reason='tool_calls',tool_calls=[
+                    ToolCall(id='train-current',name='workspace.classify',
+                             arguments_json=json.dumps(dict(cube_ids=cubes,cv_folds=2,n_components=1)))])
+        owner = app.state.agent_sessions.create()['id']
+        machine = machine_for(app,owner,LocalTrainingModel())
+        messages = list(machine.message(content='把这些已处理好的样品拿来训练分类模型'))
+        assert messages[-1][0]=='human_check',messages
+        pending = messages[-1][1]
+        assert pending['summary']['cube_ids_count']==len(cubes)
+        assert list(machine.message(check_id=pending['check_id'],decision='reject'))[-1][1]['content'].startswith('已拒绝')
+
         body = dict(task='classification',target='label',cube_ids=cubes,
                     annotation_version_ids=[members[c]['annotation_id'] for c in cubes],
                     preprocess_run_ids=[members[c]['run_id'] for c in cubes],

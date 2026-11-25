@@ -55,6 +55,16 @@ pub(crate) fn uuid(value: &str) -> Result<(), ForwardError> {
     Ok(())
 }
 
+/// The report must be the fixed file in the permanent inference archive.
+pub fn inference_report_path(root: &std::path::Path, model_id: &str, run_id: &str)
+    -> Result<std::path::PathBuf, ForwardError>
+{
+    uuid(model_id)?;
+    uuid(run_id)?;
+    Ok(root.join("experiments").join(model_id.to_ascii_lowercase())
+        .join("inferences").join(run_id.to_ascii_lowercase()).join("report.html"))
+}
+
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Decision {
@@ -182,7 +192,11 @@ pub enum AgentRequest {
     InferenceTask { id: String, model_id: String, run_id: String, action: String },
     InferencePlot { id: String, model_id: String, run_id: String, file_index: u32, kind: Option<String> },
     InferenceExport { id: String, model_id: String, run_id: String, destination: String },
+    PrepareInferenceReport { id: String, model_id: String, run_id: String },
     ExperimentHistory { id: String, offset: Option<u32>, limit: Option<u32> },
+    PairingView { id: String, preview_id: Option<String>, section: String, offset: u32, limit: u32,
+                  search: Option<String>, role: Option<String>, label: Option<String> },
+    PairingFile { id: String, preview_id: String, index: u32, kind: String },
     SelectExperiment { id: String, experiment_id: String },
     CompareExperiments { id: String, first_id: String, second_id: String },
     ArchivedExperimentResult { id: String, experiment_id: String },
@@ -192,6 +206,8 @@ pub enum AgentRequest {
     ExperimentPlot { id: String, task_id: String, name: String },
     ExperimentExport { id: String, task_id: String, kind: String, destination: String },
     ExperimentTask { id: String, task_id: String, action: String },
+    Study { id: String, study_id: String, action: String },
+    ForegroundProbe { id: String },
     CancelRequest { id: String, request_id: String },
     GetRequest { id: String, request_id: String },
     StartAnnotation {
@@ -289,13 +305,16 @@ impl AgentRequest {
             Self::InferenceHistory { id, model_id } => { uuid(id)?; uuid(model_id) }
             Self::InferenceTask { id, model_id, run_id, action } => {
                 uuid(id)?;uuid(model_id)?;uuid(run_id)?;
-                if !["get","cancel","result"].contains(&action.as_str()) { return Err(invalid_request()); }
+                if !["get","cancel","result","focus"].contains(&action.as_str()) { return Err(invalid_request()); }
                 Ok(())
             }
             Self::InferencePlot { id, model_id, run_id, kind, .. } => {
                 uuid(id)?;uuid(model_id)?;uuid(run_id)?;
                 if kind.as_ref().is_some_and(|v| !["prediction","input"].contains(&v.as_str())) { return Err(invalid_request()); }
                 Ok(())
+            }
+            Self::PrepareInferenceReport { id, model_id, run_id } => {
+                uuid(id)?; uuid(model_id)?; uuid(run_id)
             }
             Self::InferenceExport { id, model_id, run_id, destination } => {
                 uuid(id)?;uuid(model_id)?;uuid(run_id)?;
@@ -304,6 +323,23 @@ impl AgentRequest {
                 Ok(())
             }
             Self::ExperimentHistory { id, limit, .. } => { uuid(id)?; page_limit(limit,50) }
+            Self::PairingView { id, preview_id, section, limit, search, role, label, .. } => {
+                uuid(id)?;
+                if let Some(preview) = preview_id { uuid(preview)?; }
+                if !matches!(section.as_str(), "pairs" | "unused" | "issues")
+                    || role.as_deref().is_some_and(|value| !matches!(value, "训练" | "测试"))
+                    || search.as_ref().is_some_and(|value| value.chars().count() > 200)
+                    || label.as_ref().is_some_and(|value| value.chars().count() > 100)
+                {
+                    return Err(invalid_request());
+                }
+                page_limit(&Some(*limit), 50)
+            }
+            Self::PairingFile { id, preview_id, kind, .. } => {
+                uuid(id)?;
+                uuid(preview_id)?;
+                if matches!(kind.as_str(), "hdr" | "annotation") { Ok(()) } else { Err(invalid_request()) }
+            }
             Self::SelectExperiment { id, experiment_id } | Self::ArchivedExperimentResult { id, experiment_id } => {
                 uuid(id)?; uuid(experiment_id)
             }
@@ -327,6 +363,13 @@ impl AgentRequest {
                 if !["get", "cancel"].contains(&action.as_str()) { return Err(invalid_request()); }
                 Ok(())
             }
+            Self::Study { id, study_id, action } => {
+                uuid(id)?;
+                uuid(study_id)?;
+                if !["get", "result", "cancel"].contains(&action.as_str()) { return Err(invalid_request()); }
+                Ok(())
+            }
+            Self::ForegroundProbe { id } => uuid(id),
             Self::CancelRequest { id, request_id } | Self::GetRequest { id, request_id } => {
                 uuid(id)?;
                 uuid(request_id)
@@ -483,12 +526,23 @@ impl AgentRequest {
             Self::InferenceHistory { id, model_id } => (format!("/api/v1/agent/sessions/{id}/experiment-history/{model_id}/inferences"),Method::GET,None),
             Self::InferenceTask { id, model_id, run_id, action } => {
                 let base=format!("/api/v1/agent/sessions/{id}/experiment-history/{model_id}/inferences/{run_id}");
-                let suffix=match action.as_str(){"cancel"=>"/cancel","result"=>"/result",_=>""};
-                (format!("{base}{suffix}"),if action=="cancel"{Method::POST}else{Method::GET},None)
+                let (suffix, method) = match action.as_str() {
+                    "cancel" => ("/cancel", Method::POST),
+                    "result" => ("/result", Method::GET),
+                    "focus" => ("/focus", Method::POST),
+                    _ => ("", Method::GET),
+                };
+                (format!("{base}{suffix}"),method,None)
             }
             Self::InferencePlot { id, model_id, run_id, file_index, .. } => (format!("/api/v1/agent/sessions/{id}/experiment-history/{model_id}/inferences/{run_id}/plots/{file_index}"),Method::GET,None),
             Self::InferenceExport { id, model_id, run_id, .. } => (format!("/api/v1/agent/sessions/{id}/experiment-history/{model_id}/inferences/{run_id}/export"),Method::GET,None),
+            Self::PrepareInferenceReport { id, model_id, run_id } => (
+                format!("/api/v1/agent/sessions/{id}/experiment-history/{model_id}/inferences/{run_id}/report"),
+                Method::POST, None),
             Self::ExperimentHistory { id, .. } => (format!("/api/v1/agent/sessions/{id}/experiment-history"), Method::GET, None),
+            Self::PairingView { id, .. } => (format!("/api/v1/agent/sessions/{id}/pairing-view"), Method::GET, None),
+            Self::PairingFile { id, preview_id, index, kind } => (
+                format!("/api/v1/agent/sessions/{id}/pairing-view/{preview_id}/files/{index}/{kind}"), Method::GET, None),
             Self::SelectExperiment { id, experiment_id } => (format!("/api/v1/agent/sessions/{id}/experiment-history/selection"), Method::POST, Some(json!({"experiment_id":experiment_id}))),
             Self::CompareExperiments { id, first_id, second_id } => (format!("/api/v1/agent/sessions/{id}/experiment-history/comparison"), Method::POST, Some(json!({"first_id":first_id,"second_id":second_id}))),
             Self::ArchivedExperimentResult { id, experiment_id } => (format!("/api/v1/agent/sessions/{id}/experiment-history/{experiment_id}/result"), Method::GET, None),
@@ -502,6 +556,16 @@ impl AgentRequest {
                 if action == "cancel" { (format!("{base}/cancel"), Method::POST, None) }
                 else { (base, Method::GET, None) }
             }
+            Self::Study { id, study_id, action } => {
+                let base = format!("/api/v1/agent/sessions/{id}/studies/{study_id}");
+                match action.as_str() {
+                    "get" => (base, Method::GET, None),
+                    "result" => (format!("{base}/result"), Method::GET, None),
+                    "cancel" => (format!("{base}/cancel"), Method::POST, None),
+                    _ => return Err(invalid_request()),
+                }
+            }
+            Self::ForegroundProbe { id } => (format!("/api/v1/agent/sessions/{id}/foreground-probe"), Method::GET, None),
             Self::StartAnnotation { id, request_id, cube_ids, mode } => (
                 format!("/api/v1/agent/sessions/{id}/annotation-flow"), Method::POST,
                 Some(json!({"request_id": request_id, "cube_ids": cube_ids, "mode": mode})),
@@ -605,6 +669,14 @@ impl AgentRequest {
                 }
                 Self::InferencePlot { kind, .. } => {
                     if let Some(value)=kind { q.append_pair("kind",value); }
+                }
+                Self::PairingView { preview_id, section, offset, limit, search, role, label, .. } => {
+                    q.append_pair("section", section);
+                    q.append_pair("offset", &offset.to_string());
+                    q.append_pair("limit", &limit.to_string());
+                    for (key, value) in [("preview_id", preview_id), ("search", search), ("role", role), ("label", label)] {
+                        if let Some(value) = value { q.append_pair(key, value); }
+                    }
                 }
                 Self::ExperimentHistory { offset, limit, .. } => {
                     q.append_pair("offset", &offset.unwrap_or(0).to_string());
@@ -896,12 +968,45 @@ pub(crate) fn forward_http_scoped(
     Ok(value)
 }
 
-fn save_experiment_export(identity: &Handshake, url: Url, destination: &str, limit: u64) -> Result<Value, ForwardError> {
+fn copy_experiment_export(
+    mut source: impl Read,
+    mut target: impl std::io::Write,
+    expected: Option<u64>,
+    limit: Option<u64>,
+    token: &str,
+) -> Result<u64, ForwardError> {
+    // Retain enough bytes to detect credentials spanning two chunks.
+    let overlap = token.len().saturating_sub(1);
+    let mut buf = vec![0; 64 * 1024 + overlap];
+    let (mut prefix, mut total) = (0, 0u64);
+    loop {
+        let read = source.read(&mut buf[prefix..])
+            .map_err(|_| ForwardError::new("TRANSPORT", "报告下载中断"))?;
+        if read == 0 { break; }
+        let end = prefix + read;
+        total += read as u64;
+        if limit.is_some_and(|size| total > size) || expected.is_some_and(|size| total > size) {
+            return Err(ForwardError::new("INVALID_BODY", "报告下载超过预期大小或上限"));
+        }
+        reject_sensitive(&buf[..end], &[token])?;
+        target.write_all(&buf[prefix..end])
+            .map_err(|_| ForwardError::new("EXPORT_WRITE_FAILED", "无法写入导出文件"))?;
+        prefix = overlap.min(end);
+        buf.copy_within(end - prefix..end, 0);
+    }
+    if expected.is_some_and(|size| total != size) {
+        return Err(ForwardError::new("INVALID_BODY", "报告下载不完整"));
+    }
+    Ok(total)
+}
+
+fn save_experiment_export(identity: &Handshake, url: Url, destination: &str, limit: Option<u64>) -> Result<Value, ForwardError> {
     use std::io::Write;
     let path = std::path::Path::new(destination);
     if path.exists() { return Err(ForwardError::new("EXPORT_DESTINATION_EXISTS", "保存位置已有文件，请选择新文件名")); }
-    let response = crate::http_client::shared("experiment-export", || Client::builder().no_proxy().redirect(reqwest::redirect::Policy::none())
-        .connect_timeout(Duration::from_secs(2)).timeout(Duration::from_secs(60)))
+    let client_key = if limit.is_some() { "experiment-report" } else { "experiment-bundle" };
+    let response = crate::http_client::shared(client_key, || Client::builder().no_proxy().redirect(reqwest::redirect::Policy::none())
+        .connect_timeout(Duration::from_secs(2)).timeout(limit.map(|_| Duration::from_secs(60))))
         .map_err(|_|ForwardError::new("TRANSPORT","无法初始化导出连接"))?
         .get(url).bearer_auth(identity.token()).send()
         .map_err(|_|ForwardError::new("TRANSPORT","无法读取实验报告"))?;
@@ -914,34 +1019,33 @@ fn save_experiment_export(identity: &Handshake, url: Url, destination: &str, lim
         return Err(ForwardError::new("EXPERIMENT_EXPORT_FAILED","报告尚未就绪或产物校验失败，未写入文件"));
     }
     let expected = response.content_length();
-    if expected.is_some_and(|n|n > limit) { return Err(ForwardError::new("RESPONSE_TOO_LARGE","报告超过导出上限")); }
-    let mut bytes=Vec::new();
-    response.take(limit+1).read_to_end(&mut bytes).map_err(|_|ForwardError::new("TRANSPORT","报告下载中断"))?;
-    if bytes.len() as u64 > limit || expected.is_some_and(|n|n != bytes.len() as u64) {
-        return Err(ForwardError::new("INVALID_BODY","报告下载不完整或超过上限"));
+    if expected.zip(limit).is_some_and(|(size, cap)| size > cap) {
+        return Err(ForwardError::new("RESPONSE_TOO_LARGE","报告超过导出上限"));
     }
-    reject_sensitive(&bytes, &[identity.token()])?;
     let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH)
         .map_err(|_|ForwardError::new("EXPORT_WRITE_FAILED","无法创建临时文件"))?.as_nanos();
     let temporary=path.with_extension(format!("{stamp}.part"));
     let mut file=std::fs::OpenOptions::new().write(true).create_new(true).open(&temporary)
         .map_err(|_|ForwardError::new("EXPORT_WRITE_FAILED","无法创建导出文件"))?;
-    let saved=(|| -> std::io::Result<()> {
-        file.write_all(&bytes)?;file.flush()?;file.sync_all()?;
-        std::fs::hard_link(&temporary,path)?;Ok(())
+    let saved = (|| {
+        let bytes = copy_experiment_export(response, &mut file, expected, limit, identity.token())?;
+        file.flush().and_then(|_| file.sync_all()).and_then(|_| std::fs::hard_link(&temporary, path))
+            .map_err(|_| ForwardError::new("EXPORT_WRITE_FAILED","未完成保存，请选择新文件名；服务器产物保留"))?;
+        Ok::<_, ForwardError>(bytes)
     })();
-    drop(file);let _=std::fs::remove_file(&temporary);
-    saved.map_err(|_|ForwardError::new("EXPORT_WRITE_FAILED","未完成保存，请选择新文件名；服务器产物保留"))?;
-    Ok(json!({"saved":true,"bytes":bytes.len()}))
+    drop(file);
+    let _ = std::fs::remove_file(&temporary);
+    Ok(json!({"saved": true, "bytes": saved?}))
 }
 
 pub fn forward(identity: &Handshake, request: &AgentRequest) -> Result<Value, ForwardError> {
     let (url, method, body) = request.destination(identity.port)?;
-    if let AgentRequest::ExperimentExport { destination, .. } | AgentRequest::ArchivedExperimentExport { destination, .. } = request {
-        return save_experiment_export(identity, url, destination,16*1024*1024);
+    if let AgentRequest::ExperimentExport { destination, kind, .. } | AgentRequest::ArchivedExperimentExport { destination, kind, .. } = request {
+        let limit = (kind == "report").then_some(16 * 1024 * 1024);
+        return save_experiment_export(identity, url, destination, limit);
     }
     if let AgentRequest::InferenceExport { destination, .. } = request {
-        return save_experiment_export(identity,url,destination,64*1024*1024);
+        return save_experiment_export(identity, url, destination, None);
     }
     let mut result = forward_http(
         identity,
@@ -1049,8 +1153,57 @@ fn stream_frames(
 
 #[cfg(test)]
 mod streaming_tests {
+    #[test]
+    fn inference_report_path_requires_two_uuids() -> Result<(), super::ForwardError> {
+        let root = std::path::Path::new("E:/permanent");
+        let model = "ABCDEFAB-CDEF-ABCD-EFAB-CDEFABCDEFAB";
+        let run = "ad1881e2-16d9-4e85-a51c-5b94e1bf2fb5";
+        let expected = root.join("experiments").join(model.to_ascii_lowercase())
+            .join("inferences").join(run).join("report.html");
+        assert_eq!(super::inference_report_path(root,model,run)?,expected);
+        for invalid in ["../other","C:/another","bad",""] {
+            assert!(super::inference_report_path(root,invalid,run).is_err());
+            assert!(super::inference_report_path(root,model,invalid).is_err());
+        }
+        let request = super::parse_request(serde_json::json!({"op":"prepare_inference_report","id":run,
+            "model_id":model,"run_id":run}))?;
+        let (url,method,_) = request.destination(1234)?;
+        assert!(url.path().ends_with("/report"));
+        assert_eq!(method,reqwest::Method::POST);
+        Ok(())
+    }
+
     use super::*;
     use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
+
+    #[test]
+    fn study_and_probe_use_fixed_session_routes() -> Result<(), ForwardError> {
+        let session = "92e094d1-cb00-489f-9dae-bbac81729d51";
+        let study = "77927f43-08b9-4f78-9eb8-7eead7ef47a0";
+        let request = parse_request(json!({"op":"study","id":session,"study_id":study,"action":"cancel"}))?;
+        let (url, method, _) = request.destination(39301)?;
+        assert_eq!(url.path(), format!("/api/v1/agent/sessions/{session}/studies/{study}/cancel"));
+        assert_eq!(method, Method::POST);
+        let request = parse_request(json!({"op":"foreground_probe","id":session}))?;
+        assert_eq!(request.destination(39301)?.0.path(), format!("/api/v1/agent/sessions/{session}/foreground-probe"));
+        assert!(parse_request(json!({"op":"study","id":session,"study_id":study,"action":"train"})).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn export_stream_exceeds_old_bundle_limits_and_checks_chunk_boundaries() -> Result<(), ForwardError> {
+        let size = 65 * 1024 * 1024;
+        assert_eq!(copy_experiment_export(std::io::repeat(0).take(size), std::io::sink(),
+            Some(size), None, "local-token")?, size);
+        let mut payload = vec![b'x'; 64 * 1024 - 3];
+        payload.extend_from_slice(b"local-token");
+        let source = std::io::Cursor::new(payload);
+        let error = copy_experiment_export(source, std::io::sink(), None, None, "local-token").unwrap_err();
+        assert_eq!(error.error, "SENSITIVE_RESPONSE");
+        let error = copy_experiment_export("abc".as_bytes(), std::io::sink(), Some(4), None, "").unwrap_err();
+        assert_eq!(error.error, "INVALID_BODY");
+        Ok(())
+    }
 
     #[test]
     fn live_event_arrives_before_eof_and_utf8_survives_byte_reads() -> Result<(), ForwardError> {
@@ -1146,6 +1299,24 @@ mod streaming_tests {
     }
 
     #[test]
+    fn pairing_view_routes_only_to_session_snapshots_and_text() -> Result<(), ForwardError> {
+        let id = "723706ca-6d40-45a9-b296-8323c21788da";
+        let preview = "ca239f03-f9b0-410d-a13a-d05badc964bd";
+        let request = parse_request(json!({"op":"pairing_view","id":id,"preview_id":preview,
+            "section":"pairs","offset":20,"limit":20,"role":"测试","label":"PE","search":"a&b.hdr"}))?;
+        let (url, method, _) = request.destination(8844)?;
+        assert_eq!(method, Method::GET);
+        assert!(url.path().ends_with("/pairing-view"));
+        let query: std::collections::HashMap<_,_> = url.query_pairs().collect();
+        assert_eq!(query.get("search").map(|value| value.as_ref()), Some("a&b.hdr"));
+        assert!(parse_request(json!({"op":"pairing_view","id":id,"section":"pairs","offset":0,"limit":51})).is_err());
+        assert!(parse_request(json!({"op":"pairing_file","id":id,"preview_id":preview,"index":0,"kind":"img"})).is_err());
+        let file = parse_request(json!({"op":"pairing_file","id":id,"preview_id":preview,"index":0,"kind":"hdr"}))?;
+        assert!(file.destination(8844)?.0.path().ends_with("/files/0/hdr"));
+        Ok(())
+    }
+
+    #[test]
     fn archived_experiment_routes_are_bounded_and_use_real_ids() -> Result<(), ForwardError> {
         let sid="00000000-0000-0000-0000-000000000001";
         let eid="00000000-0000-0000-0000-000000000002";
@@ -1181,12 +1352,12 @@ mod streaming_tests {
         let sid="00000000-0000-0000-0000-000000000001";
         let mid="00000000-0000-0000-0000-000000000002";
         let rid="00000000-0000-0000-0000-000000000003";
-        for action in ["get","cancel","result"] {
+        for action in ["get","cancel","result","focus"] {
             let request=parse_request(json!({"op":"inference_task","id":sid,"model_id":mid,"run_id":rid,"action":action}))?;
             let (url,method,body)=request.destination(1234)?;
-            let suffix=match action {"cancel"=>"/cancel","result"=>"/result",_=>""};
+            let suffix=match action {"cancel"=>"/cancel","result"=>"/result","focus"=>"/focus",_=>""};
             assert_eq!(url.path(),format!("/api/v1/agent/sessions/{sid}/experiment-history/{mid}/inferences/{rid}{suffix}"));
-            assert_eq!(method,if action=="cancel"{Method::POST}else{Method::GET});
+            assert_eq!(method,if ["cancel","focus"].contains(&action){Method::POST}else{Method::GET});
             assert!(body.is_none());
         }
         let request=parse_request(json!({"op":"inference_plot","id":sid,"model_id":mid,"run_id":rid,"file_index":0}))?;

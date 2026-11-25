@@ -15,6 +15,7 @@ class ArchiveInput(InputModel):
     spectra_key: str
     labels_key: str = "y"
     wavelengths_key: str = "wavelengths_nm"
+    groups_key: str | None = None
     input_stage: Literal["spectra", "neighborhood_mean"]
     neighborhood: Annotated[int, Field(ge=1)]
     evaluation_unit: Literal["spectrum", "center_pixel"]
@@ -34,6 +35,7 @@ class ImageMember(InputModel):
     data_path: str | None = None
     centers_path: str | None = None
     sample_id: str
+    batch: str | None = None
 
 
 class Quality(InputModel):
@@ -47,6 +49,9 @@ class ImageInput(InputModel):
     kind: Literal["roi_images"]
     members: Annotated[list[ImageMember], Field(min_length=1)]
     neighborhood: Annotated[int, Field(ge=1)]
+    sampling_stride: Annotated[int, Field(ge=1)] = 1
+    max_per_class: Annotated[int, Field(ge=1)] | None = None
+    sampling_seed: Annotated[int, Field(ge=0, le=2**32-1)] = 42
     wavelength_unit: Literal["nm", "um"]
     mapping_window_nm: Annotated[FiniteFloat, Field(gt=0)]
     nearest_tolerance_nm: Annotated[FiniteFloat, Field(ge=0)]
@@ -59,6 +64,12 @@ class ImageInput(InputModel):
         if value % 2 != 1:
             raise ValueError("neighborhood 必须为正奇数")
         return value
+
+    @model_validator(mode="after")
+    def sampling_matches(self):
+        if self.sampling_stride != 1 and any(member.centers_path for member in self.members):
+            raise ValueError("显式中心列表不能同时使用采样步长")
+        return self
 
 
 DatasetInput = Annotated[Union[ArchiveInput, ImageInput], Field(discriminator="kind")]
@@ -115,6 +126,34 @@ class PLSDAConfig(InputModel):
 Metric = Literal["kappa", "weighted_f1", "balanced_accuracy"]
 
 
+def grid_hint(waves):
+    steps = np.diff(waves)
+    if len(steps) and not np.allclose(steps, steps[0], rtol=1e-8, atol=1e-10):
+        return ('当前波长轴非严格等步长（步长范围 '
+                f'{steps.min():.5g}–{steps.max():.5g} nm，HDR 小数舍入也会造成这种情况）。'
+                '该轴不支持 SG 导数。要比较 SG1/SG2，请先在训练草稿设置等间隔目标波长网格'
+                '（起点、终点、间隔）及映射窗口、最近波长容差。')
+    return ''
+
+
+class SplitManifest(InputModel):
+    split_id: str
+    sha256: str
+    group_by: Literal['sample', 'batch'] = 'sample'
+    one_image_one_sample: bool = False
+
+
+class SamplingCount(InputModel):
+    eligible: Annotated[int, Field(ge=0)]
+    selected: Annotated[int, Field(ge=0)]
+
+
+class TrainingSampling(InputModel):
+    max_per_class: Annotated[int, Field(ge=1)]
+    sampling_seed: Annotated[int, Field(ge=0, le=2**32-1)]
+    class_counts: dict[str, SamplingCount]
+
+
 class ExperimentConfig(InputModel):
     schema_version: Literal[1] = 1
     name: Annotated[str, Field(min_length=1, max_length=200)]
@@ -127,6 +166,8 @@ class ExperimentConfig(InputModel):
     additional_metrics: list[Metric] = Field(default_factory=list)
     test_usage: Literal["independent_test", "development_regression"]
     notes: str = ""
+    split_manifest: SplitManifest | None = None
+    training_sampling: TrainingSampling | None = None
 
     @field_validator("classes", mode="before")
     @classmethod
@@ -141,6 +182,8 @@ class ExperimentConfig(InputModel):
 
     @model_validator(mode="after")
     def consistent(self):
+        if self.test.kind == 'roi_images' and self.test.max_per_class is not None:
+            raise ValueError("类别抽样上限仅用于训练侧")
         if not np.all(np.diff(self.wavelengths_nm) > 0):
             raise ValueError("目标波长须有限且严格递增，单位nm")
         if (len(self.classes) < 2 or len(set(self.classes.values())) != len(self.classes)
@@ -154,7 +197,7 @@ class ExperimentConfig(InputModel):
         for step in self.preprocessing:
             if step.op == "savgol":
                 if axis is None or not np.allclose(np.diff(axis), step.delta_nm, rtol=1e-8, atol=1e-10):
-                    raise ValueError("SG的delta_nm须匹配等间隔波长轴，且SG须在PCA前执行")
+                    raise ValueError("SG的delta_nm须匹配等间隔波长轴，且SG须在PCA前执行。原生通道不等步长时，请先设置等间隔目标波长网格及映射窗口和最近波长容差")
                 if step.window > len(axis):
                     raise ValueError("SG窗口不得大于输入波段数")
             if step.op == "pca":

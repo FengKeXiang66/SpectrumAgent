@@ -1,28 +1,54 @@
 import { Channel, invoke } from '@tauri-apps/api/core';
 import type { AgentEvent, PlanDecision } from './sse.ts';
 
-export type ExperimentTask = {task_id:string;session_id:string;status:'queued'|'running'|'succeeded'|'failed'|'cancelled';
+export type StudyStatus = {study_id:string;status:'queued'|'running'|'succeeded'|'failed'|'cancelled'|'interrupted';
+  phase:string;candidate?:number;total?:number;component?:number;fold?:number;folds?:number;
+  file_index?:number;file_total?:number;rows_done?:number;rows_total?:number;error?:string};
+export type StudyCandidate = {id:number;name:string;n_components:number;preprocessing:{op:string;[key:string]:unknown}[];
+  cv_f1?:number;cv_f1_sd?:number;cv_accuracy?:number;cv_accuracy_sd?:number;train_f1?:number;train_accuracy?:number;error?:string};
+export type StudyResult = {study_id:string;best:number;recommended:number;one_se_threshold:number;folds:number;
+  grouping:string;group_count:number|null;samples:number;evaluation_unit:string;candidates:StudyCandidate[];
+  component_upper?:number;component_upper_reached?:boolean};
+export type ForegroundProbe = {sample:string;rows:number;suggestion:Record<string,unknown>;png_base64?:string;
+  note:string;estimated_left?:number;estimated_right?:number;sample_retained?:number;current:boolean};
+
+export type ExperimentTask = {task_id:string;session_id:string;status:'queued'|'running'|'succeeded'|'failed'|'cancelled'|'interrupted';
   phase:string|null;completed_phases:string[];elapsed_seconds:number;cancel_requested:boolean;
-  experiment_id:string|null;error:string|null;failed_phase:string|null;train_accuracy:number|null;test_accuracy:number|null};
+  experiment_id:string|null;error:string|null;failed_phase:string|null;train_accuracy:number|null;test_accuracy:number|null;
+  subprogress?:{role:'train'|'test';file_index:number;file_total:number;rows_done:number;rows_total:number|null}|null};
 export type ExperimentScore = {n:number;correct:number;accuracy:number;macro_precision:number;macro_recall:number;macro_f1:number;
   kappa?:number|null;weighted_f1?:number|null;balanced_accuracy?:number|null;evaluation_unit:string;purpose:string;
   confusion:number[][];confusion_labels:number[];macro_labels:number[];
   per_class:{label:number;name:string;support:number;precision:number|null;recall:number|null;f1:number|null}[]};
 export type ExperimentResult = {experiment_id:string;name:string;classes:Record<string,string>;processed_axis:'component'|'wavelength_nm';
+  training_sampling?:{max_per_class:number;sampling_seed:number;class_counts:Record<string,{eligible:number;selected:number}>}|null;
+  split_checks:{status:string;conflicts?:string[];duplicate_test_spectra?:number|null;physical_sample_independence?:string};
+  split_check_text:string;split_warning?:string|null;
   metrics:Record<'train'|'test',ExperimentScore>;score_definition:string;
   model:{model_id:string;experiment_id:string;stage:string;sha256:string;wavelengths_nm:number[];preprocessing:{op:string;[key:string]:unknown}[];
     parameters:Record<string,number|boolean>;input_stage:string;neighborhood:number;evaluation_unit:string}};
 export type ArchivedExperiment = {experiment_id:string;name:string;status:string;created_at:string;model_id:string|null;
   train_accuracy?:number|null;test_accuracy?:number|null;evaluation_unit?:string;test_usage?:string;phase?:string|null;error?:string|null};
+export type PairingSection = 'pairs' | 'unused' | 'issues';
+export type PairingRole = '训练' | '测试';
+export type PairingRow = {index:number;role:PairingRole;hdr:string;annotation:string;labels:string[];regions:number};
+export type PairingPage = {status:'ready';preview_id:string;items:(PairingRow|{index:number;text:string})[];
+  total:number;labels:string[];counts:Record<PairingSection,number>}
+  | {status:'stale'|'empty';preview_id:string|null};
+export type PairingQuery = {preview_id?:string;section:PairingSection;offset:number;limit:number;
+  search?:string;role?:PairingRole;label?:string};
+
 export type ExperimentHistory = {items:ArchivedExperiment[];total:number;offset:number;limit:number;selected_experiment_id:string|null};
 export type ExperimentComparison = {first:string;second:string;comparable:boolean;checks:Record<string,boolean>;
   metrics:Record<'train'|'test',ExperimentScore>[];note:string};
 export type InferenceStatus = {run_id:string;model_id:string;status:'queued'|'running'|'succeeded'|'failed'|'cancelled'|'interrupted';
-  kind:'npz'|'envi';phase:string;completed_files:number;total_files:number;completed_rows:number;total_rows:number;elapsed_seconds:number;
+  kind:'npz'|'envi';phase:string;checked_files?:number;completed_files:number;total_files:number;completed_rows:number;total_rows:number;elapsed_seconds:number;
   error:string|null;can_cancel:boolean;cancel_requested:boolean};
 export type InferenceResult = {run_id:string;model_id:string;model_sha256:string;kind:'npz'|'envi';classes:Record<string,string>;colors:Record<string,string>;
+  excluded_files?:{file:string;reason:string}[];
+  background_colors?:{brightness:string;other:string}|null;
   evaluation_unit:string;note:string;foreground?:{mode:string;[key:string]:unknown}|null;
-  files:{file_index:number;name:string;classified:number;excluded:number;total:number;counts:Record<string,number>;
+  files:{file_index:number;name:string;relative_path?:string;classified:number;excluded:number;total:number;counts:Record<string,number>;
     shape?:number[];edges?:{left:number;right:number};exclusion_counts?:Record<string,number>;preview_wavelengths_nm?:number[]}[]};
 
 export type WorkspaceContext = { cube_id?: string; gesture_ref?: string };
@@ -47,11 +73,16 @@ export type TaskAccepted = {status:'accepted';task_id:string;task_status:Annotat
 export type BatchCard = { result: BatchResult | null; stepStatus: string; epoch: number; generation: number; key: string; sessionId?: string; requestId?: string };
 export type MessageBody = ({ content: string; workspace?: WorkspaceContext } | { check_id: string; decision: 'approve' | 'reject' } | ({ plan_id: string } & PlanDecision)) & { request_id?: string };
 export type AgentRequest = ({ op: 'create_session' } & CreateSessionInput)
+  | {op:'study';id:string;study_id:string;action:'get'|'result'|'cancel'}
+  | {op:'foreground_probe';id:string}
   | {op:'inference_history';id:string;model_id:string}
-  | {op:'inference_task';id:string;model_id:string;run_id:string;action:'get'|'cancel'|'result'}
+  | {op:'inference_task';id:string;model_id:string;run_id:string;action:'get'|'cancel'|'result'|'focus'}
   | {op:'inference_plot';id:string;model_id:string;run_id:string;file_index:number;kind?:'prediction'|'input'}
   | {op:'inference_export';id:string;model_id:string;run_id:string;destination:string}
+  | {op:'prepare_inference_report';id:string;model_id:string;run_id:string}
   | {op:'experiment_history';id:string;offset?:number;limit?:number}
+  | ({op:'pairing_view';id:string} & PairingQuery)
+  | {op:'pairing_file';id:string;preview_id:string;index:number;kind:'hdr'|'annotation'}
   | {op:'select_experiment';id:string;experiment_id:string}
   | {op:'compare_experiments';id:string;first_id:string;second_id:string}
   | {op:'archived_experiment_result';id:string;experiment_id:string}
@@ -66,11 +97,10 @@ export type AgentRequest = ({ op: 'create_session' } & CreateSessionInput)
   | {op:'annotation_task';id:string;task_id:string;action:'get'|'items'|'cancel'|'retry'|'prepare'|'focus'|'blur';after?:number;limit?:number;version?:number;request_id?:string;mode?:'failed'|'remaining';authorization_id?:string}
   | { op: 'check_batch_prepare'; id: string; dataset_version_id?: string }
   | { op: 'get_session'; id: string }
-  | { op: 'list_sessions'; query: { kind: 'global'; limit: number } }
+  | { op: 'list_sessions'; query: { kind: 'global'; limit: number; cursor?: string } }
+  | { op: 'archive_session'; id: string }
   | { op: 'get_history'; id: string; before?: number; after?: number; limit?: number }
   | { op: 'select_cube'; id: string; cube_id: string | null } | { op: 'get_steps'; id: string } | { op: 'get_runtime' } | { op: 'send_message'; id: string; body: MessageBody };
-// 2026-11-13 simplification: one global session only. Work sessions, session
-// lists, member paging and preflight were removed from the product surface.
 export type Scope = { kind: 'global' };
 export type CreateSessionInput = { scope?: Scope; request_id?: string };
 export type Availability = { available_members: number | null; total_members: number; availability_checked_at: string | null;
@@ -82,6 +112,9 @@ export type SessionDetail = Availability & { id: string; title: string; created_
   pending: ((Extract<AgentEvent, { event: 'human_check' }>['data'] & {kind: 'human_check'}) |
     (Extract<AgentEvent, {event: 'plan'}>['data'] & {kind: 'plan'})) | null;
   request: { request_id: string; status: 'running' | 'completed' | 'failed' | 'interrupted'; events_complete: number; boot_id: string } | null };
+export type SessionSummary = Pick<SessionDetail, 'id' | 'title' | 'created_at' | 'updated_at' | 'request' | 'history_watermark'>
+  & { pending: boolean };
+export type SessionListPage = { sessions: SessionSummary[]; next_cursor: string | null };
 export type HistoryEvent = { seq: number; request_id: string | null; kind: AgentEvent['event'] | 'user' | 'decision';
   payload: Record<string, unknown>; origin: string };
 export type HistoryPage = { session_id: string; events: HistoryEvent[]; watermark: number; has_more: boolean; next_before: number | null; next_after: number | null };
@@ -128,13 +161,24 @@ export function workspaceContext(value: WorkspaceContext): WorkspaceContext {
 
 export function agentClient(send: InvokeAgent = invoke) {
   const forward = <T>(request: AgentRequest) => send<T>('agent_forward', { request });
+  const listSessions = (page: {limit?:number;cursor?:string} = {}) => forward<SessionListPage>({
+    op:'list_sessions', query:{kind:'global', limit:page.limit??20, ...(page.cursor?{cursor:page.cursor}:{})},
+  });
   return {
+    study:(id:string,study_id:string,action:'get'|'cancel'='get')=>forward<StudyStatus>({op:'study',id,study_id,action}),
+    studyResult:(id:string,study_id:string)=>forward<StudyResult>({op:'study',id,study_id,action:'result'}),
+    foregroundProbe:(id:string)=>forward<ForegroundProbe>({op:'foreground_probe',id}),
     inferenceHistory:(id:string,model_id:string)=>forward<{items:InferenceStatus[]}>({op:'inference_history',id,model_id}),
     inferenceStatus:(id:string,model_id:string,run_id:string)=>forward<InferenceStatus>({op:'inference_task',id,model_id,run_id,action:'get'}),
+    focusInference:(id:string,model_id:string,run_id:string)=>forward<InferenceStatus>({op:'inference_task',id,model_id,run_id,action:'focus'}),
     cancelInference:(id:string,model_id:string,run_id:string)=>forward<InferenceStatus>({op:'inference_task',id,model_id,run_id,action:'cancel'}),
     inferenceResult:(id:string,model_id:string,run_id:string)=>forward<InferenceResult>({op:'inference_task',id,model_id,run_id,action:'result'}),
     inferencePlot:(id:string,model_id:string,run_id:string,file_index:number,kind:'prediction'|'input'='prediction')=>forward<{png_base64:string}>({op:'inference_plot',id,model_id,run_id,file_index,kind}),
+    prepareInferenceReport:(id:string,model_id:string,run_id:string)=>forward<{ready:boolean}>({op:'prepare_inference_report',id,model_id,run_id}),
     inferenceExport:(id:string,model_id:string,run_id:string,destination:string)=>forward<{saved:boolean;bytes:number}>({op:'inference_export',id,model_id,run_id,destination}),
+    pairingView:(id:string,query:PairingQuery)=>forward<PairingPage>({op:'pairing_view',id,...query}),
+    pairingFile:(id:string,preview_id:string,index:number,kind:'hdr'|'annotation')=>
+      forward<{name:string;text:string}>({op:'pairing_file',id,preview_id,index,kind}),
     experimentHistory:(id:string,offset=0)=>forward<ExperimentHistory>({op:'experiment_history',id,offset,limit:20}),
     selectExperiment:(id:string,experiment_id:string)=>forward<{archived_experiment_id:string;status:string}>({op:'select_experiment',id,experiment_id}),
     compareExperiments:(id:string,first_id:string,second_id:string)=>forward<ExperimentComparison>({op:'compare_experiments',id,first_id,second_id}),
@@ -155,7 +199,9 @@ export function agentClient(send: InvokeAgent = invoke) {
       await forward<unknown>(requests.checkBatchPrepare(id, version)), id, version),
     createSession: (body: CreateSessionInput = {}) => forward<Session>(requests.createSession(body)),
     getSession: (id: string) => forward<SessionDetail>(requests.getSession(id)),
-    latestSession: async () => (await forward<{sessions: {id: string}[]}>({op: 'list_sessions', query: {kind: 'global', limit: 1}})).sessions[0]?.id ?? null,
+    listSessions,
+    latestSession: async () => (await listSessions({limit:1})).sessions[0]?.id ?? null,
+    archiveSession: (id:string) => forward<{session_id:string; archived:boolean}>({op:'archive_session',id}),
     getHistory: (id: string, page: {before?: number; after?: number; limit?: number} = {}) => forward<HistoryPage>(requests.getHistory(id, page)),
     selectCube: (id: string, cube: string | null) => forward<SessionDetail>(requests.selectCube(id, cube)),
     sendMessage: async (id: string, body: MessageBody, onEvent?: (event:AgentEvent)=>void, shouldProceed?:()=>boolean) => {

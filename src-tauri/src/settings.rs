@@ -52,7 +52,7 @@ impl SettingsRequest {
             let fields = body.as_object().ok_or_else(invalid_request)?;
             for (key, value) in fields {
                 let valid = match key.as_str() {
-                    "base_url" | "model" => value.is_string(),
+                    "base_url" | "model" | "router_model" => value.is_string(),
                     "egress_enabled" => value.is_boolean(),
                     "temperature" | "max_tokens" | "timeout_ms" => {
                         value.is_string() || value.is_number()

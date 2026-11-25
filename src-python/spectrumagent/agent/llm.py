@@ -49,6 +49,7 @@ class LLMSettings(BaseModel):
     model_config = ConfigDict(extra="forbid", hide_input_in_errors=True)
     base_url: StrictStr = ""
     model: StrictStr = ""
+    router_model: StrictStr = ""
     temperature: StrictStr = ""
     max_tokens: StrictStr = ""
     timeout_ms: StrictStr = ""
@@ -176,6 +177,16 @@ def _json(value):
 
 _DENY_TEXT = re.compile(r"[a-z]:|\\|/[^\s/]+|\.(?:img|hdr|mat)\b|\blabel_map\b", re.I)
 _NESTED_ARRAY = re.compile(r"\[\s*\[")
+ABSOLUTE_FRAGMENT = re.compile(r"""(?i)["“‘'](?:[a-z]:[\\/]|[\\/])[^"”’'\r\n]+["”’']|"""
+                               r"""(?:(?<![a-z0-9_])[a-z]:[\\/]|\\\\|(?<![\w:/])\/)[^\r\n，,。；;、！？!?]+""")
+
+
+def _hide_user_paths(messages):
+    return [
+        {**message, "content": ABSOLUTE_FRAGMENT.sub(" 本地输入源 ", message["content"])}
+        if message.get("role") == "user" and isinstance(message.get("content"), str) else message
+        for message in messages
+    ]
 
 
 def _redact_assistant_paths(messages):
@@ -311,15 +322,24 @@ class OpenAICompatibleClient(LLMClient):
     def chat_cancellable(self, messages, tools, control):
         return self.chat(messages, tools, control=control)
 
-    def chat(self, messages, tools, *, stream=False, control=None) -> ChatResult:
+    def route_chat(self, messages, control=None):
+        settings = read_settings(self.database)
+        if not settings.egress_enabled or not settings.base_url or not settings.model:
+            return None
+        return self.chat(messages, [], control=control, model=settings.router_model or settings.model,
+                         temperature=0, max_tokens=128, timeout_cap=8.)
+
+    def chat(self, messages, tools, *, stream=False, control=None, model=None,
+             temperature=None, max_tokens=None, timeout_cap=None) -> ChatResult:
         started = perf_counter_ns()
         audit_id = str(uuid4())
         self.last_audit_id = audit_id
         # Preserve raw array rejection even when assistant text is redacted.
         nested = bool(_NESTED_ARRAY.search(_json({"messages": messages, "tools": tools})))
-        messages = _redact_assistant_paths(messages)
+        messages = _redact_assistant_paths(_hide_user_paths(messages))
         digest = sha256(_json(messages).encode("utf-8")).hexdigest()
         settings = read_settings(self.database)
+        actual_model = model or settings.model
         names = [tool["function"]["name"] for tool in (tools or [])]
         usage = None
         http_status, error_stage = None, None
@@ -331,22 +351,24 @@ class OpenAICompatibleClient(LLMClient):
                 raise LLMError("EGRESS_BLOCKED", "blocked")
             if _egress_blocked({"messages": messages, "tools": tools}):
                 raise LLMError("EGRESS_BLOCKED", "blocked")
-            if not settings.base_url or not settings.model:
+            if not settings.base_url or not actual_model:
                 raise LLMError("LLM_NOT_CONFIGURED", "http_error")
             wire_messages, wire_tools, reverse_names = _workflow_wire(messages, tools)
-            payload = {"model": settings.model, "messages": wire_messages, "stream": stream}
+            payload = {"model": actual_model, "messages": wire_messages, "stream": stream}
             if wire_tools:
                 payload["tools"] = wire_tools
-            if settings.temperature != "":
-                payload["temperature"] = float(settings.temperature)
-            if settings.max_tokens != "":
-                payload["max_tokens"] = int(settings.max_tokens)
+            if temperature is not None or settings.temperature != "":
+                payload["temperature"] = temperature if temperature is not None else float(settings.temperature)
+            if max_tokens is not None or settings.max_tokens != "":
+                payload["max_tokens"] = max_tokens if max_tokens is not None else int(settings.max_tokens)
             if stream:
                 payload["stream_options"] = {"include_usage": True}
             # Empty timeout is explicitly unconfigured, not an invented number.
             # A caller may supply a bounded default for its own probe request.
             timeout = (int(settings.timeout_ms) / 1000 if settings.timeout_ms != ""
                        else self.default_timeout)
+            if timeout_cap is not None:
+                timeout = min(timeout,timeout_cap) if timeout is not None else timeout_cap
             headers = {"Authorization": "Bearer " + _credentials.key} if _credentials.key else {}
             if control is not None and not stream:
                 bounded_timeout = timeout if timeout is not None else 300
@@ -411,7 +433,7 @@ class OpenAICompatibleClient(LLMClient):
                 db.execute("INSERT INTO llm_call "
                            "(id,session_id,model,prompt_sha256,tool_names,prompt_tokens,completion_tokens,"
                            "total_tokens,latency_ms,status,error,created_at,http_status,error_stage) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                           (audit_id, self.session_id, settings.model, digest,
+                           (audit_id, self.session_id, actual_model, digest,
                             _json(names) if names else None,
                             usage.prompt_tokens if usage else None,
                             usage.completion_tokens if usage else None,

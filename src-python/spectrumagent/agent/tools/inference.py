@@ -28,6 +28,11 @@ class NPZDraft(ToolInput):
     evaluation_unit: Literal['spectrum','center_pixel'] | None = None
 
 
+class ExclusionDraft(ToolInput):
+    name_fragments: list[str] | None = None
+    prefixes: list[str] | None = None
+
+
 class ENVIDraft(ToolInput):
     kind: Literal['envi']
     source_refs: list[Reference] | None = None
@@ -36,6 +41,8 @@ class ENVIDraft(ToolInput):
     nearest_tolerance_nm: float | None = None
     quality: QualityDraft | None = None
     foreground: Annotated[Union[NoForeground,BrightnessDraft],Field(discriminator='mode')] | None = None
+    exclusions: ExclusionDraft | None = None
+    exclusions_ref: Reference | None = None
 
 
 class InferenceUpdate(ToolInput):
@@ -43,6 +50,12 @@ class InferenceUpdate(ToolInput):
     reset: bool = False
     model_id: Reference | None = None
     input: Annotated[Union[NPZDraft,ENVIDraft],Field(discriminator='kind')] | None = None
+
+
+class InlineInferenceAdjustment(ToolInput):
+    expected_revision: Annotated[int,Field(ge=0)]
+    quality: QualityDraft | None = None
+    foreground: Annotated[Union[NoForeground,BrightnessDraft],Field(discriminator='mode')] | None = None
 
 
 def register_inference(registry, dialogue):

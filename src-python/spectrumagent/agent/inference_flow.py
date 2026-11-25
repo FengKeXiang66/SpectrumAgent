@@ -1,9 +1,11 @@
 """Native tool interpretation with an explicit, separate inference confirmation."""
+import json
 from time import perf_counter_ns
 from pathlib import Path
 
 from spectrumagent.data import DataError
-from spectrumagent.experiments.inference_dialogue import CONFIRM, CANCEL
+from spectrumagent.experiments.conversation import PATHS
+from spectrumagent.experiments.inference_dialogue import CONFIRM, CANCEL, QUERY, PROBE, PROBE_ACTIONS, INLINE_PREFIX
 from .execution import RequestCancelled
 from .llm import _json, validate_tool_response
 
@@ -17,7 +19,7 @@ NPZ推理只读spectra_key、wavelengths_key，不需要标签。必须让用户
 neighborhood、evaluation_unit可继承模型记录，波长必须逐项相同；输入不能已做SG/中心化等模型内部步骤，否则会重复处理，应请用户提供模型入口阶段数据。
 ENVI输入可以是HDR或目录。不需要ROI。若训练记录有波长单位、映射窗口/最近容差、质量筛选则自动继承并展示，否则追问wavelength_unit、mapping_window_nm、nearest_tolerance_nm与quality四项。
 quality包含min_mean、min_std、max_zero_fraction和saturation（可明确null）。不替用户猜数值，不自行使用所谓五分类固定版参数。
-ENVI前景筛选独立于模型：不启用时foreground={mode:none}并展示；用户明确给出亮度/边缘规则时用mode=brightness_edges，保存wavelengths_nm、threshold、left_min、right_min、edge_search_columns、edge_bad_fraction、edge_low、edge_high。参数不全追问，不能猜固定数值；关闭时显式mode=none。
+ENVI前景筛选独立于模型。用户未指定前景参数就省略foreground，本机继承已核验预设或探查样本图。用户明确关闭时才写mode=none。用户明确微调时传mode=brightness_edges及给定字段，本机可合并当前探查建议。业务排除规则 JSON 用 exclusions_ref，明确的文件名片段或前缀分别放在 exclusions.name_fragments 或 exclusions.prefixes。
 亮度为指定最近通道缩放值的中位数，只对中心作严格大于threshold筛选；边缘屏蔽需邻域内每个像元满足。亮度筛除不是识别了背景。原图伪彩仅供观察，不是真值。
 原图按训练模型的完整空间邻域与质量筛选预测；无ROI类别隔离，边界/质量筛除记未分类，不能声称识别了背景。材质采用模型原类别，闭集分类未实现未知类拒识。
 模型内部SG、L2、SNV、中心化、标准化、PCA和PLS都完全复用，不fit、重训练、改参或根据7t结果调参。
@@ -28,7 +30,7 @@ reset=true重置输入和任务记录，未指定新model_id时保留已选模�
 """
 
 
-def generate(machine, content):
+def generate(machine, content, *, confirmation=None):
     from .state import State
     dialogue = machine.tools.experiment_dialogue.inference
     store, owner, row = machine.store, machine.session_id, None
@@ -36,32 +38,89 @@ def generate(machine, content):
         store.save_answer(row['id'],text);store.round_status(row['id'],'done')
         yield 'clarify' if clarify else 'done', {'question' if clarify else 'content':text,'task_result':outcome,
               'step_count':len(store.steps(owner,row['id'])),'request_status':'finished','reply_status':'needs_input' if clarify else 'replied'}
+    def card_step(view):
+        if card := view.get('presentation'):
+            summary = {'inference_card_json':json.dumps(card,ensure_ascii=False,separators=(',',':'))}
+            yield machine._step_event(store.add_step(row,'experiments.inference_presentation',{},'ok',summary,0))
+
     def present():
-        view = dialogue.presented(owner,row['turn_id'])
+        control = getattr(machine,'control',None)
+        if control is not None:
+            control.begin('tool')
+        yield 'progress', {'phase':'tool', 'tool':'experiments.inference_inspect'}
+        view = dialogue.presented(owner,row['turn_id'],check=control.check if control else None,
+                                  previous_document=prior_document)
+        if view.get('probe'):
+            yield machine._step_event(store.add_step(row,'experiments.foreground_probe',{},'ok',{'foreground_probe':True},0))
+        yield from card_step(view)
         yield from finish('推理方案（修订 '+str(view['revision'])+'）：\n'+view['plan']+'\n\n'+view['question'],True)
     try:
-        safe = dialogue.capture(owner,content)
+        prior_document = (dialogue.read(owner) or {}).get('document',{})
         row = store.new_round(owner,content,[],'running')
+        probe_text = content.strip(' 。！!')
+        if probe_text.startswith(INLINE_PREFIX):
+            try:
+                dialogue.apply_inline(owner,probe_text[len(INLINE_PREFIX):])
+            except DataError as error:
+                from spectrumagent.data.validation import parameter_answer
+                detail = parameter_answer(error) if error.code=='TOOL_ARGS_INVALID' else error.payload.detail
+                view = dialogue.view(owner,structured=True,previous_document=prior_document)
+                if card := view.get('presentation'):
+                    target = dialogue.base.confirmation(owner)
+                    card.update(todo='修改未应用。'+detail,
+                                ready=bool(target and target[:2]==('inference',view['revision']) and view['can_run']))
+                    yield from card_step(view)
+                yield from finish(detail,True)
+                return
+            yield from present()
+            return
+        probe = PROBE.fullmatch(probe_text)
+        if probe:
+            match = PATHS.fullmatch(probe[1]) if probe[1] else None
+            if probe[1] and not match:
+                yield from finish('可直接回复“探查前景”，或附上本批某幅样本图的完整路径。',True)
+                return
+            sample = Path(match['quoted'] or match['bare']) if match else None
+            result = dialogue.probe(owner,sample)
+            yield machine._step_event(store.add_step(row,'experiments.foreground_probe',{},'ok',{'foreground_probe':True},0))
+            view = dialogue.view(owner,structured=True,previous_document=prior_document)
+            view['presentation']['todo'] = '请审阅新探查的建议。可采用建议、微调或关闭前景筛选。'
+            yield from card_step(view)
+            yield from finish(dialogue.probe_text(result),True)
+            return
+        if probe_text in PROBE_ACTIONS:
+            dialogue.apply_probe(owner,probe_text=='采用前景建议')
+            yield from present()
+            return
         if CANCEL.fullmatch(content.strip()):
             dialogue.cancel(owner)
             yield from finish('已取消推理草稿或请求取消后台推理，后台任务在批次边界停止；已有产物保留。',outcome='cancelled')
             return
         if CONFIRM.fullmatch(content.strip()):
             started = perf_counter_ns()
-            result = dialogue.confirm(owner,content,row['turn_id'])
+            try:
+                result = dialogue.confirm(owner,content,row['turn_id'],confirmation=confirmation)
+            except DataError as error:
+                if error.code != 'INFERENCE_CONFIRMATION_REQUIRED':
+                    raise
+                yield from finish(error.payload.detail,True)
+                return
             step = store.add_step(row,'experiments.inference_run',{},'ok',result,(perf_counter_ns()-started)//1_000_000)
             yield machine._step_event(step)
             yield from finish('推理任务已受理，请查看任务卡的进度和分类结果。停止对话不等于取消推理；不重新训练模型。',outcome='working')
             return
-        if '推理结果' in content or '推理进度' in content:
+        if QUERY.fullmatch(content.strip()):
             draft = dialogue.read(owner)
-            if draft['run_id']:
-                state = dialogue.service.status(draft['document']['model_id'],draft['run_id'])
+            if draft and draft['run_id']:
+                state = dialogue.focus_run(owner, draft['document']['model_id'], draft['run_id'])
                 step = store.add_step(row,'experiments.inference_status',{},'ok',
                     {'inference_run_id':draft['run_id'],'model_id':draft['document']['model_id'],'status':state['status']},0)
                 yield machine._step_event(step)
                 yield from finish('推理状态：'+state['status']+'；任务卡显示已保存的真实结果，不重复提交。',outcome='succeeded' if state['status']=='succeeded' else 'working')
                 return
+            yield from finish('当前会话尚无已提交的推理，可从归档模型的推理记录中查看。')
+            return
+        safe = dialogue.capture(owner,content)
         names_allowed = {'experiments.inference_get','experiments.inference_inspect','experiments.inference_update','experiments.history_list'}
         tools = [tool for tool in machine.tools.snapshot() if tool['function']['name'] in names_allowed]
         version = store.skill(owner)
@@ -80,7 +139,12 @@ def generate(machine, content):
                 if dialogue.view(owner)['can_run'] or not reply.content:
                     yield from present()
                 else:
-                    yield from finish(dialogue.redact(owner,reply.content)+'\n\n'+dialogue.view(owner)['question'],True)
+                    view = dialogue.view(owner,structured=True,previous_document=prior_document)
+                    guidance = dialogue.redact(owner,reply.content)
+                    if card := view.get('presentation'):
+                        card['todo'] = guidance or card['todo']
+                    yield from card_step(view)
+                    yield from finish(guidance+'\n\n'+view['question'],True)
                 return
             names = [call.name for call in reply.tool_calls]
             if len(names)>8 or any(name not in names_allowed for name in names) or names.count('experiments.inference_update')>1 or 'experiments.inference_update' in names and names[-1]!='experiments.inference_update':

@@ -14,7 +14,7 @@ from spectrumagent.data.validation import safe_error, PARAMETER_ERRORS, INPUT_ER
 from .llm import LLMClient, _json
 from .skill import _write, active_skill
 from . import context as memory
-from .execution import RequestCancelled
+from .execution import RequestCancelled, numerical_confirmation
 from .open_access import MAX_TOOL_CALLS, MAX_WORKFLOW_BATCHES, MAX_WORKFLOW_STEPS
 
 
@@ -223,7 +223,7 @@ class AgentStore:
             db.execute("INSERT INTO agent_round (id,session_id,seq,user_message,calls_json,status,created_at,turn_id) VALUES (?,?,?,?,?,?,?,?)",
                        (identifier, session_id, seq, content, _json(calls), status, timestamp, turn_id or identifier))
             if content and db.execute("SELECT title FROM agent_session WHERE id=?", (session_id,)).fetchone()[0] == "":
-                db.execute("UPDATE agent_session SET title=? WHERE id=?", (content[:40], session_id))
+                db.execute("UPDATE agent_session SET title=? WHERE id=?", (' '.join(content.split())[:40], session_id))
             db.execute("UPDATE agent_session SET updated_at=? WHERE id=?", (timestamp, session_id))
             return _rows(db, "SELECT * FROM agent_round WHERE id=?", (identifier,))[0]
 
@@ -362,21 +362,10 @@ class StateMachine:
         if self._workflow_enabled():
             dialogue = getattr(self.tools, 'experiment_dialogue', None)
             if dialogue and kwargs.get('content'):
-                from spectrumagent.experiments.conversation import PATHS
-                from spectrumagent.experiments.pairing import requested
-                from spectrumagent.experiments.group_split import requested as split_requested
-                if split_requested(kwargs['content'], PATHS):
-                    from .experiment_flow import generate
-                    return generate(self, kwargs['content'], group_split=True)
-                if requested(kwargs['content'], PATHS):
-                    from .experiment_flow import generate
-                    return generate(self, kwargs['content'], pairing=True)
-            if kwargs.get('content') is not None and dialogue and dialogue.inference.handles(self.session_id,kwargs['content']):
-                from .inference_flow import generate as inference_generate
-                return inference_generate(self,kwargs['content'])
-            if kwargs.get('content') is not None and dialogue and dialogue.handles(self.session_id, kwargs['content']):
-                from .experiment_flow import generate as experiment_generate
-                return experiment_generate(self, kwargs['content'])
+                from .router import dispatch
+                routed = dispatch(self, dialogue, kwargs['content'], kwargs.get('workspace'))
+                if routed is not None:
+                    return routed
             from .workflow import generate
             def with_reply_state():
                 events=generate(self,**kwargs)
@@ -462,8 +451,10 @@ class StateMachine:
                 message['content'] = '查看本地原图与标注配对预览'
             elif message['role'] == 'assistant' and text.startswith((
                     'ENVI 原图与标注配对预览', '配对明细 ·', '未配对原图 ·', '配对异常 ·', '未生成新的配对预览。',
-                    '中心取谱核验通过', '中心取谱核验未完成', '数据划分 ·')):
+                    '中心取谱核验通过', '中心取谱核验未完成', '数据划分 ·','原图与标注目录用途')):
                 message['content'] = '本地配对信息已展示给用户。'
+            elif message['role'] == 'user' and PATHS.search(text):
+                message['content'] = PATHS.sub('本地输入源', text)
         return messages
 
     def _chat(self, messages, tools):
@@ -611,12 +602,17 @@ class StateMachine:
             self.state = State.CALL_TOOL
             for call in calls[offset:]:
                 tool = self.tools.resolve(call["name"])
-                if tool.human_check and not auto_confirm:
+                numerical = numerical_confirmation(call)
+                if numerical is not None or tool.human_check and not auto_confirm:
                     summary = {key: value for key, value in call["arguments"].items()
                                if key in {"cube_id", "version_id", "revision", "class_code", "overwrite"} and value is not None}
+                    reason = "标注版本确认"
+                    if numerical is not None:
+                        summary.update(numerical)
+                        reason = "请核对训练或推理输入，确认后提交。"
                     step = self.store.add_step(round_, call["name"], call["arguments"], "human_check_pending", summary, 0, tool_call_id=call["id"])
                     self.state = State.HUMAN_CHECK
-                    yield "human_check", {"check_id": step["id"], "tool": call["name"], "summary": summary, "reason": "标注版本确认"}
+                    yield "human_check", {"check_id": step["id"], "tool": call["name"], "summary": summary, "reason": reason}
                     return
                 if getattr(self, 'control', None) is not None:
                     yield 'progress', {'phase': 'tool', 'tool': call['name']}

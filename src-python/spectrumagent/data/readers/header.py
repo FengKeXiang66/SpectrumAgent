@@ -24,12 +24,21 @@ def key_name(key):
 
 
 def read_text(path):
+    path = Path(path)
     try:
-        return Path(path).read_text(encoding="utf-8-sig")
+        try:
+            text = path.read_text(encoding="utf-8-sig")
+        except UnicodeDecodeError:
+            if path.suffix.lower() != '.hdr':
+                raise
+            text = path.read_text(encoding='gb18030')
+        if chr(0) in text:
+            raise DataError("HEADER_INVALID", "头文件不是文本", path=str(path))
+        return text
     except FileNotFoundError as exc:
         raise DataError("FILE_NOT_FOUND", "头文件不存在", path=str(path)) from exc
     except (OSError, UnicodeError) as exc:
-        raise DataError("HEADER_INVALID", "头文件不可读或不是UTF-8", path=str(path)) from exc
+        raise DataError("HEADER_INVALID", "头文件不可读或文本编码不受支持", path=str(path)) from exc
 
 
 def classic(text: str, *, magic=True) -> dict:
@@ -95,7 +104,7 @@ def normalize(fields: dict, *, require_interleave=False) -> Header:
         values[name] = value
         if name not in KNOWN:
             metadata[key] = value
-            log.warning("unknown_header_key", key=key)
+            log.debug("unknown_header_key", key=key)
     for name in ("samples", "lines", "bands", "data_type"):
         if name not in values:
             raise DataError("HEADER_INVALID", "缺少必填头字段", field=name)

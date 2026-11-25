@@ -1,7 +1,7 @@
 """Typed conversational patches; spectra and local paths stay in the service."""
 from typing import Annotated, Literal, Union
 
-from pydantic import Field, FiniteFloat
+from pydantic import Field, FiniteFloat, model_validator
 
 from . import ToolInput, NoArguments, Reference
 from ..tool_context import owner_session
@@ -14,6 +14,7 @@ class ArchiveDraft(ToolInput):
     spectra_key: str | None = None
     labels_key: str | None = None
     wavelengths_key: str | None = None
+    groups_key: str | None = None
     input_stage: Literal['spectra', 'neighborhood_mean'] | None = None
     neighborhood: int | None = None
     evaluation_unit: Literal['spectrum', 'center_pixel'] | None = None
@@ -23,6 +24,7 @@ class ImageReference(ToolInput):
     header_ref: Reference
     roi_ref: Reference
     sample_id: Reference
+    batch: Reference | None = None
     data_ref: Reference | None = None
     centers_ref: Reference | None = None
 
@@ -38,6 +40,9 @@ class ImageDraft(ToolInput):
     kind: Literal['roi_images']
     members: list[ImageReference] | None = None
     neighborhood: int | None = None
+    sampling_stride: Annotated[int, Field(ge=1)] | None = None
+    max_per_class: Annotated[int, Field(ge=1)] | None = None
+    sampling_seed: Annotated[int, Field(ge=0, le=2**32-1)] | None = None
     wavelength_unit: Literal['nm', 'um'] | None = None
     mapping_window_nm: FiniteFloat | None = None
     nearest_tolerance_nm: FiniteFloat | None = None
@@ -83,6 +88,21 @@ class GridAxis(ToolInput):
     step_nm: Annotated[FiniteFloat, Field(gt=0)]
 
 
+PreprocessingStep = Annotated[Union[SGDraft, L2, Center, Standard, SNV, PCADraft], Field(discriminator='op')]
+
+
+class PreprocessingEdit(ToolInput):
+    action: Literal['update', 'insert', 'remove']
+    index: Annotated[int, Field(ge=1, description='从 1 开始的步骤序号；插入放在该位置')]
+    step: PreprocessingStep | None = Field(default=None, description='修改同一算子时合并参数；换成另一算子时替换该步')
+
+    @model_validator(mode='after')
+    def step_required(self):
+        if (self.step is None) != (self.action == 'remove'):
+            raise ValueError('修改或插入须提供步骤，删除只需要序号')
+        return self
+
+
 class DraftUpdate(ToolInput):
     expected_revision: Annotated[int, Field(ge=0)]
     reset: bool = False
@@ -90,11 +110,18 @@ class DraftUpdate(ToolInput):
     train: Annotated[Union[ArchiveDraft, ImageDraft], Field(discriminator='kind')] | None = None
     test: Annotated[Union[ArchiveDraft, ImageDraft], Field(discriminator='kind')] | None = None
     classes: list[ClassName] | None = None
-    preprocessing: list[Annotated[Union[SGDraft, L2, Center, Standard, SNV, PCADraft], Field(discriminator='op')]] | None = None
+    preprocessing: list[PreprocessingStep] | None = None
+    preprocessing_edit: PreprocessingEdit | None = None
     model: ModelDraft | None = None
     axis: Annotated[Union[ArchiveAxis, GridAxis], Field(discriminator='kind')] | None = None
     additional_metrics: list[Metric] | None = None
     test_usage: Literal['independent_test', 'development_regression'] | None = None
+
+    @model_validator(mode='after')
+    def one_preprocessing_operation(self):
+        if self.preprocessing_edit is not None and (self.reset or 'preprocessing' in self.model_fields_set):
+            raise ValueError('局部修改不能与重置或替换预处理清单同时使用')
+        return self
 
 
 class InspectInput(ToolInput):
@@ -135,6 +162,7 @@ def register_experiments(registry, dialogue):
                       '检查用户提供的输入源引用；只返回文件类型、NPZ字段及维度，不返回谱值、路径或材质猜测',
                       lambda args: dialogue.inspect(owner_session.get(), args.source_ref))
     registry.register('experiments.draft_update', DraftUpdate,
-                      '增量保存用户明确给出的实验信息，不启动计算。嵌套字段合并，preprocessing和classes整组替换；'
+                      '增量保存用户明确给出的实验信息，不启动计算。局部改预处理用 preprocessing_edit（从 1 开始）；'
+                      'preprocessing 和 classes 整组替换，仅用于明确提供整组时。'
                       'SG缺参允许留空以便追问。改变步骤时保留已确认参数，reset仅用于用户要求新实验。',
                       lambda args: dialogue.update(owner_session.get(), args))

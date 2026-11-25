@@ -78,7 +78,7 @@ export default function App() {
     setWorkspace(current => selectWorkspace(current, next)); setNavigation(null); setWorkspaceName(localDisplay.current.display_name ?? '');
     setSelected(current => current?.id === next.cube_id ? current : null);
   }, [catalogController]);
-  const composerInput = useRef<HTMLInputElement>(null);
+  const composerInput = useRef<HTMLTextAreaElement>(null);
   const session = useSession({ enabled: status.phase === 'Ready', generation: status.generation_id, bootId: status.boot_id,
     workspace, records, displayName: workspaceName, onWorkspaceChange: changeWorkspace,
     onSessionReset: () => {

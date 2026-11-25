@@ -219,9 +219,15 @@ class SessionService:
         return {'kind':'human_check','check_id':check,'tool':step[0], 'summary':summary,
                 'reason':'恢复的待确认操作，批准前将重新核验'}
 
-    def archive(self, sid):
+    def archive(self, sid, *, experiment_active=None):
         """Remove from management view without deleting any audit row."""
         identifier(sid)
+        with connect_database(self.database) as db:
+            original = db.execute('SELECT updated_at FROM agent_session WHERE id=?', (sid,)).fetchone()
+        if not original:
+            raise _failure('INVALID_REQUEST', '会话不存在', 404)
+        if experiment_active and experiment_active(sid):
+            raise _failure('SESSION_BUSY', '请先完成或取消本会话的训练、寻优或推理任务', 409)
         training = getattr(self.registry, '_training_jobs', None)
         if training:
             with training.lock:
@@ -234,9 +240,10 @@ class SessionService:
                     raise _failure('SESSION_BUSY', '请先完成或取消本会话的后台任务', 409)
         with connect_database(self.database) as db:
             db.execute('BEGIN IMMEDIATE')
-            if not db.execute('SELECT 1 FROM agent_session WHERE id=?', (sid,)).fetchone():
-                raise _failure('INVALID_REQUEST', '会话不存在', 404)
-            if db.execute("SELECT 1 FROM agent_session_request WHERE session_id=? AND status='running'", (sid,)).fetchone():
+            # A just-finished request may have submitted work since the in-memory task check.
+            updated = db.execute('SELECT updated_at FROM agent_session WHERE id=?', (sid,)).fetchone()
+            if (updated != original or
+                    db.execute("SELECT 1 FROM agent_session_request WHERE session_id=? AND status='running'", (sid,)).fetchone()):
                 raise _failure('SESSION_BUSY', '请先结束当前执行再移除会话', 409)
             db.execute('INSERT OR IGNORE INTO agent_session_archive(session_id,archived_at) VALUES(?,?)', (sid, _now()))
         return {'session_id': sid, 'archived': True}
@@ -256,14 +263,21 @@ class SessionService:
         if dataset_version_id:
             where.append('p.dataset_version_ref=?');args.append(dataset_version_id)
         if boundary:
-            where.append('(s.created_at,s.id)<(?,?)');args.extend(boundary['last'])
+            where.append('(s.updated_at,s.id)<(?,?)');args.extend(boundary['last'])
         with connect_database(self.database) as db:
-            rows = _rows(db, 'SELECT s.id,s.created_at FROM agent_session s JOIN agent_session_scope p ON s.id=p.session_id '+('WHERE '+' AND '.join(where) if where else '')+' ORDER BY s.created_at DESC,s.id DESC LIMIT ?', (*args,limit+1))
-        items = [self.detail(r['id'], refresh=False) for r in rows[:limit]]
-        # Listings contain only safe summaries, never pending contents/history.
+            rows = _rows(db, '''SELECT s.id,s.title,s.created_at,s.updated_at,
+                EXISTS(SELECT 1 FROM agent_round r WHERE r.session_id=s.id AND r.status IN ('human_check','plan_check')) AS pending,
+                COALESCE((SELECT MAX(seq) FROM agent_session_event e WHERE e.session_id=s.id),0) AS history_watermark,
+                (SELECT json_object('request_id',r.request_id,'status',r.status,'boot_id',r.boot_id,'events_complete',r.events_complete)
+                 FROM agent_session_request r WHERE r.session_id=s.id ORDER BY r.created_at DESC,r.rowid DESC LIMIT 1) AS request
+                FROM agent_session s JOIN agent_session_scope p ON s.id=p.session_id
+                WHERE '''+' AND '.join(where)+' ORDER BY s.updated_at DESC,s.id DESC LIMIT ?', (*args,limit+1))
+        items = rows[:limit]
         for item in items:
             item['pending'] = bool(item['pending'])
-        return {'sessions':items, 'next_cursor': self._sign({'filters':filters,'last':[rows[limit-1]['created_at'],rows[limit-1]['id']]}) if len(rows)>limit else None}
+            item['request'] = json.loads(item['request']) if item['request'] else None
+        return {'sessions':items, 'next_cursor': self._sign({'filters':filters,
+                    'last':[items[-1]['updated_at'],items[-1]['id']]}) if len(rows)>limit else None}
 
     def select(self, sid, cube_id):
         scope = self.scope(sid)

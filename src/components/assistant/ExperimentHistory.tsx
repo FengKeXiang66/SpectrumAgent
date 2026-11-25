@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { agent, type ArchivedExperiment, type ExperimentHistory as History, type ExperimentComparison } from './api';
 import ExperimentResults from './ExperimentResults';
+import type { OpenInferenceView } from './InferenceResultsView';
 
 const statusNames:Record<string,string>={succeeded:'已完成',failed:'失败',running:'执行中',cancelled:'已取消',interrupted:'已中断',unreadable:'不可读'};
 const phaseNames:Record<string,string>={checking:'检查输入',preparing:'准备数据',training:'预处理与训练',testing:'测试评价',reporting:'生成报告'};
@@ -9,7 +10,7 @@ const unit=(value:string|undefined)=>value==='center_pixel'?'中心像元':value
 const purpose=(value:string|undefined)=>value==='development_regression'?'开发复现核验':value==='independent_test'?'独立测试':value??'—';
 const checks:Record<string,string>={evaluation_unit:'评价单位',test_usage:'测试用途',classes:'类别映射',input_declarations:'输入与划分声明',source_fingerprints:'来源指纹',wavelength_axis:'波长轴',metric_definition:'指标口径'};
 
-export default function ExperimentHistory({sessionId,enabled,onInfer}:{sessionId:string;enabled:boolean;onInfer?:(id:string)=>void}) {
+export default function ExperimentHistory({sessionId,enabled,onInfer,onCommand,onInferenceView}:{sessionId:string;enabled:boolean;onInfer?:(id:string)=>void;onCommand?:(content:string)=>void;onInferenceView?:OpenInferenceView}) {
   const [page,setPage]=useState<History|null>(null),[offset,setOffset]=useState(0),[refresh,setRefresh]=useState(0);
   const [selected,setSelected]=useState<ArchivedExperiment|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);
   const [pair,setPair]=useState<string[]>([]),[comparison,setComparison]=useState<ExperimentComparison|null>(null);
@@ -74,7 +75,7 @@ export default function ExperimentHistory({sessionId,enabled,onInfer}:{sessionId
         </tbody></table></div><p>{comparison.note}</p>
       </section>}
       {selected&&(selected.status==='succeeded'
-        ?<ExperimentResults key={selected.experiment_id} sessionId={sessionId} experimentId={selected.experiment_id} enabled={enabled} onInfer={onInfer}/>
+        ?<ExperimentResults key={selected.experiment_id} sessionId={sessionId} experimentId={selected.experiment_id} enabled={enabled} onInfer={onInfer} onCommand={onCommand} onInferenceView={onInferenceView}/>
         :<p>实验 {selected.experiment_id.slice(0,8)}：{statusNames[selected.status]??selected.status}。{selected.phase&&`最后记录阶段：${phaseNames[selected.phase]??selected.phase}。`}已完成产物保留；未完成实验不自动续训。</p>)}
   </section>;
 }

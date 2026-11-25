@@ -3,6 +3,25 @@ import asyncio
 from threading import Event, Lock
 
 
+NUMERICAL_RUNS = frozenset({
+    'workspace.classify','modeling.classify','modeling.regress',
+    'modeling.infer','modeling.classification_infer',
+})
+
+
+def numerical_confirmation(call):
+    if call['name'] not in NUMERICAL_RUNS:
+        return None
+    arguments = call['arguments']
+    summary = {key:arguments[key] for key in ('model_id','n_components','max_components','cv_folds',
+                                             'outer_folds','evaluation_protocol','target_schema_id')
+               if arguments.get(key) is not None}
+    for key in ('cube_ids','preprocess_run_ids'):
+        if isinstance(arguments.get(key),list):
+            summary[key+'_count'] = len(arguments[key])
+    return summary
+
+
 class RequestCancelled(BaseException):
     """Must bypass generic model/tool error handlers."""
 
