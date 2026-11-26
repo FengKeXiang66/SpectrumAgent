@@ -1,14 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { describeAnnotationError, type Label, type LabelBody } from './types.ts';
+import { describeAnnotationError, type Label } from './types.ts';
 
 type Props = {
-  labels: Label[]; projectId: string; selectedId: string | null; disabled: boolean; allowSelection?: boolean;
-  onSelect(id: string): void; onAdd(body: LabelBody): Promise<void>; onDelete(id: string): Promise<void>;
+  labels: Label[]; selectedId: string | null; disabled: boolean; allowSelection?: boolean;
+  onSelect(id: string): void; onCreate(): void; onDelete(id: string): Promise<void>;
 };
 
-export default function LabelPanel({ labels, projectId, selectedId, disabled, allowSelection = false, onSelect, onAdd, onDelete }: Props) {
-  const [adding, setAdding] = useState(false);
-  const [name, setName] = useState(''), [color, setColor] = useState('#2563eb');
+export default function LabelPanel({ labels, selectedId, disabled, allowSelection = false, onSelect, onCreate, onDelete }: Props) {
   const [error, setError] = useState('');
   const [pending, setPending] = useState(false), [deleting, setDeleting] = useState<string | null>(null);
   const locked = disabled || pending;
@@ -17,16 +15,6 @@ export default function LabelPanel({ labels, projectId, selectedId, disabled, al
   useEffect(() => {
     if (deletingLabel && !dialog.current?.open) dialog.current?.showModal();
   }, [deletingLabel]);
-  const submit = async () => {
-    const trimmed = name.trim();
-    if (!trimmed || locked) return;
-    setError(''); setPending(true);
-    try {
-      await onAdd({ project_id: projectId, name: trimmed, color_hex: color });
-      setName(''); setAdding(false);
-    } catch (failure) { setError(describeAnnotationError(failure)); }
-    finally { setPending(false); }
-  };
   const remove = async (id: string) => {
     if (locked) return;
     setError(''); setPending(true);
@@ -46,14 +34,8 @@ export default function LabelPanel({ labels, projectId, selectedId, disabled, al
         aria-label={`删除标签 ${label.name}`} onClick={() => { setDeleting(label.id); setError(''); }}>删除</button>
       </div>)}
     </div>
-    {!labels.length && !adding && <p className="annotation-hint">暂无标签，请新建标签后开始标注。</p>}
-    <button type="button" disabled={locked} onClick={() => { setAdding(!adding); setError(''); }}>新建标签</button>
-    {adding && <form className="annotation-new-label" aria-label="新建标签" onSubmit={event => { event.preventDefault(); void submit(); }}>
-      <label>名字<input required value={name} disabled={locked} onChange={event => setName(event.target.value)} /></label>
-      <label>颜色<input type="color" value={color} disabled={locked} onChange={event => setColor(event.target.value)} /></label>
-      <div><button type="submit" disabled={locked || !name.trim()}>新建</button>
-        <button type="button" disabled={locked} onClick={() => setAdding(false)}>取消</button></div>
-    </form>}
+    {!labels.length && <p className="annotation-hint">暂无标签，请在 AI 对话中创建标签后开始标注。</p>}
+    <button type="button" disabled={locked} onClick={onCreate}>到 AI 对话创建标签</button>
     {error && <p role="alert" className="annotation-error">{error}</p>}
     {deletingLabel && <dialog ref={dialog} className="annotation-label-confirm" aria-labelledby="delete-label-title"
       onKeyDown={event => event.stopPropagation()} onCancel={event => { if (pending) event.preventDefault(); else setDeleting(null); }}>

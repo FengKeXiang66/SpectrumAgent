@@ -75,6 +75,7 @@ def test_unlabeled_import_choice_and_resume_do_not_infer_labels(application, tmp
 def test_external_annotations_reach_preprocessing_without_superpixels(application, tmp_path, monkeypatch):
     images, annotations = source(tmp_path)
     sid, send = session(application)
+    send('创建标签：pe、pet')
     reply, _ = send(f'导入带标注的数据，原图 "{images}"')
     assert reply['data_intake']['stage'] == 'need_annotations'
     assert '训练原图' not in reply['content']
@@ -87,7 +88,7 @@ def test_external_annotations_reach_preprocessing_without_superpixels(applicatio
         raise AssertionError('external annotations must not prepare superpixels')
     monkeypatch.setattr(application.state.superpixel_engine, 'prepare', forbidden)
     reply, _ = send(f'使用已配对标注 {card["id"]}')
-    assert reply['data_intake']['ready_count'] == 2, reply
+    assert reply['data_intake']['ready_count'] == 2, application.state.agent_tools.data_intake.read(sid)['issues']
     current = CurrentWorkspace(application.state.annotation_sessions, application.state.preprocess_runner)
     assert {row['status'] for row in current.state()['members']} == {'need_preprocess'}
     for row in application.state.dataset_registry.catalog()['datasets']:
@@ -114,7 +115,11 @@ def test_external_annotations_reach_preprocessing_without_superpixels(applicatio
     assert np.any(restored.working(cube)['label_map'] >= 0)
     assert CurrentWorkspace(restored, application.state.preprocess_runner).state()['members'][0]['annotation_id']
     reply, events = send(f'进入预处理 {card["id"]}')
-    assert any(kind == 'workspace' and data['stage'] == 'preprocess' for kind, data in events)
+    assert not any(kind == 'workspace' for kind, data in events)
+    assert any(kind == 'step' and data.get('tool') == 'experiments.draft_presentation' for kind, data in events)
+    dialogue = application.state.agent_tools.experiment_dialogue
+    assert dialogue.view(sid)['can_study']
+    assert not dialogue.view(sid)['can_run']
     # A completed card is idempotent.
     send(f'使用已配对标注 {card["id"]}')
     with connect_database(current.database) as db:
@@ -127,6 +132,7 @@ def test_partial_batch_ambiguity_and_single_annotation_path(application, tmp_pat
     duplicate = json.loads((annotations / 'plastic1.json').read_text())
     (annotations / 'duplicate.json').write_text(json.dumps(duplicate))
     _, send = session(application)
+    send('创建标签：pe、pet')
     reply, _ = send(f'导入 "{images}"')
     intake = reply['data_intake']['id']
     send(f'选择导入方式 {intake} 已有标注')
@@ -135,6 +141,8 @@ def test_partial_batch_ambiguity_and_single_annotation_path(application, tmp_pat
     assert (card['image_count'], card['paired_count'], card['missing_count'], card['issue_count']) == (3, 1, 2, 1)
     reply, _ = send(f'使用已配对标注 {intake}')
     assert reply['data_intake']['ready_count'] == 1
+    reply, _ = send(f'配置预处理与训练 {intake}')
+    assert '2 张' in reply['content'] and '未纳入' in reply['content']
     assert sorted(r['workflow_status'] for r in application.state.dataset_registry.catalog()['datasets']) == ['need_annotation', 'need_annotation', 'need_preprocess']
     # A single JSON can be attached to one explicitly selected image.
     _, other = session(application)
@@ -149,6 +157,7 @@ def test_partial_batch_ambiguity_and_single_annotation_path(application, tmp_pat
 def test_source_changes_and_existing_manual_edits_are_not_overwritten(application, tmp_path):
     images, annotations = source(tmp_path, 1)
     _, send = session(application)
+    send('创建标签：pe、pet')
     reply, _ = send(f'导入已有标注的数据，原图 "{images}"，标注 "{annotations}"')
     intake = reply['data_intake']['id']
     annotation = annotations / 'plastic0.json'
@@ -237,6 +246,7 @@ def test_labelme_relocation_and_annotation_dimension_errors(application, tmp_pat
     doc = json.loads(bad.read_text()); doc['imageWidth'] = 123
     bad.write_text(json.dumps(doc))
     _, send = session(application)
+    send('创建标签：pe、pet')
     reply, _ = send(f'导入已有标注的数据，原图 "{images}"，标注 "{annotations}"')
     card = reply['data_intake']
     assert card['paired_count'] == 1 and card['issue_count'] == 1
@@ -248,6 +258,7 @@ def test_bad_unmatched_header_does_not_block_valid_pairs_or_widen_preview(applic
     images, annotations = source(tmp_path, 2)
     (images / 'plastic1.hdr').write_text('not an ENVI header')
     _, send = session(application)
+    send('创建标签：pe、pet')
     reply, _ = send(f'导入已有标注的数据，原图 "{images}"，标注 "{annotations}"')
     card = reply['data_intake']
     assert card['paired_count'] == 1 and card['issue_count'] == 1
@@ -256,3 +267,38 @@ def test_bad_unmatched_header_does_not_block_valid_pairs_or_widen_preview(applic
     reply, _ = send(f'使用已配对标注 {card["id"]}')
     assert reply['data_intake']['imported_count'] == reply['data_intake']['ready_count'] == 1
     assert application.state.dataset_registry.catalog()['total'] == 1
+
+
+def test_roi_requires_chat_labels_and_retry_matches_case(application, tmp_path):
+    images, annotations = source(tmp_path, 2)
+    owner, send = session(application)
+    reply, _ = send(f'导入已有标注的数据，原图 "{images}"，标注 "{annotations}"')
+    intake = reply['data_intake']['id']
+    reply, _ = send(f'使用已配对标注 {intake}')
+    assert reply['data_intake']['ready_count'] == 0
+    assert reply['data_intake']['annotation_retry']
+    with connect_database(application.state.experiments.paths.database) as db:
+        assert db.execute('SELECT count(*) FROM label').fetchone()[0] == 0
+        assert db.execute('SELECT count(*) FROM annotation_version').fetchone()[0] == 0
+    reply, _ = send('创建标签：PE、PET')
+    assert len(reply['data_intake']['labels']) == 2
+    reply, _ = send(f'使用已配对标注 {intake}')
+    assert reply['data_intake']['ready_count'] == 2, application.state.agent_tools.data_intake.read(owner)['issues']
+    assert not reply['data_intake']['annotation_retry']
+    assert reply['data_intake']['issue_count'] == 0
+    with connect_database(application.state.experiments.paths.database) as db:
+        assert {row[0] for row in db.execute('SELECT name FROM label')} == {'PE', 'PET'}
+
+
+def test_create_labels_preserves_roi_preview(application, tmp_path):
+    images, annotations = source(tmp_path, 2)
+    _, send = session(application)
+    reply, _ = send(f'导入已有标注的数据，原图 "{images}"，标注 "{annotations}"')
+    intake = reply['data_intake']['id']
+    reply, _ = send('创建标签：PE、PET')
+    assert reply['data_intake']['id'] == intake
+    assert reply['data_intake']['stage'] == 'review'
+    assert reply['data_intake']['paired_count'] == 2
+    assert application.state.dataset_registry.catalog()['total'] == 0
+    reply, _ = send(f'使用已配对标注 {intake}')
+    assert reply['data_intake']['ready_count'] == 2

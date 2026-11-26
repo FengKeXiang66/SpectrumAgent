@@ -201,6 +201,13 @@ class LabelStore:
             if isinstance(request, CustomRequest):
                 return insert_label(db, request, origin="custom")
             if isinstance(request, SimpleLabelRequest):
+                db.row_factory = sqlite3.Row
+                matches = [dict(row) for row in db.execute('SELECT * FROM label WHERE project_id=? AND deleted_at IS NULL',
+                    (request.project_id,)) if row['name'].casefold() == request.name.casefold()]
+                if len(matches) > 1:
+                    raise invalid('name', '项目中有多个大小写同名标签，请先核对')
+                if matches:
+                    return {key: value for key, value in matches[0].items() if key != 'deleted_at'}
                 used = {row[0] for row in db.execute("SELECT code FROM label WHERE project_id=?", (request.project_id,))}
                 serial = 1
                 while f"L{serial:03d}" in used:
@@ -220,7 +227,7 @@ class LabelStore:
             return rows
 
     def ensure_names(self, project_id, names):
-        """Atomically create explicitly named labels, reusing exact live names.
+        """Atomically create explicitly named labels, reusing live names regardless of case.
 
         Only palette entries are created. Importing samples or defining a label
         never assigns pixels, sample classes, background status or shortcuts.
@@ -230,7 +237,10 @@ class LabelStore:
         if any(not isinstance(name, str) or not name.strip() or len(name.strip()) > 100
                or re.search(r'[\x00-\x1f\x7f]', name) for name in names):
             raise invalid('names', '标签名称须为 1 至 100 个字符，不能含控制字符')
-        names = list(dict.fromkeys(name.strip() for name in names))
+        unique = {}
+        for name in names:
+            unique.setdefault(name.strip().casefold(), name.strip())
+        names = list(unique.values())
         with self.lock, connect_database(self.database, timeout=10) as db:
             db.execute('BEGIN IMMEDIATE')
             self.require_project(db, project_id)
@@ -238,11 +248,11 @@ class LabelStore:
             live = [dict(row) for row in db.execute('SELECT id,code,name,color_hex FROM label WHERE project_id=? AND deleted_at IS NULL', (project_id,))]
             used = {row[0] for row in db.execute('SELECT code FROM label WHERE project_id=?', (project_id,))}
             for name in names:
-                if sum(row['name'] == name for row in live) > 1:
+                if sum(row['name'].casefold() == name.casefold() for row in live) > 1:
                     raise invalid('names', f'项目中有多个同名标签“{name}”，请先在标注界面核对')
             result, serial = [], 1
             for name in names:
-                existing = next((row for row in live if row['name'] == name), None)
+                existing = next((row for row in live if row['name'].casefold() == name.casefold()), None)
                 if existing:
                     result.append({**existing, 'existing': True})
                     continue

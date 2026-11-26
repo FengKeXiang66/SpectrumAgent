@@ -161,6 +161,7 @@ class ExperimentConfig(InputModel):
     test: DatasetInput
     wavelengths_nm: Annotated[list[FiniteFloat], Field(min_length=2)]
     classes: dict[int, str]
+    class_colors: dict[int, Annotated[str, Field(pattern=r'^#[0-9a-fA-F]{6}$')]] = Field(default_factory=dict)
     preprocessing: list[Step]
     model: PLSDAConfig
     additional_metrics: list[Metric] = Field(default_factory=list)
@@ -169,7 +170,7 @@ class ExperimentConfig(InputModel):
     split_manifest: SplitManifest | None = None
     training_sampling: TrainingSampling | None = None
 
-    @field_validator("classes", mode="before")
+    @field_validator("classes", "class_colors", mode="before")
     @classmethod
     def json_class_keys(cls, value):
         # JSON object keys are strings even when class labels are integers.
@@ -182,6 +183,8 @@ class ExperimentConfig(InputModel):
 
     @model_validator(mode="after")
     def consistent(self):
+        if set(self.class_colors) - set(self.classes):
+            raise ValueError('颜色须对应已声明的类别编号')
         if self.test.kind == 'roi_images' and self.test.max_per_class is not None:
             raise ValueError("类别抽样上限仅用于训练侧")
         if not np.all(np.diff(self.wavelengths_nm) > 0):

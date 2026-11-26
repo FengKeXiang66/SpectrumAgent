@@ -11,6 +11,7 @@ export type DataIntake = {
   labels?: { id: string; code: string; name: string; color_hex: string; existing: boolean }[];
   label_form_open?: boolean;
   label_draft?: string[];
+  annotation_retry?: boolean;
   pairs?: { image_name: string; annotation_name: string; region_count: number; labels: string[] }[];
 };
 
@@ -75,7 +76,7 @@ export default function DataIntakeCard({ card, active, enabled, send, edit }: {
       {!!card.pairs?.length && <details><summary>查看原图、标注及区域数量</summary>
         <ul>{card.pairs.map((pair, index) => <li key={index}>{pair.image_name} → {pair.annotation_name} · {pair.region_count} 个区域 · {pair.labels.join('、')}</li>)}</ul>
       </details>}
-      <p>接入后可直接预处理；未配对样品保留为待标注。</p>
+      <p>接入只匹配已有标签，不自动创建类别；缺少的标签请在 AI 对话中创建。未配对样品保留为待标注。</p>
       <div className="work-actions">
         <button disabled={!canAct || !card.paired_count} onClick={() => send(command('使用已配对标注'))}>使用成功配对的 {card.paired_count} 个标注</button>
         <button disabled={!canAct} onClick={() => send(command('调整标注路径'))}>调整标注路径</button>
@@ -86,11 +87,12 @@ export default function DataIntakeCard({ card, active, enabled, send, edit }: {
       <p>已登记 {card.imported_count} 个数据集 · 已保存区域标注 {card.ready_count} 个 · 待标注 {remaining} 个</p>
       {!!card.labels?.length && <p role="status">标签类别已就绪：{card.labels.map(label => label.name).join('、')}</p>}
       {remaining > 0 && <p className="draft-todo">{card.labels?.length
-        ? '下一步：生成超像素，在画布中选择标签并点选区域，保存后即可进入预处理。'
+        ? '下一步：生成超像素，在画布中选择标签并点选区域，保存后即可在对话中配置预处理与训练。'
         : '下一步：先创建标签类别，再生成超像素并在画布中点选区域。'}</p>}
       {remaining > 0 && <p>创建标签只准备类别名称；点选区域并保存后，才计入已保存区域标注。</p>}
       <div className="work-actions">
-        {card.ready_count > 0 && <button className="draft-primary" disabled={!canAct} onClick={() => send(command('进入预处理'))}>进入预处理</button>}
+        {card.ready_count > 0 && <button className="draft-primary" disabled={!canAct} onClick={() => send(command('配置预处理与训练'))}>配置预处理与训练</button>}
+        {card.annotation_retry && <button disabled={!canAct} onClick={() => send(command('使用已配对标注'))}>重新接入标注</button>}
         <button type="button" className={card.labels?.length ? undefined : 'draft-primary'} disabled={!canAct} aria-expanded={labelForm}
           onClick={() => { setError(''); setLabelForm(value => !value); }}>{card.labels?.length ? '添加标签' : '创建标签'}</button>
         <button className={remaining > 0 && card.labels?.length ? 'draft-primary' : undefined} disabled={!canAct}
@@ -102,7 +104,7 @@ export default function DataIntakeCard({ card, active, enabled, send, edit }: {
         <button disabled={!canAct} onClick={() => send(command('调整标注路径'))}>补充标注路径</button>
       </details>
     </>}
-      {active && labelForm && ['imported', 'labels'].includes(card.stage) && <form className="intake-label-form" aria-label="批量创建标签" onSubmit={event => {
+      {active && labelForm && ['imported', 'labels', 'review', 'need_annotations', 'need_images', 'choose_mode'].includes(card.stage) && <form className="intake-label-form" aria-label="批量创建标签" onSubmit={event => {
         event.preventDefault();
         if (!canAct) return;
         try { const text = createLabelsCommand(card.id, labelNames); setError(''); send(text); }
@@ -112,7 +114,7 @@ export default function DataIntakeCard({ card, active, enabled, send, edit }: {
         <textarea id={`intake-labels-${card.id}`} rows={3} disabled={!canAct} value={labelNames}
           placeholder="例如：PE、PET、PP" onChange={event => setLabelNames(event.target.value)}
           aria-describedby={`intake-label-help-${card.id}`} />
-        <p id={`intake-label-help-${card.id}`}>多个名称用顿号、逗号、分号或换行分隔。同名标签会复用，名称区分大小写。</p>
+        <p id={`intake-label-help-${card.id}`}>多个名称用顿号、逗号、分号或换行分隔。同名标签不区分大小写并复用已有标签。</p>
         <button type="submit" disabled={!canAct || !labelNames.trim()}>创建并保存标签</button>
       </form>}
     {active && !['imported', 'cancelled'].includes(card.stage) && <div className="work-actions">

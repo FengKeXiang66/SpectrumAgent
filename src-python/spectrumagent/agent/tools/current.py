@@ -33,7 +33,8 @@ def register_current(registry, sessions, runner):
     # resurrect a version, freeze a set, or execute a stale confirmation.
     obsolete = {'annotations.draft_confirm','training_mat.export','preprocess.run','preprocess.compare',
                 'preprocess.run_default','preprocess.run_batch','preprocess.recipe_version_add',
-                'preprocess.draft_confirm','preprocess.draft_execute','modeling.preflight','modeling.classify'}
+                'preprocess.draft_confirm','preprocess.draft_execute','modeling.preflight','modeling.classify',
+                'workspace.classify', 'labels.tree_preview', 'labels.tree_apply'}
     for name in list(registry._tools):
         if name in obsolete or name.startswith(('versions.', 'training_sets.')):
             del registry._tools[name]
@@ -95,7 +96,7 @@ def register_current(registry, sessions, runner):
         out['status'] = 'succeeded' if not out['failed'] else 'partial' if out['succeeded'] else 'failed'
         return out
 
-    def train(args, preflight=False):
+    def preflight(args):
         indexed = {row['cube_id']:row for row in workspace.state()['members']}
         if len(set(args.cube_ids)) != len(args.cube_ids) or any(indexed.get(cube,{}).get('status') != 'ready' for cube in args.cube_ids):
             raise DataError('NEED_PREPROCESS','选中的样品须先完成当前标注和预处理')
@@ -103,15 +104,11 @@ def register_current(registry, sessions, runner):
         body = dict(cube_ids=args.cube_ids,annotation_version_ids=[row['annotation_id'] for row in rows],
                     preprocess_run_ids=[row['run_id'] for row in rows],task='classification',target='label',
                     cv_strategy='group_kfold',cv_folds=args.cv_folds,seed=args.seed,split_strategy='none',evaluation_protocol='nested_group_cv')
-        if preflight:
-            result = registry.modeling.training.preflight(**body)
-            return registry.modeling.training_summary(result['run_id'],result)
-        body.update(confidence_threshold=args.confidence_threshold,n_components=args.n_components)
-        return registry.modeling.submit_training(body,None)
+        result = registry.modeling.training.preflight(**body)
+        return registry.modeling.training_summary(result['run_id'],result)
 
     registry.register('workspace.current',CurrentPage,'分页查询当前样品处理状态和可用配方；不需要版本或冻结训练集，truncated时按next_offset继续',state)
     registry.register('workspace.save_annotation',CubeArguments,'保存当前标注并聚合，替换原保存结果',save)
     registry.register('workspace.recipe_edit',EditCurrentRecipe,'按配方ID读取当前定义到共享编辑草稿；随后draft_update编辑、draft_save以同一recipe_id保存',edit_recipe)
     registry.register('workspace.preprocess',ProcessCurrent,'用指定配方处理选中的样品，自动保存当前标注；每次最多32项',process)
-    registry.register('workspace.preflight',TrainCurrent,'用选中样品当前处理结果进行真实分类预检',lambda a:train(a,True))
-    registry.register('workspace.classify',TrainCurrent,'用选中样品当前结果提交分类训练，返回job_id后用modeling.training_task查询',train)
+    registry.register('workspace.preflight',TrainCurrent,'仅应用户要求，对旧配方处理结果执行独立诊断；分类训练请使用统一实验方案',preflight)

@@ -15,14 +15,14 @@ import numpy as np
 from backend.database import connect_database
 from spectrumagent.data import DataError
 from spectrumagent.api.registry import candidates, read_header
-from spectrumagent.annotation.labels import LABEL_COLORS as COLORS, LabelStore, SimpleLabelRequest, now
+from spectrumagent.annotation.labels import LabelStore, now
 from spectrumagent.annotation.raster import encode_rle
 from spectrumagent.experiments.conversation import PATHS
 from spectrumagent.experiments.inputs import roi_maps, sha256
 from spectrumagent.experiments.pairing import resolve_annotation_header
 
 
-COMMAND = re.compile(r'^(选择导入方式|检查同目录标注|使用已配对标注|调整标注路径|进入预处理|进入人工标注|查看导入异常|取消数据导入)\s+([0-9a-f-]{36})(?:\s+(未标注|已有标注))?[。！!\s]*$')
+COMMAND = re.compile(r'^(选择导入方式|检查同目录标注|使用已配对标注|调整标注路径|进入预处理|配置预处理与训练|进入人工标注|查看导入异常|取消数据导入)\s+([0-9a-f-]{36})(?:\s+(未标注|已有标注))?[。！!\s]*$')
 UNLABELED = re.compile(r'未标注|尚未标注|没有标注|不带标注|不含标注|无标注|没有标签|不带标签')
 LABELED = re.compile(r'已有标注|带有标注|带标注|有标注|标注好|已标注|带标签|有标签')
 VIEW = re.compile(r'(?:请|帮我)?(?:查看|列出|显示)(?:全部|所有)?(?:已导入|已登记)(?:的)?(?:数据|数据集|样品)[。！!\s]*$')
@@ -57,6 +57,16 @@ class DatasetIntake:
         command = COMMAND.fullmatch(content.strip())
         paths = [str(Path(m['quoted'] or m['bare']).resolve()) for m in PATHS.finditer(content)]
         state = self.read(machine.session_id)
+        from spectrumagent.experiments.workspace_training import OPEN
+        dialogue = getattr(machine.tools, 'experiment_dialogue', None)
+        current = dialogue._read(machine.session_id) if dialogue else None
+        if text == OPEN:
+            return self.generate(machine, content, '统一训练', state)
+        if state and state['imported_ids'] and text in {'我已经对数据标注完毕', '标注完成', '我已标注完毕', '我已经标注完毕'}:
+            return self.generate(machine, content, '标注完成', state)
+        if (state and state['imported_ids'] and not (current and current['active'] and current['document'])
+                and re.fullmatch(r'(?:接下来|下一步|然后)?(?:请|帮我)?(?:对(?:这批)?数据)?(?:进行|开始)?预处理', text)):
+            return self.generate(machine, content, '统一训练', state)
         label_command = LABEL_COMMAND.fullmatch(content.strip())
         label_names = LABEL_NAMES.fullmatch(content.strip())
         if label_command:
@@ -71,8 +81,11 @@ class DatasetIntake:
                 with connect_database(self.database) as db:
                     selected = db.execute('SELECT project_id FROM dataset_registry WHERE id=?', (context.get('selected_cube_id'),)).fetchone()
                 project = selected[0] if selected else projects[0]['id'] if len(projects) == 1 else None
-                state = dict(id=str(uuid4()), stage='labels', mode=None, images=[], annotations=[], created_at=now(),
-                    issues=[], pairs=[], imported_ids=[], ready_ids=[], label_project_id=project)
+                if state and state['stage'] in {'review', 'need_annotations', 'need_images', 'choose_mode'}:
+                    state['label_project_id'] = project
+                else:
+                    state = dict(id=str(uuid4()), stage='labels', mode=None, images=[], annotations=[], created_at=now(),
+                        issues=[], pairs=[], imported_ids=[], ready_ids=[], label_project_id=project)
             names = [name.strip().strip('"“”\'‘’') for name in re.split(r'[、,，;；\r\n]+', label_names[1].strip().rstrip('。！!')) if name.strip()]
             return self.generate(machine, content, 'create_labels' if names else 'open_labels', state, label_payload=json.dumps(names))
         if VIEW.fullmatch(text) and not paths:
@@ -90,7 +103,7 @@ class DatasetIntake:
         if command:
             return self.generate(machine, content, command[1], state, command=command)
         if state and state['imported_ids'] and text in {'进入预处理', '开始预处理', '进入标注', '下一步进入标注',
-                '进入人工标注', '开始人工标注', '下一步进入人工标注', '下一步：超像素人工标注'}:
+                '配置预处理与训练', '进入人工标注', '开始人工标注', '下一步进入人工标注', '下一步：超像素人工标注'}:
             return self.generate(machine, content, '进入预处理' if '预处理' in text else '进入人工标注', state)
         if active and not new_request and not explicit_experiment and not discussion and (paths or choice or text in {'与原图同目录', '标注与原图同目录', '检查同目录标注', '取消数据导入'}):
             action = '检查同目录标注' if '同目录' in text else '取消数据导入' if text == '取消数据导入' else 'collect'
@@ -127,6 +140,7 @@ class DatasetIntake:
             'labels': state.get('labels', []),
             'label_form_open': state.get('label_form_open', False),
             'label_draft': state.get('label_draft', []),
+            'annotation_retry': state.get('annotation_retry', False),
             'pairs': [dict(image_name=Path(p['hdr']).name, annotation_name=Path(p['annotation']).name,
                            region_count=p['region_count'], labels=p['labels']) for p in state['pairs']],
         }
@@ -269,21 +283,19 @@ class DatasetIntake:
             raise DataError('SOURCE_CHANGED', '配对预览后来源发生变化，请重新检查')
         with connect_database(self.database) as db:
             prior = db.execute('SELECT source_sha256,header_sha256 FROM dataset_external_annotation WHERE cube_id=?', (cube,)).fetchone()
-            project = db.execute('SELECT project_id FROM dataset_registry WHERE id=?', (cube,)).fetchone()[0]
             confirmed = db.execute('SELECT 1 FROM annotation_confirmation_state c JOIN annotation_draft d ON d.cube_id=c.cube_id '
                                    'WHERE c.cube_id=? AND c.draft_revision=d.revision', (cube,)).fetchone()
         if prior == (pair['annotation_sha256'], pair['header_sha256']) and confirmed:
             return
-        store = LabelStore(self.database)
+        labels = self.sessions.drafts.labels(cube)
+        positions = {}
         for name in pair['labels']:
-            labels = self.sessions.drafts.labels(cube)
-            matches = [row for row in labels if row[1] == name or row[2] == name]
+            matches = [i for i, row in enumerate(labels) if row[1].casefold() == name.casefold() or row[2].casefold() == name.casefold()]
             if len(matches) > 1:
                 raise DataError('LABEL_AMBIGUOUS', '外部类别对应多个项目标签，请先调整标签名称')
             if not matches:
-                store.add(SimpleLabelRequest(project_id=project, name=name, color_hex=COLORS[len(labels) % len(COLORS)]))
-        labels = self.sessions.drafts.labels(cube)
-        positions = {name: next(i for i, row in enumerate(labels) if row[1] == name or row[2] == name) for name in pair['labels']}
+                raise DataError('LABEL_REQUIRED', f'尚未创建标签“{name}”，请先在 AI 对话中明确创建，再重新接入标注。导入不会自动创建标签。')
+            positions[name] = matches[0]
         # Reuse the external ROI rasterizer, then encode exact pixel runs. This
         # avoids a change in polygon edge semantics between the two backends.
         regions, _ = roi_maps(Path(pair['annotation']), record.dataset.shape[:2],
@@ -325,6 +337,37 @@ class DatasetIntake:
                                 **({'data_intake': self.card(state)} if state and card else {}))
         try:
             check()
+            if action in {'统一训练', '配置预处理与训练', '进入预处理'}:
+                if command and (not state or command[2] != state['id']):
+                    yield finish('这张导入卡片已失效，请使用当前会话最新的导入卡片。', card=False)
+                    return
+                from spectrumagent.experiments.workspace_training import prepare
+                if state and state['imported_ids']:
+                    self.refresh_annotations(state)
+                    targets = state['ready_ids']
+                    if not targets:
+                        yield finish('本批还没有已保存的区域标注，请先在画布保存，或接入已有标注。')
+                        return
+                else:
+                    with connect_database(self.database) as db:
+                        targets = [r[0] for r in db.execute('SELECT cube_id FROM annotation_confirmation_state')]
+                dialogue = machine.tools.experiment_dialogue
+                prepare(dialogue, self.registry, self.sessions, sid, targets, check)
+                view = dialogue.presented(sid, row['turn_id'], check=check)
+                card = dialogue.draft_presentation(sid, view, check)
+                yield step('experiments.draft_presentation', card)
+                omitted = len(state['imported_ids'])-len(targets) if state and state['imported_ids'] else 0
+                yield finish('已将保存的区域标注接入统一训练方案；可在对话中指定预处理或发起Study寻优。\n'
+                             + (f'本批 {omitted} 张未保存标注的图片未纳入方案。\n' if omitted else '')
+                             + view['plan']+'\n'+view['question'], card=False)
+                return
+            if action == '标注完成':
+                self.refresh_annotations(state)
+                remaining = len(state['imported_ids'])-len(state['ready_ids'])
+                yield finish(f"已核对保存的区域标注：{len(state['ready_ids'])}/{len(state['imported_ids'])} 张。"
+                    + (f'仍有 {remaining} 张未保存，请先在画布保存。' if remaining else
+                       '可点击“配置预处理与训练”，或回复“接下来对数据进行预处理”，在对话中配置方案和Study寻优。'))
+                return
             if action == 'list':
                 ids = []
                 lines = []
@@ -332,7 +375,7 @@ class DatasetIntake:
                 offset = 0
                 while True:
                     page = self.registry.catalog(limit=100, offset=offset)
-                    titles = {'need_annotation': '待标注', 'need_preprocess': '可预处理', 'ready': '已预处理'}
+                    titles = {'need_annotation': '待标注', 'need_preprocess': '已标注，可配置训练', 'ready': '已标注，有配方结果'}
                     for record in page['datasets']:
                         ids.append(record['id'])
                         index = len(ids)
@@ -372,7 +415,7 @@ class DatasetIntake:
                 return
             if action == 'create_labels':
                 state['label_form_open'] = True
-                if state['stage'] not in {'imported', 'labels'}:
+                if state['stage'] not in {'imported', 'labels', 'review', 'need_annotations', 'need_images', 'choose_mode'}:
                     yield finish('请先完成本次数据导入，再创建标注标签。')
                     return
                 # Resolve the target from the session-owned batch, never from a
@@ -400,38 +443,30 @@ class DatasetIntake:
                     remaining = len(state['imported_ids']) - len(state['ready_ids'])
                     next_step = (f'标签类别已就绪，尚有 {remaining} 个样品未保存区域标注。下一步请点击“下一步：超像素人工标注”，'
                                  '选择逐张生成或提前生成全部，再在画布上点选区域并赋予标签。' if remaining else
-                                 '本批样品已有可用区域标注，下一步可进入预处理；也可进入人工标注调整区域。')
+                                 '本批样品已有可用区域标注，下一步可在对话中配置预处理与训练；也可调整区域。')
                 else:
                     next_step = '导入图片后即可使用这些标签进行标注。'
+                if state.get('annotation_retry'):
+                    next_step = '请点击“重新接入标注”，把 ROI 类别匹配到这些已有标签；导入不会再创建标签。'
                 yield finish(f"标签已就绪：{'、'.join(label['name'] for label in labels)}（新增 {created} 个，复用 {len(labels)-created} 个）。{next_step}")
                 return
-            if action in {'进入预处理', '进入人工标注'}:
-                targets = state['ready_ids'] if action == '进入预处理' else state['imported_ids']
+            if action == '进入人工标注':
+                targets = state['imported_ids']
                 if not targets:
                     yield finish('本次尚无可进入该步骤的样品，请先完成数据接入。')
                     return
-                if action == '进入人工标注':
-                    # Selecting annotation is a choice of scope, not permission
-                    # to segment. Use the existing explicit mode/task flow next.
-                    context = store.context(sid)
-                    machine.tools.select_annotation_targets(targets, context)
-                    store.save_context(sid, context)
-                    state['stage'] = 'imported'
-                    state['label_form_open'] = False
-                    answer = finish(f'下一步：为本次导入的 {len(targets)} 个样品进行超像素人工标注。'
-                        '请在下方选择“逐张生成（推荐）”或“提前生成全部”；分割就绪后点击任务卡片的“进入标注”，'
-                        '在画布中选择标签、点选超像素并保存区域标注。创建标签本身不会产生区域标注。')
-                    yield answer[0], {**answer[1], 'annotation_target_cube_ids': targets,
-                                      'reply_status': 'needs_input', 'task_result': 'needs_input'}
-                    return
-                context = json.loads(store.session(sid)['context_json'] or '{}')
-                selected = context.get('selected_cube_id')
-                cube = selected if selected in targets else targets[0]
-                self.registry.readable(cube)
-                context.update(selected_cube_id=cube, display_name=self.registry.record(cube).display_name)
+                # Selecting annotation is a choice of scope, not permission
+                # to segment. Use the existing explicit mode/task flow next.
+                context = store.context(sid)
+                machine.tools.select_annotation_targets(targets, context)
                 store.save_context(sid, context)
-                yield 'workspace', dict(cube_id=cube, stage='preprocess')
-                yield finish('已打开预处理，可选择样品并配置配方。')
+                state['stage'] = 'imported'
+                state['label_form_open'] = False
+                answer = finish(f'下一步：为本次导入的 {len(targets)} 个样品进行超像素人工标注。'
+                    '请在下方选择“逐张生成（推荐）”或“提前生成全部”；分割就绪后点击任务卡片的“进入标注”，'
+                    '在画布中选择标签、点选超像素并保存区域标注。创建标签本身不会产生区域标注。')
+                yield answer[0], {**answer[1], 'annotation_target_cube_ids': targets,
+                                  'reply_status': 'needs_input', 'task_result': 'needs_input'}
                 return
             if action == '查看导入异常':
                 yield finish('\n'.join([*state['issues'], *('未配对：'+Path(p).name for p in state.get('unused', []))]) or '本次没有配对异常。')
@@ -441,9 +476,13 @@ class DatasetIntake:
                 yield finish('请选择或输入对应的标注目录或 JSON 文件路径。')
                 return
             if action == '使用已配对标注':
-                if state['stage'] == 'imported':
+                if state['stage'] == 'imported' and not state.get('annotation_retry'):
                     yield finish('这批数据已经接入，可直接进入后续步骤。')
                     return
+                if state.get('annotation_retry') and state['stage'] == 'imported':
+                    state['stage'] = 'review'
+                    prior_label_issues = state.pop('annotation_label_issues', [])
+                    state['issues'] = [issue for issue in state['issues'] if issue not in prior_label_issues]
                 if state['stage'] != 'review' or not state['pairs']:
                     yield finish('请先提供标注路径并完成有效配对。')
                     return
@@ -459,6 +498,7 @@ class DatasetIntake:
                 self.save(sid, state)
                 yield step('datasets.import', {'status': 'imported', 'dataset_count': len(records)})
                 indexed = {os.path.normcase(str(Path(r.dataset.header_path).resolve())): r for r in records}
+                state['annotation_retry'] = False
                 for pair in state['pairs']:
                     check()
                     record = indexed.get(os.path.normcase(pair['hdr']))
@@ -473,9 +513,15 @@ class DatasetIntake:
                         yield step('annotations.external_import', {'status': 'saved', 'cube_id': cube})
                     except (DataError, OSError, ValueError) as error:
                         detail = error.payload.detail if isinstance(error, DataError) else str(error)
-                        state['issues'].append(f"{Path(pair['hdr']).name}：{detail}")
+                        issue = f"{Path(pair['hdr']).name}：{detail}"
+                        state['issues'].append(issue)
+                        if isinstance(error, DataError) and error.code in {'LABEL_REQUIRED', 'LABEL_AMBIGUOUS'}:
+                            state['annotation_retry'] = True
+                            state.setdefault('annotation_label_issues', []).append(issue)
                 state['stage'] = 'imported'
-                yield finish(f"已登记 {len(state['imported_ids'])} 个数据集，其中 {len(state['ready_ids'])} 个具备可用标注，可直接进入预处理。其余样品可补充标注。")
+                yield finish(f"已登记 {len(state['imported_ids'])} 个数据集，其中 {len(state['ready_ids'])} 个具备可用标注。"
+                    + ('导入不会创建标签。请在 AI 对话中创建所需标签或处理重名，再点击“重新接入标注”。' if state['annotation_retry'] else
+                       '可在对话中配置预处理与训练。其余样品可补充标注。'))
                 return
             if action == '选择导入方式':
                 if state['stage'] not in {'choose_mode', 'need_images'} or command[3] is None:

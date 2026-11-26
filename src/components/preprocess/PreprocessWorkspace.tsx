@@ -90,7 +90,7 @@ export default function PreprocessWorkspace({ records, phase, initialRecord, ref
     await refresh(); setMessage(`处理结束：成功 ${completed.filter(row => row.run).length}/${rows.length}`);
   };
   return <section className="preprocess-workspace ui-page" aria-label="预处理工作台">
-    <header><h2>预处理工作台</h2><p>保存当前配方，直接处理选中的样品。修改标注或配方后，重新处理即可继续建模。</p></header>
+    <header><h2>预处理工作台</h2><p>本页用于回归和高级配方处理。分类请在对话中配置预处理与训练，或发起 Study 寻优；无需先运行本页配方。</p></header>
     {error && <p role="alert">{error}</p>}<p role="status">{message}</p>
     <fieldset disabled={busy}><legend>配方</legend>
       <label>当前配方<select value={recipeId} onChange={e => { const row = state.recipes.find(row => row.id === e.target.value); setRecipeId(e.target.value); setSteps(row?.pipeline.steps ?? []); }}>

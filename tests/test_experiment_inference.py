@@ -226,7 +226,18 @@ def test_history_focus_changes_chat_target_without_polling_side_effects(applicat
 
 @pytest.mark.parametrize('saturation',[65535.,None])
 def test_envi_neighborhood_prediction_matches_independent_reference(application,tmp_path,monkeypatch,saturation):
+    from spectrumagent.annotation.labels import LabelStore
+    store = LabelStore(application.state.experiments.paths.database)
+    project = store.projects()[0]['id']
+    labels = store.ensure_names(project, ['A', 'B'])
+    expected_colors = {'1': '#123456', '2': '#abcdef'}
+    for row, color in zip(labels, expected_colors.values()):
+        store.update(row['id'], color_hex=color)
     model,dialogue=train(application,tmp_path,image=True)
+    saved_model = application.state.experiments.archive.load_model(model)
+    assert {str(key): color for key, color in saved_model.config.class_colors.items()} == expected_colors
+    # The model's palette stays reproducible if the project is later edited.
+    store.update(labels[0]['id'], color_hex='#654321')
     waves=np.arange(1100,1145,5,dtype=float)
     raw=np.random.default_rng(24).integers(3000,12000,(68,10,9),dtype=np.uint16)
     raw[31,3,4]=65535;raw[32,6]=0
@@ -260,6 +271,16 @@ def test_envi_neighborhood_prediction_matches_independent_reference(application,
         np.testing.assert_array_equal(data['valid_mask'],expected_mask)
         np.testing.assert_array_equal(data['prediction_map'][expected_mask],expected)
     result=dialogue.service.result(model,task['inference_run_id'])
+    assert result['colors'] == expected_colors
+    from PIL import Image
+    folder = dialogue.service.folder(model,task['inference_run_id'])
+    with np.load(folder/'0.npz') as data, Image.open(folder/'0.png') as image:
+        pixels = np.asarray(image)
+        for label, color in expected_colors.items():
+            mask = data['valid_mask'] & (data['prediction_map'] == int(label))
+            assert np.all(pixels[mask] == list(bytes.fromhex(color[1:])))
+    report = (folder/'report.html').read_text('utf-8')
+    assert all(color in report for color in expected_colors.values())
     assert result['files'][0]['excluded']==int((~expected_mask).sum())
     assert dialogue.service.plot(model,task['inference_run_id'],0)['png_base64'].startswith('iVBOR')
     assert result['files'][0]['relative_path']==header.name
@@ -542,3 +563,18 @@ def test_batch_envi_checks_metadata_then_hashes_each_image_once(application,tmp_
     run = service.submit(owner,config,fresh)['inference_run_id']
     state = wait(service,model,run)
     assert state['status']=='failed' and state['phase']=='checking',state
+
+
+def test_legacy_model_uses_existing_project_palette(application, tmp_path):
+    from spectrumagent.annotation.labels import LabelStore
+    from spectrumagent.annotation.palette import model_colors
+    store = LabelStore(application.state.experiments.paths.database)
+    labels = store.ensure_names(store.projects()[0]['id'], ['PE', 'PET'])
+    body = config_for(tmp_path)
+    body['classes'] = {1: 'pe', 2: 'pet'}
+    config = ExperimentConfig.model_validate(body)
+    # Old pickles have no class_colors field in their saved instance state.
+    del config.__dict__['class_colors']
+    colors = model_colors(application.state.experiments.paths.database, config)
+    assert colors == {index: label['color_hex'] for index, label in enumerate(labels, 1)}
+    assert len([label for field in store.tree(store.projects()[0]['id']) for label in field['labels']]) == 2

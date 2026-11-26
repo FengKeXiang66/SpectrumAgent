@@ -87,7 +87,7 @@ export default function DatasetPanel({ api, records, phase, error, onReload, onI
               setCheckedIds(ids => checked ? [...new Set([...ids, record.id])] : ids.filter(id => id !== record.id));
             }} /></td>
           <td><strong>{record.display_name}</strong><code>{record.source_path}</code>{!record.available && <p className="dataset-unavailable">源文件不可用</p>}
-            <span>{record.workflow_status === 'ready' ? '已预处理' : record.workflow_status === 'need_preprocess' ? '可预处理' : '待标注'}</span></td>
+            <span>{record.workflow_status === 'ready' ? '已标注 · 有配方结果' : record.workflow_status === 'need_preprocess' ? '已标注 · 可配置训练' : '待标注'}</span></td>
           <td>{materialError ? <span role="alert">{materialError}</span> : materials[record.id]?.map(label => `${label.code} · ${label.name}`).join('、') || '未归类'}</td>
           <td>{record.shape.join('×')}</td><td>{record.wavelength_range?.join('–') ?? '未提供'}</td><td>{record.raw ? 'DN 原值' : '反射率'}</td>
           <td><div className="dataset-preview-row">

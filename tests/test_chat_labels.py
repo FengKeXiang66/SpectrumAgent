@@ -230,7 +230,10 @@ def test_duplicate_live_names_abort_and_deleted_name_gets_new_identity(applicati
     store = LabelStore(database)
     project = store.projects()[0]['id']
     old = store.add(SimpleLabelRequest(project_id=project, name='PE', color_hex='#123456'))
-    store.add(SimpleLabelRequest(project_id=project, name='PE', color_hex='#abcdef'))
+    assert store.add(SimpleLabelRequest(project_id=project, name='pe', color_hex='#abcdef'))['id'] == old['id']
+    # Reproduce a legacy duplicate; current named creation cannot create it.
+    from spectrumagent.annotation.labels import CustomRequest
+    store.add(CustomRequest(project_id=project, code='OLD_PE', name='pe', tree_path='材料', color_hex='#abcdef'))
     with pytest.raises(DataError):
         store.ensure_names(project, ['PP', 'PE'])
     assert len(rows(application)) == 2
@@ -238,3 +241,13 @@ def test_duplicate_live_names_abort_and_deleted_name_gets_new_identity(applicati
         store.delete(row[0], confirm=True)
     replacement = store.ensure_names(project, ['PE'])[0]
     assert replacement['id'] != old['id'] and replacement['code'] != old['code']
+
+
+def test_case_variants_reuse_chat_labels(application):
+    _, send = session(application)
+    send('创建标签：PE、PET、PP、pe')
+    before = rows(application)
+    assert [r[2] for r in before] == ['PE', 'PET', 'PP']
+    reply, _ = send('创建标签：pe、pet、pp')
+    assert '新增 0 个，复用 3 个' in reply['content']
+    assert rows(application) == before

@@ -22,6 +22,8 @@ from scipy.ndimage import minimum_filter
 from threadpoolctl import threadpool_limits
 
 from spectrumagent.data import DataError
+from spectrumagent.annotation.labels import LABEL_COLORS
+from spectrumagent.annotation.palette import model_colors
 from spectrumagent.data.readers import open_envi
 from spectrumagent.storage import guard as storage
 from . import inference_report
@@ -32,8 +34,6 @@ from .service import write_json, read_json, save_arrays
 
 
 BACKGROUND_COLORS = {'brightness': (0, 0, 0), 'other': (224, 224, 224)}
-MATERIAL_COLORS = {'PE': (255, 62, 62), 'PP': (38, 211, 79), 'PET': (63, 118, 255),
-                   'EPS': (255, 163, 35), '纸': (177, 99, 215)}
 
 
 _EXPORT_BLOCK = 1024*1024
@@ -49,10 +49,11 @@ def _read_small_export_file(path, item):
         raise DataError('INFERENCE_ARTIFACT_CHANGED', '推理产物缺失或校验失败') from error
 
 
-def class_palette(classes, materials):
-    fixed = [(31,119,180),(255,127,14),(44,160,44),(214,39,40),(148,103,189),(140,86,75),(227,119,194),(127,127,127),(188,189,34),(23,190,207)]
-    return {str(label): MATERIAL_COLORS.get(materials[int(label)],
-                fixed[i] if len(classes)<=len(fixed) else tuple(int(v*255) for v in colorsys.hsv_to_rgb(i/len(classes),.65,.85)))
+def class_palette(classes, materials, colors=None):
+    fixed = [tuple(bytes.fromhex(color[1:])) for color in LABEL_COLORS]
+    colors = colors or {}
+    return {str(label): tuple(bytes.fromhex(colors[int(label)][1:])) if int(label) in colors else
+                (fixed[i] if len(classes)<=len(fixed) else tuple(int(v*255) for v in colorsys.hsv_to_rgb(i/len(classes),.65,.85)))
             for i,label in enumerate(classes)}
 
 
@@ -357,6 +358,7 @@ class InferenceService:
                 raise DataError('INFERENCE_SOURCE_CHANGED', '输入文件、目录成员或模型在方案确认后发生变化，请重新核对')
             check()
             model = self.experiments.archive.load_model(config.model_id,check=check)
+            model.config = model.config.model_copy(update={'class_colors': model_colors(self.experiments.paths.database, model.config)})
             check()
             rows = []
             relative = inference_report.relative_paths(current['files'],config.input.paths)
@@ -401,7 +403,7 @@ class InferenceService:
             result = {'run_id': run_id, 'model_id': config.model_id, 'kind': config.input.kind,
                       'created_at': datetime.now(timezone.utc).isoformat(), 'model_sha256': current['model_sha256'],
                       'classes': model.config.model_dump(mode='json')['classes'], 'files': rows,
-                      'colors': {key:'#%02x%02x%02x' % color for key,color in class_palette(model.classes_, model.config.classes).items()},
+                      'colors': {key:'#%02x%02x%02x' % color for key,color in class_palette(model.classes_, model.config.classes, model.config.class_colors).items()},
                       'background_colors': {key:'#%02x%02x%02x' % color for key,color in BACKGROUND_COLORS.items()}
                       if config.input.kind == 'envi' else None,
                       'evaluation_unit': model.config.train.evaluation_unit, 'score_definition': 'uncalibrated_pls_response',
@@ -531,7 +533,7 @@ class InferenceService:
             progress(completed_rows=last, total_rows=height)
         reasons[accepted]=0
         save_arrays(folder / f'{index}.npz', check=check, prediction_map=labels, valid_mask=accepted, exclusion_reason=reasons)
-        palette = class_palette(model.classes_, model.config.classes)
+        palette = class_palette(model.classes_, model.config.classes, model.config.class_colors)
         image = classification_preview(labels, accepted, reasons, palette)
         with storage.resolve_write(folder/f'{index}.png',kind='INFERENCE_MAP').open('wb') as stream:
             image.save(CheckedStream(stream,check),format='PNG')

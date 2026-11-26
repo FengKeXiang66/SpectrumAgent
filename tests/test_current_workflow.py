@@ -90,29 +90,26 @@ def test_current_data_flows_through_processing_training_and_prediction(workspace
         listing = client.get(f'/api/v1/datasets/{cubes[0]}/annotations').json()
         assert 'versions' not in listing and listing['current']['id'] == annotation
         tool_names = {row['function']['name'] for row in app.state.agent_tools.snapshot()}
-        assert 'workspace.classify' in tool_names
+        assert 'workspace.classify' not in tool_names
         assert not any(name.startswith(('versions.','training_sets.')) for name in tool_names)
         with pytest.raises(Exception) as missing:
             app.state.agent_tools.resolve('training_sets.confirm')
         assert missing.value.code == 'TOOL_NOT_FOUND'
 
         from test_experiment_conversation import machine_for
-        from spectrumagent.agent.llm import ChatResult, ToolCall
-        import json
-
-        class LocalTrainingModel:
-            def chat(self,messages,tools):
-                assert any(tool['function']['name']=='workspace.classify' for tool in tools)
-                return ChatResult(content=None,finish_reason='tool_calls',tool_calls=[
-                    ToolCall(id='train-current',name='workspace.classify',
-                             arguments_json=json.dumps(dict(cube_ids=cubes,cv_folds=2,n_components=1)))])
+        from test_experiment_conversation import ScriptedModel
         owner = app.state.agent_sessions.create()['id']
-        machine = machine_for(app,owner,LocalTrainingModel())
-        messages = list(machine.message(content='把这些已处理好的样品拿来训练分类模型'))
-        assert messages[-1][0]=='human_check',messages
-        pending = messages[-1][1]
-        assert pending['summary']['cube_ids_count']==len(cubes)
-        assert list(machine.message(check_id=pending['check_id'],decision='reject'))[-1][1]['content'].startswith('已拒绝')
+        machine = machine_for(app, owner, ScriptedModel())
+        messages = list(machine.message(content='使用当前已标注数据新建训练方案'))
+        assert messages[-1][0] == 'done', messages
+        dialogue = app.state.agent_tools.experiment_dialogue
+        assert len(dialogue._read(owner)['document']['workspace_selection']) == len(cubes)
+        # These headers omit units; the shared flow requires an explicit unit.
+        from spectrumagent.agent.tools.experiments import DraftUpdate
+        dialogue.update(owner, DraftUpdate(expected_revision=dialogue._read(owner)['revision'],
+                                          train={'kind': 'roi_images', 'wavelength_unit': 'nm'}))
+        assert dialogue.view(owner)['can_study']
+        assert not app.state.agent_tools.experiment_dialogue.view(owner)['can_run']
 
         body = dict(task='classification',target='label',cube_ids=cubes,
                     annotation_version_ids=[members[c]['annotation_id'] for c in cubes],

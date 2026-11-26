@@ -143,6 +143,10 @@ def direct(machine, dialogue, content):
 
 
 def dispatch(machine, dialogue, content, workspace=None):
+    from spectrumagent.experiments.workspace_training import SPLIT
+    record = dialogue._read(machine.session_id)
+    if record and record['document'].get('workspace_selection') and SPLIT.fullmatch(content.strip()):
+        return experiment(machine, content, workspace_split=True)
     local = direct(machine,dialogue,content)
     if local is not None:
         return local

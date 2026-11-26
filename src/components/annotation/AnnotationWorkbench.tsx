@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import type { DatasetRecord, DatasetReference, DatasetTransport, MeanSpectrum, Preview, SpectrumRegion } from '../datasets/types.ts';
 import { displayName } from '../datasets/types.ts';
 import { annotations } from './api.ts';
-import { describeAnnotationError, type AnnotationApi, type ExportResult, type Geometry, type JsonProjectionStatus, type LabelBody, type LabelSchema, type Png, type Quality, type Seed, type SegmentsMap, type SuperpixelReport, type Working } from './types.ts';
+import { describeAnnotationError, type AnnotationApi, type ExportResult, type Geometry, type JsonProjectionStatus, type LabelSchema, type Png, type Quality, type Seed, type SegmentsMap, type SuperpixelReport, type Working } from './types.ts';
 import { annotationBadge } from './annotationStatus.ts';
 import SpectrumReview from './SpectrumReview.tsx';
 import { eraseAndRefresh, formatReviewCos, formatReviewNumber } from './spectrumReview.ts';
@@ -465,10 +465,6 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
 
   const parametersValid = Number.isInteger(parameters.n_segments) && parameters.n_segments > 0 && Number.isFinite(parameters.compactness) && parameters.compactness > 0;
   const closeHelp = () => { setHelp(false); try { localStorage.setItem(seenKey, 'yes'); } catch { /* Optional. */ } };
-  const addLabel = async (body: LabelBody) => {
-    if (!await execute(() => api.addLabel(body), '标签已新建；已从后端重新读取标签与工作态。', true)) throw new Error('新建未完成，请查看工作台错误详情。');
-    setQuality(null);
-  };
   const deleteLabel = async (labelId: string) => {
     if (!await execute(() => api.deleteLabel(labelId), '标签已永久删除。', true)) throw new Error('删除未完成，请查看工作台错误详情。');
     setSelectedId(previous => previous === labelId ? null : previous);
@@ -517,8 +513,8 @@ export default function AnnotationWorkbench({ record, records, datasets, api = a
     </div>}
     <div className="annotation-columns">
       <aside className="annotation-left">
-        {working && <LabelPanel labels={labels} projectId={working.project_id} selectedId={selectedId}
-          disabled={busy} allowSelection={clicking} onSelect={setSelectedId} onAdd={addLabel} onDelete={deleteLabel} />}
+        {working && <LabelPanel labels={labels} selectedId={selectedId}
+          disabled={busy} allowSelection={clicking} onSelect={setSelectedId} onCreate={() => leaveWorkbench(onReturnToAssistant)} onDelete={deleteLabel} />}
         <section className="annotation-card"><h3>工具</h3><div className="annotation-tools">{(['diffuse', 'click', 'brush', 'polygon', 'erase'] as const).map(next =>
           <button key={next} disabled={busy} className={tool === next ? 'selected' : ''} aria-pressed={tool === next} onClick={() => chooseTool(next)}>{commandNames[next]} <kbd>{preferences.bindings[next]}</kbd></button>)}</div></section>
         <section className="annotation-card"><h3>本图统计</h3><dl className="annotation-statistics">

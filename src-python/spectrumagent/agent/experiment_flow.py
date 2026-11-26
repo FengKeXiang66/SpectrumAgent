@@ -10,7 +10,8 @@ from spectrumagent.experiments.inputs import split_check_text
 
 
 EXPERIMENT_PROMPT = """你是高光谱训练测试实验助手。把自然语言需求转成可校验草稿，通过工具推进，不生成科学数值。
-这是独立于原画布标注建模链路的显式训练/测试入口，用户无需知道任何“五分类固定版”名称。
+这是分类统一训练入口，人工保存的标注与外部ROI都接入此方案；用户无需先完成旧配方预处理，也无需知道任何“五分类固定版”名称。
+工作台标注已接入时沿用草稿里的来源引用和类别，不要求重新填写路径或重新标注。只有训练数据时可先运行Study，正式训练前明确测试集。可回复“将第2、4张设为测试，其余用于训练”使用清单编号划分。
 输入源S引用来自本机解析，路径、谱矩阵不进入模型。用input_inspect核对NPZ实际字段与维度，不能根据X3等名字猜测已执行的处理。
 训练与测试角色、类别编号对应的材质名称、已完成的处理阶段、空间邻域、评价单位、波长单位都要明确；不能猜物理含义。
 可提供NPZ文件或目录。原图用roi_images，逐项明确header_ref、roi_ref、sample_id，可选data_ref、centers_ref；不自动匹配同名文件、不猜ROI材质。
@@ -115,7 +116,8 @@ def explain_result(dialogue, session, content):
 
 
 def generate(machine, content, *, pairing=False, group_split=False, study=False, explain=False, retrain=False, explain_with_edit=False,
-             confirmation=None, missing_confirmation=False, pairing_intake_action=None, paired_training=None, wavelength_action=False):
+             confirmation=None, missing_confirmation=False, pairing_intake_action=None, paired_training=None, wavelength_action=False,
+             workspace_split=False):
     from .state import State
     dialogue, store, session = machine.tools.experiment_dialogue, machine.store, machine.session_id
     row = None
@@ -167,6 +169,16 @@ def generate(machine, content, *, pairing=False, group_split=False, study=False,
     try:
         from spectrumagent.experiments.pairing import TRAIN_COMMAND
         from spectrumagent.experiments.wavelength_proposal import ADOPT as ADOPT_GRID, CROP, AUTO_STUDY
+        if workspace_split:
+            from spectrumagent.experiments.workspace_training import split
+            row = store.new_round(session, content, [], 'running')
+            try:
+                split(dialogue, session, content.strip())
+                yield from present()
+            except (OSError, ValueError, DataError) as error:
+                detail = error.payload.detail if isinstance(error, DataError) else str(error)
+                yield from finish(dialogue.redact(session, detail), clarify=True)
+            return
         if wavelength_action:
             row = store.new_round(session, content, [], 'running')
             try:

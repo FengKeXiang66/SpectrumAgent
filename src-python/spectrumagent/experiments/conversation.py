@@ -483,8 +483,14 @@ class ExperimentDialogue:
 
     def _config(self, record, *, training_only=False, train_manifest_rows=None):
         document = deepcopy(record['document'])
-        axis = document.pop('axis', None)
+        selection = document.pop('workspace_selection', None)
         roles = ('train',) if training_only else ('train', 'test')
+        if selection:
+            used = {member['roi_ref'] for role in roles for member in document.get(role, {}).get('members', [])}
+            for item in selection:
+                if item['roi_ref'] in used and sha256(self._source(record, item['roi_ref'])) != item['roi_sha256']:
+                    raise DraftIssue('已保存的训练区域副本发生变化，请从当前标注重新建立方案。')
+        axis = document.pop('axis', None)
         if training_only:
             document.pop('test', None)
             document.update(name=document.get('name') or '训练集寻优', preprocessing=[],
@@ -531,6 +537,8 @@ class ExperimentDialogue:
                 spec['paths'] = [str(self._source(record, ref)) for ref in refs]
             elif spec.get('kind') == 'roi_images':
                 for member in spec.get('members', []):
+                    if selection:
+                        member['sample_id'] = str(self._source(record, member['header_ref']))
                     for key in ('header', 'roi', 'data', 'centers'):
                         ref = member.pop(key + '_ref', None)
                         if ref is not None:
@@ -777,6 +785,12 @@ class ExperimentDialogue:
         except (ValueError, OSError, KeyError, TypeError):
             # Never include exception strings from file readers in model context.
             issues = ['数据源、类别映射或波长轴尚未明确或不合法；请检查输入字段、波长网格和源引用']
+        can_study = False
+        try:
+            self._config(record, training_only=True)
+            can_study = record['run_status'] == 'idle'
+        except (ValidationError, DraftIssue, ValueError, OSError, KeyError, TypeError):
+            pass
         shown = deepcopy(record['document'])
         if config is not None:
             shown['preprocessing'] = [step.model_dump() for step in config.preprocessing]
@@ -802,6 +816,9 @@ class ExperimentDialogue:
             plan += '\nPLS响应不作为校准概率；中心化、标准化和PCA仅在训练集拟合。'
         if issues:
             question = '请补充或修正：\n' + '\n'.join('• ' + item for item in issues[:16])
+            if can_study and shown.get('workspace_selection') and not shown.get('test'):
+                question = ('尚未指定测试集，不能执行正式训练测试。可以先发起“训练集内自动寻优”；'
+                            '正式训练前可按下方编号指定，例如“将第2、4张设为测试，其余用于训练”。')
             if shown.get('split_id') and not shown.get('axis'):
                 question += '\n原图没有可直接共用的已确认波长轴。请给出原图波长单位及目标波长网格（起止 nm、步长、映射窗口及最近通道容差）。'
         else:
@@ -814,9 +831,15 @@ class ExperimentDialogue:
         return {'revision': record['revision'], 'status': 'needs_input' if issues else 'needs_confirmation',
                 'plan': self.redact(session_id, plan), 'question': self.redact(session_id, question),
                 'missing_count': len(issues), 'can_run': config is not None and record['run_status'] == 'idle',
-                'run_status': record['run_status'], 'experiment_id': record['experiment_id']}
+                'run_status': record['run_status'], 'experiment_id': record['experiment_id'], 'can_study': can_study}
 
-    def _saved_sides(self, document):
+    def _saved_sides(self, document, session_id):
+        if document.get('workspace_selection'):
+            from .workspace_training import sides
+            record = self._read(session_id)
+            if not record or record['document'] != document:
+                raise DraftIssue('当前工作台训练来源已更新，请重新查看方案。')
+            return sides(document, record['sources'])
         from .group_split import load_saved_plan, manifest_path
         path = manifest_path(self.service.paths.exports, document['split_id'])
         return load_saved_plan(path, document['split_sha256'])
@@ -829,6 +852,11 @@ class ExperimentDialogue:
         axis = document.get('axis') or {}
         counts = document.get('split_counts')
         summary = []
+        if document.get('workspace_selection'):
+            summary.append('已保存区域标注已接入统一训练流程；无需先运行旧配方预处理。')
+            summary.append(document['notes'])
+            summary.extend(f"第 {item['number']} 张 · {item['name']} · " + '、'.join(
+                f'{name} {count} 像元' for name, count in item['counts'].items()) for item in document['workspace_selection'])
         if counts:
             summary.append(f"训练 {counts['训练']} 幅 · 测试 {counts['测试']} 幅 · {len(document.get('classes', []))} 类 · 按中心像元评价")
         else:
@@ -859,7 +887,7 @@ class ExperimentDialogue:
         changes = draft_changes(json.loads(previous) if previous else None, document)
         result = dict(draft_revision=view['revision'], draft_summary='\n'.join(summary), draft_ready=view['can_run'],
                       draft_changes='\n'.join(self.redact(session_id,change) for change in changes))
-        if not counts or record['revision'] != view['revision'] or record['run_status'] != 'idle':
+        if (not counts and not document.get('workspace_selection')) or record['revision'] != view['revision'] or record['run_status'] != 'idle':
             return dict(result, draft_todo=todo)
 
         unit = document.get('train', {}).get('wavelength_unit')
@@ -867,7 +895,7 @@ class ExperimentDialogue:
             axis.get('train_only') or grid_hint(axis['wavelengths'])))
         if needs_grid and unit:
             try:
-                proposal = wavelength.recommend(self._saved_sides(document), unit, check)
+                proposal = wavelength.recommend(self._saved_sides(document, session_id), unit, check)
                 if 'problem' in proposal:
                     todo = proposal['problem']
                 else:
@@ -887,7 +915,7 @@ class ExperimentDialogue:
                         result['wavelength_details'] = payload
             except (OSError, ValueError, DataError):
                 todo = '原图波长核验未完成，请检查草稿里的 HDR 和波长单位。'
-        elif view['can_run'] and not document.get('preprocessing') and document.get('model', {}).get('n_components') == 1:
+        elif (view['can_run'] or view.get('can_study')) and not document.get('preprocessing') and document.get('model', {}).get('n_components') == 1:
             try:
                 rows = []
                 config = self._config(record, training_only=True, train_manifest_rows=rows)
@@ -897,7 +925,7 @@ class ExperimentDialogue:
                     grouping = {'image':'按原图分组', 'sample':'按实物分组', 'batch':'按批次分组'}[kind]
                     sg = '' if grid_hint(config.wavelengths_nm) or len(config.wavelengths_nm)<3 else ' · 含 SG1/SG2'
                     result.update(study_folds=folds, study_label=f'{folds} 折 · {grouping}{sg}')
-                    todo = '波长已对齐。当前是基础参数，建议先在训练集内比较预处理和潜变量，再用留出的测试集评价。'
+                    todo = '波长已对齐。可先在训练集内比较预处理和潜变量；正式训练测试前须明确测试集。'
                 elif support:
                     todo = '波长已对齐。至少一个类别的训练分组不足两组。可调整方案，或先运行当前基线。'
             except (OSError, ValueError, KeyError, DataError):
@@ -906,7 +934,7 @@ class ExperimentDialogue:
 
     def can_crop_wavelength(self, session_id):
         record = self._read(session_id)
-        if not record or record['run_status'] != 'idle' or not record['document'].get('split_id'):
+        if not record or record['run_status'] != 'idle' or not (record['document'].get('split_id') or record['document'].get('workspace_selection')):
             return False
         if (record['document'].get('axis') or {}).get('kind') == 'grid':
             return True
@@ -921,7 +949,7 @@ class ExperimentDialogue:
             record = self._read(session_id, db)
             saved = db.execute('SELECT revision,document FROM experiment_wavelength_proposal WHERE session_id=?',
                                (session_id,)).fetchone()
-        if (not record or not record['document'].get('split_id') or record['run_status'] != 'idle'
+        if (not record or not (record['document'].get('split_id') or record['document'].get('workspace_selection')) or record['run_status'] != 'idle'
                 or revision is not None and revision != record['revision']):
             raise DraftIssue('这份波长建议已过期，请先查看当前实验方案。')
         proposal = json.loads(saved[1]) if saved and saved[0] == record['revision'] else None
@@ -937,7 +965,7 @@ class ExperimentDialogue:
             grid = (proposal['step'],proposal['window'],proposal['tolerance'],proposal['start'],bounds)
         elif not proposal:
             raise DraftIssue('这份波长建议已过期，请先查看当前实验方案。')
-        sides = self._saved_sides(document)
+        sides = self._saved_sides(document, session_id)
         if bounds and (axis.get('kind') == 'grid' or 'problem' not in proposal):
             proposal = recommend(sides, document['train']['wavelength_unit'], check, grid=grid)
         if 'problem' in proposal:
@@ -961,7 +989,7 @@ class ExperimentDialogue:
                 raise DataError('EXPERIMENT_DRAFT_CONFLICT', '实验草稿已更新，请读取最新修订后合并')
             if record['run_status'] == 'running':
                 raise DataError('EXPERIMENT_BUSY', '本次实验正在运行，不能修改其配置')
-            if record['document'].get('split_id') and not reset:
+            if (record['document'].get('split_id') or record['document'].get('workspace_selection')) and not reset:
                 extraction = {}
                 sampling = {}
                 for role in ('train', 'test'):
@@ -980,13 +1008,13 @@ class ExperimentDialogue:
                     extraction[role] = spec
                 if len(extraction) == 2:
                     merged = [merge({key:value for key,value in record['document'][role].items()
-                                     if key not in ('max_per_class', 'sampling_seed')}, spec)
+                                     if key not in ('members', 'max_per_class', 'sampling_seed')}, spec)
                               for role, spec in extraction.items()]
                     if merged[0] != merged[1]:
                         raise DataError('SPLIT_EXTRACTION_CONFLICT', '训练和测试须共用同一套取谱与采样规则')
                 elif extraction:
                     shared = next(iter(extraction.values()))
-                    patch.update(train=shared, test=shared)
+                    patch.update({role: deepcopy(shared) for role in ('train', 'test') if record['document'].get(role)})
                 if sampling:
                     patch['train'] = {**patch.get('train',{}), **sampling}
             if edit:

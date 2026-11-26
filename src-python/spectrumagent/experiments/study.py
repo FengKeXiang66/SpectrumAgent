@@ -143,6 +143,9 @@ def roi_group_support(config, rows, kind):
         elif member.roi_path.lower().endswith('.json'):
             annotation = json.loads(Path(member.roi_path).read_text('utf-8-sig'))
             labels = {region['label'] for region in annotation['shapes']}
+        elif member.roi_path.lower().endswith('.npz'):
+            with np.load(member.roi_path, allow_pickle=False) as archive:
+                labels = {config.classes[int(value)] for value in np.unique(archive['label_map'][archive['region_map'] > 0])}
         else:
             complete_labels = False
             continue

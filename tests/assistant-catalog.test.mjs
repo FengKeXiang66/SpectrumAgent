@@ -123,7 +123,8 @@ test('assistant mutations synchronize the dashboard catalog before navigation', 
       const review = render('review');
       assert.match(review, /使用成功配对的 9 个标注/);
       assert.match(review, /sample\.hdr/); assert.match(review, /sample\.json/);
-      assert.match(render('imported'), /进入预处理/);
+      assert.match(render('imported'), /配置预处理与训练/);
+      assert.doesNotMatch(render('imported'), />进入预处理</);
       const labelForm = renderToStaticMarkup(createElement(DataIntakeCard, {
         card: { ...card, stage: 'labels', label_form_open: true }, active: true, enabled: true, send() {}, edit() {},
       }));

@@ -154,6 +154,8 @@ class ExperimentService:
         return path
 
     def run(self, config: ExperimentConfig, *, expected_sources=None, progress=None, on_detail=None):
+        from spectrumagent.annotation.palette import model_colors
+        config = config.model_copy(update={'class_colors': model_colors(self.paths.database, config)})
         if config.training_sampling is not None:
             config = config.model_copy(update={'training_sampling':None})
         # BLAS thread limits are process-wide; serial execution avoids overlap.
@@ -249,6 +251,9 @@ class ExperimentService:
             if path.parent.parent == replay_root:
                 from .center_replay import verified_output
                 item['center_replay_id'] = verified_output(path, item['sha256'])
+            elif path.parent.parent == (self.paths.exports/'workspace-training').resolve():
+                from .workspace_training import verified_output
+                item['annotation_snapshot_id'] = verified_output(path, item['sha256'])
             else:
                 external_sources.append(path)
         if external_sources:

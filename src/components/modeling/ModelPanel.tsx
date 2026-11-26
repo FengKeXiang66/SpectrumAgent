@@ -8,24 +8,19 @@ import { failureMessage } from './chart.ts';
 import { currentWorkspace, type CurrentMember } from '../preprocess/current';
 import RegistryPanel from './RegistryPanel.tsx';
 import InferencePanel from './InferencePanel.tsx';
-import ClassificationPanel, { PreflightCard, type ClassificationAudit, type ClassificationEvidence, type ClassificationSummary } from './ClassificationPanel.tsx';
 import './modeling.css';
 import './modeling-skin.css';
 
-export default function ModelPanel({ records, onOpenResults }: { records: DatasetReference[]; onOpenResults(run: string): void }) {
+export default function ModelPanel({ records, onOpenResults, onConfigureClassification }: { records: DatasetReference[]; onOpenResults(run: string): void; onConfigureClassification(): void }) {
   const [view, setView] = useState<'training' | 'registry' | 'inference'>('training');
   const [task, setTask] = useState<'regression' | 'classification'>('regression');
   const [projects, setProjects] = useState<Project[]>([]), [project, setProject] = useState('');
   const [schemas, setSchemas] = useState<LabelSchema[]>([]), [schema, setSchema] = useState('');
   const [cube, setCube] = useState(records[0]?.id ?? ''), [value, setValue] = useState('');
   const [targets, setTargets] = useState<Target[]>([]), [csv, setCSV] = useState(''), [imported, setImported] = useState<ImportResult | null>(null);
-  const [choices, setChoices] = useState<Record<string, { id: string; version: string }[]>>({});
   const [members, setMembers] = useState<CurrentMember[]>([]), [selected, setSelected] = useState<Record<string,boolean>>({});
   const [strategy, setStrategy] = useState<'kfold' | 'loo'>('kfold'), [folds, setFolds] = useState(5), [ratio, setRatio] = useState(1 / 3), [lv, setLV] = useState('');
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [message, setMessage] = useState('');
-  const [summary, setSummary] = useState<ClassificationSummary>({ version: '', labels: 0, recipes: 0, classes: null, pixels: null });
-  const [evidence, setEvidence] = useState<ClassificationEvidence>({ preflight: null, trained: null, events: [] });
-  const [audit, setAudit] = useState<ClassificationAudit | null>(null);
   const work = async (action: () => Promise<void>) => {
     setBusy(true); setError('');
     try { await action(); } catch (failure) { setError(failureMessage(failure)); }
@@ -34,7 +29,7 @@ export default function ModelPanel({ records, onOpenResults }: { records: Datase
   useEffect(() => {
     let live = true;
     void Promise.all([annotations.projects(), currentWorkspace.state()]).then(([projects, state]) => {
-      if (live) { setProjects(projects); setProject(projects[0]?.id ?? ''); setMembers(state.members.filter(row => records.some(record => record.id === row.cube_id))); setSelected(Object.fromEntries(records.map(row => [row.id,true]))); setChoices({}); }
+      if (live) { setProjects(projects); setProject(projects[0]?.id ?? ''); setMembers(state.members.filter(row => records.some(record => record.id === row.cube_id))); setSelected(Object.fromEntries(records.map(row => [row.id,true]))); }
     }).catch(failure => { if (live) setError(failureMessage(failure)); });
     return () => { live = false; };
   }, [records]);
@@ -54,7 +49,7 @@ export default function ModelPanel({ records, onOpenResults }: { records: Datase
   if (view === 'inference') return <InferencePanel records={records} onClose={() => setView('training')} />;
   return <section className="model-panel ui-page" aria-label={task === 'regression' ? 'PLS 回归工作台' : 'PLS-DA 分类工作台'}>
     <header className="md-page-head"><div><h2>建模训练</h2>
-      <p className="md-subtitle">分类与回归双轨。选择处理就绪的样品即可训练，光谱相似度与数据泄漏诊断不作为训练前置条件。</p></div>
+      <p className="md-subtitle">分类通过 AI 统一配置预处理、寻优和训练；回归使用已处理的样品。</p></div>
       <span className="md-head-task">当前任务：{task === 'regression' ? 'PLS 回归' : 'PLS-DA 分类'}</span></header>
     <p role="status">{message}</p>{error && <pre role="alert">{error}</pre>}
     <div className="md-workbench">
@@ -62,12 +57,12 @@ export default function ModelPanel({ records, onOpenResults }: { records: Datase
     <section className="md-task-card"><h3>任务</h3>
       <nav aria-label="建模任务" className="md-seg"><button disabled={busy} aria-pressed={task === 'classification'} onClick={() => setTask('classification')}>PLS-DA 分类</button><button disabled={busy} aria-pressed={task === 'regression'} onClick={() => setTask('regression')}>PLS 回归</button></nav>
       <dl className="md-task-fields">
-        <div><dt>当前样品</dt><dd>{task === 'regression' ? `${selectedMembers.length} 个` : summary.version}</dd></div>
-        <div><dt>标签来源</dt><dd>{task === 'regression' ? '连续量测量值' : `当前像素标注 · ${summary.labels} 个样品`}</dd></div>
-        <div><dt>预处理</dt><dd>{task === 'regression' ? `${runIds.length} 项就绪` : `${summary.recipes} 个配方`}</dd></div>
+        <div><dt>当前样品</dt><dd>{task === 'regression' ? `${selectedMembers.length} 个` : '在对话中选择'}</dd></div>
+        <div><dt>标签来源</dt><dd>{task === 'regression' ? '连续量测量值' : '已保存区域标注'}</dd></div>
+        <div><dt>预处理</dt><dd>{task === 'regression' ? `${runIds.length} 项就绪` : '在训练方案中配置'}</dd></div>
       </dl>
     </section>
-    {task === 'classification' ? <ClassificationPanel records={records} choices={choices} busy={busy} work={work} onOpenResults={onOpenResults} embedded onSummary={setSummary} onEvidence={setEvidence} onAudit={setAudit} /> : <>
+    {task === 'classification' ? <section><h3>统一分类训练</h3><p>人工标注和导入标注使用相同的预处理与 PLS-DA 流程。保存标注后，在对话中指定训练和测试图片，让 AI 比较预处理与潜变量，再训练和评价。</p><button className="modeling-primary" onClick={onConfigureClassification}>在对话中配置预处理与训练</button></section> : <>
     <fieldset disabled={busy}><legend>样品连续量</legend>
       <label>项目<select value={project} onChange={e => setProject(e.target.value)}>{projects.map(row => <option key={row.id} value={row.id}>{row.name}</option>)}</select></label>
       <label>连续字段<select value={schema} onChange={e => setSchema(e.target.value)}><option value="">请选择</option>{schemas.map(row => <option key={row.id} value={row.id}>{row.tree_path}{row.unit ? ` (${row.unit})` : ''}</option>)}</select></label>
@@ -84,21 +79,7 @@ export default function ModelPanel({ records, onOpenResults }: { records: Datase
         {!!imported.pending_confirmation.length && <button onClick={() => void work(() => importCSV(true))}>确认覆盖并重新导入</button>}</div>}
     </fieldset></>}
     </div><div className="md-col-right">
-    {task === 'classification' ? <>
-      {audit && <section className="md-audit-card" aria-label="数据核对"><header className="md-card-head"><h3>数据核对</h3><span className="md-card-note">来自当前结果</span></header>
-        <p>{audit.count} 个成员 · 缺标注 {audit.missingLabels} · 缺预处理 {audit.missingRuns} · {audit.classes ?? '—'} 类 · {audit.pixels ?? '—'} 像素</p>
-        <details><summary>查看成员明细</summary><ul className="md-audit-members">{audit.members.map((member, index) =>
-          <li key={index}><span>{member.name}</span><code>{member.annotation}</code>{member.run && <code>{member.run}</code>}</li>)}</ul></details>
-      </section>}
-      {evidence.preflight !== null && <PreflightCard preflight={evidence.preflight} records={records} />}
-      {evidence.trained && <section aria-label="分类训练完成"><h3>分类训练完成</h3>
-        <p>CV 最小建议 LV：{evidence.trained.by_cv_min ?? '不适用'}；RMSE 拐点建议 LV：{evidence.trained.by_elbow ?? '不适用'}；使用 LV：{evidence.trained.selected_lv ?? '不适用'}</p>
-        <button onClick={() => onOpenResults(evidence.trained!.run_id)}>查看分类结果</button>
-      </section>}
-      {evidence.events.length > 0 && <section className="md-exec-log" aria-label="执行记录"><header className="md-card-head"><h3>执行记录</h3><span className="md-card-note">本次会话</span></header>
-        <ol>{evidence.events.map((event, index) => <li key={index}><time>{event.at}</time><span>{event.text}</span></li>)}</ol>
-      </section>}
-    </> : <>
+    {task === 'classification' ? <section><h3>训练流程</h3><p>标注 → 训练方案 → Study 寻优 → 采用方案 → 独立测试 → 归档与推理</p><p>建议先指定测试图片，再仅用训练集寻优。没有测试集时，可先做探索性寻优。</p></section> : <>
     <fieldset disabled={busy}><legend>训练配置</legend>
       <button onClick={() => void work(async () => { const state = await currentWorkspace.state(); setMembers(state.members.filter(row => records.some(record => record.id === row.cube_id))); })}>刷新当前结果</button>
       {members.map(member => <label key={member.cube_id}><input type="checkbox" checked={!!selected[member.cube_id]} onChange={e => setSelected(old => ({...old,[member.cube_id]:e.target.checked}))} />{displayName(records.find(row => row.id === member.cube_id) ?? {id:member.cube_id,display_name:member.cube_id})} · {member.run_id ? '就绪' : '请先预处理'}</label>)}

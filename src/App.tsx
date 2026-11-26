@@ -300,9 +300,9 @@ export default function App() {
           }
           void openDataset(next.id, 's05');
         }} />
-        : <ProjectLabels onOpenData={() => setScreen('s03')} />;
+        : <ProjectLabels onOpenData={() => setScreen('s03')} onCreate={() => { openScreen('s01'); void session.request({ content: '创建标签' }); }} />;
       case 's06': return <PreprocessWorkspace records={records} phase={catalog.phase} initialRecord={selected} refreshVersion={Object.values(refreshVersions).reduce((a,b)=>a+b,0)}/>;
-      case 's07': return catalog.phase === 'ready' ? <ModelPanel records={records.filter(row => row.available)} onOpenResults={run => openScreen('s08', undefined, run)} />
+      case 's07': return catalog.phase === 'ready' ? <ModelPanel records={records.filter(row => row.available)} onConfigureClassification={() => { openScreen('s01'); void session.request({ content: '使用当前已标注数据新建训练方案' }); }} onOpenResults={run => openScreen('s08', undefined, run)} />
         : <p role="status">请先返回数据屏加载数据目录。</p>;
       case 's08': return <S08 runId={runId} onOpen={id => openScreen('s08', undefined, id)} onBackToList={() => setRunId(null)} onClose={() => setScreen('s07')} />;
       case 's02': return <S02 records={records} catalogPhase={catalog.phase} catalogError={catalog.error} runs={dashboardRuns} loading={dashboardLoading} error={dashboardError} status={status}
