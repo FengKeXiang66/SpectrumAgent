@@ -170,8 +170,8 @@ class AnnotationAuthorization:
                         ids.append(member['cube_id'])
                         expected_hashes[member['cube_id']] = member['content_hash']
         if selected_cube_ids is not None:
-            # Only the structured UI endpoint supplies this server-side argument;
-            # model tool arguments cannot create selection evidence.
+            # Structured UI selections and session-owned intake batches supply
+            # this server-side argument; model tools cannot create this evidence.
             if type(selected_cube_ids) is not tuple or not selected_cube_ids or len(set(selected_cube_ids)) != len(selected_cube_ids):
                 raise DataError('TASK_TARGET_REQUIRED','请选择非空且不重复的实际数据集范围')
             ids=list(selected_cube_ids)

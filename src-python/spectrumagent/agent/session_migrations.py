@@ -3,6 +3,13 @@ from backend.database import connect_database
 
 
 DDL = """
+CREATE TABLE IF NOT EXISTS dataset_intake (
+ session_id TEXT PRIMARY KEY REFERENCES agent_session(id), document_json TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS dataset_external_annotation (
+ cube_id TEXT PRIMARY KEY REFERENCES dataset_registry(id) ON DELETE CASCADE,
+ source_path TEXT NOT NULL, source_sha256 TEXT NOT NULL, header_sha256 TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS agent_canvas_focus (
  session_id TEXT PRIMARY KEY REFERENCES agent_session(id), cube_id TEXT, updated_at TEXT NOT NULL
 );

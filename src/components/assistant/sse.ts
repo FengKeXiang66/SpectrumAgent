@@ -1,4 +1,5 @@
 import type { ModelingScalarSummary } from './modeling-summary.ts';
+import type { DataIntake } from './DataIntakeCard.tsx';
 
 export type Scalars = ModelingScalarSummary;
 export type PlanEventData = { plan_id: string; steps: { seq: number; tool: string; summary: Scalars; gpu: boolean; estimate_ms: number | null }[]; reason: string };
@@ -15,7 +16,7 @@ export type AgentEvent =
   | { event: 'done'; data: { content: string; step_count: number; task_result?: string;
       request_status?:'finished'; reply_status?:'replied'|'needs_input'|'needs_confirmation';
       annotation_task_id?:string;annotation_flow_id?:string;annotation_mode?:'per_image'|'all';annotation_member_count?:number;
-      annotation_target_cube_ids?:string[] } }
+      annotation_target_cube_ids?:string[]; data_intake?: DataIntake } }
   | { event: 'error'; data: { code: string; detail: string;annotation_target_cube_ids?:string[] } };
 
 // Same framing as the Rust collector. No event-count cutoff: rejected calls

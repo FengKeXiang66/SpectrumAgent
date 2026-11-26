@@ -66,6 +66,10 @@ POLICIES.update({
 
 class ScopedToolRegistry:
     @property
+    def data_intake(self):
+        return getattr(self.base, 'data_intake', None)
+
+    @property
     def experiment_dialogue(self):
         return getattr(self.base, 'experiment_dialogue', None)
 
@@ -129,6 +133,13 @@ class ScopedToolRegistry:
         accepted = submit_flow(self.service, self.tasks, self.session_id, self.request_id,
                                grant['cube_ids'], mode, state, grant)
         return flow_reply(accepted)
+
+    def select_annotation_targets(self, cube_ids, state):
+        """Bind an intake-owned batch for the user's next mode choice."""
+        from .authorization import AnnotationAuthorization
+        AnnotationAuthorization(self.service).capture(self.session_id, '人工标注', None,
+            self.request_id, state, selected_cube_ids=tuple(cube_ids))
+        state.pop('pending_clarify', None)
 
     def authorize_annotation(self, name, args):
         if OPEN_ACCESS:

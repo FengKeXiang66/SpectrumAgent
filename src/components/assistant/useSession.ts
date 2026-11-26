@@ -1,7 +1,7 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { agent, type BatchCard, type BatchScope, type BatchResult, type TaskCard, type MessageBody, type RuntimeInfo, type WorkspaceContext, type SessionDetail, type SessionSummary, type HistoryEvent, type CreateSessionInput } from './api.ts';
 import { initialChat, reduceChat, requestError, validateWorkspaceEvent, type WorkspaceEventData, type ChatEntry, type AgentEvent } from './sse.ts';
-import { changedCubes, datasetChoices, proposedCandidates, parseBatchSummary } from './presentation.ts';
+import { catalogChanged, changedCubes, datasetChoices, proposedCandidates, parseBatchSummary } from './presentation.ts';
 import type { DatasetReference } from '../datasets/types.ts';
 import { recipesChanged, draftsChanged } from '../preprocess/recipe-events.ts';
 
@@ -41,7 +41,7 @@ function sessionOrder(a: SessionSummary, b: SessionSummary) {
 }
 
 export default function useSession({ enabled, generation, bootId, workspace = {}, records = [], displayName,
-  onWorkspaceChange, onSessionReset, onWorkspaceDisplayChange, onWorkspaceNavigate, onBatchOpen, onBatchReset, onPreviewCandidate, onDataChanged }: {
+  onWorkspaceChange, onSessionReset, onWorkspaceDisplayChange, onWorkspaceNavigate, onBatchOpen, onBatchReset, onPreviewCandidate, onDataChanged, onCatalogChanged }: {
   enabled: boolean; generation: number; bootId?: string | null; workspace?: WorkspaceContext; records?: DatasetReference[]; displayName?: string;
   onSessionReset?(): void;
   onWorkspaceChange?(workspace: WorkspaceContext): void;
@@ -51,6 +51,7 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
   onBatchReset?(): void;
   onPreviewCandidate?(cubeId: string, candidateRef: string): void;
   onDataChanged?(cubeIds: string[]): void;
+  onCatalogChanged?(): Promise<void>;
 }) {
   const [state, dispatch] = useReducer(reduceChat, initialChat);
   const [content, setContent] = useState('');
@@ -490,12 +491,15 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
       if(epoch.current!==requestEpoch)return;
       if(stopRequested.current){dispatch({type:'failed',detail:'请求已停止，尚未提交执行。'});setStopping(false);return;}
       const streamed:AgentEvent[]=[];
+      let catalogRefresh: Promise<void> | undefined;
       const result = await agent.sendMessage(requestSessionId, 'content' in body
         ? { content: body.content, request_id: requestId, ...(requestWorkspace.cube_id ? { workspace: requestWorkspace } : {}) } : {...body,request_id:requestId}, event=>{
           if(epoch.current!==requestEpoch||callbacks.current.generation!==requestGeneration)return;
           if(event.event==='workspace')validateWorkspaceEvent(event.data);
           streamed.push(event);
           dispatch({type:'events',events:[event],requestId,streaming:true});
+          // Refresh committed imports even if a later model/transport step fails.
+          if (catalogChanged([event])) catalogRefresh = onCatalogChanged?.();
           if(event.event==='step'&&['annotations.prepare_batch','annotations.task'].includes(event.data.tool)&&event.data.result_summary.status==='accepted'
             &&typeof event.data.result_summary.task_id==='string'){
             const card:TaskCard={taskId:event.data.result_summary.task_id,sessionId:requestSessionId,generation,requestId};
@@ -505,6 +509,11 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
       if (epoch.current !== requestEpoch || callbacks.current.generation !== requestGeneration) return;
       const buffered=result.events;
       result.events=[...streamed,...buffered];
+      if (catalogChanged(buffered)) catalogRefresh = onCatalogChanged?.();
+      // Navigation refreshes only the selected cube's name. Finish the full
+      // catalog reload first so that it cannot be replaced by that narrow read.
+      await catalogRefresh;
+      if (epoch.current !== requestEpoch || callbacks.current.generation !== requestGeneration) return;
       for (const event of result.events) if (event.event === 'workspace') validateWorkspaceEvent(event.data);
       dispatch({ type: 'events', events: buffered, requestId });
       for (const event of result.events) if(event.event==='step'&&event.data.status==='ok') {
@@ -530,7 +539,8 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
         onWorkspaceChange?.({ cube_id: event.data.cube_id, ...(event.data.gesture_ref ? { gesture_ref: event.data.gesture_ref } : {}) });
         onWorkspaceDisplayChange?.(event.data);
         lastWorkspace = event.data;
-        if (needsCanvas) onWorkspaceNavigate?.(event.data);
+        if (needsCanvas || event.data.stage === 'preprocess' || result.events.some(item => item.event === 'done'
+            && item.data.data_intake?.stage === 'imported')) onWorkspaceNavigate?.(event.data);
       }
       if (cards.length) {
         const last = cards.at(-1)!;

@@ -360,6 +360,11 @@ class StateMachine:
 
     def _dispatch(self, **kwargs):
         if self._workflow_enabled():
+            intake = getattr(self.tools, 'data_intake', None)
+            if intake and kwargs.get('content'):
+                routed = intake.route(self, kwargs['content'])
+                if routed is not None:
+                    return routed
             dialogue = getattr(self.tools, 'experiment_dialogue', None)
             if dialogue and kwargs.get('content'):
                 from .router import dispatch

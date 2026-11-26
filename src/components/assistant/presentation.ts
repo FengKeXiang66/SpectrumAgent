@@ -66,6 +66,13 @@ export function changedCubes(events: AgentEvent[], workspace: WorkspaceContext =
   return [...new Set(cubes)];
 }
 
+export function catalogChanged(events: AgentEvent[]): boolean {
+  return events.some(event => event.event === 'step' && event.data.status === 'ok'
+    && (event.data.tool === 'datasets.import' && event.data.result_summary.status === 'imported'
+      || event.data.tool === 'datasets.delete' && event.data.result_summary.status === 'deleted'
+      || event.data.tool === 'annotations.external_import' && event.data.result_summary.status === 'saved'));
+}
+
 export function parseBatchSummary(s: Scalars): BatchResult | null {
   const integer = (value: unknown): value is number => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
   const nullable = (value: unknown): value is string | null => value === null || typeof value === 'string';

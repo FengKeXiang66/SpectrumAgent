@@ -25,10 +25,11 @@ function Thumbnail({ record, api }: { record: CatalogRecord; api: DatasetTranspo
 }
 
 type Callbacks = Parameters<typeof createDatasetActions>[1];
-export default function DatasetPanel({ api, records, phase, error, onReload, onImported, onDeleted, onOpen }: {
+export default function DatasetPanel({ api, records, phase, error, onReload, onImported, onDeleted, onOpen, onAttachAnnotations }: {
   api: DatasetTransport; records: CatalogRecord[]; phase: 'idle'|'loading'|'ready'|'error'; error: string; onReload(): void;
   onImported: Callbacks['imported']; onDeleted: Callbacks['deleted'];
   onOpen(screen: 's04'|'s05'|'s06', record?: CatalogRecord): void;
+  onAttachAnnotations?(record: CatalogRecord): void;
 }) {
   const [raw, setRaw] = useState(false);
   const [materials, setMaterials] = useState<Record<string, Label[]>>({}), [materialError, setMaterialError] = useState('');
@@ -85,7 +86,8 @@ export default function DatasetPanel({ api, records, phase, error, onReload, onI
               const checked = event.target.checked;
               setCheckedIds(ids => checked ? [...new Set([...ids, record.id])] : ids.filter(id => id !== record.id));
             }} /></td>
-          <td><strong>{record.display_name}</strong><code>{record.source_path}</code>{!record.available && <p className="dataset-unavailable">源文件不可用</p>}</td>
+          <td><strong>{record.display_name}</strong><code>{record.source_path}</code>{!record.available && <p className="dataset-unavailable">源文件不可用</p>}
+            <span>{record.workflow_status === 'ready' ? '已预处理' : record.workflow_status === 'need_preprocess' ? '可预处理' : '待标注'}</span></td>
           <td>{materialError ? <span role="alert">{materialError}</span> : materials[record.id]?.map(label => `${label.code} · ${label.name}`).join('、') || '未归类'}</td>
           <td>{record.shape.join('×')}</td><td>{record.wavelength_range?.join('–') ?? '未提供'}</td><td>{record.raw ? 'DN 原值' : '反射率'}</td>
           <td><div className="dataset-preview-row">
@@ -93,6 +95,7 @@ export default function DatasetPanel({ api, records, phase, error, onReload, onI
             <div className="dataset-row-actions">
               <button disabled={disabled || !record.available} onClick={() => onOpen('s04', record)}>查看</button>
               <button disabled={disabled || !record.available} onClick={() => onOpen('s05', record)}>标注</button>
+              {onAttachAnnotations && <button disabled={disabled || !record.available} onClick={() => onAttachAnnotations(record)}>接入已有标注</button>}
               <button disabled={disabled || !record.available} onClick={() => onOpen('s06', record)}>预处理</button>
               <button className="dataset-danger" disabled={disabled} onClick={() => { void actions.current?.requestDelete(record); }}>永久删除</button>
             </div>

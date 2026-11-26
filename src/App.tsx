@@ -103,6 +103,7 @@ export default function App() {
       setNavigation({ cube_id: target, stage: 'annotation' });
     },
     onPreviewCandidate: (cubeId, candidateRef) => setPreviewCandidates(current => ({ ...current, [cubeId]: candidateRef })),
+    onCatalogChanged: () => catalogController.load(),
     onDataChanged: cubeIds => setRefreshVersions(current => {
       const next = { ...current };
       for (const cubeId of cubeIds) next[cubeId] = (next[cubeId] ?? 0) + 1;
@@ -185,8 +186,8 @@ export default function App() {
   }, []);
   useEffect(() => {
     if (!navigation) return;
-    if (navigation.stage !== 'annotation') { setNavigation(null); return; }
-    void openDataset(navigation.cube_id, 's05');
+    if (navigation.stage !== 'annotation' && navigation.stage !== 'preprocess') { setNavigation(null); return; }
+    void openDataset(navigation.cube_id, navigation.stage === 'preprocess' ? 's06' : 's05');
   }, [navigation, openDataset]);
   useEffect(() => {
     if (screen !== 's02' || status.phase !== 'Ready') return;
@@ -275,7 +276,10 @@ export default function App() {
             if (workspace.cube_id === id) { changeWorkspace({}); void session.selectCube(null); }
             setSelected(current => current?.id === id ? null : current);
             await catalogController.refreshNames();
-          }} onOpen={openScreen} />
+          }} onOpen={openScreen} onAttachAnnotations={record => {
+            setScreen('s01');
+            session.setContent(`导入已有标注的数据，原图 "${record.source_path}"`);
+          }} />
       </>;
       case 's04': return selected ? <S04 key={selected.id} record={selected} api={datasets} onClose={() => setScreen('s03')} />
         : <section aria-label="S04 数据查看器"><p>请先在数据屏选择数据集。</p><button onClick={() => setScreen('s03')}>返回数据屏</button></section>;
@@ -301,7 +305,7 @@ export default function App() {
       case 's07': return catalog.phase === 'ready' ? <ModelPanel records={records.filter(row => row.available)} onOpenResults={run => openScreen('s08', undefined, run)} />
         : <p role="status">请先返回数据屏加载数据目录。</p>;
       case 's08': return <S08 runId={runId} onOpen={id => openScreen('s08', undefined, id)} onBackToList={() => setRunId(null)} onClose={() => setScreen('s07')} />;
-      case 's02': return <S02 records={records} runs={dashboardRuns} loading={dashboardLoading} error={dashboardError} status={status}
+      case 's02': return <S02 records={records} catalogPhase={catalog.phase} catalogError={catalog.error} runs={dashboardRuns} loading={dashboardLoading} error={dashboardError} status={status}
         onOpenData={() => openScreen('s03')} onOpenRun={id => openScreen('s08', undefined, id)} onContinueAnnotation={() => openScreen('s05')} />;
       case 's09': return <S09 records={records} />;
       case 's10': return <S10 onOpenData={() => openScreen('s03')} />;

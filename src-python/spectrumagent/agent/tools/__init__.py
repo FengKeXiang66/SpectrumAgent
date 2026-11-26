@@ -397,4 +397,7 @@ def build_registry(*, datasets=None, runner=None, comparison=None, database=None
             register_experiments(registry, ExperimentDialogue(experiments))
     from .current import register_current
     register_current(registry, sessions, runner)
+    if catalogue_version == 2 and datasets is not None and sessions is not None and paths is not None:
+        from ..data_intake import DatasetIntake
+        registry.data_intake = DatasetIntake(datasets, sessions)
     return registry

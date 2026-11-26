@@ -282,6 +282,18 @@ class DatasetRegistry:
             labels = db.execute("SELECT id,json_extract(payload,'$.name'),raw FROM dataset_registry ORDER BY rowid").fetchall()
             rows = db.execute('SELECT id,payload,raw FROM dataset_registry ORDER BY rowid LIMIT ? OFFSET ?',
                               (limit, offset)).fetchall()
+            annotation_states = dict(db.execute('SELECT cube_id,1 FROM annotation_version'))
+            ready = set()
+            if db.execute("SELECT 1 FROM sqlite_master WHERE name='current_run_input'").fetchone():
+                ready = {row[0] for row in db.execute('''SELECT p.cube_id FROM preprocess_run p
+                    JOIN current_run_input i ON i.run_id=p.id
+                    JOIN annotation_confirmation_state c ON c.annotation_version_id=p.annotation_version_id
+                    JOIN annotation_draft d ON d.cube_id=c.cube_id AND d.revision=c.draft_revision
+                    JOIN preprocess_recipe_version v ON v.id=p.recipe_version_id
+                    JOIN recipe_pipeline_hash h ON h.recipe_version_id=v.id
+                    WHERE p.status='succeeded' AND i.annotation_digest=c.document_sha256 AND i.recipe_digest=h.sha256
+                    AND v.version_no=(SELECT MAX(n.version_no) FROM preprocess_recipe_version n WHERE n.recipe_id=v.recipe_id)
+                    AND p.id=(SELECT n.id FROM preprocess_run n WHERE n.cube_id=p.cube_id AND n.status='succeeded' ORDER BY n.created_at DESC,n.id DESC LIMIT 1)''')}
         names = display_names(labels)
         records = []
         for identifier, payload, raw in rows:
@@ -294,5 +306,6 @@ class DatasetRegistry:
             records.append({'id': identifier, 'display_name': names[identifier], 'shape': dataset.shape,
                             'wavelength_range': [min(dataset.wavelengths), max(dataset.wavelengths)]
                             if dataset.wavelengths else None, 'raw': bool(raw),
-                            'source_path': dataset.header_path, 'available': available})
+                            'source_path': dataset.header_path, 'available': available,
+                            'workflow_status': 'ready' if identifier in ready else 'need_preprocess' if identifier in annotation_states else 'need_annotation'})
         return {'datasets': records, 'total': len(labels), 'limit': limit, 'offset': offset}

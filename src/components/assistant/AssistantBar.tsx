@@ -19,10 +19,12 @@ import InferenceTaskCard from './InferenceTaskCard';
 import type { OpenInferenceView } from './InferenceResultsView';
 import StudyCard from './StudyCard';
 import ForegroundProbeCard from './ForegroundProbeCard';
+import DataIntakeCard from './DataIntakeCard';
+import { labelCommandText } from './label-names.ts';
 
 function entryText(entry: ChatEntry): string {
   switch (entry.event) {
-    case 'user': return entry.data.content.startsWith('应用推理参数 ') ? '应用推理参数微调' : entry.data.content;
+    case 'user': return entry.data.content.startsWith('应用推理参数 ') ? '应用推理参数微调' : labelCommandText(entry.data.content);
     case 'step': return `${entry.data.seq}. ${entry.data.tool} · ${entry.data.status} · ${scalarText(entry.data.result_summary)}`;
     case 'clarify': return entry.data.question;
     case 'human_check': return `${entry.data.reason} · ${entry.data.tool} · ${scalarText(entry.data.summary)}`;
@@ -136,6 +138,7 @@ export default function AssistantBar({session,onHistory,onViewer}:{
         .filter(item=>item.start>=0).map(item=>({...item,anchor:replyPosition(state.entries,item.start)}));
       const latestDraft = state.entries.reduce((last,entry,index)=>entry.event==='step'&&entry.data.status==='ok'
         && ['experiments.draft_presentation','experiments.inference_presentation'].includes(entry.data.tool) ? index : last,-1);
+      const latestIntake = state.entries.reduce((last, entry, index) => entry.event === 'done' && entry.data.data_intake ? index : last, -1);
       let draftCard: Scalars|undefined;
       let inferCard: InferenceDraft|undefined;
       let draftIndex = -1;
@@ -219,6 +222,9 @@ export default function AssistantBar({session,onHistory,onViewer}:{
                         <summary>查看完整引用</summary><p>{actualText}</p>
                       </details>}</>}
               </div>
+              {entry.event === 'done' && entry.data.data_intake && <DataIntakeCard card={entry.data.data_intake}
+                active={index === latestIntake} enabled={enabled && !state.busy && !session.loading}
+                send={sendCommand} edit={editDraft} />}
               {preview&&<div className="work-actions">{Object.entries(pairingSections).map(([key,title])=>
                 <button key={key} onClick={()=>onViewer({kind:'pairing',previewId:preview,section:key as keyof typeof pairingSections})}>{title}</button>)}</div>}
             </div>

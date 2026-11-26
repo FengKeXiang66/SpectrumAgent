@@ -20,14 +20,15 @@ def test_general_dialogue_prompt_distinguishes_local_experiment_from_canvas(prio
                                   '我有本地高光谱数据，想训练塑料分类模型。', None)
     prompt = next(row['content'] for row in messages if row['role']=='system' and '路线 A' in row['content'])
     assert _DENY_TEXT.search(prompt) is None
-    intro, a = prompt.split('2. 路线 A', 1)
+    intro, a = prompt.split('2. 通用导入', 1)
     a, b = a.split('3. 路线 B', 1)
     b, consistency = b.split('4. ', 1)
     assert all(text in intro for text in ('source_hdr', '只读配对', '分组划分', '波长对齐', 'Study', '批量推理', '再问用户'))
     assert all(text in a for text in ('外部 ROI 标注 JSON', '训练和测试 NPZ', '无需到设置页登记数据源',
                                       '无需调用 sources.scan 或 datasets.import', '粘贴本地文件或目录路径',
                                       '「选择目录」', '「选择文件」', '脱敏为内部引用'))
-    assert all(text in b for text in ('未标注原图', '设置界面登记数据源', 'sources.scan 和 datasets.import', '超像素画布标注'))
+    assert all(text in a for text in ('数据接入卡片', '尚未标注或已有标注', '不要求用户重做超像素', '不要在导入或查看数据时强制要求'))
+    assert all(text in b for text in ('未标注原图', '不能要求路径导入用户先去设置页', 'sources.scan 和 datasets.import', '超像素画布标注'))
     assert '不能据此要求路线 A 先登记' in consistency
     assert messages[0]['content']==version['system_prompt']
     assert all(row in messages for row in prior)

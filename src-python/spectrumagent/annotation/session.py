@@ -342,8 +342,8 @@ class SessionStore:
         if state.segments is None:
             raise DataError("SUPERPIXELS_REQUIRED", "请先生成超像素分割")
 
-    @managed(required=True)
-    def save(self, cube_id, *, overwrite=False, confirm=False, note: str | None = None, frozen=None):
+    @managed(required=False)
+    def save(self, cube_id, *, overwrite=False, confirm=False, note: str | None = None, frozen=None, external=False):
         if note is not None and (not isinstance(note, str) or len(note) > 2000):
             raise DataError("INVALID_VERSION_NOTE", "保存备注须为不超过 2000 字符的文本")
         cube_id = str(cube_id)
@@ -351,7 +351,10 @@ class SessionStore:
             state = self._state(cube_id) if frozen is None else replace(
                 self._states[cube_id], document_json=frozen[0], label_map=frozen[1], revision=frozen[2],
                 label_ids=self._label_ids(cube_id))
-            self._require_segments(state)
+            if not external:
+                self._require_segments(state)
+            elif not state.document_json or not json.loads(state.document_json)['regions']:
+                raise DataError('EXTERNAL_ANNOTATION_INVALID', '外部标注没有有效区域')
             with connect_database(self.database) as db:
                 latest = db.execute("SELECT id,version_no,created_at FROM annotation_version "
                                     "WHERE cube_id=? ORDER BY version_no DESC LIMIT 1", (cube_id,)).fetchone()
@@ -363,8 +366,10 @@ class SessionStore:
             aggregates = aggregate_spectra(self.registry, cube_id, state.label_map,
                                            block_size=state.params["block_size"], segments=state.segments)
             from .quality import validate
-            quality = validate(self.registry, cube_id, state.label_map, state.segments,
-                               state.label_ids, state.params, aggregates=aggregates)
+            quality = (dict(completeness=map_statistics(state.label_map, state.label_ids),
+                            source='external_roi', not_applicable={'超像素检查': '外部标注直接接入，未生成超像素'})
+                       if external else validate(self.registry, cube_id, state.label_map, state.segments,
+                                                 state.label_ids, state.params, aggregates=aggregates))
             timestamp = now()
             version_id = latest[0] if overwrite else str(uuid4())
             version_no = latest[1] if overwrite else (latest[1] + 1 if latest else 1)
@@ -441,6 +446,31 @@ class SessionStore:
                     "snapshot_ref": relative, "created_at": created, "note": note,
                     "quality": quality, "elapsed_seconds": perf_counter() - started,
                     "transaction_seconds": transaction_seconds, "export": export}
+
+    @managed(restore=False)
+    def import_external(self, cube_id, document):
+        """Persist an already validated ROI through the normal draft/snapshot path.
+
+        No segmentation is fabricated. An existing, different annotation is never
+        overwritten by import; retries of the exact document remain idempotent.
+        """
+        with self._lock:
+            old = self.drafts.get(cube_id)
+            if old:
+                def semantic(doc):
+                    doc = deepcopy(doc)
+                    for region in doc['regions']:
+                        region.pop('created_at', None)
+                    return doc
+                if semantic(old['document']) == semantic(document):
+                    document = old['document']
+            if old and old['document']['regions'] and old['document'] != document:
+                raise DataError('ANNOTATION_EXISTS', '样品已有不同标注，请先在工作台核对，未覆盖')
+            if not old or old['document'] != document:
+                self.drafts.replace(cube_id, document, old['revision'] if old else 0)
+            state = self._state(cube_id)
+            state.params = {'block_size': 32, 'source': 'external_roi'}
+            return self.save(cube_id, external=True, note='导入已确认的外部 ROI 标注')
 
     def _project_saved(self, cube_id, version_no, state, source_hdr):
         # The version transaction and four-file snapshot have already succeeded.

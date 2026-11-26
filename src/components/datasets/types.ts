@@ -26,7 +26,8 @@ export type PreviewOptions = { band?: number; bands?: string; stretch?: 'auto' |
 export type SpectrumRegion = { l0: number; l1: number; s0: number; s1: number; raw?: boolean };
 export type MeanSpectrum = { id: string; shape: [number, number]; count: number; mean: (number | null)[]; nan_bands: number[] };
 export type CatalogRecord = { id: string; display_name: string; shape: [number, number, number];
-  wavelength_range: [number, number] | null; raw: boolean; source_path: string; available: boolean };
+  wavelength_range: [number, number] | null; raw: boolean; source_path: string; available: boolean;
+  workflow_status?: 'need_annotation' | 'need_preprocess' | 'ready' };
 export type CatalogPage = { datasets: CatalogRecord[]; total: number; limit: number; offset: number };
 export type DeletePreview = { cube_id: string; annotation_versions: number; preprocess_runs: number;
   training_runs: number; inference_runs: number; directories: { path: string; bytes: number }[];

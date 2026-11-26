@@ -242,4 +242,8 @@
 .study-highlights h4 { margin: 0 0 5px; color: #0a5670; }
 .study-highlights p { margin: 0 0 6px; }
 .study-recommendation { background: #e7f3f7; }
+.intake-label-form { display: grid; gap: 8px; margin-top: 12px; }
+.intake-label-form textarea { width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #c7d3dd; border-radius: 6px; resize: vertical; font: inherit; }
+.intake-label-form p { margin: 0; font-size: 12px; color: #52606d; }
+.intake-label-form button { justify-self: start; }
 .experiment-table th small { display: block; margin-top: 3px; color: #0a5670; }
