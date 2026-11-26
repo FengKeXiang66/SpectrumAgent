@@ -79,6 +79,29 @@ def machine_for(app, session, model):
         app.state.agent_tools, app.state.agent_sessions, session))
 
 
+def test_metric_update_keeps_same_reply_explanation(application):
+    from spectrumagent.agent.experiment_flow import generate
+
+    store = AgentStore(application.state.experiments.paths.database)
+    session = store.create_session()['id']
+    update = tool('experiments.draft_update', {'expected_revision': 0, 'additional_metrics': ['kappa']})
+    path = r'E:\private\data.npz'
+    update.content = f'已加入 Kappa。AUC 尚未实现。输入位置：{path}'
+    model = ScriptedModel(update)
+    machine = machine_for(application, session, model)
+
+    events = list(generate(machine, '请附加 Kappa 和 AUC。'))
+
+    card = next(payload['result_summary'] for kind, payload in events
+                if kind == 'step' and payload['tool'] == 'experiments.draft_presentation')
+    assert card['draft_notes'] == '已加入 Kappa。AUC 尚未实现。输入位置：本地输入源'
+    assert events[-1][0] == 'clarify'
+    assert events[-1][1]['question'].startswith(card['draft_notes'] + '\n\n当前实验方案')
+    assert path not in str(events)
+    dialogue = application.state.agent_tools.experiment_dialogue
+    assert dialogue._read(session)['document']['additional_metrics'] == ['kappa']
+
+
 def test_multi_turn_partial_patch_review_execute_and_query(tmp_path, application):
     body, patch = patch_for(tmp_path)
     app = application

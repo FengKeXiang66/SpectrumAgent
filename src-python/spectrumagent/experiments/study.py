@@ -8,9 +8,6 @@ from time import monotonic, time
 from uuid import uuid4
 
 import numpy as np
-from sklearn.cross_decomposition import PLSRegression
-from sklearn.metrics import accuracy_score, f1_score
-from sklearn.model_selection import StratifiedGroupKFold, StratifiedKFold
 from threadpoolctl import threadpool_limits
 
 from backend.database import connect_database
@@ -182,6 +179,8 @@ def check_group_support(support, folds):
 
 
 def make_folds(data, kind, opts, config):
+    from sklearn.model_selection import StratifiedGroupKFold, StratifiedKFold
+
     groups = None
     if kind != 'exploratory':
         key = 'batch' if kind == 'batch' else 'sample_id'
@@ -220,6 +219,9 @@ def make_folds(data, kind, opts, config):
 
 
 def evaluate(config, data, folds, opts, progress):
+    from sklearn.cross_decomposition import PLSRegression
+    from sklearn.metrics import accuracy_score, f1_score
+
     labels = np.array(sorted(config.classes))
     total = len(opts['preparations'])*len(opts['components'])
     rows = []

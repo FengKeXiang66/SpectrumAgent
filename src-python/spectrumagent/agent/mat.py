@@ -15,7 +15,6 @@ from threading import RLock
 from uuid import UUID, uuid4
 
 import numpy as np
-from scipy.io import savemat
 
 from backend.database import connect_database
 from spectrumagent.annotation.engines.superpixels import row_blocks
@@ -106,6 +105,8 @@ class MatStore:
                 raise DataError("MAT_GENERATION_FAILED", f"训练 MAT 生成失败：{error}") from error
 
     def _generate(self, cube_id, version_id, label_map):
+        from scipy.io import savemat
+
         snapshot = self._snapshot(cube_id, version_id)
         label_index = json.loads((snapshot / "label_index.json").read_text("utf-8"))
         dataset, _ = self.registry.readable(cube_id, raw=True)

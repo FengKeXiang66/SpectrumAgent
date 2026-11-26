@@ -18,7 +18,6 @@ from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED, ZIP_STORED
 import numpy as np
 from PIL import Image
 from pydantic import Field, FiniteFloat, model_validator
-from scipy.ndimage import minimum_filter
 from threadpoolctl import threadpool_limits
 
 from spectrumagent.data import DataError
@@ -477,6 +476,8 @@ class InferenceService:
         return level,left,right,rgb,wave[preview_ids].tolist()
 
     def _image(self, path, spec, model, folder, index, progress, check):
+        from scipy.ndimage import minimum_filter
+
         dataset, weights = envi_mapping(path, spec, model.config.wavelengths_nm)
         height, width = dataset.shape[:2]
         k, q = model.config.train.neighborhood, spec.quality

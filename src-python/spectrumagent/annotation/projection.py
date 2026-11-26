@@ -4,9 +4,6 @@ import math
 
 import numpy as np
 from PIL import Image, ImageDraw
-from scipy import ndimage
-from skimage.draw import line
-from skimage.measure import find_contours
 
 
 BACKGROUND = np.ones((3, 3), dtype=bool)  # Dual topology: foreground 4, background 8.
@@ -26,6 +23,8 @@ def _diagnostic(code, bbox, area, difference, limit, reason):
 
 
 def _components(mask, *, structure=None):
+    from scipy import ndimage
+
     labels, _ = ndimage.label(mask, structure=structure)
     for identifier, slices in enumerate(ndimage.find_objects(labels), 1):
         if slices is not None:
@@ -34,6 +33,9 @@ def _components(mask, *, structure=None):
 
 def _open_holes(mask):
     """Shortest Euclidean hole/outer-edge pair; one-pixel Bresenham slot."""
+    from scipy import ndimage
+    from skimage.draw import line
+
     padded = np.pad(mask, 1)
     solid = ndimage.binary_fill_holes(padded, structure=BACKGROUND)
     holes = solid & ~padded
@@ -58,6 +60,8 @@ def _open_holes(mask):
 
 
 def _outline(mask):
+    from skimage.measure import find_contours
+
     padded = np.pad(mask, 1)
     contours = find_contours(padded, .5, fully_connected="low", positive_orientation="low")
     if len(contours) != 1:

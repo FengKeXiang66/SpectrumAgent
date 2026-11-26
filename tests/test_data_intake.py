@@ -43,6 +43,20 @@ def session(app):
     return sid, send
 
 
+def test_single_raw_data_directory_opens_intake_choice(application, tmp_path):
+    images = tmp_path / '联运-0602'
+    images.mkdir()
+    sid, send = session(application)
+
+    reply, _ = send(f'"{images}"我有如下原数据目录')
+
+    assert reply['data_intake']['stage'] == 'choose_mode'
+    assert reply['data_intake']['image_names'] == [images.name]
+    assert str(images) not in reply['content']
+    assert application.state.agent_tools.data_intake.read(sid)['images'] == [str(images)]
+    assert application.state.dataset_registry.catalog()['total'] == 0
+
+
 def test_unlabeled_import_choice_and_resume_do_not_infer_labels(application, tmp_path):
     images, _ = source(tmp_path)
     sid, send = session(application)
@@ -85,9 +99,11 @@ def test_external_annotations_reach_preprocessing_without_superpixels(applicatio
     assert card['classes'] == ['pe', 'pet']
     assert application.state.dataset_registry.catalog()['total'] == 0  # read-only preview
     def forbidden(*args, **kwargs):
-        raise AssertionError('external annotations must not prepare superpixels')
-    monkeypatch.setattr(application.state.superpixel_engine, 'prepare', forbidden)
-    reply, _ = send(f'使用已配对标注 {card["id"]}')
+        raise AssertionError('external annotations must not prepare or restore superpixels')
+    with monkeypatch.context() as patch:
+        patch.setattr(application.state.superpixel_engine, 'prepare', forbidden)
+        patch.setattr(application.state.segmentation_resources, '_read', forbidden)
+        reply, _ = send(f'使用已配对标注 {card["id"]}')
     assert reply['data_intake']['ready_count'] == 2, application.state.agent_tools.data_intake.read(sid)['issues']
     current = CurrentWorkspace(application.state.annotation_sessions, application.state.preprocess_runner)
     assert {row['status'] for row in current.state()['members']} == {'need_preprocess'}

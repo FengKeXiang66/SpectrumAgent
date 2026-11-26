@@ -7,6 +7,7 @@ import base64
 from dataclasses import asdict, dataclass
 import ctypes
 from ctypes import wintypes
+from functools import cache
 from io import BytesIO
 from pathlib import Path
 import math
@@ -16,15 +17,20 @@ from threading import RLock, get_ident
 from time import perf_counter
 
 import numpy as np
-import sklearn
-import skimage
 from PIL import Image, ImageDraw
 
 from spectrumagent.data import DataError
 
 
 FEATURE_VERSION = "pca-global-zscore-clip3-unit-v1"
-ALGORITHM_VERSION = "spectrum-pca-slic-refine-v1;sklearn=" + sklearn.__version__ + ";skimage=" + skimage.__version__
+
+@cache
+def algorithm_version():
+    import sklearn
+    import skimage
+
+    return f"spectrum-pca-slic-refine-v1;sklearn={sklearn.__version__};skimage={skimage.__version__}"
+
 DEFAULT_COMPACTNESS = 0.5  # §5.2 single-cube initial default; calibration decides.
 
 
@@ -341,7 +347,7 @@ class SuperpixelEngine:
             key = str(cube_id)
             if (not force and key in self.cache and self.cache[key][0] == params
                     and getattr(self.cache[key][1], "content_hash", None) == identity
-                    and getattr(self.cache[key][1], "algorithm_version", None) == ALGORITHM_VERSION):
+                    and getattr(self.cache[key][1], "algorithm_version", None) == algorithm_version()):
                 # A timestamp-only change may retain identical content. Refresh
                 # the scan signature for the immediately following attachment.
                 self.cache[key][1].source_signature = signature
@@ -393,6 +399,6 @@ class SuperpixelEngine:
             result = Segmentation(segments, initial, means, std, features, reference, report)
             if self.source_identity(cube_id) != (identity, signature):
                 raise DataError("SOURCE_CHANGED", "源文件在计算期间变化，未附接新分割")
-            result.content_hash, result.algorithm_version, result.source_signature = identity, ALGORITHM_VERSION, signature
+            result.content_hash, result.algorithm_version, result.source_signature = identity, algorithm_version(), signature
             self.cache[key] = (params, result)
             return result

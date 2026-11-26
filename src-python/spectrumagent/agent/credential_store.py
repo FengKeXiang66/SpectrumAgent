@@ -1,4 +1,4 @@
-"""Per-user encrypted-at-rest storage for the LLM API key.
+"""Per-user encrypted-at-rest storage for LLM API keys.
 
 2026-11-12 ruling (supersedes TASK-07 §10-1): a saved key must survive an
 engine restart without ever being written to disk in plaintext. On Windows,
@@ -26,6 +26,7 @@ import sys
 MAGIC = b"SPECTRUMAGENT-LLM-KEY-v1\0"
 DIRECTORY = "credentials"
 FILENAME = "llm_api_key.bin"
+ROUTER_FILENAME = "llm_router_api_key.bin"
 _DESCRIPTION = "SpectrumAgent LLM API key"
 _UI_FORBIDDEN = 0x01
 
@@ -46,7 +47,8 @@ def _api():
                  wintypes.DWORD, ctypes.POINTER(_DataBlob)]
     for name in ("CryptProtectData", "CryptUnprotectData"):
         function = getattr(crypt32, name)
-        function.argtypes = signature
+        function.argtypes = (signature if name == "CryptProtectData"
+                             else [signature[0], ctypes.POINTER(wintypes.LPWSTR), *signature[2:]])
         function.restype = wintypes.BOOL
     kernel32.LocalFree.argtypes = [ctypes.c_void_p]
     kernel32.LocalFree.restype = ctypes.c_void_p
@@ -61,8 +63,8 @@ def available() -> bool:
     return _API is not None
 
 
-def credential_path(root: Path) -> Path:
-    return Path(root) / DIRECTORY / FILENAME
+def credential_path(root: Path, *, router: bool = False) -> Path:
+    return Path(root) / DIRECTORY / (ROUTER_FILENAME if router else FILENAME)
 
 
 def _blob(data: bytes):
@@ -77,7 +79,8 @@ def _transform(name: str, data: bytes) -> bytes:
     source, _keepalive = _blob(data)
     target = _DataBlob()
     function = getattr(crypt32, name)
-    if not function(ctypes.byref(source), _DESCRIPTION, None, None, None,
+    description = _DESCRIPTION if name == "CryptProtectData" else None
+    if not function(ctypes.byref(source), description, None, None, None,
                     _UI_FORBIDDEN, ctypes.byref(target)):
         raise ctypes.WinError(ctypes.get_last_error())
     try:
@@ -86,7 +89,7 @@ def _transform(name: str, data: bytes) -> bytes:
         kernel32.LocalFree(ctypes.cast(target.pbData, ctypes.c_void_p))
 
 
-def save(root: Path, key: str) -> bool:
+def save(root: Path, key: str, *, router: bool = False) -> bool:
     """Encrypt and atomically persist ``key``. False means no OS crypto available.
 
     A failed write leaves any previous file intact and propagates the error:
@@ -96,7 +99,7 @@ def save(root: Path, key: str) -> bool:
     if _API is None or not key:
         return False
     cipher = _transform("CryptProtectData", key.encode("utf-8"))
-    path = credential_path(root)
+    path = credential_path(root, router=router)
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(path.name + ".tmp")
     try:
@@ -112,7 +115,7 @@ def save(root: Path, key: str) -> bool:
     return True
 
 
-def load(root: Path) -> str | None:
+def load(root: Path, *, router: bool = False) -> str | None:
     """Return the restored key, or None when absent, corrupt or undecryptable.
 
     A DPAPI blob cannot be decrypted by another OS user or after a credential
@@ -122,7 +125,7 @@ def load(root: Path) -> str | None:
     if _API is None:
         return None
     try:
-        raw = credential_path(root).read_bytes()
+        raw = credential_path(root, router=router).read_bytes()
     except OSError:
         return None
     if not raw.startswith(MAGIC) or len(raw) == len(MAGIC):
@@ -134,6 +137,6 @@ def load(root: Path) -> str | None:
     return plain or None
 
 
-def clear(root: Path) -> None:
+def clear(root: Path, *, router: bool = False) -> None:
     """Remove the saved blob so an empty key cannot be resurrected on restart."""
-    credential_path(root).unlink(missing_ok=True)
+    credential_path(root, router=router).unlink(missing_ok=True)

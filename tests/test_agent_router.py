@@ -98,35 +98,82 @@ def test_confirm_buttons_bypass_router_and_invalid_router_falls_back(application
     assert selected[-1][1]=={'study':True}
 
 
-def test_router_model_override_and_audit(application):
+def test_router_model_override_and_audit(application, monkeypatch):
+    from spectrumagent.agent import llm
+    from spectrumagent.agent.execution import RequestControl
+
+    monkeypatch.setattr(llm, '_credentials', llm._Credentials())
+    llm.set_api_key('primary-test-key')
     database = application.state.experiments.paths.database
-    payloads = []
+    requests = []
     def mock(request):
-        payloads.append(json.loads(request.content))
+        requests.append(request)
         return httpx.Response(200, json={'choices':[{'message':{'content':'{}'},'finish_reason':'stop'}]})
     client = OpenAICompatibleClient(database,transport=httpx.MockTransport(mock))
-    for setting, expected in (('', 'main-model'), ('router-small','router-small')):
-        write_settings(database,LLMSettings(base_url='https://example.test/v1',model='main-model',
-                                            router_model=setting,temperature='0.7',max_tokens='2048'))
-        client.route_chat([{'role':'user','content':'自动比较参数'}])
-        assert payloads[-1]['model']==expected and payloads[-1]['temperature']==0 and payloads[-1]['max_tokens']==128
+    main = 'https://main.example.test/v1'
+    separate = 'https://route.example.test/v1'
+    cases = (
+        ('', '', '', 'main-model', main, 'primary-test-key'),
+        ('router-small', '', '', 'router-small', main, 'primary-test-key'),
+        ('router-small', '', 'router-test-key', 'router-small', main, 'primary-test-key'),
+        ('', main + '/', '', 'main-model', main, 'primary-test-key'),
+        ('router-small', main, 'router-test-key', 'router-small', main, 'router-test-key'),
+        ('router-small', separate, 'router-test-key', 'router-small', separate, 'router-test-key'),
+        ('router-small', separate, '', 'router-small', separate, None),
+        ('router-small', main + '/other', '', 'router-small', main + '/other', None),
+    )
+    for model, address, key, expected_model, expected_address, expected_key in cases:
+        llm.set_router_api_key(key)
+        write_settings(database, LLMSettings(base_url=main, model='main-model', router_model=model,
+                                             router_base_url=address, temperature='0.7',
+                                             max_tokens='2048', timeout_ms='12000'))
+        messages = [{'role':'user','content':'自动比较参数'}]
+        for control in (None, RequestControl('test-route')):
+            client.route_chat(messages, control=control)
+            request = requests[-1]
+            payload = json.loads(request.content)
+            assert str(request.url) == expected_address + '/chat/completions'
+            assert request.headers.get('authorization') == ('Bearer ' + expected_key if expected_key else None)
+            assert payload['model'] == expected_model and payload['temperature'] == 0 and payload['max_tokens'] == 512
+            assert not payload.get('tools') and set(request.extensions['timeout'].values()) == {8.0}
+    llm.set_router_api_key('router-test-key')
+    write_settings(database, LLMSettings(base_url=main, model='main-model', router_base_url=separate))
+    client.chat(messages, [])
+    assert str(requests[-1].url) == main + '/chat/completions'
+    assert requests[-1].headers['authorization'] == 'Bearer primary-test-key'
+    client.chat(messages, [], base_url=separate)
+    assert 'authorization' not in requests[-1].headers
     with connect_database(database) as db:
         assert {row[0] for row in db.execute('SELECT model FROM llm_call')}=={'main-model','router-small'}
+        assert all('primary-test-key' not in line and 'router-test-key' not in line for line in db.iterdump())
+    write_settings(database, LLMSettings(router_base_url=separate, router_model='router-small'))
+    client.route_chat(messages)
+    assert str(requests[-1].url) == separate + '/chat/completions'
+    count = len(requests)
     write_settings(database,LLMSettings(egress_enabled=False))
     assert client.route_chat([{'role':'user','content':'训练'}]) is None
-    assert len(payloads)==2
+    assert len(requests) == count
 
 
-def test_pre_router_settings_snapshot_restores_without_migration_loss(application,tmp_path):
+@pytest.mark.parametrize('legacy_model', ['', 'older-router'])
+def test_pre_router_settings_snapshot_restores_without_migration_loss(application,tmp_path,legacy_model):
+    from spectrumagent.agent.migrations import migrate
     from spectrumagent.agent.settings_store import config_path
     database = application.state.experiments.paths.database
     path = config_path(tmp_path)
     path.parent.mkdir(parents=True)
-    legacy = LLMSettings(base_url='https://example.test/v1',model='main-model').model_dump(exclude={'router_model'})
+    legacy = LLMSettings(base_url='https://example.test/v1', model='main-model', router_model=legacy_model,
+                         temperature='0.3', max_tokens='2048', timeout_ms='9000',
+                         egress_enabled=False).model_dump(exclude={'router_base_url'})
+    if not legacy_model:
+        legacy.pop('router_model')
     path.write_text(json.dumps(legacy),'utf8')
+    with connect_database(database) as db:
+        db.execute("DELETE FROM llm_settings WHERE key='router_base_url'")
+        migrate(db)
+        migrate(db)
     assert restore_settings(database,tmp_path)
-    assert read_settings(database).model == 'main-model'
-    assert read_settings(database).router_model == ''
+    assert read_settings(database).model_dump() == {**legacy, 'router_model':legacy_model, 'router_base_url':''}
 
 
 def test_crop_text_reaches_normal_npz_edit(application):

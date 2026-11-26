@@ -342,8 +342,11 @@ class SessionStore:
         if state.segments is None:
             raise DataError("SUPERPIXELS_REQUIRED", "请先生成超像素分割")
 
-    @managed(required=False)
-    def save(self, cube_id, *, overwrite=False, confirm=False, note: str | None = None, frozen=None, external=False):
+    @managed(required=True)
+    def save(self, cube_id, *, overwrite=False, confirm=False, note: str | None = None, frozen=None):
+        return self._save(cube_id, note=note, frozen=frozen)
+
+    def _save(self, cube_id, *, note: str | None = None, frozen=None, external=False):
         if note is not None and (not isinstance(note, str) or len(note) > 2000):
             raise DataError("INVALID_VERSION_NOTE", "保存备注须为不超过 2000 字符的文本")
         cube_id = str(cube_id)
@@ -470,7 +473,7 @@ class SessionStore:
                 self.drafts.replace(cube_id, document, old['revision'] if old else 0)
             state = self._state(cube_id)
             state.params = {'block_size': 32, 'source': 'external_roi'}
-            return self.save(cube_id, external=True, note='导入已确认的外部 ROI 标注')
+            return self._save(cube_id, external=True, note='导入已确认的外部 ROI 标注')
 
     def _project_saved(self, cube_id, version_no, state, source_hdr):
         # The version transaction and four-file snapshot have already succeeded.

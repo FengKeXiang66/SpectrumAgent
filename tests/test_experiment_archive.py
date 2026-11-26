@@ -106,9 +106,9 @@ def test_archive_survives_session_cleanup_and_reuses_original_model(archived_app
     events = list(machine_for(fresh, owner, model).message(content='查询实验结果'))
     assert events[-1][1]['task_result'] == 'succeeded' and not model.requests
     assert '持久归档' in events[-1][1]['content']
-    import spectrumagent.experiments.archive as archive_module
+    import sklearn
     with monkeypatch.context() as versions:
-        versions.setattr(archive_module.sklearn, '__version__', 'incompatible')
+        versions.setattr(sklearn, '__version__', 'incompatible')
         with pytest.raises(DataError) as caught:
             service.archive.load_model(identifier)
         assert caught.value.code == 'EXPERIMENT_MODEL_ENVIRONMENT_CHANGED'

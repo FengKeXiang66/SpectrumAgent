@@ -10,8 +10,6 @@ from time import perf_counter
 import sys
 
 import numpy as np
-import sklearn
-from sklearn.cross_decomposition import PLSRegression
 
 from backend.database import connect_database
 from . import ModelingError
@@ -217,6 +215,9 @@ class TrainingRuns:
                  cv_strategy="group_kfold", cv_folds=5, seed=17, split_strategy="none", confidence_threshold=0,
                  n_components=None, max_components=None, band_selection=None, dataset_version_ref=None, recipe_version_id=None,
                  evaluation_protocol=None, sample_groups=None):
+        import sklearn
+        from sklearn.cross_decomposition import PLSRegression
+
         from .training_state import CURRENT
         control = CURRENT.get()
         if not cube_ids or len(cube_ids) != len(annotation_version_ids) or len(cube_ids) != len(preprocess_run_ids):
@@ -412,6 +413,8 @@ class TrainingRuns:
 
     def regress(self, *, preprocess_run_ids, target_schema_id, task="regression", split_strategy="ks", test_ratio=1/3,
                 cv_strategy="kfold", cv_folds=5, seed=17, n_components=None, max_components=None):
+        from sklearn.cross_decomposition import PLSRegression
+
         if task != "regression" or split_strategy != "ks" or cv_strategy not in ("kfold", "loo"):
             raise ModelingError("INVALID_CV_PARAMS", "整样谱回归支持 KS 外层及 KFold/LOO 内层")
         data = build_sample_training_set(self.registry, self.paths, preprocess_run_ids=preprocess_run_ids, target_schema_id=target_schema_id)

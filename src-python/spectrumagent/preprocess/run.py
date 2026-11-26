@@ -13,7 +13,6 @@ from time import perf_counter
 from uuid import UUID, uuid4
 
 import numpy as np
-import sklearn
 
 from backend.database import connect_database
 from spectrumagent.data import DataError
@@ -255,6 +254,8 @@ class RunEngine:
                                                                       "sha256": extra["coefficients_sha256"]})
 
     def run(self, cube_id, annotation_version_id, recipe_version_id, *, block_size=32, guard="clip", note=None):
+        import sklearn
+
         started = perf_counter()
         submission = submissions.context()
         payload = dict(cube_id=str(cube_id), annotation_version_id=str(annotation_version_id),

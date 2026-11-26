@@ -29,6 +29,7 @@ from .execution import RequestCancelled
 @dataclass(repr=False)
 class _Credentials:
     key: str = field(default="", repr=False)
+    router_key: str = field(default="", repr=False)
 
 
 # Process memory only. Never serialize this container or include it in logs.
@@ -45,11 +46,20 @@ def has_api_key() -> bool:
     return bool(_credentials.key)
 
 
+def set_router_api_key(key: str) -> None:
+    _credentials.router_key = key
+
+
+def has_router_api_key() -> bool:
+    return bool(_credentials.router_key)
+
+
 class LLMSettings(BaseModel):
     model_config = ConfigDict(extra="forbid", hide_input_in_errors=True)
     base_url: StrictStr = ""
     model: StrictStr = ""
     router_model: StrictStr = ""
+    router_base_url: StrictStr = ""
     temperature: StrictStr = ""
     max_tokens: StrictStr = ""
     timeout_ms: StrictStr = ""
@@ -64,14 +74,17 @@ class LLMSettings(BaseModel):
             return value == "1"
         raise ValueError("egress_enabled must be a boolean or the string 1/0")
 
-    @field_validator("base_url")
+    @field_validator("base_url", "router_base_url")
     @classmethod
     def valid_url(cls, value):
         if value:
-            url = httpx.URL(value)
+            try:
+                url = httpx.URL(value)
+            except httpx.InvalidURL:
+                raise ValueError("invalid HTTP(S) base URL") from None
             if (url.scheme not in {"http", "https"} or not url.host
-                    or url.userinfo or url.query or url.fragment):
-                raise ValueError("base_url must be an HTTP(S) base without credentials/query/fragment")
+                    or url.userinfo or "?" in value or "#" in value):
+                raise ValueError("URL must be an HTTP(S) base without credentials/query/fragment")
         return value
 
     @field_validator("temperature", "max_tokens", "timeout_ms", mode="before")
@@ -88,6 +101,18 @@ class LLMSettings(BaseModel):
         elif int(text) <= 0:
             raise ValueError("positive integer required")
         return text
+
+
+    def router_target(self) -> tuple[str, str]:
+        return self.router_base_url or self.base_url, self.router_model or self.model
+
+
+def _main_key_for(settings: LLMSettings, target_url: str) -> str:
+    # Compare the effective base (including its path), never just the origin.
+    # Explicit empty credentials must stay empty on a different gateway.
+    if settings.base_url and httpx.URL(target_url.rstrip("/")) == httpx.URL(settings.base_url.rstrip("/")):
+        return _credentials.key
+    return ""
 
 
 def read_settings(database: Path) -> LLMSettings:
@@ -153,6 +178,7 @@ class Usage(BaseModel):
 
 class ChatResult(BaseModel):
     content: str | None
+    reasoning_content: str | None = Field(default=None, repr=False, exclude=True)
     tool_calls: list[ToolCall] = Field(default_factory=list)
     usage: Usage | None = None
     finish_reason: str | None
@@ -177,6 +203,7 @@ def _json(value):
 
 _DENY_TEXT = re.compile(r"[a-z]:|\\|/[^\s/]+|\.(?:img|hdr|mat)\b|\blabel_map\b", re.I)
 _NESTED_ARRAY = re.compile(r"\[\s*\[")
+_REASONING_FILE = re.compile(r"\b[^\s/\\]+\.(?:npz|img|hdr|mat|csv|xlsx|json|ya?ml)\b", re.I)
 ABSOLUTE_FRAGMENT = re.compile(r"""(?i)["“‘'](?:[a-z]:[\\/]|[\\/])[^"”’'\r\n]+["”’']|"""
                                r"""(?:(?<![a-z0-9_])[a-z]:[\\/]|\\\\|(?<![\w:/])\/)[^\r\n，,。；;、！？!?]+""")
 
@@ -228,6 +255,17 @@ def _egress_blocked(value):
     return forbidden(value) or bool(_NESTED_ARRAY.search(_json(value)))
 
 
+def redact_reasoning(text: str) -> str:
+    """Keep safe reasoning verbatim; keep the required field even after redaction."""
+    for key in (_credentials.key, _credentials.router_key):
+        if key:
+            text = text.replace(key, "[密钥已隐藏]")
+    text = ABSOLUTE_FRAGMENT.sub("本地输入源", text)
+    if _DENY_TEXT.search(text) or _NESTED_ARRAY.search(text) or _REASONING_FILE.search(text):
+        return "[敏感内容已隐藏]"
+    return text
+
+
 def _parse_result(body):
     if not isinstance(body, dict) or not isinstance(body.get("choices"), list) or not body["choices"]:
         raise ValueError("invalid choices")
@@ -236,7 +274,8 @@ def _parse_result(body):
         raise ValueError("invalid message")
     message = choice["message"]
     return ChatResult(
-        content=message.get("content"), finish_reason=choice.get("finish_reason"),
+        content=message.get("content"), reasoning_content=message.get("reasoning_content"),
+        finish_reason=choice.get("finish_reason"),
         tool_calls=[ToolCall(id=call["id"], name=call["function"]["name"],
                              arguments_json=call["function"]["arguments"])
                     for call in (message.get("tool_calls") or [])],
@@ -276,6 +315,7 @@ def _workflow_wire(messages, tools):
 
 def _parse_stream(response):
     content, calls, finish, usage = [], {}, None, None
+    reasoning = []
     saw_content = False
     finished = False
     for line in response.iter_lines():
@@ -295,6 +335,8 @@ def _parse_stream(response):
             if delta.get("content") is not None:
                 content.append(delta["content"])
                 saw_content = True
+            if delta.get("reasoning_content") is not None:
+                reasoning.append(delta["reasoning_content"])
             for call in delta.get("tool_calls", []):
                 accumulated = calls.setdefault(call["index"], {"id": "", "name": "", "arguments_json": ""})
                 accumulated["id"] += call.get("id", "")
@@ -305,6 +347,7 @@ def _parse_stream(response):
     if not finished:
         raise ValueError("incomplete stream")
     return ChatResult(content="".join(content) if saw_content else None,
+                      reasoning_content="".join(reasoning) if reasoning else None,
                       tool_calls=[ToolCall(**calls[i]) for i in sorted(calls)],
                       usage=usage, finish_reason=finish)
 
@@ -324,22 +367,28 @@ class OpenAICompatibleClient(LLMClient):
 
     def route_chat(self, messages, control=None):
         settings = read_settings(self.database)
-        if not settings.egress_enabled or not settings.base_url or not settings.model:
+        address, model = settings.router_target()
+        if not settings.egress_enabled or not address or not model:
             return None
-        return self.chat(messages, [], control=control, model=settings.router_model or settings.model,
-                         temperature=0, max_tokens=128, timeout_cap=8.)
+        # A stored router key is only active with an explicit router address.
+        key = (_credentials.router_key if settings.router_base_url else "") or _main_key_for(settings, address)
+        return self.chat(messages, [], control=control, model=model, base_url=address, api_key=key,
+                         temperature=0, max_tokens=512, timeout_cap=8.0)
 
     def chat(self, messages, tools, *, stream=False, control=None, model=None,
-             temperature=None, max_tokens=None, timeout_cap=None) -> ChatResult:
+             temperature=None, max_tokens=None, timeout_cap=None, base_url=None, api_key=None) -> ChatResult:
         started = perf_counter_ns()
         audit_id = str(uuid4())
         self.last_audit_id = audit_id
         # Preserve raw array rejection even when assistant text is redacted.
         nested = bool(_NESTED_ARRAY.search(_json({"messages": messages, "tools": tools})))
         messages = _redact_assistant_paths(_hide_user_paths(messages))
-        digest = sha256(_json(messages).encode("utf-8")).hexdigest()
+        audit_messages = [{key: value for key, value in message.items() if key != "reasoning_content"}
+                          for message in messages]
+        digest = sha256(_json(audit_messages).encode("utf-8")).hexdigest()
         settings = read_settings(self.database)
         actual_model = model or settings.model
+        address = settings.base_url if base_url is None else base_url
         names = [tool["function"]["name"] for tool in (tools or [])]
         usage = None
         http_status, error_stage = None, None
@@ -351,8 +400,9 @@ class OpenAICompatibleClient(LLMClient):
                 raise LLMError("EGRESS_BLOCKED", "blocked")
             if _egress_blocked({"messages": messages, "tools": tools}):
                 raise LLMError("EGRESS_BLOCKED", "blocked")
-            if not settings.base_url or not actual_model:
+            if not address or not actual_model:
                 raise LLMError("LLM_NOT_CONFIGURED", "http_error")
+            endpoint = address.rstrip("/") + "/chat/completions"
             wire_messages, wire_tools, reverse_names = _workflow_wire(messages, tools)
             payload = {"model": actual_model, "messages": wire_messages, "stream": stream}
             if wire_tools:
@@ -369,14 +419,15 @@ class OpenAICompatibleClient(LLMClient):
                        else self.default_timeout)
             if timeout_cap is not None:
                 timeout = min(timeout,timeout_cap) if timeout is not None else timeout_cap
-            headers = {"Authorization": "Bearer " + _credentials.key} if _credentials.key else {}
+            key = _main_key_for(settings, address) if api_key is None else api_key
+            headers = {"Authorization": "Bearer " + key} if key else {}
             if control is not None and not stream:
                 bounded_timeout = timeout if timeout is not None else 300
                 async def request():
                     nonlocal http_status
                     async with httpx.AsyncClient(transport=self.transport, timeout=bounded_timeout, trust_env=False,
                                                  follow_redirects=False) as client:
-                        response = await client.post(settings.base_url.rstrip('/') + '/chat/completions',
+                        response = await client.post(endpoint,
                                                      json=payload, headers=headers)
                         http_status = response.status_code
                         response.raise_for_status()
@@ -387,7 +438,7 @@ class OpenAICompatibleClient(LLMClient):
             else:
                 with httpx.Client(transport=self.transport, timeout=timeout, trust_env=False,
                               follow_redirects=False) as client:
-                    with client.stream("POST", settings.base_url.rstrip("/") + "/chat/completions",
+                    with client.stream("POST", endpoint,
                                    json=payload, headers=headers) as response:
                         http_status = response.status_code
                         response.raise_for_status()

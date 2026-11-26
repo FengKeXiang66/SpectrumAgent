@@ -2,9 +2,7 @@
 from datetime import datetime, timezone
 import json
 
-import joblib
 import numpy as np
-import sklearn
 
 from spectrumagent.data import DataError
 
@@ -78,6 +76,9 @@ class ExperimentArchive:
 
     def load_model(self, identifier, *, check=None):
         """Internal inference boundary; never accept an arbitrary pickle path."""
+        import joblib
+        import sklearn
+
         from .service import ExperimentModel
         metadata = self.model_metadata(identifier,check=check)
         environment = metadata['environment']

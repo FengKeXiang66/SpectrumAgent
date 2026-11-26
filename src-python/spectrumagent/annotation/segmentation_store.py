@@ -21,7 +21,7 @@ import numpy as np
 
 from spectrumagent.data import DataError
 from spectrumagent.storage import guard
-from .engines.superpixels import ALGORITHM_VERSION, Parameters, Segmentation
+from .engines.superpixels import algorithm_version, Parameters, Segmentation
 
 SCHEMA_VERSION = 1
 DISK_LIMIT = 8 * 1024**3
@@ -144,7 +144,7 @@ class SegmentationStore:
             manifest = self._json(self._file(directory, 'manifest.json'))
             if set(manifest) != {'description', 'input_key', 'segmentation_ref', 'arrays', 'aliases', 'report'}:raise fail()
             desc = manifest['description']
-            if type(desc.get('schema_version')) is not int or desc.get('schema_version') != SCHEMA_VERSION or desc.get('algorithm_version') != ALGORITHM_VERSION:raise fail('SEGMENTATION_INCOMPATIBLE')
+            if type(desc.get('schema_version')) is not int or desc.get('schema_version') != SCHEMA_VERSION or desc.get('algorithm_version') != algorithm_version():raise fail('SEGMENTATION_INCOMPATIBLE')
             if set(desc) != {'schema_version','cube_id','content_hash','params','algorithm_version'} or desc['cube_id'] != str(cube):raise fail()
             if not HEX.fullmatch(desc['content_hash']):raise fail()
             if content_hash is not None and desc['content_hash'] != content_hash:raise fail('SEGMENTATION_STALE')
@@ -275,7 +275,7 @@ class SegmentationStore:
             if np.any(arrays['std_spectra']<0) or np.any(arrays['std']<0):raise fail()
             features=RestoredFeatures(*(arrays[k] for k in ('normalized','zscore','mean','std')), report['params']['pca_batch_size'])
             result=Segmentation(*(arrays[k] for k in ('segments','initial_segments','mean_spectra','std_spectra')),features,
-                                arrays['reference_zscore5'],report,content_hash,ALGORITHM_VERSION)
+                                arrays['reference_zscore5'],report,content_hash,algorithm_version())
             result.segmentation_ref=info['ref']
             return result
         except DataError:raise

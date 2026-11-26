@@ -7,7 +7,6 @@ import warnings
 from contextlib import nullcontext
 
 import numpy as np
-from sklearn.cross_decomposition import PLSRegression
 
 from backend.database import connect_database
 from spectrumagent.annotation.engines.superpixels import ReadableRows, row_blocks
@@ -160,6 +159,8 @@ def model_record(model):
 
 
 def _fit(X, hot, lv):
+    from sklearn.cross_decomposition import PLSRegression
+
     checkpoint()
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")

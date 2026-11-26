@@ -1,11 +1,12 @@
 """Cube groups never silently fall back to pixel-random cross validation."""
 import numpy as np
-from sklearn.model_selection import GroupKFold, KFold, StratifiedKFold, LeaveOneOut
 
 from . import ModelingError
 
 
 def plan_folds(y, groups, *, task, strategy, folds, seed):
+    from sklearn.model_selection import GroupKFold, KFold, StratifiedKFold, LeaveOneOut
+
     y, groups = np.asarray(y), np.asarray(groups)
     if y.ndim != 1 or groups.shape != y.shape or not len(y) or type(folds) is not int or folds < 2:
         raise ModelingError("INVALID_CV_PARAMS", "CV 须为同长非空标签/组向量且折数至少2")

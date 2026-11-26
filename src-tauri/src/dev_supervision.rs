@@ -24,11 +24,7 @@ impl Actor {
             }
         };
         let started = Instant::now();
-        let child = match ManagedProcess::launch_observed(
-            self.api.clone(),
-            &self.config.process,
-            |event, pid| self.log(event, json!({"generation_id":generation,"pid":pid})),
-        ) {
+        let child = match self.launch_child() {
             Ok(child) => child,
             Err(error) => {
                 self.pending_cleanup_errors = error.cleanup_errors;
@@ -69,7 +65,7 @@ impl Actor {
             poller: None,
             cancelled: cancelled.clone(),
             cursor,
-            deadline: started + Duration::from_secs(30),
+            deadline: started + STARTUP_TIMEOUT,
         };
         let api = self.api.clone();
         let tx = self.tx.clone();

@@ -11,7 +11,7 @@ from uuid import uuid4
 from backend.database import connect_database
 from spectrumagent.data import DataError
 from spectrumagent.data.validation import safe_error, PARAMETER_ERRORS, INPUT_ERRORS, parameter_answer
-from .llm import LLMClient, _json
+from .llm import LLMClient, _json, redact_reasoning
 from .skill import _write, active_skill
 from . import context as memory
 from .execution import RequestCancelled, numerical_confirmation
@@ -390,7 +390,16 @@ class StateMachine:
     def _step_event(step):
         return "step", {"seq": step["seq"], "tool": step["tool"], "status": step["status"], "result_summary": json.loads(step["result_summary"])}
 
-    def _round_messages(self, round_):
+    @staticmethod
+    def _assistant_tool_message(calls, reasoning_content=None):
+        message = {"role": "assistant", "content": None, "tool_calls": [
+            {"id": call["id"], "type": "function", "function": {"name": call["name"],
+             "arguments": _json(call["arguments"])}} for call in calls]}
+        if reasoning_content is not None:
+            message["reasoning_content"] = redact_reasoning(reasoning_content)
+        return message
+
+    def _round_messages(self, round_, *, reasoning_content=None):
         calls, plan_summary = self.store.effective_calls(round_["id"])
         remaining = self.store.steps(self.session_id, round_["id"])
         pairs = []
@@ -407,9 +416,7 @@ class StateMachine:
                 remaining.remove(step)
         messages = []
         if pairs:
-            messages.append({"role": "assistant", "content": None, "tool_calls": [
-                {"id": call["id"], "type": "function", "function": {"name": call["name"],
-                 "arguments": _json(call["arguments"])}} for call, _ in pairs]})
+            messages.append(self._assistant_tool_message((call for call, _ in pairs), reasoning_content))
             messages.extend({"role": "tool", "tool_call_id": call["id"], "content": step["result_summary"]}
                             for call, step in pairs)
         rejected = [{"tool": step["tool"], **json.loads(step["result_summary"])} for step in remaining if step["status"] == "rejected"]
@@ -496,6 +503,7 @@ class StateMachine:
     def _generate(self, *, content=None, continuation=None, decision=None, plan=None):
         round_ = None
         round_creation_attempted = False
+        reasoning_content = None
         try:
             version = self.store.skill(self.session_id)
             auto_confirm = self.store.session(self.session_id)["auto_confirm"]
@@ -540,6 +548,7 @@ class StateMachine:
                     self.store.save_answer(round_["id"], parsed.content or "")
                     yield "clarify", {"question": parsed.content or ""}
                     return
+                reasoning_content = parsed.reasoning_content
                 # PARSE rejects are audited immediately. Only validated calls
                 # enter the immutable continuation, in their original order.
                 for name, arguments, error, elapsed in rejected:
@@ -632,8 +641,7 @@ class StateMachine:
             messages = [{"role": "system", "content": version["system_prompt"]}, *history,
                         {"role": "user", "content": round_["user_message"]}]
             if calls:
-                messages.append({"role": "assistant", "content": None, "tool_calls": [
-                    {"id": call["id"], "type": "function", "function": {"name": call["name"], "arguments": _json(call["arguments"])}} for call in calls]})
+                messages.append(self._assistant_tool_message(calls, reasoning_content))
                 completed = [step for step in steps if step["status"] != "rejected"]
                 messages.extend({"role": "tool", "tool_call_id": call["id"], "content": step["result_summary"]}
                                 for call, step in zip(calls, completed))

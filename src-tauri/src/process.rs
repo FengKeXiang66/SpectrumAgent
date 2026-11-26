@@ -2,7 +2,7 @@ use crate::{
     state::FailureKind,
     win32::{RawHandle, SpawnRequest, WaitResult, Win32, WinError},
 };
-use std::sync::Arc;
+use std::{path::Path, sync::Arc};
 
 struct OwnedHandle {
     value: Option<RawHandle>,
@@ -55,20 +55,22 @@ pub struct ManagedProcess {
 
 impl ManagedProcess {
     pub fn launch(api: Arc<dyn Win32>, request: &SpawnRequest) -> Result<Self, LaunchFailure> {
-        Self::launch_observed(api, request, |_, _| {})
+        Self::launch_observed(api, request, None, |_, _| {})
     }
 
     pub fn launch_observed(
         api: Arc<dyn Win32>,
         request: &SpawnRequest,
+        stderr_path: Option<&Path>,
         mut observer: impl FnMut(&str, u32),
     ) -> Result<Self, LaunchFailure> {
-        let parameters = request.parameters().map_err(|error| LaunchFailure {
+        let mut parameters = request.parameters().map_err(|error| LaunchFailure {
             kind: FailureKind::SpawnFailed,
             error,
             pid: None,
             cleanup_errors: vec![],
         })?;
+        parameters.stderr_path = stderr_path.map(Path::to_owned);
         let child = api
             .create_suspended(&parameters)
             .map_err(|error| LaunchFailure {

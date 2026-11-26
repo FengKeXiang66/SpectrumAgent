@@ -404,7 +404,8 @@ def test_only_best_at_expandable_upper_bound_sets_flag(tmp_path,monkeypatch):
         def predict(self,X):
             success = (X[:,0]==2) if self.components>1 else np.zeros(len(X),bool)
             return np.column_stack((~success,success))
-    monkeypatch.setattr(study,'PLSRegression',Estimator)
+    from sklearn import cross_decomposition
+    monkeypatch.setattr(cross_decomposition,'PLSRegression',Estimator)
     opts = {'components':[1,2],'preparations':[{'name':'原谱','steps':[]}]}
     assert study.evaluate(config,data,folds,opts,lambda **_:None)['component_upper_reached']
     opts['components'] = [1,2,3]

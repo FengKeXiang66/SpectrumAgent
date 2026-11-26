@@ -60,6 +60,17 @@
 }
 .settings-screen .settings-form { display: grid; gap: 12px; }
 .settings-screen .settings-form > label { margin: 0; }
+.settings-screen .settings-router {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line, #dce3e8);
+  border-radius: 8px;
+}
+.settings-screen .settings-router legend { padding: 0 6px; font-weight: 600; }
+.settings-screen .settings-router p { margin: 0; }
 .settings-screen .settings-field { display: grid; gap: 4px; }
 .settings-screen .settings-field input {
   box-sizing: border-box;

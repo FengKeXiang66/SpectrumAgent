@@ -1,6 +1,6 @@
 export type Phase = 'Starting' | 'Ready' | 'Failed' | 'Stopping';
 export type ExitReason = { ProcessExit: { code: number } } | { Win32: { api: string; code: number } } | { IdentityMismatch: { layer: string } } | 'StartupDeadline' | 'WorkerUnavailable';
-export type Failure = { kind: string; exit_reason: ExitReason; engine_error: string | null; handshake_path: string; log_path: string; data_directory: string };
+export type Failure = { kind: string; exit_reason: ExitReason; engine_error: string | null; handshake_path: string; log_path: string; stderr_path?: string | null; data_directory: string };
 export type Snapshot = { generation_id: number; phase: Phase; pid: number | null; port: number | null; boot_id: string | null; failure: Failure | null; cleanup_complete: boolean };
 
 // A snapshot reply can race an event already delivered for the same generation.

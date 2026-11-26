@@ -18,7 +18,7 @@ from weakref import WeakSet
 import numpy as np
 
 from spectrumagent.data import DataError
-from .engines.superpixels import ALGORITHM_VERSION, Parameters, memory_bytes
+from .engines.superpixels import algorithm_version, Parameters, memory_bytes
 from .segmentation_store import SegmentationStore, fail
 
 RETAINED_LIMIT = 128 * 1024**2
@@ -245,7 +245,7 @@ class SegmentationResources:
                 and not allow_resync):
             error=DataError('SEGMENTATION_STALE','分割参数与当前引用不一致，请显式重新准备');error.status_code=409;raise error
         if (cached and getattr(cached[1],'segmentation_ref',None)==info['ref'] and cached[0]==info['params']
-                and cached[1].content_hash==identity and cached[1].algorithm_version==ALGORITHM_VERSION):
+                and cached[1].content_hash==identity and cached[1].algorithm_version==algorithm_version()):
             result=cached[1];origin='memory'
         else:
             self.ensure(info['bytes']+info['report']['shape'][0]*info['report']['shape'][1]*16+65536,cube=cube)

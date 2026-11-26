@@ -119,8 +119,8 @@ CREATE TABLE IF NOT EXISTS agent_plan_action (
 );
 """
 
-SETTING_KEYS = ("base_url", "model", "router_model", "temperature", "max_tokens", "timeout_ms", "egress_enabled")
-SETTING_DEFAULTS = {"base_url": "", "model": "", "router_model": "", "temperature": "", "max_tokens": "",
+SETTING_KEYS = ("base_url", "model", "router_model", "router_base_url", "temperature", "max_tokens", "timeout_ms", "egress_enabled")
+SETTING_DEFAULTS = {"base_url": "", "model": "", "router_model": "", "router_base_url": "", "temperature": "", "max_tokens": "",
                     "timeout_ms": "", "egress_enabled": "1"}
 
 

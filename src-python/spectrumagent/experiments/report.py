@@ -5,10 +5,11 @@ import os
 from pathlib import Path
 
 import numpy as np
-from sklearn.metrics import cohen_kappa_score, confusion_matrix, precision_recall_fscore_support
 
 
 def metrics(y, prediction, classes, extras):
+    from sklearn.metrics import cohen_kappa_score, confusion_matrix, precision_recall_fscore_support
+
     labels = sorted(classes)
     precision, recall, f1, support = precision_recall_fscore_support(y, prediction, labels=labels, zero_division=0)
     present = support > 0

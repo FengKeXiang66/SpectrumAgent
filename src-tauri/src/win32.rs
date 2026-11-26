@@ -1,10 +1,16 @@
 use std::os::windows::ffi::OsStrExt;
+use std::os::windows::io::{AsRawHandle, FromRawHandle, OwnedHandle};
 use std::{
     ffi::{OsStr, OsString},
-    path::PathBuf,
+    fs::{File, OpenOptions},
+    io,
+    path::{Path, PathBuf},
 };
 use windows_sys::Win32::{
-    Foundation::{CloseHandle, FILETIME, GetLastError, HANDLE, WAIT_OBJECT_0, WAIT_TIMEOUT},
+    Foundation::{
+        CloseHandle, DUPLICATE_SAME_ACCESS, DuplicateHandle, FILETIME, GetLastError, HANDLE,
+        WAIT_OBJECT_0, WAIT_TIMEOUT,
+    },
     System::{
         JobObjects::{
             AssignProcessToJobObject, CreateJobObjectW, JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE,
@@ -12,9 +18,12 @@ use windows_sys::Win32::{
             SetInformationJobObject, TerminateJobObject,
         },
         Threading::{
-            CREATE_NO_WINDOW, CREATE_SUSPENDED, CreateProcessW, GetExitCodeProcess,
-            GetProcessTimes, INFINITE, PROCESS_INFORMATION, ResumeThread, STARTUPINFOW,
-            TerminateProcess, WaitForSingleObject,
+            CREATE_NO_WINDOW, CREATE_SUSPENDED, CreateProcessW, DeleteProcThreadAttributeList,
+            EXTENDED_STARTUPINFO_PRESENT, GetCurrentProcess, GetExitCodeProcess, GetProcessTimes,
+            INFINITE, InitializeProcThreadAttributeList, LPPROC_THREAD_ATTRIBUTE_LIST,
+            PROC_THREAD_ATTRIBUTE_HANDLE_LIST, PROCESS_INFORMATION, ResumeThread,
+            STARTF_USESTDHANDLES, STARTUPINFOEXW, STARTUPINFOW, TerminateProcess,
+            UpdateProcThreadAttribute, WaitForSingleObject,
         },
     },
 };
@@ -41,6 +50,7 @@ pub struct CreationParameters {
     pub command_line: Vec<u16>,
     pub inherit_handles: i32,
     pub flags: u32,
+    pub stderr_path: Option<PathBuf>,
 }
 
 impl SpawnRequest {
@@ -77,6 +87,7 @@ impl SpawnRequest {
             command_line,
             inherit_handles: 0,
             flags: CREATE_SUSPENDED | CREATE_NO_WINDOW,
+            stderr_path: None,
         })
     }
 }
@@ -132,6 +143,71 @@ fn wide(value: &OsStr) -> Vec<u16> {
     value.encode_wide().chain(Some(0)).collect()
 }
 
+fn inheritable(file: File) -> Result<OwnedHandle, WinError> {
+    let mut duplicate = std::ptr::null_mut();
+    let current = unsafe { GetCurrentProcess() };
+    if unsafe {
+        DuplicateHandle(current, file.as_raw_handle(), current, &mut duplicate, 0, 1,
+                        DUPLICATE_SAME_ACCESS)
+    } == 0
+    {
+        return Err(error("DuplicateHandle"));
+    }
+    Ok(unsafe { OwnedHandle::from_raw_handle(duplicate) })
+}
+
+fn stderr_handles(path: &Path) -> Result<(OwnedHandle, OwnedHandle), WinError> {
+    let open_error = |api, err: io::Error| WinError {
+        api,
+        code: err.raw_os_error().unwrap_or(1) as u32,
+    };
+    let null = OpenOptions::new().read(true).write(true).open(r"\\.\NUL")
+        .map_err(|err| open_error("open_engine_nul", err))?;
+    let stderr = OpenOptions::new().write(true).create_new(true).open(path)
+        .map_err(|err| open_error("open_engine_stderr", err))?;
+    Ok((inheritable(null)?, inheritable(stderr)?))
+}
+
+struct HandleList<'a> {
+    buffer: Vec<usize>,
+    _handles: &'a [HANDLE],
+}
+
+impl<'a> HandleList<'a> {
+    fn raw(&mut self) -> LPPROC_THREAD_ATTRIBUTE_LIST {
+        self.buffer.as_mut_ptr().cast()
+    }
+
+    fn new(handles: &'a [HANDLE]) -> Result<Self, WinError> {
+        let mut bytes = 0;
+        unsafe { InitializeProcThreadAttributeList(std::ptr::null_mut(), 1, 0, &mut bytes) };
+        if bytes == 0 {
+            return Err(error("InitializeProcThreadAttributeList"));
+        }
+        let mut buffer = vec![0usize; bytes.div_ceil(std::mem::size_of::<usize>())];
+        if unsafe { InitializeProcThreadAttributeList(buffer.as_mut_ptr().cast(), 1, 0, &mut bytes) } == 0 {
+            return Err(error("InitializeProcThreadAttributeList"));
+        }
+        let mut list = Self { buffer, _handles: handles };
+        if unsafe {
+            UpdateProcThreadAttribute(
+                list.raw(), 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST as usize, handles.as_ptr().cast(),
+                std::mem::size_of_val(handles), std::ptr::null_mut(), std::ptr::null(),
+            )
+        } == 0
+        {
+            return Err(error("UpdateProcThreadAttribute"));
+        }
+        Ok(list)
+    }
+}
+
+impl Drop for HandleList<'_> {
+    fn drop(&mut self) {
+        unsafe { DeleteProcThreadAttributeList(self.raw()) };
+    }
+}
+
 fn quoted(value: &OsStr) -> Vec<u16> {
     let mut result = vec![b'"' as u16];
     let mut slashes = 0;
@@ -182,23 +258,36 @@ impl Win32 for NativeWin32 {
         }
         let directory = wide(parameters.directory.as_os_str());
         let mut command = parameters.command_line.clone();
-        let startup = STARTUPINFOW {
-            cb: std::mem::size_of::<STARTUPINFOW>() as u32,
-            ..Default::default()
-        };
+        let stdio = parameters.stderr_path.as_deref().map(stderr_handles).transpose()?;
+        let handles = stdio.as_ref().map(|(null, stderr)| [null.as_raw_handle(), stderr.as_raw_handle()]);
+        let mut attributes = handles.as_ref().map(|handles| HandleList::new(handles)).transpose()?;
+        let mut startup = STARTUPINFOEXW::default();
+        let mut flags = parameters.flags;
+        let mut inherit_handles = parameters.inherit_handles;
+        startup.StartupInfo.cb = std::mem::size_of::<STARTUPINFOW>() as u32;
+        if let (Some(attributes), Some([null, stderr])) = (&mut attributes, handles) {
+            startup.StartupInfo.cb = std::mem::size_of::<STARTUPINFOEXW>() as u32;
+            startup.StartupInfo.dwFlags = STARTF_USESTDHANDLES;
+            startup.StartupInfo.hStdInput = null;
+            startup.StartupInfo.hStdOutput = null;
+            startup.StartupInfo.hStdError = stderr;
+            startup.lpAttributeList = attributes.raw();
+            flags |= EXTENDED_STARTUPINFO_PRESENT;
+            inherit_handles = 1;
+        }
         let mut info = PROCESS_INFORMATION::default();
-        // Security attributes NULL and inherit FALSE prevent any Job handle inheritance.
+        // With redirection, only the two explicitly listed handles can be inherited.
         let ok = unsafe {
             CreateProcessW(
                 parameters.application.as_ptr(),
                 command.as_mut_ptr(),
                 std::ptr::null(),
                 std::ptr::null(),
-                parameters.inherit_handles,
-                parameters.flags,
+                inherit_handles,
+                flags,
                 std::ptr::null(),
                 directory.as_ptr(),
-                &startup,
+                &startup.StartupInfo,
                 &mut info,
             )
         };

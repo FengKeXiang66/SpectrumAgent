@@ -511,13 +511,13 @@ def batch_ready_target(result):
     """Only the complete validated batch business result can select a canvas."""
     count = result.get('member_count')
     from dataclasses import asdict
-    from spectrumagent.annotation.engines.superpixels import Parameters, ALGORITHM_VERSION
+    from spectrumagent.annotation.engines.superpixels import Parameters, algorithm_version
     version = result.get('dataset_version_id')
     scope_key = result.get('scope_key')
     bound = ((isinstance(version, str) and _UUID.fullmatch(version))
              or (isinstance(scope_key, str) and re.fullmatch(r'[0-9a-f]{64}', scope_key)))
     if (any(result.get(k) != v for k, v in asdict(Parameters()).items())
-            or result.get('profile') != 'annotation-default-v1' or result.get('algorithm_version') != ALGORITHM_VERSION
+            or result.get('profile') != 'annotation-default-v1' or result.get('algorithm_version') != algorithm_version()
             or not bound
             or not isinstance(result.get('batch_ref'), str) or not re.fullmatch(r'b-[0-9a-f]{32}', result['batch_ref'])):
         return None

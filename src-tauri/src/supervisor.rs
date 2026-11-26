@@ -4,7 +4,7 @@ use crate::{
     handshake::{self, Handshake, HandshakeIssue},
     health::{HealthClient, HealthResult, SmokeFailure, SmokeMetrics},
     logging::ShellLog,
-    process::ManagedProcess,
+    process::{LaunchFailure, ManagedProcess},
     state::{FailureKind, Phase, StateMachine},
     win32::{SpawnRequest, WaitResult, Win32, WinError},
 };
@@ -25,6 +25,8 @@ use std::{
     thread::{self, JoinHandle},
     time::{Duration, Instant},
 };
+
+const STARTUP_TIMEOUT: Duration = Duration::from_secs(90);
 
 #[derive(Clone)]
 pub struct SupervisorConfig {
@@ -49,6 +51,7 @@ pub struct Failure {
     pub engine_error: Option<String>,
     pub handshake_path: PathBuf,
     pub log_path: PathBuf,
+    pub stderr_path: Option<PathBuf>,
     pub data_directory: PathBuf,
 }
 
@@ -301,6 +304,7 @@ impl EngineSupervisor {
             verified: None,
             smoke_generation: None,
             pending_cleanup_errors: Vec::new(),
+            stderr_path: None,
             invalid_shape,
             selection_source,
         };
@@ -335,6 +339,7 @@ struct Actor {
     verified: Option<Arc<Handshake>>,
     smoke_generation: Option<u64>,
     pending_cleanup_errors: Vec<WinError>,
+    stderr_path: Option<PathBuf>,
 }
 
 impl Actor {
@@ -373,6 +378,7 @@ impl Actor {
                 .log
                 .directory()
                 .join(format!("engine-{}.jsonl", Local::now().format("%Y%m%d"))),
+            stderr_path: self.stderr_path.clone(),
             data_directory: self.config.data_root.clone(),
         });
         if self.transition(Phase::Failed, "engine_failure") {
@@ -400,7 +406,24 @@ impl Actor {
         self.log("generation_cleanup",json!({"generation_id":self.view.generation_id,"errors":errors,"complete":self.view.cleanup_complete}));
         self.publish();
     }
+    fn launch_child(&mut self) -> Result<ManagedProcess, LaunchFailure> {
+        let generation = self.view.generation_id;
+        let stderr = self.log.directory().join(format!(
+            "engine-stderr-{}-{}-{generation}.log",
+            Local::now().format("%Y%m%d-%H%M%S-%3f"),
+            std::process::id(),
+        ));
+        self.stderr_path = Some(stderr.clone());
+        self.log(
+            "engine_stderr_capture",
+            json!({"generation_id":generation,"stderr_path":stderr,"startup_timeout_s":STARTUP_TIMEOUT.as_secs()}),
+        );
+        ManagedProcess::launch_observed(self.api.clone(), &self.config.process, Some(&stderr),
+            |event, pid| self.log(event, json!({"generation_id":generation,"pid":pid})))
+    }
+
     fn start_attempt(&mut self) {
+        self.stderr_path = None;
         #[cfg(debug_assertions)]
         if self.selection_source == "development_python" {
             self.start_debug_attempt();
@@ -456,12 +479,7 @@ impl Actor {
             }
         };
         let started = Instant::now();
-        let child = ManagedProcess::launch_observed(
-            self.api.clone(),
-            &self.config.process,
-            |event, pid| self.log(event, json!({"generation_id":generation,"pid":pid})),
-        );
-        let child = match child {
+        let child = match self.launch_child() {
             Ok(child) => child,
             Err(failure) => {
                 self.view.pid = failure.pid;
@@ -486,7 +504,7 @@ impl Actor {
             poller: None,
             cancelled: cancelled.clone(),
             cursor,
-            deadline: started + Duration::from_secs(30),
+            deadline: started + STARTUP_TIMEOUT,
         };
         let Some(raw) = attempt.child.raw() else {
             self.attempt = Some(attempt);

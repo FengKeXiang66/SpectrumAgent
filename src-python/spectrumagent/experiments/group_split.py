@@ -9,8 +9,6 @@ import re
 from uuid import UUID, uuid4
 
 import numpy as np
-from scipy.optimize import Bounds, LinearConstraint, milp
-from scipy.sparse import csr_matrix
 
 from backend.database import connect_database
 from spectrumagent.data.readers import open_envi
@@ -117,6 +115,9 @@ def scan(fields, custom=None):
 def physical_test(groups, classes, ratio, seed):
     # Binary group membership, missing-test indicators, absolute deviations.
     # First maximize test class coverage while retaining every training class.
+    from scipy.optimize import Bounds, LinearConstraint, milp
+    from scipy.sparse import csr_matrix
+
     keys = sorted(groups)
     random.Random(seed).shuffle(keys)
     n, k = len(keys), len(classes)

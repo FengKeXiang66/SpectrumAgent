@@ -20,7 +20,7 @@ import numpy as np
 
 from spectrumagent.data import DataError
 from spectrumagent.dataset_version.store import batch_content_hash
-from .engines.superpixels import Parameters, ALGORITHM_VERSION, memory_bytes
+from .engines.superpixels import Parameters, algorithm_version, memory_bytes
 
 # Retained for the per-item memory policy and historical capacity tests. The
 # aggregate ceilings below are no longer applied as a whole-batch veto.
@@ -82,7 +82,7 @@ class BatchPrepareService:
         return {'status': 'blocked', 'batch_ref': None, 'retry_of': retry_of,
                 'dataset_version_id': version, 'scope_key': None, 'member_count': count, 'requested_count': requested,
                 'ready_count': 0, 'failed_count': 0, 'conflict_count': 0, 'not_attempted_count': count,
-                'profile': PROFILE, **asdict(Parameters()), 'algorithm_version': ALGORITHM_VERSION,
+                'profile': PROFILE, **asdict(Parameters()), 'algorithm_version': algorithm_version(),
                 'auto_open': False, 'open_cube_id': None, 'elapsed_ms': int((self.clock()-started)*1000),
                 'truncated': False}
 
@@ -163,7 +163,7 @@ class BatchPrepareService:
             state = self.sessions._states.get(cube)
             params = Parameters()
             valid = bool(cached and getattr(cached[1], 'content_hash', None) == identity
-                         and getattr(cached[1], 'algorithm_version', None) == ALGORITHM_VERSION)
+                         and getattr(cached[1], 'algorithm_version', None) == algorithm_version())
             matches = valid and cached[0] == params and self._state_matches(state, cached[1], params)
             if retained:
                 if not matches:
@@ -173,7 +173,7 @@ class BatchPrepareService:
                 return self._item(cube, name, 'ready', action='retained', count=int(cached[1].report['superpixel_count']))
             state_valid = bool(state is not None and state.params is not None
                                and state.segmentation_content_hash == identity
-                               and state.segmentation_algorithm_version == ALGORITHM_VERSION)
+                               and state.segmentation_algorithm_version == algorithm_version())
             different = ((valid and cached[0] != params)
                          or (state_valid and any(state.params.get(k) != v for k, v in asdict(params).items())))
             if different or (not matches and self._dependent(cube, state)):
@@ -216,7 +216,7 @@ class BatchPrepareService:
             if identity != expected:return self._item(cube,name,'failed',code='CONTENT_MISMATCH')
             info = r.store.inspect(cube,content_hash=identity)
             params = Parameters();cached = self.engine.cache.get(cube);state = self.sessions._states.get(cube)
-            valid = bool(cached and cached[1].content_hash==identity and cached[1].algorithm_version==ALGORITHM_VERSION)
+            valid = bool(cached and cached[1].content_hash==identity and cached[1].algorithm_version==algorithm_version())
             matches = valid and cached[0]==params and self._state_matches(state,cached[1],params)
             different = ((info is not None and info['params']!=params) or (valid and cached[0]!=params)
                          or (state is not None and state.params is not None and state.segmentation_content_hash==identity
@@ -293,7 +293,7 @@ class BatchPrepareService:
             reference = 'b-' + uuid4().hex
             receipt = {'dataset_version_id': version, 'scope_key': scope_key, 'members': members,
                        'items': [], 'params': asdict(Parameters()),
-                       'algorithm_version': ALGORITHM_VERSION, 'completed': False}
+                       'algorithm_version': algorithm_version(), 'completed': False}
             self.receipts[reference] = receipt
             stop_code = None
             for member in members:

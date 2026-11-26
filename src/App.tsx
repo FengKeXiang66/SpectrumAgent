@@ -37,7 +37,7 @@ const reasons: Record<string, string> = {
   JobSetupFailed: '无法建立引擎进程保护。', ResumeFailed: '无法恢复引擎主线程。',
   ProcessIdentityFailed: '无法确认引擎进程身份。', ExitedBeforeReady: '引擎在就绪前退出，请检查程序文件与日志。',
   HandshakeInvalid: '握手文件校验失败，请通过数据目录检查文件并查看日志。',
-  StartupTimeout: '引擎启动超过 30 秒，请查看日志。', HealthIdentityMismatch: '引擎健康响应身份不匹配。',
+  StartupTimeout: '引擎启动超过 90 秒，请查看启动日志与错误输出。', HealthIdentityMismatch: '引擎健康响应身份不匹配。',
   SmokeIdentityMismatch: '冒烟响应身份不匹配，已停止连接。', EngineExitedAfterReady: '引擎意外退出。',
 };
 const initial: Snapshot = { generation_id: 0, phase: 'Starting', pid: null, port: null, boot_id: null, failure: null, cleanup_complete: false };
@@ -212,7 +212,7 @@ export default function App() {
     <main className="failure-page" aria-busy="true">
       <h1>光谱数据 AI Agent</h1>
       <section role="status" aria-live="polite"><h2>正在启动本地工作台…</h2>
-        <p>正在加载本地数据与处理服务，就绪后即可继续操作。</p>
+        <p>首次启动需加载运行库，可能耗时 30–60 秒。就绪后即可继续操作。</p>
       </section>
       {shellError && <p role="alert">{shellError}</p>}
     </main>
@@ -229,6 +229,7 @@ export default function App() {
           {failure.engine_error && <p>引擎短码：{failure.engine_error}</p>}
           <p>握手路径：<code>{failure.handshake_path}</code></p>
           <p>日志路径：<code>{failure.log_path}</code></p>
+          {failure.stderr_path && <p>引擎错误输出：<code>{failure.stderr_path}</code></p>}
           <p>数据目录：<code>{failure.data_directory}</code></p>
         </>}
         <button disabled={!status.cleanup_complete} onClick={() => { void invoke('retry_engine').catch(() => setShellError('重试未执行，请查看日志。')); }}>重试</button>

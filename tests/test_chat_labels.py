@@ -194,6 +194,7 @@ def test_http_eleven_image_import_then_named_labels_without_selecting_a_cube(app
 
 
 def test_manual_saved_annotations_refresh_intake_count_and_path_detour_can_return(application, tmp_path):
+    from unittest.mock import patch
     import numpy as np
     from spectrumagent.annotation.engines.superpixels import Parameters
 
@@ -205,10 +206,16 @@ def test_manual_saved_annotations_refresh_intake_count_and_path_detour_can_retur
     label = created['data_intake']['labels'][0]['id']
     with connect_database(application.state.experiments.paths.database) as db:
         cube = db.execute('SELECT id FROM dataset_registry ORDER BY rowid LIMIT 1').fetchone()[0]
-    application.state.segmentation_resources.prepare(cube, Parameters(n_segments=4, pca_components=3))
+    resources = application.state.segmentation_resources
+    resources.prepare(cube, Parameters(n_segments=4, pca_components=3))
     sessions = application.state.annotation_sessions
     sessions.edit(cube, np.ones((8, 8), bool), action='confirm', label_id=label)
-    sessions.save(cube)
+    assert resources._evict(cube)
+    assert sessions._states[cube].segments is None
+    with patch.object(resources, 'lease', wraps=resources.lease) as lease:
+        saved = sessions.save(cube)
+    lease.assert_called_once_with(cube, required=True, restore=True)
+    assert saved['quality']['completeness']['labeled_pixels'] == 64
     # The original intake persisted zero external annotations. A later manual
     # save must count, and reopening the label form must not erase the result.
     refreshed, _ = send('创建标签')

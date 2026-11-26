@@ -7,7 +7,6 @@ majority voting per cube; ties use the smallest sorted value deterministically.
 Undefined sklearn scores are represented by None, never fabricated as zero.
 """
 import numpy as np
-from sklearn.metrics import accuracy_score, cohen_kappa_score, confusion_matrix, mean_squared_error, r2_score
 
 from . import ModelingError
 
@@ -40,6 +39,8 @@ def _finite(value):
 
 
 def _score(true, predicted, task):
+    from sklearn.metrics import accuracy_score, cohen_kappa_score, confusion_matrix, r2_score
+
     if task == "classification":
         labels = np.unique(np.concatenate([true, predicted]))
         return {"oa": float(accuracy_score(true, predicted)), "kappa": _finite(cohen_kappa_score(true, predicted, weights=None)),
@@ -96,6 +97,8 @@ def summarize_folds(predictions, *, task, leak_report=None):
 
 
 def _regression(true, predicted, set):
+    from sklearn.metrics import r2_score
+
     true, predicted = np.asarray(true, dtype=float), np.asarray(predicted, dtype=float)
     if true.ndim != 1 or predicted.shape != true.shape or not len(true) or not np.isfinite(true).all() or not np.isfinite(predicted).all():
         raise ModelingError("INVALID_METRIC_INPUT", "回归指标需要同长非空有限向量")

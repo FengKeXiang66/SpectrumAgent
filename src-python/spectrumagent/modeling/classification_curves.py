@@ -1,6 +1,5 @@
 """OOF ranking and rejection diagnostics; never transmit per-pixel scores."""
 import numpy as np
-from sklearn.metrics import roc_curve, roc_auc_score, precision_recall_curve, average_precision_score
 from .evaluation import Evaluations
 from .metrics import _vote
 from . import ModelingError
@@ -12,6 +11,8 @@ def sampled_points(x, y, maximum=2048):
 
 
 def binary_curve(truth, scores):
+    from sklearn.metrics import average_precision_score, precision_recall_curve, roc_auc_score, roc_curve
+
     truth = np.asarray(truth, dtype=bool)
     positive, negative = int(truth.sum()), int((~truth).sum())
     result = {"positive": positive, "negative": negative, "roc_auc": None, "ap": None,
@@ -31,6 +32,8 @@ def binary_curve(truth, scores):
 
 
 def curves(store: Evaluations, identifier, *, scope="pixel", offset=0, limit=5):
+    from sklearn.metrics import roc_curve
+
     if scope not in ("pixel", "sample") or offset < 0 or not 1 <= limit <= 5:
         raise ModelingError("INVALID_CURVE_REQUEST", "曲线范围非法")
     kind = "curves-" + scope + "-" + str(offset) + "-" + str(limit)

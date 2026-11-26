@@ -17,7 +17,6 @@ from backend.identity import EngineIdentity
 from backend.database import open_database
 from backend.handshake import remove_if_owned
 from backend.paths import AppPaths
-from backend.smoke import ensure_sample, run_smoke
 
 log = structlog.get_logger("engine.http")
 
@@ -30,7 +29,6 @@ def create_app(paths: AppPaths, identity: EngineIdentity) -> FastAPI:
         connection.execute("PRAGMA journal_mode=WAL")
         app.state.database = connection  # Shared connection for the application lifetime.
         try:
-            app.state.sample = await asyncio.to_thread(ensure_sample, paths.testdata)
             yield
         finally:
             try:
@@ -97,7 +95,10 @@ def create_app(paths: AppPaths, identity: EngineIdentity) -> FastAPI:
 
         observer = asyncio.create_task(observe_disconnect())
         try:
-            result = await run_smoke(request.app.state.sample, blocks, cancellation)
+            from backend.smoke import ensure_sample, run_smoke
+
+            sample = await asyncio.to_thread(ensure_sample, paths.testdata)
+            result = await run_smoke(sample, blocks, cancellation)
             if result.cancelled:
                 log.info("smoke_cancelled", completed_blocks=result.completed_blocks, blocks=blocks)
                 return JSONResponse(result.cancelled_payload(), status_code=409)

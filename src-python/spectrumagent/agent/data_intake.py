@@ -97,7 +97,7 @@ class DatasetIntake:
         active = state and state['stage'] not in {'imported', 'cancelled', 'labels'}
         new_request = bool(IMPORT_REQUEST.search(text))
         discussion = bool(re.search(r'为什么|为何|如何|怎么|是否|能否|能不能|不要(?:再)?导入|先不导入', text))
-        start = bool((new_request or paths and re.search(r'原图|ENVI|已有标注|已标注|导入', text, re.I))
+        start = bool((new_request or paths and re.search(r'原图|ENVI|已有标注|已标注|导入|原数据|原始数据|数据目录|未标注', text, re.I))
                      and not explicit_experiment and not discussion)
         choice = ('unlabeled' if UNLABELED.search(text) else 'labeled' if LABELED.search(text) else None)
         if command:

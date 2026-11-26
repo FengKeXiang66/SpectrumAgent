@@ -10,7 +10,9 @@ from .execution import RequestCancelled
 from .llm import _json, validate_tool_response
 
 PROMPT = """你是高光谱推理助手，仅用原生工具解释用户输入，不产生科学数值。
-读取experiments.inference_get真实草稿，再用inference_inspect检查I引用数据字段。路径、谱值不进入模型。
+需要确认最新草稿修订号时调用experiments.inference_get；已经拿到真实最新revision就直接使用。
+只有收到新的I输入引用，或本轮需要核对尚未查过的数据字段时，才调用inference_inspect。已有工具结果就使用它，不重复检查同一引用。
+只修改已有草稿的阈值、前景、容差、质量或波长单位时直接调用inference_update，不重新检查原输入。纯咨询直接回答，不调用工具；用户明确要求核对真实字段时才检查。路径、谱值不进入模型。
 用inference_update增量保存信息，expected_revision须为真实最新值。input对象合并，source_refs整组替换。
 没有提到的可选字段应省略，不用null清空既有值；quality.saturation=null才表示明确关闭饱和筛选。
 model_id必须保留真实完整UUID；已有本机选定模型时不改写为短编号或“引用”名称。model_evaluation_unit和model_neighborhood为归档已知信息，无需再追问。
@@ -125,13 +127,14 @@ def generate(machine, content, *, confirmation=None):
         tools = [tool for tool in machine.tools.snapshot() if tool['function']['name'] in names_allowed]
         version = store.skill(owner)
         history = machine._history_messages(version,exclude_turn_id=row['turn_id'])
+        reasoning_by_round = {}
         for _ in range(6):
             draft = dialogue.read(owner)
             sources = {ref:('目录' if Path(path).is_dir() else Path(path).suffix)
                        for ref,path in draft['sources'].items()}
             messages = [{'role':'system','content':PROMPT},{'role':'system','content':_json({'draft':dialogue.view(owner),'input_sources':sources})},*history,{'role':'user','content':safe}]
             for part in store.turn_rounds(owner,row['turn_id']):
-                messages.extend(machine._round_messages(part))
+                messages.extend(machine._round_messages(part, reasoning_content=reasoning_by_round.get(part['id'])))
             messages = [{**message,**({'content':dialogue.redact(owner,message['content'])} if isinstance(message.get('content'),str) else {})} for message in messages]
             yield 'progress',{'phase':'model'}
             reply = machine._chat(messages,tools);validate_tool_response(reply)
@@ -151,6 +154,8 @@ def generate(machine, content, *, confirmation=None):
                 raise DataError('INFERENCE_TOOL_PROTOCOL','请先检查输入，再一次更新推理草稿')
             calls = [{'id':call.id,'name':call.name,'arguments':machine.tools.validate(call.name,call.arguments_json).model_dump(mode='json',exclude_unset=True)} for call in reply.tool_calls]
             store.round_status(row['id'],'done');row = store.new_round(owner,content,calls,'running',turn_id=row['turn_id'])
+            if reply.reasoning_content is not None:
+                reasoning_by_round[row['id']] = dialogue.redact(owner, reply.reasoning_content)
             for call in calls:
                 step,error = machine._execute(row,call);yield machine._step_event(step)
                 if error:raise error

@@ -75,7 +75,7 @@ def _workspace(state):
     return result
 
 
-def _messages(machine, version, state, content, turn_id):
+def _messages(machine, version, state, content, turn_id, *, reasoning_by_round=None):
     from spectrumagent.experiments.pairing import CAPABILITY
     result = [{"role": "system", "content": version["system_prompt"]},
               {"role": "system", "content": _json({"task_state": {
@@ -113,7 +113,8 @@ def _messages(machine, version, state, content, turn_id):
     result.append({"role": "user", "content": content})
     if turn_id:
         for row in machine.store.turn_rounds(machine.session_id, turn_id):
-            result.extend(machine._round_messages(row))
+            reasoning = reasoning_by_round.get(row["id"]) if reasoning_by_round is not None else None
+            result.extend(machine._round_messages(row, reasoning_content=reasoning))
     return result
 
 
@@ -156,6 +157,7 @@ def generate(machine, *, content=None, workspace=None, continuation=None, decisi
     from .task import evaluate_task
     store, session_id = machine.store, machine.session_id
     row, turn_id, creation_attempted = None, None, False
+    reasoning_by_round = {}
     workspace_sent = None
     canvas_touched = False
     canvas_workspace = None
@@ -411,7 +413,8 @@ def generate(machine, *, content=None, workspace=None, continuation=None, decisi
                 if getattr(machine, 'control', None) is not None:
                     yield 'progress', {'phase': 'model'}
                 offered_tools = request_tools(tools, content, state)
-                reply = machine._chat(_messages(machine, version, state, content, turn_id), offered_tools)
+                reply = machine._chat(_messages(machine, version, state, content, turn_id,
+                                                reasoning_by_round=reasoning_by_round), offered_tools)
                 validate_tool_response(reply)
                 if not reply.tool_calls:
                     if row is None:
@@ -474,6 +477,8 @@ def generate(machine, *, content=None, workspace=None, continuation=None, decisi
                 creation_attempted = True
                 row = store.new_round(session_id, content, calls, "plan_check" if needs_plan else "running", turn_id=turn_id)
                 turn_id = row["turn_id"]
+                if reply.reasoning_content is not None:
+                    reasoning_by_round[row["id"]] = reply.reasoning_content
                 for name, arguments, error, elapsed in rejected:
                     yield machine._step_event(store.add_step(row, name, arguments, "rejected", safe_error(error), elapsed))
                 invalid = next((error for _, _, error, _ in rejected if error.code in PARAMETER_ERRORS), None)

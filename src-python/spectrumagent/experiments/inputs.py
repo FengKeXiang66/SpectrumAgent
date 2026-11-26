@@ -7,7 +7,6 @@ from pathlib import Path, PureWindowsPath
 
 import numpy as np
 from PIL import Image, ImageDraw
-from scipy.ndimage import minimum_filter, maximum_filter
 
 from spectrumagent.data import DataError
 from spectrumagent.data.readers import open_envi
@@ -229,6 +228,8 @@ def archives(spec, target, check=None):
 
 
 def image_samples(spec, target, classes, progress=None):
+    from scipy.ndimage import minimum_filter, maximum_filter
+
     arrays, labels, origins, manifest, excluded = [], [], [], {}, 0
     for file_index, member in enumerate(spec.members, 1):
         def report(rows_done=0, rows_total=None):

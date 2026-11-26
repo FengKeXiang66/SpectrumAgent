@@ -10,11 +10,7 @@ from time import sleep
 from uuid import UUID, uuid4
 import warnings
 
-import joblib
 import numpy as np
-import scipy
-import sklearn
-from sklearn.cross_decomposition import PLSRegression
 from threadpoolctl import threadpool_limits
 
 from spectrumagent.data import DataError
@@ -80,6 +76,8 @@ def save_arrays(path, *, check=None, **arrays):
 class ExperimentModel:
     """Only self-produced trusted joblib artifacts should be loaded by callers."""
     def __init__(self, config):
+        from sklearn.cross_decomposition import PLSRegression
+
         self.config = config
         self.pipeline = SpectralPipeline(config.preprocessing)
         self.classes_ = np.asarray(sorted(config.classes), dtype=np.int64)
@@ -299,6 +297,10 @@ class ExperimentService:
                 name = role + "_" + stage
                 curves[name] = representative_curves(matrix, data.y, config.classes, x_axis)
                 curve_plot(curves[name], storage.resolve_write(folder / (name+".png"), kind="EXPERIMENT_PLOT"), name)
+        import joblib
+        import scipy
+        import sklearn
+
         model_path = storage.resolve_write(folder / "model.joblib", kind="EXPERIMENT_MODEL")
         joblib.dump(model, model_path)
         # Exercise the exact saved artifact before declaring this run complete.
