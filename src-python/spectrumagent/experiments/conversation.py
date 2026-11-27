@@ -60,6 +60,53 @@ def edit_preprocessing(document, edit):
     return steps
 
 
+def prerequisite_hints(document, topic, *, proposal=None):
+    axis = document.get('axis') or {}
+    train = document.get('train') or {}
+    if topic in {'wavelength_grid', 'wavelength_crop', 'savgol'}:
+        has_suggested_grid = (topic == 'wavelength_crop' and axis.get('kind') in (None, 'saved_native')
+                              and 'step' in (proposal or {}))
+        hints = []
+        if topic == 'savgol':
+            waves = axis.get('wavelengths') or axis.get('wavelengths_nm') or []
+            if not axis or axis.get('train_only') or grid_hint(waves):
+                hint = '需先设置等间距目标波长网格（起点、终点、步长）'
+                if train.get('kind') == 'roi_images':
+                    hint += '，并核对映射窗口和最近波长容差'
+                hints.append(hint)
+            steps = [s for s in document.get('preprocessing', []) if s['op'] == 'savgol']
+            fields = ('window', 'polyorder', 'derivative', 'delta_nm')
+            missing = [key for key in fields if not steps or any(s.get(key) is None for s in steps)]
+            if missing:
+                hints.append('待明确 SG 参数：'+'、'.join(missing))
+        else:
+            if train.get('kind') != 'roi_images':
+                hints.append('从 HDR 核验裁剪范围需要 ROI 原图输入')
+            if not axis.get('step_nm') and not has_suggested_grid:
+                hints.append('请指定网格步长 step_nm 或采用当前修订的波长建议')
+        for role, name in (('train','训练'), ('test','测试')):
+            spec = document.get(role) or {}
+            if spec.get('kind') == 'roi_images':
+                missing = [title for field, title in (('wavelength_unit','波长单位'),
+                           ('mapping_window_nm','映射窗口'), ('nearest_tolerance_nm','最近波长容差'))
+                           if spec.get(field) is None and (field == 'wavelength_unit' or not has_suggested_grid)]
+                if missing:
+                    hints.append(name+'侧待补：'+'、'.join(missing))
+        return '；'.join(hints)
+    if topic == 'metrics':
+        return '支持的附加指标为 kappa、weighted_f1、balanced_accuracy；其他附加指标尚未实现。'
+    if topic == 'sampling':
+        return ('请先提供训练侧 ROI 原图。' if train.get('kind') != 'roi_images' else '')+'每类上限仅支持训练侧。'
+    if topic == 'split':
+        return '请明确训练与测试的数据来源。' if not train or not document.get('test') else '请核对划分用途与两侧成员。'
+    if topic == 'preprocessing':
+        steps = document.get('preprocessing')
+        if steps:
+            return '请指定步骤编号及要改的参数，或明确给出替换后的完整顺序。'
+        return '当前草稿还没有预处理步骤，请明确算子及参数。'
+    return ''
+
+
 def draft_changes(previous, current):
     if previous is None:
         return []
@@ -944,91 +991,166 @@ class ExperimentDialogue:
 
     def apply_wavelength(self, session_id, revision=None, bounds=None, *, check=None):
         from spectrumagent.agent.tools.experiments import DraftUpdate
-        from .wavelength_proposal import recommend
-        with connect_database(self.database) as db:
-            record = self._read(session_id, db)
-            saved = db.execute('SELECT revision,document FROM experiment_wavelength_proposal WHERE session_id=?',
-                               (session_id,)).fetchone()
-        if (not record or not (record['document'].get('split_id') or record['document'].get('workspace_selection')) or record['run_status'] != 'idle'
+        record = self._read(session_id)
+        if (not record or record['run_status'] != 'idle'
                 or revision is not None and revision != record['revision']):
             raise DraftIssue('这份波长建议已过期，请先查看当前实验方案。')
-        proposal = json.loads(saved[1]) if saved and saved[0] == record['revision'] else None
-        document = record['document']
-        axis = document.get('axis') or {}
-        if bounds and axis.get('kind') == 'grid':
-            spec = document['train']
-            required = ('mapping_window_nm','nearest_tolerance_nm','wavelength_unit')
-            if any(spec.get(field) is None for field in required):
-                raise DraftIssue('请先补充波长单位、映射窗口与最近通道容差。')
-            grid = (axis['step_nm'],spec['mapping_window_nm'],spec['nearest_tolerance_nm'],axis['start_nm'],bounds)
-        elif bounds and proposal and 'problem' not in proposal:
-            grid = (proposal['step'],proposal['window'],proposal['tolerance'],proposal['start'],bounds)
-        elif not proposal:
-            raise DraftIssue('这份波长建议已过期，请先查看当前实验方案。')
-        sides = self._saved_sides(document, session_id)
-        if bounds and (axis.get('kind') == 'grid' or 'problem' not in proposal):
-            proposal = recommend(sides, document['train']['wavelength_unit'], check, grid=grid)
-        if 'problem' in proposal:
-            raise DraftIssue(proposal['problem'])
-        self.update(session_id, DraftUpdate(expected_revision=record['revision'],
-                    axis=dict(kind='grid',start_nm=proposal['start'],stop_nm=proposal['stop'],step_nm=proposal['step']),
-                    train=dict(kind='roi_images',mapping_window_nm=proposal['window'],
-                               nearest_tolerance_nm=proposal['tolerance'])))
+        if bounds:
+            patch = dict(axis=dict(kind='crop', start_nm=bounds[0], stop_nm=bounds[1]))
+        else:
+            with connect_database(self.database) as db:
+                saved = db.execute('SELECT document FROM experiment_wavelength_proposal WHERE session_id=? AND revision=?',
+                                   (session_id,record['revision'])).fetchone()
+            if not saved:
+                raise DraftIssue('这份波长建议已过期，请先查看当前实验方案。')
+            proposal = json.loads(saved[0])
+            if 'problem' in proposal:
+                raise DraftIssue(proposal['problem'])
+            patch = dict(axis=dict(kind='grid',start_nm=proposal['start'],stop_nm=proposal['stop'],step_nm=proposal['step']),
+                         train=dict(kind='roi_images',mapping_window_nm=proposal['window'],nearest_tolerance_nm=proposal['tolerance']))
+        return self.update(session_id, DraftUpdate(expected_revision=record['revision'], **patch), check=check)
 
-    def update(self, session_id, arguments):
+    def _crop(self, session_id, document, record, crop, proposal, check):
+        from .wavelength_proposal import recommend
+        axis = document.get('axis') or {}
+        if axis.get('kind') == 'grid':
+            step, origin = axis['step_nm'], axis['start_nm']
+            defaults = {}
+        elif axis.get('kind') in (None, 'saved_native') and proposal and 'step' in proposal:
+            step, origin = proposal['step'], proposal['start']
+            defaults = {'mapping_window_nm':proposal['window'], 'nearest_tolerance_nm':proposal['tolerance']}
+        else:
+            raise DraftIssue('请先指定网格起点、终点与步长，或查看当前修订的波长建议。')
+        if (document.get('train') or {}).get('kind') != 'roi_images':
+            raise DraftIssue('核验共同波长范围需要训练侧 ROI 原图。')
+        if document.get('split_id'):
+            sides = self._saved_sides(document, session_id)
+        else:
+            sides = {}
+            for role, title in (('train','训练'), ('test','测试')):
+                spec = document.get(role)
+                if spec is None:
+                    continue
+                if spec.get('kind') != 'roi_images' or not spec.get('members'):
+                    raise DraftIssue('请提供每一侧 ROI 原图的 HDR 来源，再校验共同范围。')
+                sides[title] = [dict(hdr=self._source(record, m['header_ref']),
+                                img=self._source(record,m['data_ref']) if m.get('data_ref') else None)
+                                for m in spec['members']]
+        # Validate each side with its own declared mapping rules. Only commit a grid
+        # after all sides accept exactly the same aligned endpoints.
+        settings = {}
+        for role, title in (('train','训练'), ('test','测试')):
+            if title not in sides:
+                continue
+            spec = dict(document[role])
+            for field, value in defaults.items():
+                if spec.get(field) is None:
+                    spec[field] = value
+            unit, window, tolerance = (spec.get(k) for k in ('wavelength_unit','mapping_window_nm','nearest_tolerance_nm'))
+            if unit is None or window is None or tolerance is None or window <= 0 or tolerance < 0:
+                raise DraftIssue('请明确原图波长单位、正数映射窗口及非负最近波长容差。')
+            grid = (step, window, tolerance, origin, (crop['start_nm'],crop['stop_nm']))
+            result = recommend({title:sides[title]}, unit, check, grid=grid)
+            if 'problem' in result:
+                raise DraftIssue(result['problem'])
+            settings[role] = dict(mapping_window_nm=window,nearest_tolerance_nm=tolerance)
+        document['axis'] = dict(kind='grid',start_nm=result['start'],stop_nm=result['stop'],step_nm=step)
+        for role, values in settings.items():
+            document[role].update(values)
+
+    @staticmethod
+    def _check_update_revision(record, revision):
+        if record is None or revision != record['revision']:
+            raise DataError('EXPERIMENT_DRAFT_CONFLICT', '实验草稿已更新，请读取最新修订后合并')
+        if record['run_status'] == 'running':
+            raise DataError('EXPERIMENT_BUSY', '本次实验正在运行，不能修改其配置')
+
+    def update(self, session_id, arguments, *, check=None):
         if self.tasks.active(session_id):
             raise DataError('EXPERIMENT_BUSY', '实验已提交，不能修改正在运行的方案')
         patch = arguments.model_dump(mode='json', exclude_unset=True)
         revision = patch.pop('expected_revision')
         reset = patch.pop('reset', False)
         edit = patch.pop('preprocessing_edit', None)
+        unapplied = patch.pop('unapplied_requests', None) or []
+        crop = patch.pop('axis') if (patch.get('axis') or {}).get('kind') == 'crop' else None
+        with connect_database(self.database) as db:
+            record = self._read(session_id, db)
+            saved = (db.execute('SELECT document FROM experiment_wavelength_proposal WHERE session_id=? AND revision=?',
+                                (session_id, revision)).fetchone() if crop and not reset else None)
+        self._check_update_revision(record, revision)
+        if (record['document'].get('split_id') or record['document'].get('workspace_selection')) and not reset:
+            extraction = {}
+            sampling = {}
+            for role in ('train', 'test'):
+                if role not in patch:
+                    continue
+                spec = patch[role]
+                if not spec or spec.get('kind') != 'roi_images' or 'members' in spec:
+                    raise DataError('SPLIT_MEMBERS_FIXED', '已保存划分决定训练和测试的图像，可修改共用取谱参数')
+                for field in ('max_per_class', 'sampling_seed'):
+                    if field in spec:
+                        if role != 'train':
+                            raise DataError('EXPERIMENT_SAMPLING_INVALID', '类别抽样只用于训练侧')
+                        sampling[field] = spec.pop(field)
+                if set(spec) == {'kind'}:
+                    continue
+                extraction[role] = spec
+            if len(extraction) == 2:
+                merged = [merge({key:value for key,value in record['document'][role].items()
+                                 if key not in ('members', 'max_per_class', 'sampling_seed')}, spec)
+                          for role, spec in extraction.items()]
+                if merged[0] != merged[1]:
+                    raise DataError('SPLIT_EXTRACTION_CONFLICT', '训练和测试须共用同一套取谱与采样规则')
+            elif extraction:
+                shared = next(iter(extraction.values()))
+                patch.update({role: deepcopy(shared) for role in ('train', 'test') if record['document'].get(role)})
+            if sampling:
+                patch['train'] = {**patch.get('train',{}), **sampling}
+        if edit:
+            patch['preprocessing'] = edit_preprocessing(record['document'], edit)
+        document = merge({} if reset else record['document'], patch)
+        proposal = json.loads(saved[0]) if saved else None
+        if crop:
+            try:
+                self._crop(session_id, document, record, crop, proposal, check)
+            except (OSError, DataError, ValueError) as error:
+                reason = str(error) if isinstance(error, DraftIssue) else '原图或波长元数据无法核验，请核对来源与单位。'
+                unapplied.append(dict(topic='wavelength_crop', requested=f"裁剪 {crop['start_nm']:g}–{crop['stop_nm']:g} nm", reason=reason))
+        axis = document.get('axis') or {}
+        if ('preprocessing' in patch and axis.get('kind') == 'saved_native' and grid_hint(axis['wavelengths'])
+                and any(s['op'] == 'savgol' for s in document.get('preprocessing') or [])):
+            before = {} if reset else record['document']
+            if 'preprocessing' in before:
+                document['preprocessing'] = deepcopy(before['preprocessing'])
+            else:
+                document.pop('preprocessing', None)
+            unapplied.append(dict(topic='savgol', requested='修改包含 SG 的预处理链',
+                                  reason='当前原生波长轴非等距，本次预处理修改未应用。'))
+        if check:
+            check()
         with connect_database(self.database) as db:
             db.execute('BEGIN IMMEDIATE')
-            record = self._read(session_id, db)
-            if record is None or revision != record['revision']:
-                raise DataError('EXPERIMENT_DRAFT_CONFLICT', '实验草稿已更新，请读取最新修订后合并')
-            if record['run_status'] == 'running':
-                raise DataError('EXPERIMENT_BUSY', '本次实验正在运行，不能修改其配置')
-            if (record['document'].get('split_id') or record['document'].get('workspace_selection')) and not reset:
-                extraction = {}
-                sampling = {}
-                for role in ('train', 'test'):
-                    if role not in patch:
-                        continue
-                    spec = patch[role]
-                    if not spec or spec.get('kind') != 'roi_images' or 'members' in spec:
-                        raise DataError('SPLIT_MEMBERS_FIXED', '已保存划分决定训练和测试的图像，可修改共用取谱参数')
-                    for field in ('max_per_class', 'sampling_seed'):
-                        if field in spec:
-                            if role != 'train':
-                                raise DataError('EXPERIMENT_SAMPLING_INVALID', '类别抽样只用于训练侧')
-                            sampling[field] = spec.pop(field)
-                    if set(spec) == {'kind'}:
-                        continue
-                    extraction[role] = spec
-                if len(extraction) == 2:
-                    merged = [merge({key:value for key,value in record['document'][role].items()
-                                     if key not in ('members', 'max_per_class', 'sampling_seed')}, spec)
-                              for role, spec in extraction.items()]
-                    if merged[0] != merged[1]:
-                        raise DataError('SPLIT_EXTRACTION_CONFLICT', '训练和测试须共用同一套取谱与采样规则')
-                elif extraction:
-                    shared = next(iter(extraction.values()))
-                    patch.update({role: deepcopy(shared) for role in ('train', 'test') if record['document'].get(role)})
-                if sampling:
-                    patch['train'] = {**patch.get('train',{}), **sampling}
-            if edit:
-                patch['preprocessing'] = edit_preprocessing(record['document'], edit)
-            document = merge({} if reset else record['document'], patch)
+            current = self._read(session_id, db)
+            self._check_update_revision(current, revision)
+            if any(current[key] != record[key] for key in ('run_status', 'experiment_id', 'active')):
+                raise DataError('EXPERIMENT_DRAFT_CONFLICT', '实验草稿状态已变化，请重新查看当前方案')
             if document != record['document'] or reset:
                 db.execute("UPDATE experiment_dialogue SET document_json=?,revision=revision+1,reviewed_revision=NULL,"
                            "review_turn=NULL,review_sources_json=NULL,run_status='idle',experiment_id=NULL,active=1,"
                            "previous_document_json=?,base_experiment_id=? WHERE session_id=?",
                            (json.dumps(document, ensure_ascii=False, allow_nan=False),
                             json.dumps(record['document'], ensure_ascii=False) if record['document'] else None,
-                            None if reset else record['base_experiment_id'], session_id))
+                            None if reset else current['base_experiment_id'], session_id))
                 self.clear_confirmation(db, session_id)
-        return self.view(session_id)
+        view = self.view(session_id)
+        if unapplied:
+            lines = ['本轮未生效请求']
+            for item in unapplied:
+                hint = prerequisite_hints(document, item['topic'], proposal=proposal)
+                lines.append(' · '.join(filter(None, [item['requested'], item['reason'], hint])))
+            view['unapplied_notes'] = self.redact(session_id, '\n'.join(lines))
+        return view
 
     def presented(self, session_id, turn, *, check=None):
         view = self.view(session_id)

@@ -75,6 +75,27 @@ def test_router_uses_original_locally_and_only_sends_safe_classification(applica
     assert not any(token in payload['text'] for token in ('private','secret','0.12345','0.45678','D:'))
 
 
+@pytest.mark.parametrize('stage,paired,focus,target,expected', [
+    ('imported', False, None, '', {'workspace_training': True}),
+    ('cancelled', False, None, '', {'study': True}),
+    ('imported', True, None, '', {'paired_training': 'offer'}),
+    ('imported', True, ('experiment', 'focused', None), '', {'study': True}),
+    ('imported', True, None, '基于 8e8d7bc2-d0dd-44e0-927c-92ad9706942a ', {'study': True}),
+])
+def test_study_route_respects_existing_sources(monkeypatch, stage, paired, focus, target, expected):
+    intake = SimpleNamespace(
+        read=lambda owner: {'stage': stage, 'imported_ids': ['cube']},
+        generate=lambda *args: {'workspace_training': True},
+    )
+    machine = SimpleNamespace(session_id='owner', tools=SimpleNamespace(data_intake=intake))
+    dialogue = SimpleNamespace(_read=lambda owner: {'document': {}}, focus=lambda owner: focus,
+                               has_paired_inputs=lambda owner: paired)
+    monkeypatch.setattr(router, 'classify', lambda *args: router.Route(
+        intent='study_tune', explain_result=False, confidence='high'))
+    monkeypatch.setattr(router, 'experiment', lambda *args, **flags: flags)
+    assert router.dispatch(machine, dialogue, target+'发起寻优') == expected
+
+
 def test_confirm_buttons_bypass_router_and_invalid_router_falls_back(application,monkeypatch):
     owner = AgentStore(application.state.experiments.paths.database).create_session()['id']
     selected = []

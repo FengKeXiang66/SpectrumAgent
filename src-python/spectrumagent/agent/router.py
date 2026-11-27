@@ -12,6 +12,9 @@ from .inference_flow import generate as inference
 from .llm import ABSOLUTE_FRAGMENT, LLMError, _DENY_TEXT, _egress_blocked, _json
 
 
+EXPERIMENT_UUID = re.compile(r'(?<![0-9a-f])[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}(?![0-9a-f])', re.I)
+
+
 class Route(BaseModel):
     model_config = ConfigDict(strict=True, extra='forbid')
     intent: Literal['pairing_intake','pairing_preview','paired_to_training','group_split','study_tune',
@@ -142,6 +145,19 @@ def direct(machine, dialogue, content):
     return None
 
 
+def workspace_training_entry(machine, dialogue, content):
+    if PATHS.search(content) or EXPERIMENT_UUID.search(content):
+        return None
+    owner = machine.session_id
+    intake = getattr(machine.tools, 'data_intake', None)
+    state = intake.read(owner) if intake else None
+    if not state or state.get('stage') == 'cancelled' or not state.get('imported_ids'):
+        return None
+    if (dialogue._read(owner) or {}).get('document') or dialogue.focus(owner) or dialogue.has_paired_inputs(owner):
+        return None
+    return intake.generate(machine, content, '统一训练', state)
+
+
 def dispatch(machine, dialogue, content, workspace=None):
     from spectrumagent.experiments.workspace_training import SPLIT
     record = dialogue._read(machine.session_id)
@@ -150,10 +166,18 @@ def dispatch(machine, dialogue, content, workspace=None):
     local = direct(machine,dialogue,content)
     if local is not None:
         return local
+    if re.fullmatch(r'(?:请|帮我)?(?:预处理用默认的?|发起寻优|开始寻优|进入预处理|配置预处理与训练)[。！! ]*', content.strip()):
+        entry = workspace_training_entry(machine, dialogue, content)
+        if entry is not None:
+            return entry
     route = classify(machine,dialogue,content,workspace)
     if route is None:
         return fallback(machine,dialogue,content)
     owner = machine.session_id
+    if route.intent in {'study_tune', 'experiment_draft_edit'}:
+        entry = workspace_training_entry(machine, dialogue, content)
+        if entry is not None:
+            return entry
     match route.intent:
         case 'pairing_intake' | 'pairing_preview':
             action = pairing_intake.route(dialogue,owner,content)
@@ -164,7 +188,8 @@ def dispatch(machine, dialogue, content, workspace=None):
         case 'group_split':
             return experiment(machine,content,group_split=True)
         case 'study_tune':
-            if dialogue.has_paired_inputs(owner) and not (dialogue._read(owner) or {}).get('document') and not dialogue.focus(owner):
+            if (not EXPERIMENT_UUID.search(content) and not dialogue.focus(owner)
+                    and not (dialogue._read(owner) or {}).get('document') and dialogue.has_paired_inputs(owner)):
                 return experiment(machine,content,paired_training='offer')
             return experiment(machine,content,study=True)
         case 'experiment_draft_edit':
@@ -201,9 +226,14 @@ def fallback(machine, dialogue, content):
     if not has_paths and re.search(r'建模|训练|预处理|改参|调参|寻优|Study',text,re.I) and not re.search(r'归档|历史|[0-9a-f]{8}-',text,re.I):
         prior = machine.store.rounds(owner,limit=1)
         after_preview = prior and (prior[-1]['assistant_content'] or '').startswith('ENVI 原图与标注配对预览')
-        if (after_preview or not (dialogue._read(owner) or {}).get('document')) and dialogue.has_paired_inputs(owner):
+        if (after_preview or not (dialogue._read(owner) or {}).get('document') and not dialogue.focus(owner)) and dialogue.has_paired_inputs(owner):
             return experiment(machine,content,paired_training='offer')
-    if study.requested(semantic):
+    seeking = study.requested(semantic)
+    if seeking or PARAMETER_EDIT.search(semantic) or re.search(r'预处理用默认', text):
+        entry = workspace_training_entry(machine, dialogue, content)
+        if entry is not None:
+            return entry
+    if seeking:
         return experiment(machine,content,study=True)
     edit = RETRAIN.search(semantic) and not re.search(r'不(?:要|用)?重(?:新训|训)|不(?:要|用)?再训',semantic)
     explain = bool(EXPLAIN_RESULT.search(semantic))

@@ -99,12 +99,21 @@ def test_manual(application, tmp_path):
         application.state.segmentation_resources.prepare(cube, Parameters(n_segments=4, pca_components=3))
         mask = np.zeros((8,8), bool); mask[1:3, 1:3] = True
         sessions.edit(cube, mask, action='confirm', label_id=labels[0])
+    sessions.save(cubes[0])
+    dialogue = application.state.agent_tools.experiment_dialogue
+    reply, _ = send('标注完成了')
+    assert '两个不同的已标注前景类' in reply['content'] and '仍有 1 张未保存' in reply['content']
+    reply, _ = send('发起寻优')
+    assert '至少需要两个' in reply['content']
+    assert dialogue._read(owner) is None
+    for cube in cubes:
         other = np.zeros((8,8), bool); other[5:7, 5:7] = True
         sessions.edit(cube, other, action='confirm', label_id=labels[1])
         sessions.save(cube)
-    reply, _ = send('我已经对数据标注完毕')
-    assert reply['data_intake']['ready_count'] == 2
-    send('接下来对数据进行预处理')
+    for text in ('我已经对数据标注完毕', '标注完成了', '标完了', '已经标好了'):
+        reply, _ = send(text)
+        assert reply['data_intake']['ready_count'] == 2
+    send('预处理用默认的')
     dialogue = application.state.agent_tools.experiment_dialogue
     assert dialogue.view(owner)['can_study']
     record = dialogue._read(owner)

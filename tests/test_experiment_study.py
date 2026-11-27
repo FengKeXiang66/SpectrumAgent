@@ -416,6 +416,8 @@ def test_only_best_at_expandable_upper_bound_sets_flag(tmp_path,monkeypatch):
     ('把实验方案改为 1120-1675nm',('1120','1675')),
     ('波段裁到 1120 至 1675 纳米',('1120','1675')),
     ('设为：1120.5–1675 nm',('1120.5','1675')),
+    ('范围改为 1120nm-1675nm',('1120','1675')),
+    ('范围改为 1120nm-1675',('1120','1675')),
     ('波段裁到 1120-1675',None),
     ('设为 1120-1675 nm，再改步长为 5 nm',None),
 ])
@@ -520,9 +522,77 @@ def test_paired_preview_through_image_study_and_formal_training(application,tmp_
     chat(application,cropped_owner,TRAIN_COMMAND)
     rejected_crop = chat(application,cropped_owner,'改为 1099–1115 nm')
     assert '共同范围' in rejected_crop[-1][1]['question']
-    crop = chat(application,cropped_owner,'改为 1105–1115 nm')
+    assert 'step_nm' not in rejected_crop[-1][1]['question']
+    saved_native = base._read(cropped_owner)
+    sg = tool('experiments.draft_update', {
+        'expected_revision': saved_native['revision'],
+        'unapplied_requests': [{'topic':'savgol', 'requested':'加一阶 SG 导数', 'reason':'原生波长轴非等距'}],
+    })
+    edited = list(machine_for(application,cropped_owner,ScriptedModel(sg)).message(content='添加一阶 SG 导数'))
+    note = next(payload['result_summary']['draft_notes'] for kind,payload in edited
+                if kind=='step' and payload['tool']=='experiments.draft_presentation')
+    assert all(value in note for value in ('未生效', '一阶 SG', '等间距目标波长网格', '映射窗口', '最近波长容差'))
+    assert base._read(cropped_owner)['document'] == saved_native['document']
+    base.update(cropped_owner, DraftUpdate(expected_revision=saved_native['revision'],
+                train={'kind':'roi_images','mapping_window_nm':3.,'nearest_tolerance_nm':2.}))
+    record_with_mapping = base._read(cropped_owner)
+    chat(application,cropped_owner,'查看当前实验方案')
+    from spectrumagent.experiments import wavelength_proposal
+
+    real_recommend = wavelength_proposal.recommend
+    def recommend_with_concurrent_write(*args, **kwargs):
+        # A second connection can save while the first request checks the HDRs.
+        if base._read(cropped_owner)['revision'] == record_with_mapping['revision']:
+            base.update(cropped_owner, DraftUpdate(expected_revision=record_with_mapping['revision'], name='并发保存'))
+        return real_recommend(*args, **kwargs)
+
+    with monkeypatch.context() as m:
+        m.setattr(wavelength_proposal, 'recommend', recommend_with_concurrent_write)
+        with pytest.raises(DataError) as conflict:
+            base.update(cropped_owner, DraftUpdate(expected_revision=record_with_mapping['revision'],
+                        axis={'kind':'crop','start_nm':1105.,'stop_nm':1115.}))
+        assert conflict.value.code == 'EXPERIMENT_DRAFT_CONFLICT'
+    updated = base._read(cropped_owner)
+    assert updated['document']['name'] == '并发保存'
+    assert updated['document']['axis']['kind'] == 'saved_native'
+    chat(application,cropped_owner,'查看当前实验方案')
+    crop = chat(application,cropped_owner,'范围改为 1105nm-1115nm')
     assert '确认执行' in crop[-1][1]['question']
-    assert base._config(base._read(cropped_owner)).wavelengths_nm == [1105.,1110.,1115.]
+    config = base._config(base._read(cropped_owner))
+    assert config.wavelengths_nm == [1105.,1110.,1115.]
+    assert config.train.mapping_window_nm == config.test.mapping_window_nm == 3.
+    assert config.train.nearest_tolerance_nm == config.test.nearest_tolerance_nm == 2.
+    edited_owner = AgentStore(base.database).create_session()['id']
+    with connect_database(base.database) as db:
+        db.execute('INSERT INTO experiment_pairing(session_id,report_json) '
+                   'SELECT ?,report_json FROM experiment_pairing WHERE session_id=?', (edited_owner, owner))
+    chat(application,edited_owner,TRAIN_COMMAND)
+    initial = base._read(edited_owner)
+    assert initial['document']['axis']['kind'] == 'saved_native'
+    revision = initial['revision']
+    update = tool('experiments.draft_update', {
+        'expected_revision': revision, 'axis': {'kind':'crop','start_nm':1105.,'stop_nm':1115.},
+        'train': {'kind':'roi_images','sampling_stride':1,'max_per_class':1200},
+    })
+    edited = list(machine_for(application,edited_owner,ScriptedModel(update)).message(
+        content='改为采样步长1，每类上限1200，范围改为1105-1115nm'))
+    assert '确认执行' in edited[-1][1]['question']
+    cropped = base._read(edited_owner)
+    assert cropped['revision'] == revision + 1
+    assert cropped['document']['train']['max_per_class'] == 1200
+    assert cropped['document']['train']['sampling_stride'] == cropped['document']['test']['sampling_stride'] == 1
+    assert base._config(cropped).wavelengths_nm == [1105.,1110.,1115.]
+    update = tool('experiments.draft_update', {
+        'expected_revision': cropped['revision'], 'axis': {'kind':'crop','start_nm':1110.,'stop_nm':1115.},
+        'train': {'kind':'roi_images','mapping_window_nm':4.,'nearest_tolerance_nm':3.},
+    })
+    edited = list(machine_for(application,edited_owner,ScriptedModel(update)).message(
+        content='映射窗口 4 nm，最近波长容差 3 nm，范围改为1110nm-1115nm'))
+    assert '确认执行' in edited[-1][1]['question']
+    config = base._config(base._read(edited_owner))
+    assert config.wavelengths_nm == [1110.,1115.]
+    assert config.train.mapping_window_nm == config.test.mapping_window_nm == 4.
+    assert config.train.nearest_tolerance_nm == config.test.nearest_tolerance_nm == 3.
     extraction = dict(kind='roi_images',mapping_window_nm=5.,nearest_tolerance_nm=3.)
     grid_update = dict(expected_revision=record['revision'],axis=dict(kind='grid',start_nm=1101.,stop_nm=1117.,step_nm=4.),
                        train=extraction, test={**extraction, 'wavelength_unit':'nm'})
