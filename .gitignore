@@ -15,6 +15,7 @@ src-tauri/resources/
 # Python and temporary data
 __pycache__/
 .pytest_cache/
+.pip-cache/
 *.py[cod]
 .runtime/
 .temp/
