@@ -25,10 +25,11 @@ function Thumbnail({ record, api }: { record: CatalogRecord; api: DatasetTranspo
 }
 
 type Callbacks = Parameters<typeof createDatasetActions>[1];
-export default function DatasetPanel({ api, records, phase, error, onReload, onImported, onDeleted, onOpen, onAttachAnnotations }: {
+export default function DatasetPanel({ api, records, phase, error, onReload, onImported, onDeleted, onOpen, onAttachAnnotations, onConfigurePreprocess }: {
   api: DatasetTransport; records: CatalogRecord[]; phase: 'idle'|'loading'|'ready'|'error'; error: string; onReload(): void;
   onImported: Callbacks['imported']; onDeleted: Callbacks['deleted'];
-  onOpen(screen: 's04'|'s05'|'s06', record?: CatalogRecord): void;
+  onOpen(screen: 's04'|'s05', record?: CatalogRecord): void;
+  onConfigurePreprocess?(record: CatalogRecord): void;
   onAttachAnnotations?(record: CatalogRecord): void;
 }) {
   const [raw, setRaw] = useState(false);
@@ -96,7 +97,7 @@ export default function DatasetPanel({ api, records, phase, error, onReload, onI
               <button disabled={disabled || !record.available} onClick={() => onOpen('s04', record)}>查看</button>
               <button disabled={disabled || !record.available} onClick={() => onOpen('s05', record)}>标注</button>
               {onAttachAnnotations && <button disabled={disabled || !record.available} onClick={() => onAttachAnnotations(record)}>接入已有标注</button>}
-              <button disabled={disabled || !record.available} onClick={() => onOpen('s06', record)}>预处理</button>
+              {onConfigurePreprocess && <button disabled={disabled || !record.available} onClick={() => onConfigurePreprocess(record)}>在对话中配置预处理</button>}
               <button className="dataset-danger" disabled={disabled} onClick={() => { void actions.current?.requestDelete(record); }}>永久删除</button>
             </div>
           </div></td>

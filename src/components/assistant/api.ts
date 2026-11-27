@@ -73,6 +73,7 @@ export type TaskAccepted = {status:'accepted';task_id:string;task_status:Annotat
 export type BatchCard = { result: BatchResult | null; stepStatus: string; epoch: number; generation: number; key: string; sessionId?: string; requestId?: string };
 export type MessageBody = ({ content: string; workspace?: WorkspaceContext } | { check_id: string; decision: 'approve' | 'reject' } | ({ plan_id: string } & PlanDecision)) & { request_id?: string };
 export type AgentRequest = ({ op: 'create_session' } & CreateSessionInput)
+  | {op:'preprocessing_editor';id:string;kind:'classification'|'recipe';cube_id?:string}
   | {op:'study';id:string;study_id:string;action:'get'|'result'|'cancel'}
   | {op:'foreground_probe';id:string}
   | {op:'inference_history';id:string;model_id:string}
@@ -165,6 +166,7 @@ export function agentClient(send: InvokeAgent = invoke) {
     op:'list_sessions', query:{kind:'global', limit:page.limit??20, ...(page.cursor?{cursor:page.cursor}:{})},
   });
   return {
+    preprocessingEditor: (id:string,kind:'classification'|'recipe',cube_id?:string) => forward<import('./preprocessing-form').EditorState>({op:'preprocessing_editor',id,kind,...(cube_id?{cube_id}:{})}),
     study:(id:string,study_id:string,action:'get'|'cancel'='get')=>forward<StudyStatus>({op:'study',id,study_id,action}),
     studyResult:(id:string,study_id:string)=>forward<StudyResult>({op:'study',id,study_id,action:'result'}),
     foregroundProbe:(id:string)=>forward<ForegroundProbe>({op:'foreground_probe',id}),

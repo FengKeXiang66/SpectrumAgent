@@ -188,6 +188,7 @@ pub struct SessionQuery {
 #[derive(Deserialize)]
 #[serde(tag = "op", rename_all = "snake_case", deny_unknown_fields)]
 pub enum AgentRequest {
+    PreprocessingEditor { id: String, kind: String, cube_id: Option<String> },
     InferenceHistory { id: String, model_id: String },
     InferenceTask { id: String, model_id: String, run_id: String, action: String },
     InferencePlot { id: String, model_id: String, run_id: String, file_index: u32, kind: Option<String> },
@@ -302,6 +303,12 @@ fn page_limit(limit: &Option<u32>, maximum: u32) -> Result<(), ForwardError> {
 impl AgentRequest {
     fn validate(&self) -> Result<(), ForwardError> {
         match self {
+            Self::PreprocessingEditor { id, kind, cube_id } => {
+                uuid(id)?;
+                if !["classification", "recipe"].contains(&kind.as_str()) { return Err(invalid_request()); }
+                if let Some(cube) = cube_id { uuid(cube)?; }
+                Ok(())
+            }
             Self::InferenceHistory { id, model_id } => { uuid(id)?; uuid(model_id) }
             Self::InferenceTask { id, model_id, run_id, action } => {
                 uuid(id)?;uuid(model_id)?;uuid(run_id)?;
@@ -523,6 +530,8 @@ impl AgentRequest {
     pub fn destination(&self, port: u16) -> Result<(Url, Method, Option<Value>), ForwardError> {
         self.validate()?;
         let (path, method, body) = match self {
+            Self::PreprocessingEditor { id, .. } => (
+                format!("/api/v1/agent/sessions/{id}/preprocessing-editor"), Method::GET, None),
             Self::InferenceHistory { id, model_id } => (format!("/api/v1/agent/sessions/{id}/experiment-history/{model_id}/inferences"),Method::GET,None),
             Self::InferenceTask { id, model_id, run_id, action } => {
                 let base=format!("/api/v1/agent/sessions/{id}/experiment-history/{model_id}/inferences/{run_id}");
@@ -662,6 +671,10 @@ impl AgentRequest {
         {
             let mut q = url.query_pairs_mut();
             match self {
+                Self::PreprocessingEditor { kind, cube_id, .. } => {
+                    q.append_pair("kind", kind);
+                    if let Some(cube) = cube_id { q.append_pair("cube_id", cube); }
+                }
                 Self::AnnotationTask { action, after, limit, version, .. } if action == "items" => {
                     if let Some(v) = after { q.append_pair("after", &v.to_string()); }
                     if let Some(v) = limit { q.append_pair("limit", &v.to_string()); }
@@ -1153,6 +1166,27 @@ fn stream_frames(
 
 #[cfg(test)]
 mod streaming_tests {
+    #[test]
+    fn preprocessing_editor_is_read_only_and_session_scoped() -> Result<(), super::ForwardError> {
+        use super::{parse_request, Method};
+        use serde_json::json;
+        let sid = "00000000-0000-0000-0000-000000000001";
+        let cube = "00000000-0000-0000-0000-000000000002";
+        for kind in ["classification", "recipe"] {
+            let request = parse_request(json!({"op":"preprocessing_editor","id":sid,"kind":kind,"cube_id":cube}))?;
+            let (url, method, body) = request.destination(12345)?;
+            assert_eq!(method, Method::GET);
+            assert_eq!(url.path(), format!("/api/v1/agent/sessions/{sid}/preprocessing-editor"));
+            assert_eq!(url.query(), Some(format!("kind={kind}&cube_id={cube}").as_str()));
+            assert!(body.is_none());
+        }
+        assert!(parse_request(json!({"op":"preprocessing_editor","id":sid,"kind":"execute"})).is_err());
+        assert!(parse_request(json!({"op":"preprocessing_editor","id":"../session","kind":"recipe"})).is_err());
+        assert!(parse_request(json!({"op":"preprocessing_editor","id":sid,"kind":"recipe","cube_id":"../cube"})).is_err());
+        assert!(parse_request(json!({"op":"preprocessing_editor","id":sid,"kind":"recipe","tool":"workspace.preprocess"})).is_err());
+        Ok(())
+    }
+
     #[test]
     fn inference_report_path_requires_two_uuids() -> Result<(), super::ForwardError> {
         let root = std::path::Path::new("E:/permanent");

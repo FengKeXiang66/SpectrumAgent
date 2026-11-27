@@ -30,7 +30,7 @@ group_split 重新按组划分训练测试；study_tune 让程序自动比较或
 experiment_draft_edit 手动改实验参数、准备新训练或重训；
 experiment_explain 解释已有结果、错分、指标；
 experiment_history 查询归档或历史实验；
-inference 用训练好的模型预测、配置前景或查推理；annotation_workspace 画布、标注、数据工作台；
+inference 用训练好的模型预测、配置前景或查推理；annotation_workspace 画布、标注、数据工作台、回归和高级配方编辑处理；
 general_qa 普通咨询。将“为什么错分而且要改一下方案”分类为 experiment_draft_edit 且 explain_result 为 true。
 没有明确授权时只选建议相关的问题，不把讨论解释成执行。确认动作由本机单独处理。
 confidence 只能为 high 或 low，信息不够选 low。explain_result 必须为 JSON 布尔值。
@@ -143,6 +143,13 @@ def direct(machine, dialogue, content):
 
 
 def dispatch(machine, dialogue, content, workspace=None):
+    # An explicitly opened recipe form establishes which shared draft a later
+    # "SG window" answer edits. Do not redirect it to a classification draft.
+    context = machine.store.context(machine.session_id)
+    if (re.search(r'回归|高级配方', content) or context.get('recipe_editing')
+            and re.search(r'配方|草稿|算子|SG|SNV|平滑|导数|预处理|处理状态', content, re.I)):
+        if not re.search(r'分类|Study|寻优|推理|新建训练方案', content, re.I):
+            return None
     from spectrumagent.experiments.workspace_training import SPLIT
     record = dialogue._read(machine.session_id)
     if record and record['document'].get('workspace_selection') and SPLIT.fullmatch(content.strip()):

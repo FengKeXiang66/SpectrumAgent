@@ -360,6 +360,11 @@ class StateMachine:
 
     def _dispatch(self, **kwargs):
         if self._workflow_enabled():
+            if kwargs.get('content') and getattr(self.tools, 'data_intake', None):
+                from .preprocessing_editor import route as editor_route
+                routed = editor_route(self, kwargs['content'])
+                if routed is not None:
+                    return routed
             intake = getattr(self.tools, 'data_intake', None)
             if intake and kwargs.get('content'):
                 routed = intake.route(self, kwargs['content'])

@@ -447,7 +447,7 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
       retry_of: card.result.batchRef }));
     return true;
   };
-  const request = async (body: MessageBody) => {
+  const request = async (body: MessageBody, options: { preserveComposer?: boolean } = {}) => {
     if (!enabled || recoveryFailed || inFlight.current || sessionOperation.current || loading || activeRef.current?.request?.status === 'running') return;
     if ('content' in body && !body.content.trim()) return;
     if ('check_id' in body && (!state.pending || !('check_id' in state.pending) || state.pending.check_id !== body.check_id)) return;
@@ -460,7 +460,7 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
     inFlight.current = true;
     stopRequested.current=false;setStopping(false);setStopError(null);
     const displayedInput='content' in body&&/^设置API\s*KEY为/i.test(body.content.trim())?'设置 API KEY（内容已隐藏）':'content' in body?body.content:'';
-    if('content' in body){lastUserMessage.current=displayedInput;setContent('');}
+    if('content' in body){lastUserMessage.current=displayedInput;if (!options.preserveComposer) setContent('');}
     if ('content' in body) dispatch({ type: 'send', content: displayedInput, requestId });
     else if ('check_id' in body) dispatch({ type: 'decision', decision: body.decision });
     else dispatch({ type: 'plan', ...body });
@@ -518,6 +518,7 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
       dispatch({ type: 'events', events: buffered, requestId });
       for (const event of result.events) if(event.event==='step'&&event.data.status==='ok') {
         if(event.data.tool.startsWith('preprocess.draft_')) draftsChanged();
+        if(event.data.tool === 'preprocess.form_update') { draftsChanged(); recipesChanged(); }
         if(['preprocess.recipe_create','preprocess.recipe_version_add','preprocess.draft_save','preprocess.recipe_delete','preprocess.recipe_restore'].includes(event.data.tool)) recipesChanged();
       }
       const batchSteps = result.events.filter(event => event.event === 'step' && event.data.tool === 'annotations.prepare_batch');
@@ -574,7 +575,7 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
       if (epoch.current === requestEpoch) {
         if(error&&typeof error==='object'&&(error as {pre_execution?:boolean}).pre_execution){
           setRecoveryFailed(false);setStopError(null);
-          if('content' in body)setContent(draft=>draft||body.content);
+          if('content' in body && !options.preserveComposer)setContent(draft=>draft||body.content);
           dispatch({type:'failed',detail:requestError(error),preExecution:true});
           return;
         }

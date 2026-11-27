@@ -173,6 +173,14 @@ def make_router(database, tools, llm_factory=None, runtime_info=None, *, session
         return ScopedToolRegistry(tools(), session_service, session_id, engine=engine,
                                   annotations=annotations, batch=batch, request_id=request_id, tasks=tasks)
 
+    @router.get('/sessions/{session_id}/preprocessing-editor')
+    def preprocessing_editor(session_id: UUIDText, request: Request,
+                             kind: Literal['classification', 'recipe'], cube_id: UUIDText | None = None):
+        queries(request, {'kind', 'cube_id'})
+        session_service.scope(session_id)
+        from spectrumagent.agent.preprocessing_editor import editor_view
+        return editor_view(tools(), session_id, kind, cube_id)
+
     @router.get('/sessions/{session_id}/experiments/{task_id}')
     def experiment_task(session_id: UUIDText, task_id: UUIDText):
         session_service.scope(session_id)

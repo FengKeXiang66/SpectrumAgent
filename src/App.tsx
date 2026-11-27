@@ -24,7 +24,7 @@ import { createCatalogController, emptyCatalog } from './components/datasets/cat
 import ProjectPathsPanel from './components/settings/ProjectPathsPanel';
 import AnnotationWorkbench from './components/annotation/AnnotationWorkbench';
 import ProjectLabels from './components/annotation/ProjectLabels';
-import PreprocessWorkspace from './components/preprocess/PreprocessWorkspace';
+import { preprocessingPrompt } from './components/assistant/preprocessing-navigation';
 import ModelPanel from './components/modeling/ModelPanel';
 import AppShell from './shell/AppShell';
 import { SCREEN_TITLE, type Screen } from './shell/screens';
@@ -187,7 +187,13 @@ export default function App() {
   useEffect(() => {
     if (!navigation) return;
     if (navigation.stage !== 'annotation' && navigation.stage !== 'preprocess') { setNavigation(null); return; }
-    void openDataset(navigation.cube_id, navigation.stage === 'preprocess' ? 's06' : 's05');
+    if (navigation.stage === 'preprocess') {
+      setScreen('s01');
+      sessionRef.current.setContent(current => preprocessingPrompt(navigation.cube_id, current));
+      setNavigation(null);
+      return;
+    }
+    void openDataset(navigation.cube_id, 's05');
   }, [navigation, openDataset]);
   useEffect(() => {
     if (screen !== 's02' || status.phase !== 'Ready') return;
@@ -251,15 +257,14 @@ export default function App() {
     if(annotationNavigationBlocked.current){setNavigationError('请等待标注提交完成，并确认或清除未提交的区域后再切换。');return;}
     openingTicket.current++; setOpening(false);
     setNavigation(null); setNavigationError('');
-    if (next === 's04' || next === 's05' || next === 's06') { annotationBatchRef.current = null; setAnnotationBatch(null); }
+    if (next === 's04' || next === 's05') { annotationBatchRef.current = null; setAnnotationBatch(null); }
     if (run !== undefined) setRunId(run);
-    if (next === 's06' && record) { void openDataset(record.id, next); return; }
     if (next === 's04' || next === 's05') {
       const id = record?.id ?? workspace.cube_id ?? selected?.id ?? records.find(row => row.available)?.id;
       if (id) { void openDataset(id, next); return; }
       setSelected(null);
     }
-    if (session.state.busy && ['s04','s05','s06','s07'].includes(next)) return;
+    if (session.state.busy && ['s04','s05','s07'].includes(next)) return;
     setScreen(next);
   };
   const renderScreen = () => {
@@ -280,6 +285,10 @@ export default function App() {
           }} onOpen={openScreen} onAttachAnnotations={record => {
             setScreen('s01');
             session.setContent(`导入已有标注的数据，原图 "${record.source_path}"`);
+          }} onConfigurePreprocess={record => {
+            if (!navigationCurrent() || annotationNavigationBlocked.current) return;
+            setScreen('s01');
+            session.setContent(current => preprocessingPrompt(record.id, current));
           }} />
       </>;
       case 's04': return selected ? <S04 key={selected.id} record={selected} api={datasets} onClose={() => setScreen('s03')} />
@@ -302,7 +311,6 @@ export default function App() {
           void openDataset(next.id, 's05');
         }} />
         : <ProjectLabels onOpenData={() => setScreen('s03')} onCreate={() => { openScreen('s01'); void session.request({ content: '创建标签' }); }} />;
-      case 's06': return <PreprocessWorkspace records={records} phase={catalog.phase} initialRecord={selected} refreshVersion={Object.values(refreshVersions).reduce((a,b)=>a+b,0)}/>;
       case 's07': return catalog.phase === 'ready' ? <ModelPanel records={records.filter(row => row.available)} onConfigureClassification={() => { openScreen('s01'); void session.request({ content: '使用当前已标注数据新建训练方案' }); }} onOpenResults={run => openScreen('s08', undefined, run)} />
         : <p role="status">请先返回数据屏加载数据目录。</p>;
       case 's08': return <S08 runId={runId} onOpen={id => openScreen('s08', undefined, id)} onBackToList={() => setRunId(null)} onClose={() => setScreen('s07')} />;

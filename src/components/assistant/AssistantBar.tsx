@@ -21,10 +21,12 @@ import StudyCard from './StudyCard';
 import ForegroundProbeCard from './ForegroundProbeCard';
 import DataIntakeCard from './DataIntakeCard';
 import { labelCommandText } from './label-names.ts';
+import { formInputLabel, type EditorKind } from './preprocessing-form';
+import PreprocessingEditorCard from './PreprocessingEditorCard';
 
 function entryText(entry: ChatEntry): string {
   switch (entry.event) {
-    case 'user': return entry.data.content.startsWith('应用推理参数 ') ? '应用推理参数微调' : labelCommandText(entry.data.content);
+    case 'user': return entry.data.content.startsWith('应用推理参数 ') ? '应用推理参数微调' : formInputLabel(labelCommandText(entry.data.content));
     case 'step': return `${entry.data.seq}. ${entry.data.tool} · ${entry.data.status} · ${scalarText(entry.data.result_summary)}`;
     case 'clarify': return entry.data.question;
     case 'human_check': return `${entry.data.reason} · ${entry.data.tool} · ${scalarText(entry.data.summary)}`;
@@ -47,9 +49,9 @@ function agentName(event: ChatEntry['event'], business = '已回复'): string {
   }
 }
 
-function DraftCard({card,details,active,canAct,send,onViewer,onEdit}:{
+function DraftCard({card,details,active,canAct,send,onViewer,onEdit,onPreprocess}:{
   card:Scalars;details:string;active:boolean;canAct:boolean;send:(text:string)=>void;
-  onViewer:(target:ViewerTarget)=>void;onEdit:()=>void;
+  onViewer:(target:ViewerTarget)=>void;onEdit:()=>void;onPreprocess:()=>void;
 }) {
   let spectrum:WavelengthDetails|null = null;
   if(typeof card.wavelength_details==='string'){
@@ -74,6 +76,7 @@ function DraftCard({card,details,active,canAct,send,onViewer,onEdit}:{
         <strong>训练集内自动寻优</strong><small>{card.study_label}</small></button>}
     </div>
     {active&&<div className="work-actions">
+      <button disabled={!canAct} onClick={onPreprocess}>编辑预处理参数</button>
       <button disabled={!canAct} onClick={onEdit}>手动改参</button>
       {card.draft_ready===true&&<button disabled={!canAct} onClick={()=>send('确认执行')}>
         {card.study_folds?'直接运行当前方案':'确认执行'}</button>}
@@ -92,6 +95,7 @@ export default function AssistantBar({session,onHistory,onViewer}:{
   const { enabled, state, content, setContent, request, choices, records } = session;
   const showInference:OpenInferenceView=(result,fileIndex)=>onViewer({kind:'inference',result,fileIndex});
   const [pickerError,setPickerError] = useState('');
+  const [editorKind, setEditorKind] = useState<EditorKind | null>(null);
   const input = useRef<HTMLTextAreaElement>(null);
   const editDraft=(prompt:string)=>{setContent(prompt);input.current?.focus();};
   const prepareInference=(modelId:string)=>setContent('使用模型 '+modelId+' 进行推理，数据目录为');
@@ -114,6 +118,11 @@ export default function AssistantBar({session,onHistory,onViewer}:{
       <button disabled={!enabled||session.loading} onClick={onHistory}>历史与模型</button>
     </header>
     <div className="assistant-content">
+    <div className="work-actions" aria-label="对话预处理配置">
+      <button disabled={!session.canSend || !!state.pending} onClick={() => setEditorKind('classification')}>分类预处理参数</button>
+      <button disabled={!session.canSend || !!state.pending} onClick={() => setEditorKind('recipe')}>回归／高级配方参数</button>
+    </div>
+    {editorKind && <PreprocessingEditorCard key={`${session.active?.id ?? 'new'}:${editorKind}`} session={session} kind={editorKind} onClose={() => setEditorKind(null)} />}
     {session.historyBefore!==null && <button disabled={!enabled} onClick={()=>void session.loadOlder()}>加载更早历史</button>}
     {(() => {
       // TASK-07b R2: step/error events leave the conversation flow. Steps fold
@@ -194,7 +203,8 @@ export default function AssistantBar({session,onHistory,onViewer}:{
             const draftContent = inference
               ? <InferenceDraftCard card={inference} active={currentDraft} canAct={canAct} send={sendCommand}/>
               : card ? <DraftCard card={card} details={readableText(actualText, choices, records)} active={currentDraft}
-                  canAct={canAct} send={sendCommand} onViewer={onViewer} onEdit={()=>editDraft('把实验方案改为')}/> : null;
+                    canAct={canAct} send={sendCommand} onViewer={onViewer} onEdit={()=>editDraft('把实验方案改为')}
+                    onPreprocess={() => setEditorKind('classification')}/> : null;
             return [visible&&<li key={`message:${index}`} data-event={entry.event}
               data-draft={draftContent?(currentDraft?(ready?'ready':'incomplete'):'history'):undefined}
             className={`agent-msg ${entry.event === 'user' ? 'agent-msg-user' : 'agent-msg-ai'}`}>

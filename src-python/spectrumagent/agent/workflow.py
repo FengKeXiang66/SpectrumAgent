@@ -123,11 +123,12 @@ def request_tools(tools, content, state=None):
     # Explicit train/test collection has its own reviewed, session-owned flow.
     tools = [tool for tool in tools if not tool['function']['name'].startswith('experiments.')]
     if ((re.search(r'配方|算子|SNV|SG|平滑|导数', content or '', re.I) or (state or {}).get('recipe_editing'))
-            and not re.search(r'预处理|执行|运行|标注|查询数据|查看数据|分割|训练|建模|展示|结果|对比|比较|导出|(?:使用|采用|用)(?:默认|上述|这个|该)(?:配方|方案)', content or '')):
+            and not re.search(r'预处理|执行|运行|标注|查询数据|查看数据|分割|训练|建模|回归|测量|连续量|含量|展示|结果|对比|比较|导出|(?:使用|采用|用)(?:默认|上述|这个|该)(?:配方|方案)', content or '')):
         names = {'preprocess.recipes', 'preprocess.recipe_ensure', 'preprocess.recipe_create',
                  'preprocess.recipe_version_add', 'preprocess.recipe_delete', 'preprocess.recipe_restore',
                  'preprocess.draft_get', 'preprocess.draft_update', 'preprocess.draft_save',
-                 'preprocess.recipe_select', 'preprocess.operators'}
+                 'preprocess.recipe_select', 'preprocess.operators', 'workspace.current', 'workspace.recipe_edit',
+                 'datasets.list', 'datasets.describe'}
         if (state or {}).get('recipe_editing'):
             names-={'preprocess.recipe_create','preprocess.recipe_version_add'}
         return [t for t in tools if t['function']['name'] in names]

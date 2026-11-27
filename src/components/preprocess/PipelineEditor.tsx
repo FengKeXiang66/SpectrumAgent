@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { axisAfter, compilePipeline, MODES, OPERATORS, targetAxis } from './pipeline.ts';
 import type { Params, Step } from './types.ts';
 
@@ -6,6 +6,10 @@ function TargetEditor({ target, onChange }: { target: unknown; onChange: (axis: 
   const axis = Array.isArray(target) ? target as number[] : [];
   const [draft, setDraft] = useState([axis[0]?.toString() ?? '', axis.at(-1)?.toString() ?? '', axis.length ? String(axis.length) : '']);
   const [error, setError] = useState('');
+  useEffect(() => {
+    setDraft([axis[0]?.toString() ?? '', axis.at(-1)?.toString() ?? '', axis.length ? String(axis.length) : '']);
+    setError('');
+  }, [axis[0], axis.at(-1), axis.length]);
   return <div className="pp-target">
     {['起', '止', '点数'].map((name, i) => <label key={name}>{name}<input type="number" step={i === 2 ? 1 : 'any'} value={draft[i]}
       onChange={event => setDraft(draft.map((s, j) => i === j ? event.target.value : s))} /></label>)}

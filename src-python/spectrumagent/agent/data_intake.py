@@ -38,8 +38,8 @@ def snapshot(path):
 
 
 class DatasetIntake:
-    def __init__(self, registry, sessions):
-        self.registry, self.sessions = registry, sessions
+    def __init__(self, registry, sessions, runner):
+        self.registry, self.sessions, self.runner = registry, sessions, runner
         self.database = registry.database
 
     def read(self, sid):

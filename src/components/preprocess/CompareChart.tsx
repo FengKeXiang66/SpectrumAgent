@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { Label } from '../annotation/types.ts';
 import { curveRuns } from './pipeline.ts';
+import './compare-chart.css';
 import { classLegend, type Report } from './types.ts';
 
 export default function CompareChart({ report, labels, inputBands }: { report: Report; labels: Label[]; inputBands: number }) {

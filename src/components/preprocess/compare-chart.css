@@ -1,0 +1,8 @@
+.pp-curve-card { min-width: 0; border: 1px solid #d4deea; border-radius: 8px; padding: 12px; margin: 12px 0; background: white; }
+.pp-curve-card .pp-curve-heading { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.pp-curve-card .pp-curve-heading h3 { margin: 0; font-size: 14px; }
+.pp-curve-card .pp-hint { display: flex; gap: 12px; color: #536373; font-size: 12px; }
+.pp-curve-card canvas { display: block; max-width: 100%; height: auto; background: white; }
+.pp-curve-card .pp-legend { display: flex; flex-wrap: wrap; gap: 8px 18px; list-style: none; padding: 0; }
+.pp-curve-card .pp-legend li { display: inline-flex; align-items: center; gap: 6px; }
+.pp-curve-card .pp-legend span { display: inline-block; width: 10px; height: 10px; border-radius: 3px; }
