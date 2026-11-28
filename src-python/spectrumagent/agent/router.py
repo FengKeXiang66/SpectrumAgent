@@ -142,7 +142,35 @@ def direct(machine, dialogue, content):
     return None
 
 
+def regression_inference(machine, content):
+    """Regression registry models use native tools, not the classification draft."""
+    semantic = PATHS.sub('输入源', content)
+    if not re.search(r'推理|预测|含量图', semantic) or re.search(r'分类|Study', semantic, re.I):
+        return False
+    from backend.database import connect_database
+    import json
+    with connect_database(machine.store.database) as db:
+        models = {row[0] for row in db.execute("SELECT m.id FROM model_registry m JOIN training_run t ON t.id=m.run_id WHERE t.task='regression'")}
+        named = re.findall(r'(?:模型|model)\s*[“"\']?([0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})', semantic, re.I)
+        if named:
+            return all(identifier.lower() in models for identifier in named)
+        if '回归' in semantic:
+            return True
+        if any(identifier in semantic for identifier in models):
+            return True
+        references = set(re.findall(r'[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}', semantic.lower()))
+        if references - models - {row[0] for row in db.execute('SELECT id FROM dataset_registry')}:
+            return False  # An explicit other model outranks the recent regression.
+        last = db.execute("SELECT tool,result_summary FROM agent_step WHERE session_id=? AND status='ok' AND (tool IN ('modeling.register','modeling.infer','modeling.inference') OR tool LIKE 'experiments.inference%') ORDER BY seq DESC LIMIT 1", (machine.session_id,)).fetchone()
+    if last and last[0].startswith('modeling.'):
+        result = json.loads(last[1])
+        return result.get('model_id') in models
+    return False
+
+
 def dispatch(machine, dialogue, content, workspace=None):
+    if regression_inference(machine, content):
+        return None
     # An explicitly opened recipe form establishes which shared draft a later
     # "SG window" answer edits. Do not redirect it to a classification draft.
     context = machine.store.context(machine.session_id)

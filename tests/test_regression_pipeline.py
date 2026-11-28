@@ -195,6 +195,11 @@ def test_real_training_registration_inference_and_legacy_reads(application, tmp_
         db.execute('UPDATE training_run SET model_params=? WHERE id=?', (json.dumps(params), old['run_id']))
     legacy = application.state.model_registry.register(old['run_id'], '历史回归')
     assert application.state.model_registry.get(legacy['id'], calibration=True)['calibration']['origin'] == 'registration_reconstruction'
+    with pytest.raises(ModelingError) as error:
+        application.state.inference_runs.create(legacy['id'], cubes[0])
+    assert error.value.code == 'VERSION_CUBE_MISMATCH'
+    old_input = runner.get(old_runs[0])
+    assert application.state.inference_runs.create(legacy['id'], cubes[0], old_runs[0], old_input['annotation_version_id'])['status'] == 'succeeded'
     assert training.get(old['run_id'])['training_protocol'] == regression.LEGACY_PROTOCOL
     from spectrumagent.agent.tools.modeling import ModelingMetricsArguments
     comparison = application.state.agent_tools.modeling.invoke('modeling.metrics',

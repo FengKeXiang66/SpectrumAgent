@@ -108,8 +108,8 @@ class InferenceRequest(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     model_id: StrictStr
     cube_id: StrictStr
-    preprocess_run_id: StrictStr
-    annotation_version_id: StrictStr
+    preprocess_run_id: StrictStr | None = None
+    annotation_version_id: StrictStr | None = None
 
 
 class ClassificationOperation(BaseModel):

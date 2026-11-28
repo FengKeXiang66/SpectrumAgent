@@ -72,8 +72,8 @@ pub enum ModelRequest {
     CreateInference {
         model_id: String,
         cube_id: String,
-        preprocess_run_id: String,
-        annotation_version_id: String,
+        preprocess_run_id: Option<String>,
+        annotation_version_id: Option<String>,
     },
     GetInference {
         id: String,
@@ -260,7 +260,10 @@ impl ModelRequest {
                 preprocess_run_id,
                 annotation_version_id,
             } => {
-                for id in [model_id, cube_id, preprocess_run_id, annotation_version_id] {
+                for id in [model_id, cube_id] {
+                    identifier(id)?;
+                }
+                for id in [preprocess_run_id, annotation_version_id].into_iter().flatten() {
                     identifier(id)?;
                 }
                 (
@@ -601,6 +604,26 @@ mod tests {
                 assert!(body.unwrap().is_object());
             }
         }
+    }
+    #[test]
+    fn snapshot_inference_allows_omitted_references_but_keeps_fixed_route_and_id_checks() {
+        for request in [
+            json!({"op":"create_inference","model_id":ID,"cube_id":ID}),
+            json!({"op":"create_inference","model_id":ID,"cube_id":ID,"preprocess_run_id":null,"annotation_version_id":null}),
+            json!({"op":"create_inference","model_id":ID,"cube_id":ID,"annotation_version_id":ID}),
+        ] {
+            let (url, method, body) = parse_request(request).unwrap().destination(123).unwrap();
+            assert_eq!(url.path(), "/api/v1/models/inference-runs");
+            assert_eq!(method, Method::POST);
+            assert!(body.unwrap()["preprocess_run_id"].is_null());
+        }
+        for request in [
+            json!({"op":"create_inference","model_id":"../model","cube_id":ID}),
+            json!({"op":"create_inference","model_id":ID,"cube_id":"../cube"}),
+            json!({"op":"create_inference","model_id":ID,"cube_id":ID,"preprocess_run_id":"../run"}),
+            json!({"op":"create_inference","model_id":ID,"cube_id":ID,"annotation_version_id":"../annotation"}),
+            json!({"op":"create_inference","model_id":ID,"cube_id":ID,"path":"/other"}),
+        ] { assert!(parse_request(request).is_err()); }
     }
     #[test]
     fn new_ops_reject_proxy_fields_invalid_stages_and_all_id_traversal() {

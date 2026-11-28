@@ -48,10 +48,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS model_registry_one_production
 CREATE TABLE IF NOT EXISTS inference_run (
  id TEXT PRIMARY KEY, model_id TEXT NOT NULL REFERENCES model_registry(id),
  cube_id TEXT NOT NULL REFERENCES dataset_registry(id),
- preprocess_run_id TEXT NOT NULL REFERENCES preprocess_run(id),
- annotation_version_id TEXT NOT NULL REFERENCES annotation_version(id),
+ preprocess_run_id TEXT REFERENCES preprocess_run(id),
+ annotation_version_id TEXT REFERENCES annotation_version(id),
  status TEXT NOT NULL CHECK(status IN ('pending','running','succeeded','failed')),
- stats TEXT, error TEXT, created_at TEXT NOT NULL, finished_at TEXT
+ stats TEXT, error TEXT, created_at TEXT NOT NULL, finished_at TEXT,
+ CHECK(preprocess_run_id IS NULL OR annotation_version_id IS NOT NULL)
 );
 CREATE TABLE IF NOT EXISTS inference_artifact (
  id TEXT PRIMARY KEY, run_id TEXT NOT NULL REFERENCES inference_run(id),
@@ -96,6 +97,17 @@ def migrate(db):
             db.execute('INSERT INTO model_artifact_snapshot SELECT * FROM model_artifact')
             db.execute('DROP TABLE model_artifact')
             db.execute('ALTER TABLE model_artifact_snapshot RENAME TO model_artifact')
+        inference_columns = {row[1]: row[3] for row in db.execute('PRAGMA table_info(inference_run)')}
+        if inference_columns['preprocess_run_id'] or inference_columns['annotation_version_id']:
+            # inference_artifact references this parent. Do not rename the old
+            # parent (which would redirect child FKs) or discard any old row.
+            statement = next(s for s in DDL.split(';') if 'CREATE TABLE IF NOT EXISTS inference_run (' in s)
+            db.execute(statement.replace('inference_run (', 'inference_run_snapshot (', 1))
+            fields = ','.join(inference_columns)
+            db.execute(f'INSERT INTO inference_run_snapshot ({fields}) SELECT {fields} FROM inference_run')
+            db.execute('PRAGMA defer_foreign_keys=ON')
+            db.execute('DROP TABLE inference_run')
+            db.execute('ALTER TABLE inference_run_snapshot RENAME TO inference_run')
         schema = db.execute("SELECT sql FROM sqlite_master WHERE name='training_run'").fetchone()[0]
         if "'cancelled'" not in schema:
             statement = next(s for s in DDL.split(';') if 'CREATE TABLE IF NOT EXISTS training_run (' in s)

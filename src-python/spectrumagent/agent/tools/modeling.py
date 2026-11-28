@@ -416,12 +416,8 @@ class ModelingTools:
             return self.run_members(self.models.get(args['model_id'])['run_id'])
         if name == 'modeling.inference':
             row = self.inferences.get(args['run_id'])
-            with connect_database(self.database) as db:
-                annotation = db.execute('SELECT cube_id FROM annotation_version WHERE id=?', (row['annotation_version_id'],)).fetchone()
-                run = db.execute('SELECT cube_id,annotation_version_id FROM preprocess_run WHERE id=?', (row['preprocess_run_id'],)).fetchone()
-            if (annotation is None or run is None or annotation[0] != row['cube_id']
-                    or run[0] != row['cube_id'] or run[1] != row['annotation_version_id']):
-                raise DataError('SESSION_REFERENCE_INVALID', '推理输入引用不一致')
+            model = self.models.get(row['model_id'], calibration=True)
+            self.inferences.references(model, row['cube_id'], row['preprocess_run_id'], row['annotation_version_id'])
             return {row['cube_id']} | self.run_members(self.models.get(row['model_id'])['run_id'])
         return set()
 
@@ -638,6 +634,9 @@ class ModelingTools:
             result = {k: row.get(k) for k in ('id', 'status', 'model_id', 'cube_id',
                 'annotation_version_id', 'preprocess_run_id')}
             stats = row.get('stats') or {}
+            result['statistics_scope'] = stats.get('statistics_scope')
+            result['calibration_origin'] = stats.get('calibration_origin')
+            result['input_warning'] = stats.get('warning')
             for key in ('n_pixels', 'n_foreground', 'mean', 'std', 'min', 'max', 'pixel_mean',
                         'sample_prediction', 'out_of_domain_count', 'out_of_domain_fraction',
                         'out_of_range_count', 'below_range_count', 'above_range_count', 'low', 'high'):

@@ -169,8 +169,8 @@ class StageArguments(ToolInput):
 class InferArguments(ToolInput):
     model_id: Reference
     cube_id: Reference
-    preprocess_run_id: Reference
-    annotation_version_id: Reference
+    preprocess_run_id: Reference | None = None
+    annotation_version_id: Reference | None = None
 
 
 # ---------------------------------------------------------------- settings and paths
@@ -344,6 +344,8 @@ def register_operations(registry, *, datasets=None, recycle=None, runner=None, m
                 "n_foreground": int(stats.get("n_foreground", 0)),
                 "sample_prediction": finite(stats.get("sample_prediction")),
                 'calibration_origin': stats.get('calibration_origin', ''),
+                'statistics_scope': stats.get('statistics_scope'),
+                'input_warning': stats.get('warning'),
                 "out_of_domain_count": int(stats.get("out_of_domain_count", 0)),
                 "quality_label": stats.get("quality_label", "")}
 
@@ -396,7 +398,7 @@ def register_operations(registry, *, datasets=None, recycle=None, runner=None, m
         ("preprocess.run_export", RunExportArguments, "把已成功的预处理 run 导出为可下载产物；只返回产物数量与类型", run_export, runner is not None and paths is not None),
         ("modeling.register", RegisterArguments, "把成功的分类或回归训练 run 注册为模型；返回 model_id", register_model, models is not None),
         ("modeling.set_stage", StageArguments, "设置模型阶段：experiment、candidate、production；同目标只有一个生产模型", set_stage, models is not None),
-        ("modeling.infer", InferArguments, "对指定样品发起批量推理；须显式给出模型、cube、预处理 run 与标注版本", infer, inferences is not None),
+        ("modeling.infer", InferArguments, "对指定回归模型和cube推理。training_snapshot模型直接使用冻结参数，未标注新数据不需要预处理run或标注；不提供标注时统计整图（含背景），不能称为目标物含量。有明确标注可传其引用限定前景，额外run如提供仍须匹配；历史重建模型仍须两个引用", infer, inferences is not None),
         ("settings.llm_set", LlmSetArguments, "配置模型服务（base_url、API Key、model、temperature、max_tokens、timeout_ms、egress 开关）；开发期允许对话直接提供连接地址与密钥", llm_set, database is not None),
         ("projects.paths_get", ProjectArguments, "读取项目数据源与输出根的登记状态；只返回是否已配置，不返回路径", project_paths, database is not None),
     ]

@@ -45,12 +45,13 @@ export type RegisteredModel = { id: string; run_id: string; name: string; versio
   target_schema_id: string; data_fingerprint: string; metrics: Record<string, number | null>; quality_label: string | null;
   applicability: { y_min: number; y_max: number; n_features: number; wavelength_axis_sha256: string;
     recipe_version_id: string; target_schema_id: string; task: 'regression' } };
-export type InferenceBody = { model_id: string; cube_id: string; preprocess_run_id: string; annotation_version_id: string };
+export type InferenceBody = { model_id: string; cube_id: string; preprocess_run_id?: string | null; annotation_version_id?: string | null };
 export type InferenceStats = { n_pixels: number; n_foreground: number; mean: number; std: number; min: number; max: number;
   pixel_mean: number; sample_prediction: number; out_of_domain_count: number; out_of_domain_fraction: number;
   out_of_range_count: number; below_range_count: number; above_range_count: number; low: number; high: number;
   warning: string; quality_label: string | null; calibration_limitation: string; quantiles: Record<string, number>;
   calibration_origin: string; fit_scope: string | null; calibration_provenance_present: boolean;
+  statistics_scope: 'whole_image' | 'annotated_foreground'; input_source_hashes?: { header: string; data: string };
   residual_interval: { mean: number; sd: number | null; low: number | null; high: number | null } };
 export type InferenceResult = InferenceBody & { id: string; status: string; stats: InferenceStats | null; error: unknown };
 export type ConcentrationMap = { width: number; height: number; mime: 'image/png'; png_base64: string;
@@ -105,7 +106,9 @@ export function modelingClient(send: Send = invoke) {
     models: () => forward<RegisteredModel[]>({ op: 'list_models' }),
     stage: (id: string, stage: ModelStage) => forward<RegisteredModel>({ op: 'set_model_stage', id, stage }),
     infer: (body: InferenceBody) => forward<InferenceResult>({ op: 'create_inference',
-      model_id: body.model_id, cube_id: body.cube_id, preprocess_run_id: body.preprocess_run_id, annotation_version_id: body.annotation_version_id }),
+      model_id: body.model_id, cube_id: body.cube_id,
+      ...(body.preprocess_run_id == null ? {} : { preprocess_run_id: body.preprocess_run_id }),
+      ...(body.annotation_version_id == null ? {} : { annotation_version_id: body.annotation_version_id }) }),
     inference: (id: string) => forward<InferenceResult>({ op: 'get_inference', id }),
     inferenceMap: (id: string) => forward<ConcentrationMap>({ op: 'get_inference_map', id }),
     coefficients: (model_id: string) => forward<Coefficients>({ op: 'get_coefficients', model_id }),

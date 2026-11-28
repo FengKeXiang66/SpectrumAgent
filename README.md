@@ -181,6 +181,10 @@ cargo test --manifest-path '.\src-tauri\Cargo.toml' --lib --locked
 
 当前回归是一张原图一个样品，不支持多图同实物或批次分组；方案卡会明确说明。恢复会话读取原方案和已完成报告，不自动跳转页面或重新执行。参数表单不依赖外部模型服务，但自然语言规划仍需要可用模型；自动化测试使用脚本模型验证真实路由与工具执行，未据此宣称外部模型的规划质量。新固定 `regression_plan` IPC 为只读，修改与确认通过会话请求审计；需要重新构建桌面 Rust 外壳和 Python 后端才能在安装版启用。验证：`python -m pytest tests/test_regression_plan.py tests/test_regression_pipeline.py tests/test_preprocessing_editor.py tests/test_current_workflow.py -q`。
 
+训练快照回归模型支持未标注新数据：先将 ENVI 导入为未标注数据集，再在对话中指定模型和待预测数据调用 `modeling.infer`，只需 `model_id`、`cube_id`，不创建假标注、不要求先运行预处理。模型的预处理参数、波长轴、来源协议和训练身份仍严格校验。`modeling.inference` 可继续查询已有结果；回归推理不会进入分类推理草稿。桌面“批量含量推理”也提供“整图预测（无需标注／预处理）”。
+
+未提供标注时，`statistics_scope=whole_image`，像素响应与均值谱预测统计整图（包含背景），不能称为目标物含量或实物级准确率。明确提供真实保存的标注时，仍可限定已标前景；新快照模型无需为该掩膜再生成预处理 run。显式提供的 run／标注引用仍检查对应关系，错误引用不会被忽略。历史 `registration_reconstruction` 模型保留两个必填引用的执行约束。推理记录保存实际输入文件与模型快照校验值、统计范围和所用掩膜产物；旧推理结果和产物在可空引用数据库迁移中保留。详情及验收见 [回归新数据推理](docs/regression-new-data-inference.md)。
+
 训练方案会列出每幅图的编号、名称和类别像素数。建议先按编号指定测试图片，例如“将第2、4张设为测试，其余用于训练”，再仅用训练集进行 Study，比较预处理与潜变量并采用推荐方案，审阅后确认正式训练。没有测试集时可先做探索性训练集内寻优，不能执行正式训练测试；全量寻优后需要新的未参与选模数据才能报告独立测试成绩。未知实物编号时明确按原图分组，不把同一张图的像素拆到不同验证折。波长单位缺失或波段轴不一致时需先在对话中明确单位或采用共同网格建议。
 
 现有训练方案使用已复制的标注区域；修改画布不会改变已审阅的来源。若要采用新标注，先保存，再发送“使用当前已标注数据新建训练方案”。流程回归：`python -m pytest tests/test_workspace_training.py tests/test_data_intake.py tests/test_experiment_study.py -q`。
