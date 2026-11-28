@@ -28,7 +28,7 @@ import { regressionInputLabel } from './regression-plan-form';
 
 function entryText(entry: ChatEntry): string {
   switch (entry.event) {
-    case 'user': return entry.data.content.startsWith('应用推理参数 ') ? '应用推理参数微调' : regressionInputLabel(formInputLabel(labelCommandText(entry.data.content)));
+    case 'user': return entry.data.content.startsWith('提交实物评价定义 ') ? '声明实物评价并生成报告' : entry.data.content.startsWith('应用推理参数 ') ? '应用推理参数微调' : regressionInputLabel(formInputLabel(labelCommandText(entry.data.content)));
     case 'step': return `${entry.data.seq}. ${entry.data.tool} · ${entry.data.status} · ${scalarText(entry.data.result_summary)}`;
     case 'clarify': return entry.data.question;
     case 'human_check': return `${entry.data.reason} · ${entry.data.tool} · ${scalarText(entry.data.summary)}`;
@@ -111,7 +111,7 @@ export default function AssistantBar({session,onHistory,onViewer}:{
   const input = useRef<HTMLTextAreaElement>(null);
   const editDraft=(prompt:string)=>{setContent(prompt);input.current?.focus();};
   const prepareInference=(modelId:string)=>setContent('使用模型 '+modelId+' 进行推理，数据目录为');
-  const sendCommand=(text:string)=>{if(!state.busy)void request({content:text});};
+  const sendCommand=(text:string)=>{if(!state.busy)return request({content:text},{preserveComposer:text.startsWith('提交实物评价定义 ')});};
   async function pickPath(directory:boolean){
     setPickerError('');
     try{

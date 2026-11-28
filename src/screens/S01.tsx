@@ -90,7 +90,7 @@ export default function S01({ session }: { session: AssistantSession }) {
         <div className="work-panel">
         {tab==='history'&&(sessionId?<ExperimentHistory key={sessionId} sessionId={sessionId} enabled={enabled}
           onInfer={modelId=>session.setContent('使用模型 '+modelId+' 进行推理，数据目录为')}
-          onCommand={text=>{if(!state.busy)void session.request({content:text});}}
+          onCommand={text=>{if(!state.busy)return session.request({content:text},{preserveComposer:text.startsWith('提交实物评价定义 ')});}}
           onInferenceView={(result,fileIndex)=>openViewer({kind:'inference',result,fileIndex})}/>
           :<p role="status">{session.loading?'正在打开历史实验…':'会话尚未就绪。'}</p>)}
         {tab==='viewer'&&<WorkViewer key={sessionId} target={viewer?.owner===sessionId?viewer?.target??null:null}

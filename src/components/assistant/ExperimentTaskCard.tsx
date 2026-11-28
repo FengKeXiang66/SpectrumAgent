@@ -8,7 +8,7 @@ const labels = {queued:'等待执行',running:'正在执行',succeeded:'已完�
 const terminal = new Set(['succeeded','failed','cancelled','interrupted']);
 
 export default function ExperimentTaskCard({taskId,sessionId,enabled,onInfer,onHistory,onCommand,onInferenceView}: {
-  taskId:string;sessionId:string;enabled:boolean;onInfer?:(id:string)=>void;onHistory:()=>void;onCommand?:(content:string)=>void;onInferenceView?:OpenInferenceView;
+  taskId:string;sessionId:string;enabled:boolean;onInfer?:(id:string)=>void;onHistory:()=>void;onCommand?:(content:string)=>void|Promise<void>;onInferenceView?:OpenInferenceView;
 }) {
   const [task,setTask] = useState<ExperimentTask|null>(null);
   const [error,setError] = useState('');

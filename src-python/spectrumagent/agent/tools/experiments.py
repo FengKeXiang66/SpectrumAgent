@@ -144,6 +144,8 @@ class CompareExperiments(ToolInput):
 
 def register_experiments(registry, dialogue):
     registry.experiment_dialogue = dialogue
+    from ..sample_evaluation import register as register_sample_evaluation
+    register_sample_evaluation(registry, dialogue)
     from .inference import register_inference
     register_inference(registry,dialogue.inference)
     registry.register('experiments.history_list', HistoryPage,

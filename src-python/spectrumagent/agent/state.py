@@ -361,6 +361,10 @@ class StateMachine:
     def _dispatch(self, **kwargs):
         if self._workflow_enabled():
             if kwargs.get('content') and getattr(self.tools, 'data_intake', None):
+                from .sample_evaluation import route as sample_route
+                routed = sample_route(self, kwargs['content'])
+                if routed is not None:
+                    return routed
                 from .regression_plan import route as regression_route
                 routed = regression_route(self, kwargs['content'])
                 if routed is not None:

@@ -46,6 +46,7 @@ class ExperimentResults:
         scores = json.loads(self.read(record, 'metrics.json'))
         checks = record.get('split_checks') or {'status':'unavailable'}
         return {'experiment_id': record['experiment_id'], 'name': record['config']['name'],
+                'sample_evaluation': self.service.sample_evaluations.view(record['experiment_id']),
                 'metrics': scores, 'classes': record['config']['classes'],
                 'processed_axis': 'component' if any(step['op'] == 'pca' for step in record['config']['preprocessing']) else 'wavelength_nm',
                 'score_definition': record['score_definition'],
@@ -67,6 +68,10 @@ class ExperimentResults:
             raise DataError('EXPERIMENT_ARTIFACT_NOT_FOUND', '不支持的导出类型')
         record = self.record(owner, task_id, experiment_id=experiment_id)
         report = self.read(record, 'report.html').decode('utf-8')
+        from .sample_evaluation import report_html
+        sample_view = self.service.sample_evaluations.view(record['experiment_id'])
+        if sample_view['report']:
+            report = report.replace('</html>', report_html(sample_view, record['config']['classes'])+'</html>')
         if (record.get('split_checks') or {}).get('status') != 'completed':
             from html import escape
             report = report.replace('</html>', '<p>'+escape(split_check_text(record.get('split_checks')))+'</p></html>')
@@ -87,6 +92,8 @@ class ExperimentResults:
         with ZipFile(target, 'w', compression=ZIP_DEFLATED) as archive:
             archive.writestr('report.html', data)
             archive.writestr('result.json', json.dumps(record, ensure_ascii=False, indent=2))
+            if sample_view['report']:
+                archive.writestr('sample_evaluation.json', json.dumps(sample_view, ensure_ascii=False, indent=2))
             for name in FILES:
                 archive.write(self.service.artifact(record['experiment_id'], name), name)
         return target.getvalue() if output is None else None

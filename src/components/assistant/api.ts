@@ -21,6 +21,7 @@ export type ExperimentScore = {n:number;correct:number;accuracy:number;macro_pre
   confusion:number[][];confusion_labels:number[];macro_labels:number[];
   per_class:{label:number;name:string;support:number;precision:number|null;recall:number|null;f1:number|null}[]};
 export type ExperimentResult = {experiment_id:string;name:string;classes:Record<string,string>;processed_axis:'component'|'wavelength_nm';
+  sample_evaluation?:import('./sample-evaluation-form').SampleView;
   training_sampling?:{max_per_class:number;sampling_seed:number;class_counts:Record<string,{eligible:number;selected:number}>}|null;
   split_checks:{status:string;conflicts?:string[];duplicate_test_spectra?:number|null;physical_sample_independence?:string};
   split_check_text:string;split_warning?:string|null;

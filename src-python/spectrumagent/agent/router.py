@@ -169,6 +169,8 @@ def regression_inference(machine, content):
 
 
 def dispatch(machine, dialogue, content, workspace=None):
+    if re.search(r'实物(?:级)?(?:评价|报告|指标|结果|准确率|混淆矩阵)|逐实物', content):
+        return experiment(machine, content)
     if regression_inference(machine, content):
         return None
     # An explicitly opened recipe form establishes which shared draft a later

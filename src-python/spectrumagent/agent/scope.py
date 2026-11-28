@@ -51,6 +51,7 @@ POLICIES = {
     'preprocess.recipe_delete':'public','preprocess.recipe_restore':'public',
 }
 POLICIES.update({
+    'experiments.sample_evaluation_get':'global', 'experiments.sample_evaluation_update':'global',
     'modeling.regression_plan_get':'global', 'modeling.regression_plan_update':'global',
     'modeling.regression_plan_review':'global', 'modeling.regression_plan_execute':'global',
     'experiments.draft_get':'global', 'experiments.draft_update':'global', 'experiments.input_inspect':'global',

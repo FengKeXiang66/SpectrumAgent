@@ -10,7 +10,7 @@ const unit=(value:string|undefined)=>value==='center_pixel'?'中心像元':value
 const purpose=(value:string|undefined)=>value==='development_regression'?'开发复现核验':value==='independent_test'?'独立测试':value??'—';
 const checks:Record<string,string>={evaluation_unit:'评价单位',test_usage:'测试用途',classes:'类别映射',input_declarations:'输入与划分声明',source_fingerprints:'来源指纹',wavelength_axis:'波长轴',metric_definition:'指标口径'};
 
-export default function ExperimentHistory({sessionId,enabled,onInfer,onCommand,onInferenceView}:{sessionId:string;enabled:boolean;onInfer?:(id:string)=>void;onCommand?:(content:string)=>void;onInferenceView?:OpenInferenceView}) {
+export default function ExperimentHistory({sessionId,enabled,onInfer,onCommand,onInferenceView}:{sessionId:string;enabled:boolean;onInfer?:(id:string)=>void;onCommand?:(content:string)=>void|Promise<void>;onInferenceView?:OpenInferenceView}) {
   const [page,setPage]=useState<History|null>(null),[offset,setOffset]=useState(0),[refresh,setRefresh]=useState(0);
   const [selected,setSelected]=useState<ArchivedExperiment|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);
   const [pair,setPair]=useState<string[]>([]),[comparison,setComparison]=useState<ExperimentComparison|null>(null);

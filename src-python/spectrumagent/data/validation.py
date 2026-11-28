@@ -16,6 +16,13 @@ REGRESSION_PLAN_ERRORS = {
 }
 INPUT_ERRORS = PARAMETER_ERRORS | {'RECIPE_DRAFT_REVISION_CONFLICT','RECIPE_CONFIRMATION_STALE','RECIPE_DELETED','SOURCE_CHANGED','QUERY_SNAPSHOT_EXPIRED','QUERY_PAGE_REFERENCE_REQUIRED','QUERY_SCOPE_MISMATCH','PREPROCESS_REFERENCES_REQUIRED','PREPROCESS_RETRY_SCOPE_MISMATCH','RUN_NOT_FOUND'}
 INPUT_ERRORS |= REGRESSION_PLAN_ERRORS.keys()
+SAMPLE_EVALUATION_ERRORS = {
+    'SAMPLE_EVALUATION_INVALID': '实物定义或完整分组表不合法，请核对表单',
+    'SAMPLE_EVALUATION_UNAVAILABLE': '缺少可对应的原图来源、真值或预测；不能从NPZ批次分组猜测实物身份',
+    'SAMPLE_EVALUATION_CONFLICT': '实物定义已变化，请刷新后核对当前修订',
+    'SAMPLE_EVALUATION_STALE': '保存的预测或来源记录变化，请重新核对',
+}
+INPUT_ERRORS |= SAMPLE_EVALUATION_ERRORS.keys()
 _RULES = {
     'int_type': ('integer', '需要整数；不要传字符串或小数'),
     'float_type': ('number', '需要数值'),
@@ -93,6 +100,8 @@ def validation_error(code, error, allowed_fields=()):
 def safe_error(error):
     """Only curated diagnostics cross the tool boundary, as bounded scalars."""
     result = {'error': error.code}
+    if error.code in SAMPLE_EVALUATION_ERRORS:
+        return {**result, 'detail': SAMPLE_EVALUATION_ERRORS[error.code]}
     if error.code in REGRESSION_PLAN_ERRORS:
         return {**result, 'detail': REGRESSION_PLAN_ERRORS[error.code]}
     if error.code == 'RECIPE_DRAFT_REVISION_CONFLICT':

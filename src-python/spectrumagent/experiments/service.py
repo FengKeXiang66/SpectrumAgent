@@ -117,6 +117,8 @@ class ExperimentService:
         self.lock = Lock()
         from .archive import ExperimentArchive
         self.archive = ExperimentArchive(self)
+        from .sample_evaluation import SampleEvaluations
+        self.sample_evaluations = SampleEvaluations(self)
 
     def folder(self, identifier):
         try:

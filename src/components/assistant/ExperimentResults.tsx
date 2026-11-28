@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react';
 import { agent, type ExperimentResult } from './api';
 import { InferenceHistory } from './InferenceTaskCard';
 import type { OpenInferenceView } from './InferenceResultsView';
+import SampleEvaluationCard from './SampleEvaluationCard';
 
 const number=(value:number|null|undefined)=>value==null?'未定义':value.toFixed(6);
 const units:Record<string,string>={center_pixel:'中心像元',spectrum:'光谱样本'};
 type Reference = {taskId:string;experimentId?:never}|{taskId?:never;experimentId:string};
-type ResultProps = Reference & {sessionId:string;enabled:boolean;onInfer?:(modelId:string)=>void;onCommand?:(content:string)=>void;onInferenceView?:OpenInferenceView};
+type ResultProps = Reference & {sessionId:string;enabled:boolean;onInfer?:(modelId:string)=>void;onCommand?:(content:string)=>void|Promise<void>;onInferenceView?:OpenInferenceView};
 function Plot({sessionId,taskId,experimentId,name,enabled}:ResultProps & {name:string}) {
   const [image,setImage]=useState(''),[error,setError]=useState(''),[retry,setRetry]=useState(0);
   useEffect(()=>{
@@ -80,6 +81,8 @@ export default function ExperimentResults({sessionId,taskId,experimentId,enabled
       {score.confusion.map((row,i)=><tr key={score.confusion_labels[i]}><th>{result.classes[String(score.confusion_labels[i])]}</th>{row.map((value,j)=><td key={j} style={{backgroundColor:`rgba(30,130,210,${.04+.5*value/max})`}}>{value}</td>)}</tr>)}
     </tbody></table></div>
     <p>颜色按全矩阵最大计数缩放。</p>
+    {result.sample_evaluation&&<SampleEvaluationCard key={`${sessionId}:${result.experiment_id}`} initial={result.sample_evaluation}
+      experimentId={result.experiment_id} sessionId={sessionId} classes={result.classes} enabled={enabled} onCommand={onCommand}/>}
     <h4>各类别代表性曲线</h4>
     <div role="group" aria-label="光谱处理阶段"><button aria-pressed={stage==='input'} onClick={()=>setStage('input')}>输入光谱</button><button aria-pressed={stage==='processed'} onClick={()=>setStage('processed')}>处理后曲线</button></div>
     <p>横轴：{stage==='processed'&&result.processed_axis==='component'?'PCA主成分序号':'波长（nm）'}。按每个观测等权求均值，阴影为总体标准差（ddof=0）。</p>
