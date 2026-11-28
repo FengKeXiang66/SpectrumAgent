@@ -70,8 +70,17 @@ def dataset_references(text, catalog):
     return list(dict.fromkeys(by_ref[ref.upper()] for ref in refs))
 
 
+def regression_configuration(content):
+    text = unquoted(content)
+    return bool(re.search(r'(?:回归|PLS).*(?:方案|模板|参数)|(?:回归|训练)方案', text, re.I)
+                and not re.search(r'标注|画布|超像素|分割|扩散', text))
+
+
 def operations(content):
     text = unquoted(content).strip()
+    # Saving a numerical plan or setting its random seed is not a canvas action.
+    if regression_configuration(content):
+        return set()
     # Fail closed for questions/examples/negation rather than interpreting an
     # occurrence of "分割" as an instruction. Labels are parsed separately.
     if re.search(QUESTION, text):

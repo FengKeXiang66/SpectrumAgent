@@ -5,7 +5,17 @@ from .errors import DataError
 
 
 PARAMETER_ERRORS = frozenset({'TOOL_ARGS_INVALID', 'INVALID_OPERATOR_PARAMS'})
+REGRESSION_PLAN_ERRORS = {
+    'REGRESSION_PLAN_CONFLICT': '回归方案已变化或正在执行，请刷新后核对当前修订',
+    'REGRESSION_PLAN_INCOMPLETE': '回归方案参数尚未补齐，请填写表单或明确选择参数模板',
+    'REGRESSION_INPUT_NOT_CURRENT': '样品的标注或配方已变化，请完成当前预处理后重新审阅',
+    'REGRESSION_TARGETS_MISSING': '所选样品尚未全部填写连续量，请补齐测量值；未自动排除样品',
+    'REGRESSION_OPERATOR_UNSUPPORTED': '配方含当前严格回归不支持的算子或版本，请调整配方',
+    'REGRESSION_INPUT_CHANGED': '数据、标注、配方或测量值已变化，请重新审阅回归方案',
+    'REGRESSION_REVIEW_REQUIRED': '请先审阅当前回归方案，再确认训练；不会自动重试',
+}
 INPUT_ERRORS = PARAMETER_ERRORS | {'RECIPE_DRAFT_REVISION_CONFLICT','RECIPE_CONFIRMATION_STALE','RECIPE_DELETED','SOURCE_CHANGED','QUERY_SNAPSHOT_EXPIRED','QUERY_PAGE_REFERENCE_REQUIRED','QUERY_SCOPE_MISMATCH','PREPROCESS_REFERENCES_REQUIRED','PREPROCESS_RETRY_SCOPE_MISMATCH','RUN_NOT_FOUND'}
+INPUT_ERRORS |= REGRESSION_PLAN_ERRORS.keys()
 _RULES = {
     'int_type': ('integer', '需要整数；不要传字符串或小数'),
     'float_type': ('number', '需要数值'),
@@ -83,6 +93,8 @@ def validation_error(code, error, allowed_fields=()):
 def safe_error(error):
     """Only curated diagnostics cross the tool boundary, as bounded scalars."""
     result = {'error': error.code}
+    if error.code in REGRESSION_PLAN_ERRORS:
+        return {**result, 'detail': REGRESSION_PLAN_ERRORS[error.code]}
     if error.code == 'RECIPE_DRAFT_REVISION_CONFLICT':
         result['detail'] = '草稿已更新，请读取最新修订并合并；后续操作未执行'
         revision = error.payload.context.get('latest_revision')

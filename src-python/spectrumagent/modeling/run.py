@@ -153,6 +153,7 @@ class TrainingRuns:
                 params = json.loads(row["model_params"]) if row["model_params"] else {}
                 return {"run_id": row["id"], "status": row["status"], "task": row["task"], "target": row["target"],
                         "target_schema_id": row["target_schema_id"], "split_strategy": row["split_strategy"],
+                        "training_protocol": params.get("training_protocol", "sample_pls_full_fit_legacy"),
                         "cv_strategy": row["cv_strategy"], "cv_folds": row["cv_folds"],
                         "n_samples": params.get("n_samples", 0), "n_pixels_used": params.get("n_pixels_used", 0),
                         "selected_lv": params.get("selected_lv"), "best_lv": params.get("best_lv"),
@@ -177,7 +178,7 @@ class TrainingRuns:
         with connect_database(self.database) as db:
             db.row_factory = sqlite3.Row
             where = " WHERE EXISTS (SELECT 1 FROM json_each(training_run.cube_ids) WHERE value=?)" if cube_id else ""
-            rows = db.execute("SELECT training_run.id,status,task,training_run.created_at,c.run_id AS trained,"
+            rows = db.execute("SELECT training_run.id,status,task,training_run.created_at,model_params,c.run_id AS trained,"
                 "m.oa,m.kappa,json_extract(model_params,'$.selected_lv') AS lv FROM training_run "
                 "LEFT JOIN model_artifact c ON c.run_id=training_run.id AND c.kind='confusion' "
                 "LEFT JOIN (SELECT run_id,MAX(CASE WHEN name='oa' THEN value END) AS oa,"
@@ -187,6 +188,8 @@ class TrainingRuns:
             result = []
             for row in rows:
                 item = {key: row[key] for key in ("id", "status", "task", "created_at")}
+                if row["task"] == "regression":
+                    item["training_protocol"] = json.loads(row["model_params"] or "{}").get("training_protocol", "sample_pls_full_fit_legacy")
                 if row["trained"] is not None:
                     item.update({key: row[key] for key in ("oa", "kappa", "lv")})
                 result.append(item)
@@ -412,14 +415,17 @@ class TrainingRuns:
         return self.get(identifier)
 
     def regress(self, *, preprocess_run_ids, target_schema_id, task="regression", split_strategy="ks", test_ratio=1/3,
-                cv_strategy="kfold", cv_folds=5, seed=17, n_components=None, max_components=None):
-        from sklearn.cross_decomposition import PLSRegression
+                cv_strategy="kfold", cv_folds=5, seed=17, n_components=None, max_components=None,
+                _prepared_data=None, _run_id=None, _plan_evidence=None):
+        from .regression import PROTOCOL, select, final_fit, verify_snapshot
 
         if task != "regression" or split_strategy != "ks" or cv_strategy not in ("kfold", "loo"):
             raise ModelingError("INVALID_CV_PARAMS", "整样谱回归支持 KS 外层及 KFold/LOO 内层")
-        data = build_sample_training_set(self.registry, self.paths, preprocess_run_ids=preprocess_run_ids, target_schema_id=target_schema_id)
+        # A reviewed conversation plan supplies the freshly verified raw snapshot,
+        # so targets/files cannot change between confirmation and the actual fit.
+        data = _prepared_data if _prepared_data is not None else build_sample_training_set(self.registry, self.paths, preprocess_run_ids=preprocess_run_ids, target_schema_id=target_schema_id, apply_preprocessing=False)
         report = skipped_training_report()
-        X, y, groups = data["X"], data["y"], data["groups"]
+        X, y, groups = data["X_raw"], data["y"], data["groups"]
         split = kennard_stone(X, y, groups.tolist(), test_ratio=test_ratio)
         train, test = split["train_idx"], split["test_idx"]
         # One row per cube: group=cube is platform-derived. GroupKFold(K) is
@@ -433,11 +439,15 @@ class TrainingRuns:
         if maximum < 1 or n_components is not None and not 1 <= n_components <= maximum:
             raise ModelingError("INVALID_LV", "LV 必须不超过内层训练样品数减一及特征数", maximum=maximum)
         report["coverage_repaired"] = split["coverage_repaired"]
-        params = {"n_samples": len(y), "n_pixels_used": data["meta"]["n_pixels_used"],
+        params = {"training_protocol": PROTOCOL, "split_input": "raw_sample_mean",
+                  "split_distance": "KS candidate-pool z-score Euclidean; no fitted recipe",
+                  "n_samples": len(y), "n_pixels_used": data["meta"]["n_pixels_used"],
                   "excluded_without_target": data["meta"]["excluded_without_target"], "test_ratio": test_ratio,
                   "train_cube_ids": groups[train].tolist(), "test_cube_ids": groups[test].tolist(),
                   "annotation_version_ids": [c["annotation_version_id"] for c in data["meta"]["cubes"]]}
-        identifier = str(uuid4())
+        if _plan_evidence is not None:
+            params['reviewed_plan'] = _plan_evidence
+        identifier = _run_id or str(uuid4())
         with connect_database(self.database) as db:
             db.execute('BEGIN IMMEDIATE')
             assert_runs_available(db,data['preprocess_run_ids'])
@@ -455,41 +465,40 @@ class TrainingRuns:
         self._transition(identifier, "running", report=report)
         folder = self.paths.root / "models" / identifier
         try:
-            curve = []
-            for lv in range(1, maximum+1):
-                errors, fold_rmse = [], []
-                for fold in inner:
-                    a, b = train[fold["train_idx"]], train[fold["test_idx"]]
-                    model = PLSRegression(n_components=lv).fit(X[a], y[a])
-                    residual = model.predict(X[b]).reshape(-1)-y[b]
-                    errors.extend((residual**2).tolist())
-                    fold_rmse.append(float(np.sqrt(np.mean(residual**2))))
-                curve.append({"n_components": lv, "lv": lv, "rmsecv": float(np.sqrt(np.mean(errors))),
-                              "sd": float(np.std(fold_rmse, ddof=1)) if len(inner) > 1 else 0.})
-            best = min(curve, key=lambda point: (point["rmsecv"], point["n_components"]))
-            elbow = next(point["n_components"] for point in curve if point["rmsecv"] <= best["rmsecv"]+best["sd"])
-            selected = n_components if n_components is not None else best["n_components"]
-            model = PLSRegression(n_components=selected).fit(X[train], y[train])
-            calibration, prediction = model.predict(X[train]).reshape(-1), model.predict(X[test]).reshape(-1)
+            sweep, fold_states = select(data, train, inner, n_components=n_components, max_components=max_components)
+            selected = sweep['selected_lv']
+            model, snapshot, calibration, prediction = final_fit(data, train, test, selected, identifier)
+            if _plan_evidence is not None:
+                snapshot['reviewed_plan'] = _plan_evidence
             metrics = {**_regression(y[train], calibration, "calibration"), **_regression(y[test], prediction, "prediction")}
             if set(metrics) != set(REGRESSION_METRICS):
                 raise ModelingError("INVALID_METRIC_INPUT", "回归指标集合与七指标口径不符")
-            sweep = {"curve": curve, "best_lv": best["n_components"], "elbow_lv": elbow, "selected_lv": selected,
-                     "by_cv_min": best["n_components"], "by_elbow": elbow,
-                     "manual_override": n_components is not None, "definition": "pooled held-out RMSECV; elbow <= best RMSECV + one SD of best fold RMSE"}
             predicted = {int(i): float(v) for indices, values in ((train, calibration), (test, prediction)) for i, v in zip(indices, values)}
             predictions = [{"cube_id": str(groups[i]), "set": "calibration" if i in train else "prediction",
                             "y_true": float(y[i]), "y_pred": predicted[i], "residual": predicted[i]-float(y[i])} for i in range(len(y))]
             storage.mkdir(folder, parents=True)
-            artifacts = {"lv_sweep": sweep, "predictions": predictions,
-                         "model": {"kind": "PLSRegression", "selected_lv": selected, "coef": model.coef_.tolist(),
-                                   "intercept": model.intercept_.tolist(), "x_mean": model._x_mean.tolist()}}
+            replay = {'cube_ids': groups.tolist(), 'X_raw': X.tolist(), 'y': y.tolist(),
+                      'members': data['meta']['cubes'], 'preprocess_run_ids': data['preprocess_run_ids']}
+            split_manifest = {'training_protocol': PROTOCOL, 'split_input': params['split_input'],
+                              'split_distance': params['split_distance'], 'seed': seed, 'test_ratio': test_ratio,
+                              'coverage_repaired': split['coverage_repaired'], 'cv_strategy': cv_strategy,
+                              'train_cube_ids': groups[train].tolist(), 'test_cube_ids': groups[test].tolist(),
+                              'inner_folds': fold_states}
+            artifacts = {'lv_sweep': sweep, 'predictions': predictions, 'model': model,
+                         'calibration': snapshot, 'split': split_manifest, 'replay': replay}
             records = []
             for kind, value in artifacts.items():
                 raw = _json(value).encode("utf-8")
                 (storage.resolve_write(folder / (kind+".json"), kind="WRITE_BYTES")).write_bytes(raw)
                 records.append((str(uuid4()), identifier, kind, f"{identifier}/{kind}.json", hashlib.sha256(raw).hexdigest(), _now()))
-            params.update(selected_lv=selected, best_lv=best["n_components"], by_elbow=elbow)
+            # Read the exact persisted artifacts before declaring success.
+            saved = {kind: json.loads((folder / (kind+'.json')).read_text('utf-8')) for kind in artifacts}
+            verify_snapshot(saved['calibration'], saved['replay'], saved['predictions'], saved['model'],
+                            run_id=identifier, train_ids=params['train_cube_ids'], test_ids=params['test_cube_ids'])
+            params.update(selected_lv=selected, best_lv=sweep['best_lv'], by_elbow=sweep['elbow_lv'],
+                          calibration_sha256=next(r[4] for r in records if r[2] == 'calibration'))
+            report['preprocess_full_fit'] = {'acknowledged': False, 'affected_steps': [],
+                                             'reason': '预处理仅在内层训练折及最终外层训练样品拟合'}
             with connect_database(self.database) as db:
                 db.executemany("INSERT INTO metric VALUES (?,?,NULL,'sample',?,?,?)",
                                [(str(uuid4()), identifier, name, value, _now()) for name, value in metrics.items()])
@@ -497,11 +506,11 @@ class TrainingRuns:
                 db.execute("UPDATE training_run SET model_params=? WHERE id=?", (_json(params), identifier))
             self._transition(identifier, "succeeded", report=report)
         except Exception as error:
-            # Only remove the three filenames created by this run, no recursive
+            # Only remove the known filenames created by this run, no recursive
             # cleanup of an application/user directory on failure. The cause is
             # chained (never from None) so tracebacks keep the failing frame;
             # only the exception type reaches the message, never its text.
-            for kind in ("model", "predictions", "lv_sweep"):
+            for kind in ("model", "predictions", "lv_sweep", "calibration", "split", "replay"):
                 try:
                     storage.unlink(folder / (kind+".json"), missing_ok=True)
                 except OSError:
@@ -511,7 +520,8 @@ class TrainingRuns:
                     folder.rmdir()
                 except OSError:
                     pass
-            detail = f"PLS 拟合或产物持久化失败（{type(error).__name__}）"
-            self._transition(identifier, "failed", report=report, error={"error": "PLS_FIT_FAILED", "detail": detail})
-            raise ModelingError("PLS_FIT_FAILED", detail) from error
+            detail = error.payload.detail if isinstance(error, DataError) else f"PLS 拟合或产物持久化失败（{type(error).__name__}）"
+            code = error.code if isinstance(error, DataError) else "PLS_FIT_FAILED"
+            self._transition(identifier, "failed", report=report, error={"error": code, "detail": detail})
+            raise ModelingError(code, detail) from error
         return self.get(identifier)

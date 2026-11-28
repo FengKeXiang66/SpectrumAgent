@@ -22,6 +22,7 @@ READ_TOOLS = {"datasets.list", "datasets.resolve", "datasets.describe", "annotat
 READ_TOOLS.add('preprocess.draft_get')
 READ_TOOLS.update({'preprocess.runs','preprocess.operators','modeling.targets','ui.show'})
 READ_TOOLS.add('modeling.classification_result')
+READ_TOOLS.add('modeling.regression_plan_get')
 RECOVERABLE = {"DRAFT_REVISION_CONFLICT", "SUPERPIXELS_REQUIRED", "LABEL_NOT_FOUND", "LABEL_REMOVED", "GESTURE_NOT_FOUND",
                "GESTURE_EXPIRED", "GESTURE_NOT_CURRENT", "CANDIDATE_STALE", "SEGMENTATION_STALE", "CANDIDATE_NOT_FOUND", "ANNOTATION_VERSION_REQUIRED"}
 
@@ -455,7 +456,8 @@ def generate(machine, *, content=None, workspace=None, continuation=None, decisi
                         if call.name not in {tool["function"]["name"] for tool in offered_tools}:
                             machine.tools.resolve(call.name)  # work scope still rejects forged global/unknown calls
                             raise DataError("TOOL_NOT_FOUND", "工具未在当前会话中提供")
-                        arguments = machine.tools.validate(call.name, call.arguments_json).model_dump(mode="json")
+                        arguments = machine.tools.validate(call.name, call.arguments_json).model_dump(
+                            mode="json", exclude_unset=call.name == 'modeling.regression_plan_update')
                         arguments = memory.resolve_arguments(state, call.name, arguments)
                         calls.append({"id": call.id, "name": call.name, "arguments": arguments})
                     except DataError as error:

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import InferenceDraftCard, { inferenceDraft, type InferenceDraft } from './InferenceDraftCard';
 import { open } from '@tauri-apps/plugin-dialog';
 import { scalarText, friendlyError, type ChatEntry, type PendingCheck, type Scalars } from './sse.ts';
@@ -23,10 +23,12 @@ import DataIntakeCard from './DataIntakeCard';
 import { labelCommandText } from './label-names.ts';
 import { formInputLabel, type EditorKind } from './preprocessing-form';
 import PreprocessingEditorCard from './PreprocessingEditorCard';
+import RegressionPlanCard from './RegressionPlanCard';
+import { regressionInputLabel } from './regression-plan-form';
 
 function entryText(entry: ChatEntry): string {
   switch (entry.event) {
-    case 'user': return entry.data.content.startsWith('应用推理参数 ') ? '应用推理参数微调' : formInputLabel(labelCommandText(entry.data.content));
+    case 'user': return entry.data.content.startsWith('应用推理参数 ') ? '应用推理参数微调' : regressionInputLabel(formInputLabel(labelCommandText(entry.data.content)));
     case 'step': return `${entry.data.seq}. ${entry.data.tool} · ${entry.data.status} · ${scalarText(entry.data.result_summary)}`;
     case 'clarify': return entry.data.question;
     case 'human_check': return `${entry.data.reason} · ${entry.data.tool} · ${scalarText(entry.data.summary)}`;
@@ -96,6 +98,16 @@ export default function AssistantBar({session,onHistory,onViewer}:{
   const showInference:OpenInferenceView=(result,fileIndex)=>onViewer({kind:'inference',result,fileIndex});
   const [pickerError,setPickerError] = useState('');
   const [editorKind, setEditorKind] = useState<EditorKind | null>(null);
+  const [regressionOpen, setRegressionOpen] = useState(false);
+  const regressionReceipt = useRef('');
+  useEffect(() => {
+    const entry = [...state.entries].reverse().find(item => item.event === 'step' && item.data.result_summary.regression_plan === true);
+    const key = `${session.active?.id}:${entry?.event === 'step' ? entry.data.seq : ''}`;
+    if (regressionReceipt.current !== key) {
+      regressionReceipt.current = key;
+      setRegressionOpen(!!entry);
+    }
+  }, [session.active?.id, state.entries]);
   const input = useRef<HTMLTextAreaElement>(null);
   const editDraft=(prompt:string)=>{setContent(prompt);input.current?.focus();};
   const prepareInference=(modelId:string)=>setContent('使用模型 '+modelId+' 进行推理，数据目录为');
@@ -121,8 +133,10 @@ export default function AssistantBar({session,onHistory,onViewer}:{
     <div className="work-actions" aria-label="对话预处理配置">
       <button disabled={!session.canSend || !!state.pending} onClick={() => setEditorKind('classification')}>分类预处理参数</button>
       <button disabled={!session.canSend || !!state.pending} onClick={() => setEditorKind('recipe')}>回归／高级配方参数</button>
+      <button disabled={!session.canSend || !!state.pending} onClick={() => setRegressionOpen(true)}>回归训练方案</button>
     </div>
     {editorKind && <PreprocessingEditorCard key={`${session.active?.id ?? 'new'}:${editorKind}`} session={session} kind={editorKind} onClose={() => setEditorKind(null)} />}
+    {regressionOpen && <RegressionPlanCard key={`regression:${session.active?.id ?? 'new'}`} session={session} onClose={() => setRegressionOpen(false)} />}
     {session.historyBefore!==null && <button disabled={!enabled} onClick={()=>void session.loadOlder()}>加载更早历史</button>}
     {(() => {
       // TASK-07b R2: step/error events leave the conversation flow. Steps fold

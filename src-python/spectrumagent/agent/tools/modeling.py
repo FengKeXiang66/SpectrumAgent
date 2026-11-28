@@ -281,7 +281,7 @@ def resolve_modeling_binding(*, arguments, versions, database, registry, engine,
 
 def summarize_training_run(row):
     result = {k: row.get(k) for k in ('run_id', 'status', 'task', 'cv_strategy', 'cv_folds',
-                                     'n_samples', 'n_pixels_used', 'selected_lv', 'best_lv', 'by_elbow')}
+                                     'n_samples', 'n_pixels_used', 'selected_lv', 'best_lv', 'by_elbow', 'training_protocol')}
     document = row.get('confusion') if isinstance(row.get('confusion'), dict) else {}
     scores = document.get('scores') or {}
     for scope in ('pixel', 'sample'):
@@ -597,7 +597,12 @@ class ModelingTools:
             right = self.training_summary(arguments.comparison_run_id)
             result = {**{f'left_{k}': v for k, v in left.items()}, **{f'right_{k}': v for k, v in right.items()},
                       'comparison_kind': 'observed_metrics_only',
+                      'same_training_protocol': left.get('training_protocol', left.get('evaluation_protocol')) == right.get('training_protocol', right.get('evaluation_protocol')),
+                      'same_task': left.get('task') == right.get('task'),
                       'same_members': self.run_members(arguments.run_id) == self.run_members(arguments.comparison_run_id)}
+            result['comparable'] = result['same_training_protocol'] and result['same_task'] and result['same_members']
+            if not result['same_training_protocol']:
+                result['comparison_limitation'] = '训练协议不同，仅分别展示指标，不能直接排名或认定改进。'
             return scalar_summary(result)
         if name in {'modeling.runs', 'modeling.registry'}:
             rows = self.training.list() if name == 'modeling.runs' else self.models.list()
@@ -607,7 +612,7 @@ class ModelingTools:
                       'truncated': arguments.offset + len(page) < len(rows)}
             for i, row in enumerate(page, 1):
                 # Untrusted display names do not bypass the path/serialized-object guard.
-                for key in ('id', 'status', 'task', 'run_id', 'version', 'stage', 'oa', 'kappa', 'lv'):
+                for key in ('id', 'status', 'task', 'run_id', 'version', 'stage', 'oa', 'kappa', 'lv', 'training_protocol'):
                     if key in row:
                         result[f'item_{i}_{key}'] = row[key]
                 if name == 'modeling.registry':

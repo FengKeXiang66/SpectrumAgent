@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { metricLabels, modeling, type Result, type Sweep } from '../components/modeling/api';
+import { metricLabels, modeling, regressionProtocolLabel, type Result, type Sweep, type RunRow } from '../components/modeling/api';
 import { failureMessage, regressionCharts } from '../components/modeling/chart';
 import RegressionCharts from '../components/modeling/RegressionCharts';
 import ClassificationResults from '../components/modeling/ClassificationResults';
@@ -8,7 +8,7 @@ import '../components/modeling/modeling.css';
 export default function S08({ runId, onOpen, onBackToList, onClose }: {
   runId: string | null; onOpen(id: string): void; onBackToList(): void; onClose(): void;
 }) {
-  const [runs, setRuns] = useState<{ id: string; task: string; status: string }[]>([]);
+  const [runs, setRuns] = useState<RunRow[]>([]);
   const [listLoading, setListLoading] = useState(true), [listError, setListError] = useState('');
   const [result, setResult] = useState<Result | null>(null), [sweep, setSweep] = useState<Sweep | null>(null);
   const [chartsRequested, setChartsRequested] = useState(false), [chartLoading, setChartLoading] = useState(false);
@@ -62,13 +62,14 @@ export default function S08({ runId, onOpen, onBackToList, onClose }: {
       {listError && <pre role="alert">{listError}</pre>}
       {!listLoading && !listError && (runs.length ? <table aria-label="训练运行记录">
         <thead><tr><th>运行 ID</th><th>任务</th><th>状态</th><th>操作</th></tr></thead>
-        <tbody>{runs.map(row => <tr key={row.id}><td>{row.id}</td><td>{row.task}</td><td>{row.status}</td>
+        <tbody>{runs.map(row => <tr key={row.id}><td>{row.id}</td><td>{row.task}{row.task === 'regression' && <p>{regressionProtocolLabel(row.training_protocol)}</p>}</td><td>{row.status}</td>
           <td><button onClick={() => onOpen(row.id)}>查看结果 {row.id}</button></td></tr>)}</tbody>
       </table> : <><p>暂无回归运行记录。请先在建模屏完成训练。</p><p>暂无分类运行记录。请先在建模屏完成训练。</p></>)}
     </section> : <>
       {runError && <pre role="alert">{runError}</pre>}
       {result?.task === 'classification' && <ClassificationResults result={result} />}
       {result && result.task !== 'classification' && <section aria-label="回归结果"><h3>回归结果 · {result.status}</h3><p>样品 {result.n_samples} 个；实际使用前景像素 {result.n_pixels_used} 个。</p>
+        <p>{regressionProtocolLabel(result.training_protocol)}。不同训练协议的成绩不能直接排名。</p>
         <p>交叉验证最小建议 LV：{result.best_lv ?? '不适用'}；使用 LV：{result.selected_lv ?? '不适用'}{sweep ? `；拐点法建议 LV：${sweep.elbow_lv}` : ''}</p>
         {result.quality_label && <strong role="status">{result.quality_label}</strong>}
         <dl>{Object.entries(metricLabels).map(([key, label]) => <div key={key}><dt>{label}</dt><dd>{result.metrics?.[key] ?? '不适用'}</dd></div>)}</dl>

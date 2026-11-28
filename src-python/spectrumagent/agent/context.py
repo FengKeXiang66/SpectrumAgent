@@ -281,7 +281,8 @@ def remember_user(state, content, workspace=None, last_tool=None, *, recent_roun
               ("preprocess", r"预处理|跑一下|(?:使用|采用|用)(?:默认|上述|这个|该)(?:配方|方案)"),
               ("compare", r"比较|对比"), ("modeling", modeling_words))
     requested = set(state.get("requested_stages") or ())
-    recipe_save=bool(state.get('recipe_editing') and '保存' in content and not re.search(r'标注',content))
+    from .authorization import regression_configuration
+    recipe_save=bool((state.get('recipe_editing') or regression_configuration(content)) and '保存' in content and not re.search(r'标注',content))
     goal_content=content.replace('保存','') if recipe_save else content
     if (re.search(r'预处理|(?:使用|采用|用)(?:默认|上述|这个|该)(?:配方|方案)',goal_content)
             and not re.search(r'标注(?!版本)|保存|训练|建模|查询|查看|展示|解释|不要|不用|先不|暂不|别|禁止',goal_content)):

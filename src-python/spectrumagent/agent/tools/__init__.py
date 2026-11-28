@@ -400,4 +400,7 @@ def build_registry(*, datasets=None, runner=None, comparison=None, database=None
     if catalogue_version == 2 and datasets is not None and sessions is not None and paths is not None:
         from ..data_intake import DatasetIntake
         registry.data_intake = DatasetIntake(datasets, sessions, runner)
+        if training is not None:
+            from ..regression_plan import register as register_regression_plans
+            register_regression_plans(registry, datasets=datasets, runner=runner, sessions=sessions, training=training)
     return registry

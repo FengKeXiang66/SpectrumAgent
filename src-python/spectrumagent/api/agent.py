@@ -181,6 +181,15 @@ def make_router(database, tools, llm_factory=None, runtime_info=None, *, session
         from spectrumagent.agent.preprocessing_editor import editor_view
         return editor_view(tools(), session_id, kind, cube_id)
 
+    @router.get('/sessions/{session_id}/regression-plan')
+    def regression_plan(session_id: UUIDText, request: Request):
+        queries(request, set())
+        binding = session_service.scope(session_id)
+        if binding['scope_kind'] != 'global':
+            from spectrumagent.data import DataError
+            raise DataError('SESSION_SCOPE_MISMATCH', '请进入全局会话配置回归方案')
+        return tools().regression_plans.view(session_id)
+
     @router.get('/sessions/{session_id}/experiments/{task_id}')
     def experiment_task(session_id: UUIDText, task_id: UUIDText):
         session_service.scope(session_id)

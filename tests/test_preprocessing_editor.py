@@ -224,8 +224,8 @@ def test_recipe_form_to_conversation_preprocessing_and_pls_regression(applicatio
         events = list(machine_for(application, sid, model).message(content=text))
         check = next((payload for kind, payload in events if kind == 'human_check'), None)
         if check:
-            # Training retains its existing explicit review/approval boundary.
-            assert name == 'modeling.regress'
+            # Training and inference retain their existing numerical review boundary.
+            assert name in {'modeling.regress', 'modeling.infer'}
             events += list(machine_for(application, sid, model).message(check_id=check['check_id'], decision='approve'))
         successes = [p['result_summary'] for kind, p in events if kind == 'step' and p['tool'] == name and p['status'] == 'ok']
         assert successes, events
@@ -247,3 +247,15 @@ def test_recipe_form_to_conversation_preprocessing_and_pls_regression(applicatio
     trained = call('modeling.regress', dict(preprocess_run_ids=runs, target_schema_id=schema['id'],
         cv_folds=2, n_components=1, max_components=1), '使用上述已处理样品和含量字段训练 PLS 回归，潜变量 1，训练内两折验证')
     assert trained['status'] == 'succeeded', trained
+    assert trained['training_protocol'] == 'sample_pls_foldwise_v1'
+    registered = call('modeling.register', dict(run_id=trained['run_id'], name='对话回归快照'),
+                      '把刚训练完成的回归结果注册为模型')
+    assert registered['training_protocol'] == 'sample_pls_foldwise_v1'
+    member = next(row for row in members if row['cube_id'] == cubes[0])
+    prediction = call('modeling.infer', dict(model_id=registered['model_id'], cube_id=cubes[0],
+        preprocess_run_id=member['run_id'], annotation_version_id=member['annotation_id']),
+        '使用刚注册的回归模型预测第一个样品')
+    assert prediction['status'] == 'succeeded', prediction
+    assert prediction['calibration_origin'] == 'training_snapshot'
+    checked = call('modeling.inference', dict(run_id=prediction['inference_run_id']), '查看刚完成的回归推理结果')
+    assert checked['status'] == 'succeeded', checked

@@ -52,7 +52,7 @@ export default function InferencePanel({ records, onClose }: { records: DatasetR
       <label>注册模型<select value={model} onChange={e => { setModel(e.target.value); setSelected({}); }}>
         <option value="">请选择</option>{models.map(row => <option key={row.id} value={row.id}>{row.name} · {stageLabels[row.stage]}</option>)}</select></label>
       {chosen && <p>固定训练量程 {chosen.applicability.y_min}–{chosen.applicability.y_max}；{chosen.quality_label}</p>}
-      <p>选择参与推理的样品，使用各样品当前的预处理结果。服务会核验配方与训练时一致。</p>
+      <p>选择待预测样品。预测使用模型保存的预处理参数，当前配方调整不会修改已归档模型。</p>
       {records.map(row => <label key={row.id}>{displayName(row)}<select value={selected[row.id] ?? ''} onChange={e => setSelected({ ...selected, [row.id]: e.target.value })}>
         <option value="">不参与</option>{(choices[row.id] ?? []).map(run => <option key={run.id} value={run.id}>使用当前处理结果</option>)}</select></label>)}
       <button disabled={!model || !Object.values(selected).some(Boolean)} onClick={() => void batch()}>开始批量推理</button>

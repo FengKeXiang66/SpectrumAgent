@@ -16,7 +16,7 @@ export type TrainBody = RegressionBody | ClassificationBody;
 export type Prediction = { cube_id: string; y_true: number; y_pred: number; residual: number; set: 'calibration' | 'prediction' };
 export type RegressionResult = { task?: 'regression'; run_id: string; status: string; n_samples: number; n_pixels_used: number; selected_lv: number | null;
   best_lv: number | null; metrics: Record<string, number | null>; quality_label: string | null; leak_report: unknown; error: unknown;
-  predictions?: Prediction[]; semi_quantitative?: boolean };
+  predictions?: Prediction[]; semi_quantitative?: boolean; training_protocol?: string };
 export type Sweep = { best_lv: number; elbow_lv: number; selected_lv: number; by_cv_min: number; by_elbow: number;
   manual_override: boolean; definition: string; curve: { n_components: number; rmsecv: number; sd: number }[] };
 export type ClassScore = { oa: number | null; kappa: number | null; aa: number | null; macro_f1: number | null;
@@ -36,12 +36,12 @@ export type ClassificationResult = Omit<RegressionResult, 'task' | 'metrics' | '
   task: 'classification'; metrics: Record<'pixel' | 'sample', { oa: number | null; kappa: number | null }>;
   confusion?: ClassConfusion; bands?: BandSelection; evaluation?: ClassificationEvaluation; by_cv_min: number | null; by_elbow: number | null; predictions?: never; quality_label?: null };
 export type Result = RegressionResult | ClassificationResult;
-export type RunRow = { id: string; task: string; status: string; oa?: number | null; kappa?: number | null; lv?: number | null };
+export type RunRow = { id: string; task: string; status: string; training_protocol?: string; oa?: number | null; kappa?: number | null; lv?: number | null };
 export type PreflightBody = { cube_ids: string[]; annotation_version_ids: string[]; preprocess_run_ids: string[];
   task: 'classification'; target: 'label'; cv_strategy: 'group_kfold' | 'random'; cv_folds: number; seed: number; evaluation_protocol?: 'nested_group_cv' | 'exploratory_group_cv' };
 export type ModelStage = 'experiment' | 'candidate' | 'production';
 export type RegisteredModel = { id: string; run_id: string; name: string; version: number; stage: ModelStage;
-  task?: 'classification' | 'regression'; evaluation_id?: string;
+  task?: 'classification' | 'regression'; evaluation_id?: string; training_protocol?: string;
   target_schema_id: string; data_fingerprint: string; metrics: Record<string, number | null>; quality_label: string | null;
   applicability: { y_min: number; y_max: number; n_features: number; wavelength_axis_sha256: string;
     recipe_version_id: string; target_schema_id: string; task: 'regression' } };
@@ -117,6 +117,11 @@ export function modelingClient(send: Send = invoke) {
 }
 export const modeling = modelingClient();
 export const metricLabels: Record<string, string> = { rmse: 'RMSEC', r2: 'R²C', rmsep: 'RMSEP', r2p: 'R²P', rpd: 'RPD', rer: 'RER', bias: '偏差' };
+export function regressionProtocolLabel(protocol?: string): string {
+  if (protocol === 'sample_pls_foldwise_v1') return '训练折内拟合 · 训练状态快照';
+  if (!protocol || protocol === 'sample_pls_full_fit_legacy') return '历史全量拟合 · 注册时重建';
+  return '其他训练协议，请核对记录';
+}
 
 export const stageLabels: Record<ModelStage, string> = { experiment: '实验', candidate: '候选', production: '生产' };
 export const inferenceWarning = '模型训练粒度＝样品均值谱；像素级预测为域外外推，仅表示含量空间分布趋势';

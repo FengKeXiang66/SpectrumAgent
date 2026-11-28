@@ -327,6 +327,7 @@ def register_operations(registry, *, datasets=None, recycle=None, runner=None, m
         row = models.register(arguments.run_id, arguments.name)
         return {"model_id": row["id"], "run_id": row.get("run_id", arguments.run_id),
                 "stage": row.get("stage", "experiment"), "version": row.get("version", 1),
+                **({'training_protocol': row['training_protocol']} if row.get('training_protocol') else {}),
                 "name_available": 1 if row.get("name") else 0}
 
     def set_stage(arguments):
@@ -342,6 +343,7 @@ def register_operations(registry, *, datasets=None, recycle=None, runner=None, m
                 "n_pixels": int(stats.get("n_pixels", 0)),
                 "n_foreground": int(stats.get("n_foreground", 0)),
                 "sample_prediction": finite(stats.get("sample_prediction")),
+                'calibration_origin': stats.get('calibration_origin', ''),
                 "out_of_domain_count": int(stats.get("out_of_domain_count", 0)),
                 "quality_label": stats.get("quality_label", "")}
 

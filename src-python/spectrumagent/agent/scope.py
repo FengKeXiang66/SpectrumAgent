@@ -51,6 +51,8 @@ POLICIES = {
     'preprocess.recipe_delete':'public','preprocess.recipe_restore':'public',
 }
 POLICIES.update({
+    'modeling.regression_plan_get':'global', 'modeling.regression_plan_update':'global',
+    'modeling.regression_plan_review':'global', 'modeling.regression_plan_execute':'global',
     'experiments.draft_get':'global', 'experiments.draft_update':'global', 'experiments.input_inspect':'global',
     'experiments.history_list':'global', 'experiments.history_select':'global', 'experiments.history_compare':'global',
     'experiments.inference_get':'global','experiments.inference_inspect':'global','experiments.inference_update':'global',
@@ -590,7 +592,7 @@ class ScopedToolRegistry:
     def invoke(self, name, arguments):
         if getattr(self, 'control', None) is not None:
             self.control.begin('tool')
-        raw=self.validate(name,arguments).model_dump(mode='json', exclude_unset=name.startswith('experiments.'))
+        raw=self.validate(name,arguments).model_dump(mode='json', exclude_unset=name.startswith('experiments.') or name == 'modeling.regression_plan_update')
         args=self.effective_arguments(name,raw)
         grant = self.authorize_annotation(name, args)
         self.check_preprocess_discovery(name,args)

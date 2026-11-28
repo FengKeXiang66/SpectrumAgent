@@ -1,4 +1,4 @@
-"""Versioned sample-PLS registration; reconstructed calibration is auditable, not historical proof."""
+"""Register frozen training snapshots; retain explicit legacy reconstruction."""
 import hashlib
 import json
 import sqlite3
@@ -68,6 +68,7 @@ class ModelRegistry:
                 "SELECT name,value FROM metric WHERE run_id=? AND scope='sample' AND fold_index IS NULL",
                 (result["run_id"],)))
         rpd = result["metrics"].get("rpd")
+        result['training_protocol'] = result['applicability'].get('training_protocol', 'sample_pls_full_fit_legacy')
         result["quality_label"] = "仅可做半定量" if rpd is not None and rpd < 2.5 else None
         return result
 
@@ -101,6 +102,12 @@ class ModelRegistry:
         artifacts = TrainingRuns(self.registry, self.paths)
         model = artifacts.artifact(run_id, "model")
         predictions = artifacts.artifact(run_id, "predictions")
+        from .regression import PROTOCOL
+        protocol = json.loads(run['model_params'] or '{}').get('training_protocol')
+        if protocol == PROTOCOL:
+            return self._register_snapshot(run, label, artifacts, model, predictions)
+        if protocol is not None:
+            raise ModelingError('MODEL_PROTOCOL_UNSUPPORTED', '未知回归训练协议，不能按历史格式重建')
         refs = json.loads(run["preprocess_run_ids"])
         if not refs:
             raise ModelingError("CALIBRATION_PROVENANCE_UNAVAILABLE", "注册标定缺少训练数据来源")
@@ -183,6 +190,44 @@ class ModelRegistry:
                        "applicability,calibration,stage,created_at) VALUES (?,?,?,?,?,?,?,?,'experiment',?)",
                        (identifier, run_id, label, version, run["target_schema_id"], data_fingerprint(triples),
                         encode(applicability), encode(calibration), now()))
+        return self.get(identifier)
+
+    def _register_snapshot(self, run, label, artifacts, model, predictions):
+        from .regression import PROTOCOL, verify_snapshot
+
+        params = json.loads(run['model_params'])
+        state = artifacts.artifact(run['id'], 'calibration')
+        replay = artifacts.artifact(run['id'], 'replay')
+        split = artifacts.artifact(run['id'], 'split')
+        with connect_database(self.database) as db:
+            digest = db.execute("SELECT sha256 FROM model_artifact WHERE run_id=? AND kind='calibration'",
+                                (run['id'],)).fetchone()
+        if digest is None or params.get('calibration_sha256') != digest[0]:
+            raise ModelingError('CALIBRATION_MISMATCH', '训练状态校验值与训练记录不一致')
+        verify_snapshot(state, replay, predictions, model, run_id=run['id'],
+                        train_ids=params['train_cube_ids'], test_ids=params['test_cube_ids'])
+        members = replay['members']
+        if (replay['cube_ids'] != json.loads(run['cube_ids'])
+                or [m['annotation_version_id'] for m in members] != json.loads(run['annotation_version_ids'])
+                or replay['preprocess_run_ids'] != json.loads(run['preprocess_run_ids'])
+                or split['training_protocol'] != PROTOCOL or split['split_input'] != 'raw_sample_mean'
+                or split['train_cube_ids'] != params['train_cube_ids']
+                or split['test_cube_ids'] != params['test_cube_ids']):
+            raise ModelingError('CALIBRATION_MISMATCH', '训练状态的样品、划分与训练记录不一致')
+        train_y = [row['y_true'] for row in predictions if row['set'] == 'calibration']
+        applicability = {'y_min': min(train_y), 'y_max': max(train_y), 'n_features': state['output_n_features'],
+                         'wavelength_axis_sha256': axis_sha256(state['wavelengths']),
+                         'recipe_version_id': min(state['recipe_version_ids']), 'target_schema_id': run['target_schema_id'],
+                         'task': 'regression', 'training_protocol': PROTOCOL}
+        triples = [(m['cube_id'], m['annotation_version_id'], m['recipe_version_id']) for m in members]
+        identifier = str(uuid4())
+        with connect_database(self.database, timeout=30) as db:
+            db.execute('BEGIN IMMEDIATE')
+            version = db.execute('SELECT COALESCE(MAX(version),0)+1 FROM model_registry WHERE name=?', (label,)).fetchone()[0]
+            db.execute("INSERT INTO model_registry (id,run_id,name,version,target_schema_id,data_fingerprint,"
+                       "applicability,calibration,stage,created_at) VALUES (?,?,?,?,?,?,?,?,'experiment',?)",
+                       (identifier, run['id'], label, version, run['target_schema_id'], data_fingerprint(triples),
+                        encode(applicability), encode(state), now()))
         return self.get(identifier)
 
     def set_stage(self, identifier, stage):

@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS metric (
 );
 CREATE TABLE IF NOT EXISTS model_artifact (
  id TEXT PRIMARY KEY, run_id TEXT NOT NULL REFERENCES training_run(id),
- kind TEXT NOT NULL CHECK(kind IN ('model','confusion','predictions','lv_sweep')),
+ kind TEXT NOT NULL CHECK(kind IN ('model','confusion','predictions','lv_sweep','calibration','split','replay')),
  relative_path TEXT NOT NULL, sha256 TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(run_id,kind)
 );
 CREATE TABLE IF NOT EXISTS sample_target (
@@ -87,6 +87,15 @@ def migrate(db):
         for statement in DDL.split(";"):
             if statement.strip():
                 db.execute(statement)
+        artifact_schema = db.execute("SELECT sql FROM sqlite_master WHERE name='model_artifact'").fetchone()[0]
+        if "'calibration'" not in artifact_schema:
+            # No table references artifact IDs. Preserve every historical row
+            # and the run FK while extending the finite artifact-kind allowlist.
+            statement = next(s for s in DDL.split(';') if 'CREATE TABLE IF NOT EXISTS model_artifact (' in s)
+            db.execute(statement.replace('model_artifact (', 'model_artifact_snapshot (', 1))
+            db.execute('INSERT INTO model_artifact_snapshot SELECT * FROM model_artifact')
+            db.execute('DROP TABLE model_artifact')
+            db.execute('ALTER TABLE model_artifact_snapshot RENAME TO model_artifact')
         schema = db.execute("SELECT sql FROM sqlite_master WHERE name='training_run'").fetchone()[0]
         if "'cancelled'" not in schema:
             statement = next(s for s in DDL.split(';') if 'CREATE TABLE IF NOT EXISTS training_run (' in s)

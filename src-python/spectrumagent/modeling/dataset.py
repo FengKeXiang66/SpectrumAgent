@@ -153,7 +153,7 @@ def build_training_set(registry, paths, *, cube_ids, annotation_version_ids, pre
                   annotation_version_ids=annotation_version_ids, preprocess_run_ids=preprocess_run_ids, target=target))
 
 
-def build_sample_training_set(registry, paths, *, preprocess_run_ids, target_schema_id):
+def build_sample_training_set(registry, paths, *, preprocess_run_ids, target_schema_id, apply_preprocessing=True):
     """One bounded sum/count per cube; snapshot indices, never live label ordering."""
     with connect_database(registry.database) as db:
         references = [db.execute("SELECT cube_id,annotation_version_id FROM preprocess_run WHERE id=?", (identifier,)).fetchone()
@@ -193,7 +193,12 @@ def build_sample_training_set(registry, paths, *, preprocess_run_ids, target_sch
             mask = labels[first:last] >= 0
             if bg_indices:
                 mask &= ~np.isin(labels[first:last], bg_indices)
-            total += block[mask].sum(axis=0, dtype=np.float64)
+            if apply_preprocessing:
+                total += block[mask].sum(axis=0, dtype=np.float64)
+            else:
+                # Match deployed sample predictions, independent of IO blocks.
+                for line, selected in zip(block, mask):
+                    total += line[selected].sum(axis=0, dtype=np.float64)
             count += int(mask.sum())
         if count == 0:
             raise ModelingError("NO_FOREGROUND_PIXELS", "版本中没有可用的已标前景像素", cube_id=cube)
@@ -201,6 +206,7 @@ def build_sample_training_set(registry, paths, *, preprocess_run_ids, target_sch
         assert_current_content(dataset, labels, index, row)
         cubes.append({"cube_id": cube, "n_pixels_used": count, "annotation_version_id": row["annotation"]["id"],
                       "input_fingerprint": row["run"]["input_fingerprint"], "pipeline": row["pipeline"],
+                      "recipe_version_id": row['run']['recipe_version_id'],
                       "source_hashes": {"header": file_sha256(Path(dataset.header_path)), "data": file_sha256(Path(dataset.data_path))}})
     if len({pipeline_identity(row["pipeline"])[0] for row in rows}) != 1:
         raise ModelingError("RECIPE_MISMATCH", "整样谱建模须采用相同配方步骤和参数")
@@ -211,10 +217,11 @@ def build_sample_training_set(registry, paths, *, preprocess_run_ids, target_sch
     if len({axis.tobytes() for axis in axes}) != 1:
         raise ModelingError("WAVELENGTH_AXIS_MISMATCH", "各数据集波长轴刻度须一致")
     # Fit-on-apply across sample means is explicitly retained in leak_report.
-    processed = builtin_registry().run(raw, rows[0]["pipeline"], wavelengths=axes[0] if axes[0].size else None).spectra
+    processed = (builtin_registry().run(raw, rows[0]["pipeline"], wavelengths=axes[0] if axes[0].size else None).spectra
+                 if apply_preprocessing else raw)
     if not np.isfinite(processed).all():
         raise ModelingError("NON_FINITE_SPECTRA", "整样谱预处理含非有限值")
-    return {"X": processed, "X_raw": raw, "y": np.asarray([row["y"] for row in rows], dtype=float),
+    return {"X": processed, "X_raw": raw, "wavelengths": axes[0], "y": np.asarray([row["y"] for row in rows], dtype=float),
             "groups": np.asarray([row["cube_id"] for row in rows]), "target": rows[0]["target"],
             "preprocess_run_ids": [row["run"]["id"] for row in rows],
             "meta": {"cubes": cubes, "n_samples": len(rows), "n_pixels_used": sum(c["n_pixels_used"] for c in cubes),

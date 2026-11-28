@@ -1,7 +1,6 @@
-"""Bounded pixel inference with frozen, registration-reconstructed calibration."""
+"""Bounded inference with frozen training or explicit legacy calibration."""
 from spectrumagent.storage import guard as storage
 import base64
-from copy import deepcopy
 import json
 from pathlib import PurePosixPath
 import sqlite3
@@ -15,12 +14,10 @@ from backend.database import connect_database
 from spectrumagent.annotation.engines.superpixels import ReadableRows, row_blocks
 from spectrumagent.data import DataError
 from spectrumagent.display.falsecolor import concentration_colors, CONCENTRATION_PALETTE
-from spectrumagent.preprocess import builtin_registry
-from spectrumagent.preprocess.operators.pca import transform
-from spectrumagent.preprocess.registry import validate
 from spectrumagent.preprocess.run import file_sha256
 from . import ModelingError
-from .registry import ModelRegistry, axis_sha256, encode, missing, normalized_pipeline, now
+from .registry import ModelRegistry, axis_sha256, encode, missing, now
+from .regression import predict
 
 WARNING = "模型训练粒度＝样品均值谱；像素级预测为域外外推，仅表示含量空间分布趋势"
 
@@ -36,84 +33,12 @@ def finite(value):
 
 
 def apply_with_calibration(calibration, pipeline, block):
-    """Never call a fit entry for any of the five cross-sample fitted operators.
-
-    Fixed one-row matrix transforms also avoid BLAS batch-size rounding changes.
-    """
-    result = finite(np.asarray(block, dtype=np.float64))
-    if result.ndim != 2 or 0 in result.shape:
-        raise ModelingError("FEATURE_COUNT_MISMATCH", "需要非空二维像素谱")
-    operators = builtin_registry()
+    from spectrumagent.preprocess.fitted import transform
     try:
-        expected = normalized_pipeline(pipeline)
-        if (calibration["protocol"] != 1 or calibration["pipeline"] != expected
-                or result.shape[1] != calibration["input_n_features"]
-                or len(calibration["steps"]) != len(expected["steps"])):
-            raise mismatch()
-        for step, saved in zip(operators.parse_pipeline(pipeline).steps, calibration["steps"]):
-            entry = operators.resolve(step.op, step.version)
-            params = json.loads(encode(validate(entry.model, step.params, "params").model_dump()))
-            if any(saved.get(key) != value for key, value in
-                   (("op", step.op), ("version", step.version), ("params", params))):
-                raise mismatch()
-            meta = saved["meta"]
-            if step.op == "standardize" and params["method"] in ("standard", "minmax"):
-                fitted = meta["fitted"]
-                if len(fitted) != result.shape[1]:
-                    raise mismatch()
-                if params["method"] == "standard":
-                    offset = np.asarray([row["mean"] for row in fitted])
-                    scale = np.asarray([row["std"] for row in fitted])
-                else:
-                    offset = np.asarray([row["min"] for row in fitted])
-                    scale = np.asarray([row["max"] for row in fitted]) - offset
-                if not np.isfinite(offset).all() or not np.isfinite(scale).all() or np.any(scale < 0):
-                    raise mismatch()
-                zero = scale == 0
-                if zero.any() and params["zero_std"] == "error":
-                    raise mismatch()
-                with np.errstate(divide="ignore", invalid="ignore"):
-                    result = (result - offset) / scale
-                if zero.any():
-                    result[:, zero] = 0.0 if params["zero_std"] == "zeros" else np.nan
-            elif step.op in ("pca", "mnf", "ica"):
-                mean, loadings = np.asarray(meta["mean"]), np.asarray(meta["loadings"])
-                if (mean.shape != (result.shape[1],) or loadings.ndim != 2
-                        or loadings.shape[0] != result.shape[1] or loadings.shape[1] == 0
-                        or not np.isfinite(mean).all() or not np.isfinite(loadings).all()):
-                    raise mismatch()
-                result = np.concatenate([transform(row[None, :], mean, loadings) for row in result])
-            else:
-                # These entries operate per spectrum; fixed row calls make the
-                # numerical result independent of the outer IO block size.
-                outputs = []
-                for row in result:
-                    output = entry.impl(row[None, :], deepcopy(params))
-                    outputs.append(output[0] if isinstance(output, tuple) else output)
-                result = np.concatenate(outputs)
-            if result.ndim != 2 or result.shape[0] != len(block) or 0 in result.shape:
-                raise mismatch()
-            finite(result)
-    except ModelingError:
-        raise
-    except (DataError, KeyError, TypeError, ValueError, IndexError) as error:
-        raise mismatch() from error
-    return result
+        return transform(calibration, pipeline, block)
+    except DataError as error:
+        raise ModelingError(error.code, error.payload.detail) from error
 
-
-def predict(x, model):
-    """PLS 1.9.1 formula, flattened and independent of IO block dimensions."""
-    try:
-        x = finite(np.asarray(x, dtype=np.float64))
-        coef, mean, intercept = (np.asarray(model[key], dtype=np.float64)
-                                 for key in ("coef", "x_mean", "intercept"))
-        if (x.ndim != 2 or coef.shape != (1, x.shape[1])
-                or mean.shape != (x.shape[1],) or intercept.shape != (1,)):
-            raise ModelingError("FEATURE_COUNT_MISMATCH", "像素特征数与模型不一致")
-        finite(coef); finite(mean); finite(intercept)
-        return finite(np.asarray([((row - mean) @ coef.T + intercept).ravel()[0] for row in x])).ravel()
-    except (KeyError, TypeError, ValueError) as error:
-        raise ModelingError("INVALID_MODEL_ARTIFACT", "模型系数产物无效") from error
 
 
 def png_rgb(rgb):
@@ -182,7 +107,14 @@ class InferenceRuns:
             if pipeline is None:
                 raise ModelingError('RECIPE_MISMATCH','模型缺少已训练的预处理定义')
             provenance = cal.get("provenance")
-            if provenance is not None:
+            if cal.get('origin') == 'training_snapshot':
+                from .regression import check_provenance, PROTOCOL
+                check_provenance(cal)
+                if app.get('training_protocol') != PROTOCOL or cal['training_run_id'] != model['run_id']:
+                    raise ModelingError('CALIBRATION_MISMATCH', '模型与训练快照的协议或来源不一致')
+            elif app.get('training_protocol') is not None:
+                raise ModelingError('CALIBRATION_MISMATCH', '新协议模型缺少训练快照，拒绝使用重建状态')
+            elif provenance is not None:
                 required = {"fit_scope", "fit_sample_count", "fitted_on", "source_preprocess_run_ids",
                             "source_input_fingerprints", "report_fit_scope", "distinct_fit_populations",
                             "non_interchangeable_reason"}

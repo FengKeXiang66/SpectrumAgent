@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { displayName, type DatasetReference } from '../components/datasets/types';
-import { metricLabels, modeling, type Result, type RunRow } from '../components/modeling/api';
+import { metricLabels, modeling, regressionProtocolLabel, type Result, type RunRow } from '../components/modeling/api';
 import ClassificationResults from '../components/modeling/ClassificationResults';
 import { failureMessage } from '../components/modeling/chart';
 import { preprocessing } from '../components/preprocess/api';
@@ -58,13 +58,14 @@ export default function S09({ records }: { records: DatasetReference[] }) {
       {!loading && !error && (visibleRuns.length ? <table aria-label="回归台账列表">
         <thead><tr><th>运行 ID</th><th>task</th><th>status</th></tr></thead>
         <tbody>{visibleRuns.map(row => <tr key={row.id}>
-          <td><button title={row.id} onClick={() => setSelectedRun(row.id)}>{row.id.slice(0, 8)}</button></td><td>{row.task}</td><td>{row.status}</td>
+          <td><button title={row.id} onClick={() => setSelectedRun(row.id)}>{row.id.slice(0, 8)}</button></td><td>{row.task}{row.task === 'regression' && <p>{regressionProtocolLabel(row.training_protocol)}</p>}</td><td>{row.status}</td>
         </tr>)}</tbody>
       </table> : <p>{task === 'regression' ? '暂无回归运行记录。请先在建模屏完成训练。' : '暂无运行记录。请先在建模屏完成训练。'}</p>)}
       {detailLoading && <p role="status">正在读取运行详情…</p>}
       {detailError && <pre role="alert">{detailError}</pre>}
       {result && result.task !== 'classification' && <section aria-label="运行详情"><h3>运行详情 · {(result.run_id ?? selectedRun).slice(0, 8)}</h3>
         <p>样品 {result.n_samples ?? '不适用'} 个；实际使用前景像素 {result.n_pixels_used ?? '不适用'} 个。</p>
+        <p>{regressionProtocolLabel(result.training_protocol)}。不同训练协议的成绩不能直接排名。</p>
         <p>使用 LV：{result.selected_lv ?? '不适用'}；交叉验证最小建议 LV：{result.best_lv ?? '不适用'}</p>
         {result.quality_label && <strong role="status">{result.quality_label}</strong>}
         <dl>{Object.entries(result.metrics ?? {}).map(([key, value]) => <div key={key}><dt>{metricLabels[key] ?? key}</dt><dd>{value ?? '不适用'}</dd></div>)}</dl>
