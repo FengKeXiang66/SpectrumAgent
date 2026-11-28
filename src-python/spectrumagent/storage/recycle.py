@@ -300,6 +300,9 @@ class RecycleStore:
         with connect_database(self.database) as db:
             db.execute('BEGIN')
             selected = self._selected(db, cube)
+            from spectrumagent import projects
+            for run in selected.get('training_run', []):
+                projects.require(db, 'training', run['id'])
         roots = set()
         for row in selected['annotation_version']:
             ref = relative(row['snapshot_ref'])
@@ -341,6 +344,7 @@ class RecycleStore:
         return {'classification': {**counts, 'exported_files_retained': bool(counts['classification_export'])}} if any(counts.values()) else {}
 
     def preview(self, cube_id):
+        self.registry.get(str(cube_id))
         cube = str(UUID(str(cube_id)))
         self.coordinator.check(cube)
         with self.registry.lock:
@@ -372,6 +376,7 @@ class RecycleStore:
         return target
 
     def delete(self, cube_id, *, confirm, preview_token):
+        self.registry.get(str(cube_id))
         """Delete rows first, then owned product directories through the guard.
 
         The row transaction commits before any file is removed. A crash in the
@@ -566,6 +571,10 @@ class RecycleStore:
             db.execute('BEGIN')
             cubes, selected, linked_runs = self._selected_batch(db, cubes)
         roots = set()
+        from spectrumagent.projects import require
+        with connect_database(self.database) as db:
+            for member in selected['dataset_registry']:
+                require(db, 'cube', member['id'])
         projects = {r['id']: r['project_id'] for r in selected['dataset_registry']}
         for row in selected['annotation_version']:
             ref = relative(row['snapshot_ref'])
@@ -616,6 +625,8 @@ class RecycleStore:
                 'training_runs': sum(item['table_name'] == 'training_run' for item in plan['rows'])}
 
     def preview_batch(self, cube_ids):
+        for cube in cube_ids:
+            self.registry.get(str(cube))
         self.coordinator.check()
         with self.registry.lock:
             plan = self._plan_batch(cube_ids)
@@ -648,6 +659,8 @@ class RecycleStore:
             raise failure('DELETE_PREVIEW_EXPIRED', '删除预览已失效，请重新查看影响清单并确认') from error
 
     def delete_batch(self, cube_ids, *, confirm, preview_token):
+        for cube in cube_ids:
+            self.registry.get(str(cube))
         self.coordinator.check()
         if confirm is not True:
             raise failure('DELETE_CONFIRMATION_REQUIRED', '请在界面确认影响清单后永久删除')

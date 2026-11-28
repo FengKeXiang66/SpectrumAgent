@@ -120,6 +120,9 @@ class AgentStore:
     def session(self, identifier):
         with connect_database(self.database) as db:
             rows = _rows(db, "SELECT * FROM agent_session WHERE id=?", (identifier,))
+            if rows and rows[0].get('project_id'):
+                from spectrumagent.projects import require_project
+                require_project(db, rows[0]['project_id'])
         if not rows:
             raise _failure("SESSION_NOT_FOUND", "会话不存在", 404)
         return rows[0]
@@ -132,8 +135,14 @@ class AgentStore:
                 error.status_code = 409
                 raise
             identifier, timestamp = str(uuid4()), _now()
-            db.execute("INSERT INTO agent_session (id,title,skill_version_id,created_at,updated_at) VALUES (?,?,?,?,?)",
-                       (identifier, "", version["id"], timestamp, timestamp))
+            columns = {r[1] for r in db.execute('PRAGMA table_info(agent_session)')}
+            if 'project_id' in columns:
+                from spectrumagent.projects import current
+                db.execute("INSERT INTO agent_session (id,title,skill_version_id,created_at,updated_at,project_id) VALUES (?,?,?,?,?,?)",
+                           (identifier, "", version["id"], timestamp, timestamp, current(db)))
+            else:
+                db.execute("INSERT INTO agent_session (id,title,skill_version_id,created_at,updated_at) VALUES (?,?,?,?,?)",
+                           (identifier, "", version["id"], timestamp, timestamp))
             if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='agent_session_scope'").fetchone():
                 db.execute("INSERT INTO agent_session_scope(session_id,scope_kind,member_count) VALUES (?,'global',0)", (identifier,))
         return {"id": identifier, "title": "", "skill_version_id": version["id"], "created_at": timestamp}
@@ -315,7 +324,44 @@ class StateMachine:
         return any(tool["function"]["name"] == "annotations.prepare"
                    for tool in self.tools.snapshot())
 
-    def message(self, *, content=None, check_id=None, decision=None, plan_id=None, action=None, step_ref=None, reason=None, workspace=None):
+    def message(self, **kwargs):
+        from spectrumagent.projects import bind, session_project
+        project = session_project(self.store.database, self.session_id)
+        from . import step_plan
+        dialogue = getattr(self.tools, 'experiment_dialogue', None)
+        busy = bool(self.store.pending(self.session_id) or dialogue and (dialogue.tasks.active(self.session_id) or dialogue.study.has_active(self.session_id)))
+        with bind(project):
+            before = dialogue._read(self.session_id) if dialogue else None
+            content, record = step_plan.prepare(self.store.database, self.session_id, kwargs.get('content'), busy)
+            if kwargs.get('content') is not None:
+                kwargs['content'] = content
+            events = self._project_message(**kwargs)
+        def stream():
+            while True:
+                with bind(project):
+                    try:
+                        item = next(events)
+                    except StopIteration:
+                        return
+                if record and item[0] == 'clarify' and dialogue:
+                    text = record['document']['steps'][record['step']]
+                    after = dialogue._read(self.session_id)
+                    if (after and after['revision'] > (before or {}).get('revision',0)
+                            and re.search(r'设为.*测试|只.*草稿|预处理设为|保存参数',text)):
+                        item = ('done', {**item[1], 'content':item[1].get('question',item[1].get('content','')),
+                                         'request_status':'finished','reply_status':'replied'})
+                if item[0] == 'done' and record:
+                    step_plan.wait(self.store.database, self.session_id, record)
+                    item = (item[0], {**item[1], 'content': item[1].get('content','')+f"\n\n当前第{record['step']+1}步的处理结果已报告。等待你确认后进入下一步。",
+                                     'step_plan': dict(step=record['step']+1, total=len(record['document']['steps']), waiting=True, revision=record['revision'])})
+                yield item
+        return stream()
+
+    def _project_message(self, *, content=None, check_id=None, decision=None, plan_id=None, action=None, step_ref=None, reason=None, workspace=None):
+        service = getattr(self.tools, 'service', None)
+        pending = self.store.pending(self.session_id) if service else None
+        if pending and service.pending_view(pending).get('blocked') and (decision == 'approve' or plan_id is not None and action != 'reject'):
+            raise _failure('PROJECT_RECONFIRM_REQUIRED', '原确认引用已失效，请拒绝旧操作后重新建立并审阅方案', 409)
         if hasattr(self.tools, 'check_workspace'):
             self.tools.check_workspace(workspace)
         if plan_id is not None and content is None and check_id is None and decision is None:

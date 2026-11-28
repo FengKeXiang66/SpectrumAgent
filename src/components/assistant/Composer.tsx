@@ -20,7 +20,7 @@ export default function Composer({ session, screen, inputRef, onExpand }: {
         if (event.key.toLowerCase() === 'k') event.preventDefault();
       }}>
       <span className="agent-composer-icon" aria-hidden="true">◈</span>
-      <span className="composer-context" title={`画布：${context} · 视图「${SCREEN_TITLE[screen]}」`}><SessionScope session={session} /> · 画布：{context} · 视图「{SCREEN_TITLE[screen]}」</span>
+      <span className="composer-context" title={`画布：${context} · 视图「${SCREEN_TITLE[screen]}」`}><SessionScope session={session} compact /> · 画布：{context} · 视图「{SCREEN_TITLE[screen]}」</span>
       <label htmlFor="composer-message">对话</label>
       <MessageInput inputRef={inputRef} id="composer-message" session={session}/>
       <div className="assistant-compose-actions">

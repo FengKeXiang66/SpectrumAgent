@@ -11,6 +11,7 @@ from typing import Annotated, Callable, Literal
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, ValidationError, model_validator
 
 from backend.database import connect_database
+from spectrumagent.projects import current as project_current
 from spectrumagent.data import DataError
 from spectrumagent.data.validation import safe_error, validation_error, PARAMETER_ERRORS
 from spectrumagent.preprocess.submissions import RESERVED_INPUT_FIELDS
@@ -314,7 +315,7 @@ def build_registry(*, datasets=None, runner=None, comparison=None, database=None
 
     def list_datasets(arguments):
         with connect_database(datasets.database) as db:
-            ids = [row[0] for row in db.execute("SELECT id FROM dataset_registry ORDER BY id")]
+            ids = [row[0] for row in db.execute('SELECT id FROM dataset_registry WHERE project_id=? ORDER BY id', (project_current(db),))]
         return {"count": len(ids), "dataset_ids": ", ".join(ids)}
 
     def describe(arguments):

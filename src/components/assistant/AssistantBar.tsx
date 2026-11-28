@@ -25,6 +25,8 @@ import { formInputLabel, type EditorKind } from './preprocessing-form';
 import PreprocessingEditorCard from './PreprocessingEditorCard';
 import RegressionPlanCard from './RegressionPlanCard';
 import { regressionInputLabel } from './regression-plan-form';
+import { currentProjectName } from './SessionScope';
+import ProjectWelcome from './ProjectWelcome';
 
 function entryText(entry: ChatEntry): string {
   switch (entry.event) {
@@ -112,24 +114,32 @@ export default function AssistantBar({session,onHistory,onViewer}:{
   const editDraft=(prompt:string)=>{setContent(prompt);input.current?.focus();};
   const prepareInference=(modelId:string)=>setContent('使用模型 '+modelId+' 进行推理，数据目录为');
   const sendCommand=(text:string)=>{if(!state.busy)return request({content:text},{preserveComposer:text.startsWith('提交实物评价定义 ')});};
-  async function pickPath(directory:boolean){
+  async function pickPath(directory:boolean, importing = false){
     setPickerError('');
+    const ticket = session.currentEpoch();
     try{
       const selected=await open({title:directory?'选择数据目录':'选择数据文件',directory,multiple:false});
-      if(typeof selected==='string')setContent((content.trimEnd()+' "'+selected+'"').trimStart());
-    }catch{setPickerError('无法打开文件选择器，请重试。');}
+      if (!session.isCurrentEpoch(ticket)) return;
+      if(typeof selected==='string')editDraft(importing && !content.trim() ? '导入路径 "'+selected+'" 下的数据'
+        : (content.trimEnd()+' "'+selected+'"').trimStart());
+    }catch{if (session.isCurrentEpoch(ticket)) setPickerError('无法打开文件选择器，请重试。');}
   }
   const renderCheck = (state: { pending: PendingCheck; busy: boolean }) => <section className="agent-check" aria-label="人工确认">
     <span className="agent-check-icon" aria-hidden="true">!</span>
     <p>{readableText(`${state.pending.reason} · ${state.pending.tool} · ${scalarText(state.pending.summary)}`, choices, records)}</p>
-      <button disabled={!enabled || state.busy} onClick={() => void request({ check_id: state.pending!.check_id, decision: 'approve' })}>批准</button>
+      <button disabled={!enabled || state.busy || state.pending.blocked} onClick={() => void request({ check_id: state.pending!.check_id, decision: 'approve' })}>批准</button>
       <button disabled={!enabled || state.busy} onClick={() => void request({ check_id: state.pending!.check_id, decision: 'reject' })}>拒绝</button>
   </section>;
   return <section className="assistant-bar" aria-label="S01 助手">
-    <header className="assistant-heading"><h2>编排助手</h2>
-      <button disabled={!enabled||session.loading} onClick={onHistory}>历史与模型</button>
+    <header className="assistant-heading"><div className="assistant-heading-context"><h2>编排助手</h2>
+      <p>项目：<strong>{currentProjectName(session)}</strong><span aria-hidden="true"> / </span>
+        当前对话：{session.loading ? '正在加载…' : session.active?.title || (state.entries.length ? '未命名对话' : '新对话')}</p>
+    </div>
+      <button disabled={!enabled||session.loading} onClick={onHistory}>本项目历史与模型</button>
     </header>
     <div className="assistant-content">
+    {!state.entries.length && !session.loading && <ProjectWelcome session={session}
+      onImport={() => void pickPath(true, true)} onEdit={editDraft} onHistory={onHistory} />}
     <div className="work-actions" aria-label="对话预处理配置">
       <button disabled={!session.canSend || !!state.pending} onClick={() => setEditorKind('classification')}>分类预处理参数</button>
       <button disabled={!session.canSend || !!state.pending} onClick={() => setEditorKind('recipe')}>回归／高级配方参数</button>
@@ -225,7 +235,7 @@ export default function AssistantBar({session,onHistory,onViewer}:{
             <span className="agent-avatar" aria-hidden="true">{entry.event === 'user' ? '我' : 'AI'}</span>
             <div className="agent-bubble">
               {entry.event !== 'user' && (!draftContent||currentDraft) && <div className="agent-name">{draftContent
-                ? draftTitle+(ready?' · 待确认':' · 待补充')
+                ? draftTitle+(inference && inference.editable !== true ? ' · 只读记录' : ready?' · 待确认':' · 待补充')
                 :study?'寻优方案 · 待确认':agentName(entry.event,outcome.label)}</div>}
               <div className="agent-text">
                 {entry.event === 'plan' && (!state.pending || !('plan_id' in state.pending) || state.pending.plan_id !== entry.data.plan_id)
@@ -249,6 +259,7 @@ export default function AssistantBar({session,onHistory,onViewer}:{
                       </details>}</>}
               </div>
               {entry.event === 'done' && entry.data.data_intake && <DataIntakeCard card={entry.data.data_intake}
+                projectName={session.active?.project_id === session.projectId ? currentProjectName(session) : undefined}
                 active={index === latestIntake} enabled={enabled && !state.busy && !session.loading}
                 send={sendCommand} edit={editDraft} />}
               {preview&&<div className="work-actions">{Object.entries(pairingSections).map(([key,title])=>
@@ -373,6 +384,7 @@ export default function AssistantBar({session,onHistory,onViewer}:{
     {pickerError && <p role="alert" className="agent-error">{pickerError}</p>}
     </div>
     <form onSubmit={event => { event.preventDefault(); void request({ content }); }}>
+      <p className="assistant-project-destination">当前操作项目：<strong>{currentProjectName(session)}</strong> · 新导入的数据保存在此项目</p>
       <label htmlFor="assistant-message">对话</label>
       <MessageInput id="assistant-message" session={session} inputRef={input}/>
       <div className="assistant-compose-actions">

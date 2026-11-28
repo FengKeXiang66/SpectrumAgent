@@ -116,7 +116,7 @@ def direct(machine, dialogue, content):
         if target and target[0] == 'study':
             return experiment(machine,content,study=True)
         return experiment(machine,content,confirmation=target,missing_confirmation=target is None)
-    if infer_confirmation or infer.QUERY.fullmatch(text) or infer.CANCEL.fullmatch(text) or infer.probe_requested(text):
+    if infer_confirmation or infer.QUERY.fullmatch(text) or infer.CANCEL.fullmatch(text) or infer.NEW.fullmatch(text) or infer.probe_requested(text):
         return inference(machine,content)
     if train_confirmation or CANCEL.fullmatch(text):
         return experiment(machine,content)
@@ -151,6 +151,8 @@ def regression_inference(machine, content):
     import json
     with connect_database(machine.store.database) as db:
         models = {row[0] for row in db.execute("SELECT m.id FROM model_registry m JOIN training_run t ON t.id=m.run_id WHERE t.task='regression'")}
+        from spectrumagent import projects
+        models = {identifier for identifier in models if projects.owned(db, 'model', identifier)}
         named = re.findall(r'(?:模型|model)\s*[“"\']?([0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})', semantic, re.I)
         if named:
             return all(identifier.lower() in models for identifier in named)
@@ -159,7 +161,7 @@ def regression_inference(machine, content):
         if any(identifier in semantic for identifier in models):
             return True
         references = set(re.findall(r'[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}', semantic.lower()))
-        if references - models - {row[0] for row in db.execute('SELECT id FROM dataset_registry')}:
+        if references - models - {row[0] for row in db.execute('SELECT id FROM dataset_registry WHERE project_id=?', (projects.current(db),))}:
             return False  # An explicit other model outranks the recent regression.
         last = db.execute("SELECT tool,result_summary FROM agent_step WHERE session_id=? AND status='ok' AND (tool IN ('modeling.register','modeling.infer','modeling.inference') OR tool LIKE 'experiments.inference%') ORDER BY seq DESC LIMIT 1", (machine.session_id,)).fetchone()
     if last and last[0].startswith('modeling.'):

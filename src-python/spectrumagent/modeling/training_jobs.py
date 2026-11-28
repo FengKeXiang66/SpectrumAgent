@@ -9,6 +9,7 @@ from uuid import UUID, uuid4
 
 import structlog
 from backend.database import connect_database
+from spectrumagent.projects import worker as project_worker
 from spectrumagent.data import DataError
 from . import ModelingError
 from .dataset import _inputs
@@ -91,6 +92,9 @@ class TrainingJobs:
     def _saved(self, identifier, owner=None):
         with connect_database(self.database) as db:
             row = db.execute('SELECT boot_id,owner,request_key,body,binding,snapshot FROM training_job WHERE id=?', (identifier,)).fetchone()
+            if row:
+                from spectrumagent import projects
+                projects.require(db, 'training_job', identifier)
         if not row:
             return None
         if owner is not None and row[1] != owner:
@@ -144,7 +148,7 @@ class TrainingJobs:
                     while len(self.jobs) >= 64 and terminal:
                         self.jobs.pop(terminal.pop(0))
                     self.jobs[identifier] = job
-                Thread(target=self._work, args=(identifier, bound), name='classification-training', daemon=True).start()
+                Thread(target=project_worker(self._work), args=(identifier, bound), name='classification-training', daemon=True).start()
             except BaseException:
                 lease.__exit__(None, None, None)
                 with self.lock:
@@ -160,6 +164,9 @@ class TrainingJobs:
 
     def status(self, identifier, *, owner=None):
         self.validate_id(identifier)
+        from spectrumagent import projects
+        with connect_database(self.database) as db:
+            projects.require(db, 'training_job', identifier)
         with self.lock:
             job = self.jobs.get(identifier)
             if job:
@@ -187,7 +194,8 @@ class TrainingJobs:
             args = []
             if owner is not None:
                 sql += ' AND owner=?'; args.append(owner)
-            ids = [r[0] for r in db.execute(sql+' ORDER BY created_at DESC LIMIT ?', (*args, limit))]
+            from spectrumagent import projects
+            ids = projects.filter_ids(db, 'training_job', [r[0] for r in db.execute(sql+' ORDER BY created_at DESC', args)])[:limit]
         return {'items': [self.status(i, owner=owner) for i in ids], 'engine_boot_id': self.boot_id}
 
     def event(self, identifier, phase, values):
@@ -256,6 +264,9 @@ class TrainingJobs:
         return Evaluations.file_hash(path)
 
     def cancel(self, identifier, *, owner=None):
+        from spectrumagent import projects
+        with connect_database(self.database) as db:
+            projects.require(db, 'training_job', identifier)
         self.status(identifier, owner=owner)
         with self.lock:
             job = self.jobs.get(identifier)

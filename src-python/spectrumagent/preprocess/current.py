@@ -7,6 +7,7 @@ import sqlite3
 from contextlib import nullcontext
 
 from backend.database import connect_database
+from spectrumagent.projects import current as project_current
 from spectrumagent.data import DataError
 
 
@@ -45,7 +46,7 @@ class CurrentWorkspace:
         with connect_database(self.database) as db:
             db.row_factory = sqlite3.Row
             members = []
-            for cube in db.execute('SELECT id FROM dataset_registry ORDER BY id').fetchall():
+            for cube in db.execute('SELECT id FROM dataset_registry WHERE project_id=? ORDER BY id', (project_current(db),)).fetchall():
                 annotation = db.execute('SELECT * FROM annotation_version WHERE cube_id=? ORDER BY version_no DESC LIMIT 1', (cube[0],)).fetchone()
                 member = dict(cube_id=cube[0], annotation_id=annotation['id'] if annotation else None,
                               run_id=None, recipe_id=None, status='need_annotation')

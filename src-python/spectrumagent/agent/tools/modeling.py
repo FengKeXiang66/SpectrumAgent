@@ -330,6 +330,8 @@ class ModelingTools:
 
     def run_members(self, identifier):
         with connect_database(self.database) as db:
+            from spectrumagent.projects import require
+            require(db, 'training', identifier)
             row = db.execute('SELECT cube_ids,annotation_version_ids,preprocess_run_ids FROM training_run WHERE id=?', (identifier,)).fetchone()
             if row is None:
                 raise DataError('SESSION_REFERENCE_INVALID', '训练引用不存在')

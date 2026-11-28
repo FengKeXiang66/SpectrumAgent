@@ -1,5 +1,4 @@
 """Resolve project colors without inventing or modifying any label."""
-import os
 from pathlib import Path
 
 from backend.database import connect_database
@@ -13,16 +12,11 @@ def project_colors(database, classes, headers=(), pinned=None):
         tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         if not {'label', 'project'} <= tables:
             return colors
-        projects = set()
-        for header in headers if 'dataset_registry' in tables else ():
-            key = os.path.normcase(str(Path(header).resolve()))
-            projects.update(row[0] for row in db.execute('SELECT project_id FROM dataset_registry WHERE header_key=?', (key,)))
-        if not projects:
-            projects = {row[0] for row in db.execute('SELECT id FROM project')}
-        # Never borrow a same-named class from an unrelated project.
-        if len(projects) != 1:
+        from spectrumagent.projects import current
+        project = current(db)
+        if project is None:
             return colors
-        rows = list(db.execute('SELECT name,color_hex FROM label WHERE project_id=? AND deleted_at IS NULL', (projects.pop(),)))
+        rows = list(db.execute('SELECT name,color_hex FROM label WHERE project_id=? AND deleted_at IS NULL', (project,)))
     for identifier, name in classes.items():
         if identifier in colors:
             continue

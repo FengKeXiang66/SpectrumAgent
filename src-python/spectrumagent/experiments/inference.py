@@ -21,6 +21,8 @@ from pydantic import Field, FiniteFloat, model_validator
 from threadpoolctl import threadpool_limits
 
 from spectrumagent.data import DataError
+from backend.database import connect_database
+from spectrumagent.projects import worker as project_worker
 from spectrumagent.annotation.labels import LABEL_COLORS
 from spectrumagent.annotation.palette import model_colors
 from spectrumagent.data.readers import open_envi
@@ -187,6 +189,9 @@ class InferenceService:
         self.report_lock = RLock()
 
     def folder(self, model_id, run_id):
+        from spectrumagent import projects
+        with connect_database(self.experiments.paths.database) as db:
+            projects.require(db, 'experiment', model_id)
         base = self.experiments.folder(model_id) / 'inferences'
         # Reuse the UUID validator without allowing a path supplied by a caller.
         self.experiments.folder(run_id)
@@ -241,6 +246,8 @@ class InferenceService:
                 'config_sha256':hashlib.sha256(config.model_dump_json().encode()).hexdigest()}
 
     def submit(self, owner, config, reviewed):
+        from spectrumagent.agent.step_plan import validate_operation
+        validate_operation(self.experiments.paths.database, owner, 'inference')
         with self.lock:
             if not self.experiments.lock.acquire(blocking=False):
                 raise DataError('EXPERIMENT_BUSY', '已有训练或推理正在运行，请等待完成或取消')
@@ -255,7 +262,7 @@ class InferenceService:
                          'completed_rows': 0, 'total_rows': 0, 'started_at': time(), 'finished_at': None, 'error': None}
                 write_json(folder / 'status.json', state)
                 self.active[(config.model_id, run_id)] = (owner, Event())
-                Thread(target=self._work, args=(config, run_id, reviewed, state), daemon=True).start()
+                Thread(target=project_worker(self._work), args=(config, run_id, reviewed, state), daemon=True).start()
             except Exception:
                 self.active.pop((config.model_id, run_id), None)
                 self.experiments.lock.release()

@@ -37,6 +37,17 @@ def snapshot(path):
     return [stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns]
 
 
+def workspace_training_requested(text):
+    """An action clause may be followed by questions about the created draft."""
+    if not re.search(r'已导入|已标注|当前项目|当前.*数据|这批数据', text):
+        return False
+    for clause in re.split(r'[，,。；;\n]', text):
+        if (re.search(r'(?:新建|创建|建立).*(?:分类(?:训练)?方案|训练方案)', clause)
+                and not re.search(r'不要|不用|不需要|不想|先不|暂不|怎么|如何|是否|是不是|能否|为什么|有什么|[?？]', clause)):
+            return True
+    return False
+
+
 class DatasetIntake:
     def __init__(self, registry, sessions, runner):
         self.registry, self.sessions, self.runner = registry, sessions, runner
@@ -60,7 +71,7 @@ class DatasetIntake:
         from spectrumagent.experiments.workspace_training import OPEN
         dialogue = getattr(machine.tools, 'experiment_dialogue', None)
         current = dialogue._read(machine.session_id) if dialogue else None
-        if text == OPEN:
+        if text == OPEN or workspace_training_requested(text):
             return self.generate(machine, content, '统一训练', state)
         if state and state['imported_ids'] and text in {'我已经对数据标注完毕', '标注完成', '我已标注完毕', '我已经标注完毕'}:
             return self.generate(machine, content, '标注完成', state)
@@ -80,7 +91,9 @@ class DatasetIntake:
                 projects = LabelStore(self.database).projects()
                 with connect_database(self.database) as db:
                     selected = db.execute('SELECT project_id FROM dataset_registry WHERE id=?', (context.get('selected_cube_id'),)).fetchone()
-                project = selected[0] if selected else projects[0]['id'] if len(projects) == 1 else None
+                from spectrumagent.projects import current as current_project
+                with connect_database(self.database) as db:
+                    project = selected[0] if selected else current_project(db)
                 if state and state['stage'] in {'review', 'need_annotations', 'need_images', 'choose_mode'}:
                     state['label_project_id'] = project
                 else:
@@ -350,14 +363,31 @@ class DatasetIntake:
                         return
                 else:
                     with connect_database(self.database) as db:
-                        targets = [r[0] for r in db.execute('SELECT cube_id FROM annotation_confirmation_state')]
+                        from spectrumagent.projects import current
+                        targets = [r[0] for r in db.execute('SELECT c.cube_id FROM annotation_confirmation_state c JOIN dataset_registry d ON d.id=c.cube_id WHERE d.project_id=? ORDER BY d.rowid', (current(db),))]
+                from spectrumagent.agent.authorization import dataset_references
+                catalog = self.registry.catalog(limit=100, offset=0)['datasets']
+                selected = dataset_references(content, [{'id':r['id'],'ref':'D'+str(i)} for i,r in enumerate(catalog,1)])
+                if selected:
+                    targets = selected
+                from .step_plan import read as read_plan
+                plan = read_plan(self.database, sid)
+                scope_text = content + ('\n'+plan['document']['preamble'] if plan and plan['step'] == 0 else '')
+                named = re.search(r'已导入(?:的)?\s*([A-Za-z][A-Za-z0-9_-]*)\s*数据', scope_text)
+                if named:
+                    key = named[1].casefold()
+                    targets = [cube for cube in targets if key in {p.casefold() for p in Path(self.registry.get(cube)[0].header_path).parts}]
+                    if not targets:
+                        raise DataError('DATASET_SCOPE_REQUIRED', '当前项目中没有唯一匹配的这批数据，请选择项目或明确样品范围；未建立方案。')
                 dialogue = machine.tools.experiment_dialogue
-                prepare(dialogue, self.registry, self.sessions, sid, targets, check)
+                no_defaults = bool(plan and plan['document'].get('no_defaults') or re.search(r'不要.*默认|不用默认|不使用默认', content))
+                prepare(dialogue, self.registry, self.sessions, sid, targets, check, no_defaults=no_defaults)
                 view = dialogue.presented(sid, row['turn_id'], check=check)
                 card = dialogue.draft_presentation(sid, view, check)
                 yield step('experiments.draft_presentation', card)
                 omitted = len(state['imported_ids'])-len(targets) if state and state['imported_ids'] else 0
-                yield finish('已将保存的区域标注接入统一训练方案；可在对话中指定预处理或发起Study寻优。\n'
+                counts = f"已建立分类草稿：{len(targets)} 张，已保存标注 {len(targets)}/{len(targets)}；类别："+'、'.join(c['name'] for c in dialogue._read(sid)['document']['classes'])+'；尚未确认训练/测试划分。\n'
+                yield finish(counts+'仅保存方案，没有执行预处理或训练。\n'
                              + (f'本批 {omitted} 张未保存标注的图片未纳入方案。\n' if omitted else '')
                              + view['plan']+'\n'+view['question'], card=False)
                 return

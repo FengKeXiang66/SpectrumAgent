@@ -8,6 +8,7 @@ from uuid import uuid4
 import numpy as np
 
 from backend.database import connect_database
+from spectrumagent import projects
 from spectrumagent.data import DataError
 from spectrumagent.preprocess import builtin_registry
 from spectrumagent.preprocess.registry import validate
@@ -47,6 +48,7 @@ class ModelRegistry:
     def __init__(self, registry, paths):
         self.registry, self.paths, self.database = registry, paths, registry.database
 
+    @projects.checked("model", "identifier")
     def get(self, identifier, *, calibration=False):
         with connect_database(self.database) as check:
             classification = check.execute("SELECT 1 FROM classification_model WHERE id=?", (str(identifier),)).fetchone()
@@ -74,10 +76,11 @@ class ModelRegistry:
 
     def list(self):
         with connect_database(self.database) as db:
-            ids = [row[0] for row in db.execute("SELECT id FROM model_registry ORDER BY name,version DESC,id")]
+            ids = projects.filter_ids(db, "model", [row[0] for row in db.execute("SELECT id FROM model_registry ORDER BY name,version DESC,id")])
         from .classification_models import ClassificationModels
         return [self.get(identifier) for identifier in ids] + ClassificationModels(self.registry, self.paths).list()
 
+    @projects.checked("training", "run_id")
     def register(self, run_id, name=None):
         with connect_database(self.database) as db:
             db.row_factory = sqlite3.Row
@@ -230,6 +233,7 @@ class ModelRegistry:
                         encode(applicability), encode(state), now()))
         return self.get(identifier)
 
+    @projects.checked("model")
     def set_stage(self, identifier, stage):
         with connect_database(self.database) as check:
             classification = check.execute("SELECT 1 FROM classification_model WHERE id=?", (str(identifier),)).fetchone()

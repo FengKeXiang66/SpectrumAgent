@@ -140,6 +140,9 @@ def label_sort_order(db, project_id, code, origin):
 
 def insert_label(db, request: CustomRequest, *, origin):
     schema_id = resolve_schema_id(db, request.project_id, request.tree_path)
+    if any(row[0].casefold() == request.name.strip().casefold()
+           for row in db.execute('SELECT name FROM label WHERE project_id=? AND deleted_at IS NULL', (request.project_id,))):
+        raise invalid('name', '项目内同名标签已存在，请复用现有标签或明确设置别名')
     if request.shortcut_key == 0 and not request.is_background:
         raise invalid("shortcut_key", "0 仅供背景标签使用")
     if db.execute("SELECT 1 FROM label WHERE project_id=? AND code=?", (request.project_id, request.code)).fetchone():
@@ -166,10 +169,14 @@ class LabelStore:
     def projects(self):
         with connect_database(self.database) as db:
             db.row_factory = sqlite3.Row
-            return [dict(row) for row in db.execute("SELECT * FROM project ORDER BY created_at,id")]
+            from spectrumagent.projects import current
+            return [dict(row) for row in db.execute('SELECT * FROM project WHERE id=?', (current(db),))]
 
     @staticmethod
     def require_project(db, project_id):
+        from spectrumagent import projects
+        if project_id != projects.current(db):
+            raise projects.denied()
         if not db.execute("SELECT 1 FROM project WHERE id=?", (project_id,)).fetchone():
             raise invalid("project_id", "项目不存在")
 
@@ -269,6 +276,8 @@ class LabelStore:
 
     @staticmethod
     def require_label(db, label_id):
+        from spectrumagent import projects
+        projects.require(db, 'label', label_id)
         db.row_factory = sqlite3.Row
         row = db.execute("SELECT * FROM label WHERE id=? AND deleted_at IS NULL", (str(label_id),)).fetchone()
         if row is None:
@@ -284,6 +293,8 @@ class LabelStore:
             db.execute("BEGIN IMMEDIATE")
             row = self.require_label(db, label_id)
             row.update(patch.model_dump(exclude_unset=True))
+            if 'name' in changes and any(r[0].casefold() == row['name'].strip().casefold() for r in db.execute('SELECT name FROM label WHERE project_id=? AND id<>? AND deleted_at IS NULL', (row['project_id'],row['id']))):
+                raise invalid('name', '项目内同名标签已存在，请复用现有标签或明确设置别名')
             if row["shortcut_key"] == 0 and not row["is_background"]:
                 raise invalid("shortcut_key", "0 仅供背景标签使用")
             if row["shortcut_key"] is not None and db.execute(

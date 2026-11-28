@@ -61,13 +61,17 @@ def test_train_only_fit_matches_sklearn_and_artifacts_survive_reload(tmp_path, w
     config = ExperimentConfig.model_validate(config_for(tmp_path))
     service = ExperimentService(workspace)
     result = service.run(config)
-    train, test = (np.load(getattr(config, role).paths[0]) for role in ("train", "test"))
+    with np.load(config.train.paths[0]) as archive:
+        train = {key: archive[key].copy() for key in archive.files}
+    with np.load(config.test.paths[0]) as archive:
+        test = {key: archive[key].copy() for key in archive.files}
     scaler = StandardScaler().fit(train["X"])
     estimator = PLSRegression(n_components=2, scale=False, max_iter=1000).fit(
         scaler.transform(train["X"]), (train["y"][:, None] == [1, 2]).astype(float))
     expected = estimator.predict(scaler.transform(test["X"]))
     folder = service.folder(result["experiment_id"])
-    actual = np.load(folder / "test_predictions.npz")
+    with np.load(folder / "test_predictions.npz") as archive:
+        actual = {key: archive[key].copy() for key in archive.files}
     np.testing.assert_allclose(actual["responses"], expected, rtol=1e-12, atol=1e-12)
     model = joblib.load(service.artifact(result["experiment_id"], "model.joblib"))
     np.testing.assert_allclose(model.pipeline.fitted[0].mean_, train["X"].mean(axis=0))

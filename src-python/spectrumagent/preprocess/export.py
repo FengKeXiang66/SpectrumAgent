@@ -192,6 +192,8 @@ def envi_header(shape, wavelengths):
 
 def export_run(runner, identifier):
     with connect_database(runner.database) as db:
+        from spectrumagent.projects import require
+        require(db, 'preprocess', identifier)
         row = db.execute("SELECT cube_id,status FROM preprocess_run WHERE id=?", (identifier,)).fetchone()
         if row is None:
             error = PreprocessError("RUN_NOT_FOUND", "run 不存在")

@@ -14,6 +14,8 @@ import numpy as np
 from threadpoolctl import threadpool_limits
 
 from spectrumagent.data import DataError
+from backend.database import connect_database
+from spectrumagent import projects
 from spectrumagent.storage import guard as storage
 from .inputs import CheckedStream, check_sources, check_split, enforce_split, load_input, record_source, sha256, split_preflight
 from .pipeline import SpectralPipeline
@@ -127,11 +129,16 @@ class ExperimentService:
         except (ValueError, AttributeError, TypeError):
             raise DataError("EXPERIMENT_NOT_FOUND", "实验编号无效") from None
         folder = self.root / identifier
+        if folder.exists():
+            with connect_database(self.paths.database) as db:
+                projects.require(db, 'experiment', identifier)
         if folder.resolve().parent != self.root.resolve():
             raise DataError('EXPERIMENT_NOT_FOUND', '实验目录越界')
         return folder
 
     def get(self, identifier):
+        with connect_database(self.paths.database) as db:
+            projects.require(db, 'experiment', identifier)
         folder = self.folder(identifier)
         try:
             status = read_json(folder / "status.json")
@@ -167,7 +174,7 @@ class ExperimentService:
         if not self.lock.acquire(blocking=False):
             raise DataError("EXPERIMENT_BUSY", "已有数值实验正在运行")
         identifier = str(uuid4())
-        folder = self.folder(identifier)
+        folder = None
         started = datetime.now(timezone.utc).isoformat()
         def advance(phase):
             write_json(folder / 'status.json', {'experiment_id': identifier, 'status': 'running',
@@ -175,6 +182,9 @@ class ExperimentService:
             if progress:
                 progress(phase)
         try:
+            with connect_database(self.paths.database) as db:
+                projects.register(db, 'experiment', identifier)
+            folder = self.folder(identifier)
             storage.mkdir(folder, parents=True)
             write_json(folder / "config.json", config.model_dump(mode="json"))
             if on_detail:
@@ -194,7 +204,7 @@ class ExperimentService:
             return result
         except Exception as error:
             failure = error if isinstance(error, DataError) else DataError("EXPERIMENT_FAILED", "数值实验失败", reason=str(error))
-            if folder.is_dir():
+            if folder is not None and folder.is_dir():
                 write_json(folder / "status.json", {"experiment_id": identifier, "status": "cancelled" if failure.code == 'EXPERIMENT_CANCELLED' else "failed", "error": failure.as_dict(),
                            'started_at': started, 'finished_at': datetime.now(timezone.utc).isoformat()})
             raise DataError(failure.code, failure.payload.detail, **{**failure.payload.context, "experiment_id": identifier}) from error

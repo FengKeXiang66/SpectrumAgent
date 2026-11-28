@@ -81,7 +81,9 @@ export type TaskCard = {taskId:string;sessionId:string;generation:number;request
 export type TaskAccepted = {status:'accepted';task_id:string;task_status:AnnotationTask['task_status'];member_count:number;flow_id?:string};
 export type BatchCard = { result: BatchResult | null; stepStatus: string; epoch: number; generation: number; key: string; sessionId?: string; requestId?: string };
 export type MessageBody = ({ content: string; workspace?: WorkspaceContext } | { check_id: string; decision: 'approve' | 'reject' } | ({ plan_id: string } & PlanDecision)) & { request_id?: string };
-export type AgentRequest = ({ op: 'create_session' } & CreateSessionInput)
+export type AgentRequest = {op:'list_projects'} | {op:'create_project';name:string} | {op:'select_project';project_id:string}
+  | {op:'project_deletion_preview';project_id:string} | {op:'delete_project';project_id:string;confirm_name:string;confirmation_token:string}
+  | {op:'restore_project';project_id:string} | {op:'project_migration_preview'} | ({ op: 'create_session' } & CreateSessionInput)
   | {op:'preprocessing_editor';id:string;kind:'classification'|'recipe';cube_id?:string}
   | {op:'regression_plan';id:string}
   | {op:'study';id:string;study_id:string;action:'get'|'result'|'cancel'}
@@ -113,10 +115,13 @@ export type AgentRequest = ({ op: 'create_session' } & CreateSessionInput)
   | { op: 'get_history'; id: string; before?: number; after?: number; limit?: number }
   | { op: 'select_cube'; id: string; cube_id: string | null } | { op: 'get_steps'; id: string } | { op: 'get_runtime' } | { op: 'send_message'; id: string; body: MessageBody };
 export type Scope = { kind: 'global' };
-export type CreateSessionInput = { scope?: Scope; request_id?: string };
+export type Project = {id:string;name:string;dataset_count?:number;session_count?:number;deleted_at?:string|null};
+export type ProjectList = {projects:Project[];current_project_id:string;deleted_projects?:Project[]};
+export type ProjectDeletionPreview = Project & {dataset_count:number;session_count:number;label_count:number;recipe_count:number;experiment_count:number;confirmation_token:string};
+export type CreateSessionInput = { scope?: Scope; request_id?: string; project_id?:string };
 export type Availability = { available_members: number | null; total_members: number; availability_checked_at: string | null;
   availability_status: 'available' | 'partial' | 'unavailable' | 'unknown' };
-export type SessionDetail = Availability & { id: string; title: string; created_at: string; updated_at: string; boot_id: string;
+export type SessionDetail = Availability & { project_id?:string; project_name?:string; id: string; title: string; created_at: string; updated_at: string; boot_id: string;
   annotation_flow?: {task_id:string;request_id?:string;cube_ids:string[];mode:'per_image'|'all';authorization_id:string};
   scope: { kind: 'global'; dataset_version_id: null; member_count: number };
   selected_cube_id: string | null; canvas_focus?: WorkspaceContext; selected_ordinal?: number | null; effective_tool_count: number; history_watermark: number;
@@ -148,7 +153,8 @@ export const requests = {
     ...(datasetVersionId !== undefined ? { dataset_version_id: datasetVersionId } : {}) }),
   createSession: (body: CreateSessionInput = {}): AgentRequest => ({ op: 'create_session',
     ...(body.scope ? { scope: { kind: 'global' as const } } : {}),
-    ...(body.request_id ? { request_id: body.request_id } : {}) }),
+    ...(body.request_id ? { request_id: body.request_id } : {}),
+    ...(body.project_id ? {project_id:body.project_id} : {}) }),
   getSession: (id: string): AgentRequest => ({ op: 'get_session', id }),
   getHistory: (id: string, page: {before?: number; after?: number; limit?: number} = {}): AgentRequest => ({op: 'get_history', id,
     ...(page.before !== undefined ? {before: page.before} : {}), ...(page.after !== undefined ? {after: page.after} : {}),
@@ -210,6 +216,12 @@ export function agentClient(send: InvokeAgent = invoke) {
     focusCanvas:(id:string,cubeId:string,focused:boolean)=>forward<{cube_id:string;focused:boolean}>({op:'annotation_task',id,task_id:cubeId,action:focused?'focus':'blur'}),
     checkBatchPrepare: async (id: string, version?: string) => parseBatchAssessment(
       await forward<unknown>(requests.checkBatchPrepare(id, version)), id, version),
+    listProjects: () => forward<ProjectList>({op:'list_projects'}),
+    createProject: (name:string) => forward<Project>({op:'create_project',name}),
+    selectProject: (project_id:string) => forward<{current_project_id:string}>({op:'select_project',project_id}),
+    projectDeletionPreview: (project_id:string) => forward<ProjectDeletionPreview>({op:'project_deletion_preview',project_id}),
+    deleteProject: (project_id:string,confirm_name:string,confirmation_token:string) => forward<{project_id:string;deleted:boolean;current_project_id:string}>({op:'delete_project',project_id,confirm_name,confirmation_token}),
+    restoreProject: (project_id:string) => forward<Project>({op:'restore_project',project_id}),
     createSession: (body: CreateSessionInput = {}) => forward<Session>(requests.createSession(body)),
     getSession: (id: string) => forward<SessionDetail>(requests.getSession(id)),
     listSessions,

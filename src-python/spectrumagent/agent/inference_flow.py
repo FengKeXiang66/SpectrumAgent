@@ -3,9 +3,10 @@ import json
 from time import perf_counter_ns
 from pathlib import Path
 
+from backend.database import connect_database
 from spectrumagent.data import DataError
 from spectrumagent.experiments.conversation import PATHS
-from spectrumagent.experiments.inference_dialogue import CONFIRM, CANCEL, QUERY, PROBE, PROBE_ACTIONS, INLINE_PREFIX
+from spectrumagent.experiments.inference_dialogue import CONFIRM, CANCEL, QUERY, PROBE, PROBE_ACTIONS, INLINE_PREFIX, NEW
 from .execution import RequestCancelled
 from .llm import _json, validate_tool_response
 
@@ -112,15 +113,35 @@ def generate(machine, content, *, confirmation=None):
             yield from finish('推理任务已受理，请查看任务卡的进度和分类结果。停止对话不等于取消推理；不重新训练模型。',outcome='working')
             return
         if QUERY.fullmatch(content.strip()):
+            with dialogue.lock, connect_database(dialogue.database) as db:
+                db.execute('DELETE FROM inference_restart_request WHERE session_id=?', (owner,))
             draft = dialogue.read(owner)
-            if draft and draft['run_id']:
-                state = dialogue.focus_run(owner, draft['document']['model_id'], draft['run_id'])
+            focus = dialogue.base.focus(owner)
+            model_id, run_id = ((draft['document']['model_id'], draft['run_id']) if draft and draft['run_id']
+                                else (focus[1], focus[2]) if focus and focus[0]=='inference' else (None, None))
+            if run_id:
+                state = dialogue.focus_run(owner, model_id, run_id)
                 step = store.add_step(row,'experiments.inference_status',{},'ok',
-                    {'inference_run_id':draft['run_id'],'model_id':draft['document']['model_id'],'status':state['status']},0)
+                    {'inference_run_id':run_id,'model_id':model_id,'status':state['status']},0)
                 yield machine._step_event(step)
                 yield from finish('推理状态：'+state['status']+'；任务卡显示已保存的真实结果，不重复提交。',outcome='succeeded' if state['status']=='succeeded' else 'working')
                 return
             yield from finish('当前会话尚无已提交的推理，可从归档模型的推理记录中查看。')
+            return
+        if new := NEW.fullmatch(content.strip()):
+            try:
+                content = dialogue.restart(owner, int(new[1]) if new[1] else None, new[2])
+            except DataError as error:
+                yield from finish(error.payload.detail, True)
+                return
+            prior_document = {}
+            if content is None:
+                yield from present()
+                return
+        draft = dialogue.read(owner)
+        if draft and (draft['run_id'] or not draft['active']):
+            dialogue.request_restart(owner, content)
+            yield from present()
             return
         safe = dialogue.capture(owner,content)
         names_allowed = {'experiments.inference_get','experiments.inference_inspect','experiments.inference_update','experiments.history_list'}

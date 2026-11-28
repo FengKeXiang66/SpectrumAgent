@@ -11,6 +11,9 @@ def normalized(name):
 def resolve(database, project, name):
     key = normalized(name)
     with connect_database(database) as db:
+        from spectrumagent import projects
+        if project != projects.current(db):
+            raise projects.denied()
         labels = db.execute('SELECT id,code,name FROM label WHERE project_id=? AND deleted_at IS NULL', (project,)).fetchall()
         aliases = db.execute('SELECT label_id FROM label_alias WHERE project_id=? AND alias=?', (project, key)).fetchall()
     hits = {row[0] for row in labels if normalized(row[2]) == key} | {row[0] for row in aliases}

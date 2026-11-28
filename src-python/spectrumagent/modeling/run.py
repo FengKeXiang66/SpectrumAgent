@@ -12,6 +12,7 @@ import sys
 import numpy as np
 
 from backend.database import connect_database
+from spectrumagent import projects
 from . import ModelingError
 from .cv import plan_folds, kennard_stone
 from .dataset import _build, _inputs, build_sample_training_set
@@ -118,6 +119,7 @@ class TrainingRuns:
                 "n_samples": data["meta"]["n_samples"], "n_features": data["meta"]["n_features"],
                 "build_seconds": data["meta"]["build_seconds"]}
 
+    @projects.checked("training", "identifier")
     def get(self, identifier):
         with connect_database(self.database) as db:
             db.row_factory = sqlite3.Row
@@ -187,6 +189,8 @@ class TrainingRuns:
                 " ORDER BY training_run.created_at DESC,training_run.id DESC", (str(cube_id),) if cube_id else ())
             result = []
             for row in rows:
+                if not projects.owned(db, "training", row["id"]):
+                    continue
                 item = {key: row[key] for key in ("id", "status", "task", "created_at")}
                 if row["task"] == "regression":
                     item["training_protocol"] = json.loads(row["model_params"] or "{}").get("training_protocol", "sample_pls_full_fit_legacy")
@@ -417,6 +421,10 @@ class TrainingRuns:
     def regress(self, *, preprocess_run_ids, target_schema_id, task="regression", split_strategy="ks", test_ratio=1/3,
                 cv_strategy="kfold", cv_folds=5, seed=17, n_components=None, max_components=None,
                 _prepared_data=None, _run_id=None, _plan_evidence=None):
+        with connect_database(self.database) as db:
+            for run in preprocess_run_ids:
+                projects.require(db, 'preprocess', run)
+            projects.require(db, 'schema', target_schema_id)
         from .regression import PROTOCOL, select, final_fit, verify_snapshot
 
         if task != "regression" or split_strategy != "ks" or cv_strategy not in ("kfold", "loo"):

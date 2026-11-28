@@ -5,12 +5,14 @@ import json
 import re
 from threading import Event, RLock, Thread
 from time import monotonic, time
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import numpy as np
 from threadpoolctl import threadpool_limits
 
 from backend.database import connect_database
+from spectrumagent import projects
+from spectrumagent.projects import worker as project_worker
 from spectrumagent.data import DataError
 from spectrumagent.storage import guard
 from .inputs import check_sources, load_input, sha256
@@ -361,9 +363,58 @@ class StudyService:
         self.active = {}
         self.lock = RLock()
         with connect_database(dialogue.database) as db:
+            db.execute('BEGIN IMMEDIATE')
             db.execute('CREATE TABLE IF NOT EXISTS study_draft (session_id TEXT PRIMARY KEY REFERENCES agent_session(id), document TEXT NOT NULL)')
+            self._restore_ownership(db)
+
+    def _restore_ownership(self, db):
+        """Index legacy drafts and archives from sessions, never the desktop.
+
+        Existing index entries win. Invalid or ambiguous legacy documents are
+        left unclaimed, so confirmation cannot silently assign them elsewhere.
+        No numerical artifacts, revisions or confirmation receipts are changed.
+        """
+        if not db.execute("SELECT 1 FROM sqlite_master WHERE name='project_resource'").fetchone():
+            return
+        claims = {}
+        def claim(project, identifier):
+            try:
+                if not isinstance(identifier, str) or str(UUID(identifier)) != identifier:
+                    return
+            except ValueError:
+                return
+            claims.setdefault(identifier, set()).add(project)
+
+        sessions = dict(db.execute('SELECT id,project_id FROM agent_session').fetchall())
+        for session, raw in db.execute('SELECT session_id,document FROM study_draft').fetchall():
+            try:
+                document = json.loads(raw)
+                claim(sessions.get(session), document['id'])
+            except (ValueError, KeyError, TypeError):
+                continue
+        # Older completed studies may no longer be the session's current draft.
+        # Their receipt still identifies the immutable owning session. Reading
+        # these files is metadata migration only; their contents are not rewritten.
+        for path in self.root.glob('*/status.json'):
+            try:
+                state = read_json(path)
+                if state.get('study_id', path.parent.name) != path.parent.name:
+                    continue
+                claim(sessions.get(state['session_id']), path.parent.name)
+            except (OSError, ValueError, KeyError, TypeError, AttributeError):
+                continue
+        for identifier, owners in claims.items():
+            if len(owners) != 1 or None in owners:
+                continue
+            if db.execute("SELECT 1 FROM project_resource WHERE kind='study' AND resource_id=?",
+                          (identifier,)).fetchone():
+                continue
+            with projects.bind(next(iter(owners))):
+                projects.register(db, 'study', identifier)
 
     def folder(self, identifier):
+        with connect_database(self.dialogue.database) as db:
+            projects.require(db, 'study', identifier)
         self.service.folder(identifier)  # canonical UUID
         path = self.root / identifier
         if path.resolve().parent != self.root.resolve():
@@ -373,6 +424,7 @@ class StudyService:
     def prepare(self, owner, turn, text, *, structured=False):
         incoming = text
         with connect_database(self.dialogue.database) as db:
+            projects.require(db, 'session', owner)
             previous = db.execute('SELECT document FROM study_draft WHERE session_id=?',(owner,)).fetchone()
         previous = json.loads(previous[0]) if previous else None
         changing = bool(EDIT.match(text))
@@ -446,6 +498,8 @@ class StudyService:
                                                     for key in ('hdr','img','annotation') if r.get(key+'_sha256')})
         with connect_database(self.dialogue.database) as db:
             db.execute('BEGIN IMMEDIATE')
+            projects.require(db, 'session', owner)
+            projects.register(db, 'study', identifier)
             db.execute('INSERT OR REPLACE INTO study_draft VALUES (?,?)',(owner,json.dumps(document,ensure_ascii=False)))
             self.dialogue.set_confirmation(db,owner,'study',record['revision'],identifier)
         base = '基于归档实验 '+record['base_experiment_id']+'。\n' if record['base_experiment_id'] else ''
@@ -477,12 +531,15 @@ class StudyService:
                          'study_sampling':sampling}) if structured else reply
 
     def submit(self, owner, turn, content):
+        from spectrumagent.agent.step_plan import validate_operation
+        validate_operation(self.dialogue.database, owner, 'study')
         with self.lock:
             if not self.service.lock.acquire(blocking=False):
                 raise DataError('EXPERIMENT_BUSY', '已有训练、推理或寻优正在运行')
             try:
                 with connect_database(self.dialogue.database) as db:
                     db.execute('BEGIN IMMEDIATE')
+                    projects.require(db, 'session', owner)
                     draft = db.execute('SELECT document FROM study_draft WHERE session_id=?',(owner,)).fetchone()
                     draft = json.loads(draft[0]) if draft else None
                     target = self.dialogue.confirmation(owner,db)
@@ -494,6 +551,10 @@ class StudyService:
                     if (draft['grouping']=='exploratory' or draft['grouping']=='image' and (not definition or definition['mode']=='MIXED')) and not content.startswith('确认探索性'):
                         raise DataError('STUDY_CONFIRMATION_REQUIRED','此方案使用探索性分组或分层，请单独回复“确认探索性寻优”')
                     identifier = draft['id']
+                    # Ownership was committed with the reviewed draft. Do not
+                    # claim an arbitrary unindexed ID during confirmation.
+                    projects.require(db, 'study', identifier)
+                    projects.register(db, 'study', identifier)
                     folder = self.folder(identifier)
                     guard.mkdir(folder,parents=True)
                     state = dict(study_id=identifier,session_id=owner,status='queued',phase='checking',
@@ -505,7 +566,7 @@ class StudyService:
                 event = Event()
                 self.active[identifier] = (owner,event)
                 try:
-                    Thread(target=self.run,args=(draft,state,event),daemon=True).start()
+                    Thread(target=project_worker(self.run),args=(draft,state,event),daemon=True).start()
                 except Exception:
                     self.active.pop(identifier,None)
                     raise

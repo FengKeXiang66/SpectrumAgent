@@ -15,8 +15,9 @@ export type DataIntake = {
   pairs?: { image_name: string; annotation_name: string; region_count: number; labels: string[] }[];
 };
 
-export default function DataIntakeCard({ card, active, enabled, send, edit }: {
+export default function DataIntakeCard({ card, active, enabled, send, edit, projectName }: {
   card: DataIntake; active: boolean; enabled: boolean;
+  projectName?: string;
   send(text: string): void; edit(text: string): void;
 }) {
   const [error, setError] = useState('');
@@ -45,6 +46,7 @@ export default function DataIntakeCard({ card, active, enabled, send, edit }: {
   };
   return <section className="draft-review" aria-label="数据接入">
     <strong>数据接入</strong>
+    {projectName && <p className="intake-project">所属项目：<strong>{projectName}</strong> · 数据可在本项目的其他对话中继续使用</p>}
     {card.image_names.length > 0 && <p>原图：{card.image_names.join('、')}</p>}
     {card.annotation_names.length > 0 && <p>标注：{card.annotation_names.join('、')}</p>}
     {card.stage === 'labels' && <>

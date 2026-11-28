@@ -12,6 +12,7 @@ import zlib
 import numpy as np
 
 from backend.database import connect_database
+from spectrumagent import projects
 from spectrumagent.annotation.engines.superpixels import ReadableRows, row_blocks
 from spectrumagent.data import DataError
 from spectrumagent.display.falsecolor import concentration_colors, CONCENTRATION_PALETTE
@@ -72,6 +73,7 @@ class InferenceRuns:
         self.registry, self.paths, self.database = registry, paths, registry.database
         self.models = ModelRegistry(registry, paths)
 
+    @projects.checked("inference", "identifier")
     def get(self, identifier):
         with connect_database(self.database) as db:
             db.row_factory = sqlite3.Row

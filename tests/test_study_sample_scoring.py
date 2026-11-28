@@ -227,13 +227,14 @@ def test_three_fold_conversation_adopt_report_inherit_restart_and_no_holdout(app
 
 def test_legacy_result_gets_pixel_projection_without_rewriting_archive(application,tmp_path):
     base=application.state.agent_tools.experiment_dialogue
-    owner=AgentStore(base.database).create_session()['id'];identifier=str(uuid4());folder=base.study.folder(identifier)
+    owner=AgentStore(base.database).create_session()['id'];identifier=str(uuid4());folder=base.study.root/identifier
     from spectrumagent.storage import guard
     guard.mkdir(folder,parents=True)
     original=dict(study_id=identifier,candidates=[],best=1,recommended=1,one_se_threshold=.9)
     write_json(folder/'result.json',original)
     write_json(folder/'status.json',dict(session_id=owner,status='succeeded',result_sha256=sha256(folder/'result.json')))
     content=(folder/'result.json').read_bytes()
+    base.study = study.StudyService(base)  # Index a genuine legacy archive at startup.
     projected=base.study.result(owner,identifier)
     assert projected['evaluation_target']=='pixel' and projected['scoring']=='fold_mean_macro_f1'
     assert (folder/'result.json').read_bytes()==content

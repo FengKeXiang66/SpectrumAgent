@@ -155,8 +155,11 @@ def test_study_cancel_recovery_and_exploratory_confirmation(application,tmp_path
         release.set()
     assert until(manager,owner,identifier)['status']=='cancelled'
     stale = str(uuid4())
-    guard.mkdir(manager.folder(stale),parents=True)
-    write_json(manager.folder(stale)/'status.json',dict(study_id=stale,session_id=owner,status='running',
+    # Pre-project archive fixture: startup, not a permissive folder lookup,
+    # establishes its owner from the saved session receipt.
+    legacy_folder = manager.root/stale
+    guard.mkdir(legacy_folder,parents=True)
+    write_json(legacy_folder/'status.json',dict(study_id=stale,session_id=owner,status='running',
                                                         started_at=time.time(),finished_at=None))
     fresh = create_app(base.service.paths,EngineIdentity())
     assert fresh.state.agent_tools.experiment_dialogue.study.status(owner,stale)['status']=='interrupted'

@@ -6,6 +6,10 @@ export type InferenceDraft = {
   revision: number;
   ready: boolean;
   envi: boolean;
+  editable?: boolean;
+  state?: 'draft' | 'submitted' | 'closed';
+  run_id?: string | null;
+  restart_command?: string;
   foreground_enabled: boolean;
   todo: string;
   groups: {title: string; fields: {label: string; value: string}[]}[];
@@ -32,6 +36,7 @@ export default function InferenceDraftCard({card, active, canAct, send}:{
   send: (text: string) => void;
 }) {
   const [editing,setEditing]=useState(false);
+  const editable = card.editable === true;
   const changed = new Set(card.changes.map(change => change.label));
   return <section className="draft-review inference-draft" aria-label="推理方案">
     <p className="draft-todo">{card.todo}</p>
@@ -54,9 +59,16 @@ export default function InferenceDraftCard({card, active, canAct, send}:{
         </div>}</dl>
       </section>)}
     </div>
-    {active && editing && card.envi && <InferenceAdjustmentForm key={card.revision} revision={card.revision}
+    {!editable && <p className="draft-readonly">{card.state === 'submitted'
+      ? '该方案已执行，如需修改请新建推理方案。' : card.state === 'closed'
+        ? '该方案已关闭，如需修改请新建推理方案。' : '历史方案为只读，请重新打开当前推理方案。'}</p>}
+    {active && editable && editing && card.envi && <InferenceAdjustmentForm key={card.revision} revision={card.revision}
       canAct={canAct} send={send} onCancel={()=>setEditing(false)}/>}
-    {active && !editing && <div className="work-actions">
+    {active && !editable && <div className="work-actions">
+      {card.restart_command && <button type="button" disabled={!canAct} onClick={()=>send(card.restart_command!)}>新建推理方案</button>}
+      {card.run_id && <button type="button" disabled={!canAct} onClick={()=>send('查看上次推理结果')}>查看上次推理结果</button>}
+    </div>}
+    {active && editable && !editing && <div className="work-actions">
       {card.ready && <button type="button" className="draft-primary" disabled={!canAct} onClick={() => send('确认推理')}>确认推理</button>}
       {card.envi&&<button type="button" disabled={!canAct} onClick={()=>setEditing(true)}>微调参数</button>}
       {card.envi && (card.ready || card.checked_files !== undefined) && <>

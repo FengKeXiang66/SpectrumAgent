@@ -10,6 +10,7 @@ from threading import Lock
 import numpy as np
 
 from backend.database import connect_database
+from spectrumagent import projects
 from spectrumagent.storage import guard as storage
 from . import ModelingError
 from .metrics import classification_scores, classification_fold_summary, _vote
@@ -233,6 +234,7 @@ class Evaluations:
         except FileNotFoundError:
             raise ModelingError("ARTIFACT_HASH_MISMATCH", "评价产物不存在") from None
 
+    @projects.checked("evaluation", "identifier")
     def get(self, identifier):
         with connect_database(self.database) as db:
             row = db.execute("SELECT snapshot FROM classification_evaluation WHERE id=?", (identifier,)).fetchone()

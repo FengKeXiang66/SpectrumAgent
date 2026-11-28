@@ -92,6 +92,10 @@ def create_app(paths, identity):
     from spectrumagent.agent.session_migrations import initialize as initialize_sessions
     from spectrumagent.agent.sessions import SessionService
     initialize_sessions(paths.database)
+    from spectrumagent.api.projects import make_router as make_projects_router, ProjectMiddleware
+    app.include_router(make_projects_router(paths.database))
+    app.add_middleware(ProjectMiddleware, database=paths.database, token=identity.token,
+                       boot_id=identity.boot_id, pid=identity.pid)
     app.state.agent_sessions = SessionService(paths.database, app.state.dataset_scope, identity.boot_id)
     from spectrumagent.modeling.run import TrainingRuns
     from spectrumagent.modeling.registry import ModelRegistry
@@ -108,9 +112,11 @@ def create_app(paths, identity):
                                           engine=app.state.superpixel_engine, recycle=registry.recycle,
                                           training_sets=app.state.training_sets, paths=paths,
                                           experiments=app.state.experiments)
-    app.state.agent_tools.experiment_dialogue.inference.service.recover()
-    app.state.agent_tools.experiment_dialogue.tasks.recover()
-    app.state.agent_tools.experiment_dialogue.study.recover()
+    from spectrumagent import projects
+    with projects.maintenance():
+        app.state.agent_tools.experiment_dialogue.inference.service.recover()
+        app.state.agent_tools.experiment_dialogue.tasks.recover()
+        app.state.agent_tools.experiment_dialogue.study.recover()
     from spectrumagent.storage.recovery import recover_workspace
     recover_workspace(paths.database)
     app.state.agent_llm_factory = lambda session_id: OpenAICompatibleClient(paths.database, session_id=session_id)

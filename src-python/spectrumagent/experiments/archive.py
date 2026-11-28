@@ -14,7 +14,12 @@ class ExperimentArchive:
     def folders(self):
         if not self.service.root.is_dir():
             return
+        from backend.database import connect_database
+        from spectrumagent import projects
         for folder in self.service.root.iterdir():
+            with connect_database(self.service.paths.database) as db:
+                if not projects.owned(db, 'experiment', folder.name):
+                    continue
             try:
                 if folder.is_dir() and self.service.folder(folder.name).resolve() == folder.resolve():
                     yield folder
@@ -22,6 +27,11 @@ class ExperimentArchive:
                 continue
 
     def recover_interrupted(self):
+        from spectrumagent.projects import maintenance
+        with maintenance():
+            return self._recover_interrupted()
+
+    def _recover_interrupted(self):
         # Called once at app startup, while no experiment worker exists.
         from .service import write_json
         for folder in self.folders():

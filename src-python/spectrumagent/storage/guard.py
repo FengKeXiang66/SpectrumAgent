@@ -14,6 +14,7 @@ import shutil
 import sqlite3
 import tempfile
 from threading import RLock
+from time import sleep
 from uuid import uuid4
 import warnings
 
@@ -424,9 +425,18 @@ def rmtree(path):
 
 
 def replace(source, destination):
-    source = resolve_delete(source)
-    destination = resolve_write(destination, kind='RENAME_DESTINATION')
-    return os.replace(source, destination)
+    # Windows may briefly deny a freshly written snapshot's directory rename,
+    # even after all its files are closed. Keep the move atomic: one short retry,
+    # no copy/delete fallback, permission changes or garbage-collection workaround.
+    for attempt in range(2):
+        source_path = resolve_delete(source)
+        destination_path = resolve_write(destination, kind='RENAME_DESTINATION')
+        try:
+            return os.replace(source_path, destination_path)
+        except OSError as error:
+            if attempt or os.name != 'nt' or getattr(error, 'winerror', None) not in {5, 32, 33}:
+                raise
+            sleep(.1)
 
 
 @contextmanager

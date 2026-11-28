@@ -3,6 +3,7 @@ import json
 from uuid import uuid4
 import numpy as np
 from backend.database import connect_database
+from spectrumagent import projects
 from . import ModelingError
 from .evaluation import Evaluations, encode, digest, stamp
 
@@ -43,6 +44,7 @@ class ClassificationModels:
                             digest([c["id"] for c in ev["classes"]]), ev["artifacts"]["model"]["sha256"], stamp()))
         return self.get(identifier)
 
+    @projects.checked("classification_model", "identifier")
     def get(self, identifier, calibration=False):
         with connect_database(self.database) as db:
             row = db.execute("SELECT id,run_id,evaluation_id,name,version,project_id,catalog_hash,model_hash,stage,created_at "
@@ -68,8 +70,11 @@ class ClassificationModels:
     def list(self):
         with connect_database(self.database) as db:
             ids = [r[0] for r in db.execute("SELECT id FROM classification_model ORDER BY name,version DESC,id")]
+        with connect_database(self.database) as db:
+            ids = projects.filter_ids(db, "classification_model", ids)
         return [self.get(identifier) for identifier in ids]
 
+    @projects.checked("classification_model")
     def set_stage(self, identifier, stage):
         if stage not in ("experiment", "candidate"):
             raise ModelingError("INVALID_MODEL_STAGE", "分类版本仅开放实验/候选；基线不等于生产")

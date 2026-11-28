@@ -2,7 +2,7 @@ import type { ModelingScalarSummary } from './modeling-summary.ts';
 import type { DataIntake } from './DataIntakeCard.tsx';
 
 export type Scalars = ModelingScalarSummary;
-export type PlanEventData = { plan_id: string; steps: { seq: number; tool: string; summary: Scalars; gpu: boolean; estimate_ms: number | null }[]; reason: string };
+export type PlanEventData = { blocked?: boolean; plan_id: string; steps: { seq: number; tool: string; summary: Scalars; gpu: boolean; estimate_ms: number | null }[]; reason: string };
 export type PlanDecision = { action: 'approve' } | { action: 'reject'; reason: string }
   | { action: 'skip' | 'rollback'; step_ref: number; reason: string };
 export type WorkspaceEventData = { cube_id: string; gesture_ref?: string; display_name?: string; stage?: 'annotation' | 'preprocess'; revision?: number };
@@ -10,7 +10,7 @@ export type AgentEvent =
   | { event: 'progress'; data: {phase:'model'|'tool';tool?:string} }
   | { event: 'step'; data: { seq: number; tool: string; status: string; result_summary: Scalars } }
   | { event: 'clarify'; data: { question: string; keep_pending?: boolean; request_status?:'finished'; reply_status?:'needs_input' } }
-  | { event: 'human_check'; data: { check_id: string; tool: string; summary: Scalars; reason: string } }
+  | { event: 'human_check'; data: { blocked?: boolean; check_id: string; tool: string; summary: Scalars; reason: string } }
   | { event: 'plan'; data: PlanEventData }
   | { event: 'workspace'; data: WorkspaceEventData }
   | { event: 'done'; data: { content: string; step_count: number; task_result?: string;

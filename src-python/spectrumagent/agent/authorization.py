@@ -157,7 +157,8 @@ class AnnotationAuthorization:
         # Read complete ledger order; D references use the catalogue last shown
         # to the user, not a freshly sorted provider-generated list.
         with connect_database(self.service.database) as db:
-            rows = db.execute('SELECT id FROM dataset_registry ORDER BY rowid').fetchall()
+            from spectrumagent.projects import current
+            rows = db.execute('SELECT id FROM dataset_registry WHERE project_id=? ORDER BY rowid', (current(db),)).fetchall()
         all_ids = [r[0] for r in rows]
         catalog_snapshot_id = sha256(json.dumps(all_ids, separators=(',', ':')).encode()).hexdigest()
         names = registry.display_names()

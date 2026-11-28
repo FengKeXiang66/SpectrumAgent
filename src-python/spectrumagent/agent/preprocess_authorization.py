@@ -9,6 +9,7 @@ import json
 import re
 
 from backend.database import connect_database
+from spectrumagent.projects import current as project_current
 from .authorization import NEGATION, QUESTION, QUERY, dataset_references, unquoted
 
 
@@ -26,7 +27,7 @@ def capture(database,sid,content,state,request_id):
     if re.search(r'除了?|排除|不包括|不包含|不含|最新|本轮|本次|这次|刚才|标注(?:版本)?\s*[vV]\d+',text):
         return  # Changed/excluded versions use the existing explicit-reference path.
     with connect_database(database) as db:
-        registered=[row[0] for row in db.execute('SELECT id FROM dataset_registry ORDER BY rowid')]
+        registered=[row[0] for row in db.execute('SELECT id FROM dataset_registry WHERE project_id=? ORDER BY rowid', (project_current(db),))]
         if not registered:
             return  # No saved selection can exist; leave discovery to the workflow.
         if re.search(r'(?:全部|所有)(?:已导入的?|的)?(?:数据(?:集)?|样品)',text):

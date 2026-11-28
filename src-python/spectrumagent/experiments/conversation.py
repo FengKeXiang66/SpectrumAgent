@@ -482,6 +482,9 @@ class ExperimentDialogue:
         return result
 
     def _config(self, record, *, training_only=False, train_manifest_rows=None, normalize_evaluation=True):
+        from spectrumagent import projects
+        with connect_database(self.database) as db:
+            projects.check_document(db, record.get('document') or {})
         document = deepcopy(record['document'])
         selection = document.pop('workspace_selection', None)
         roles = ('train',) if training_only else ('train', 'test')

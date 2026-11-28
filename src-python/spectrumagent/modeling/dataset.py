@@ -42,6 +42,15 @@ def _inputs(registry, *, cube_ids, annotation_version_ids, preprocess_run_ids, t
         raise ModelingError("ARGUMENT_LENGTH_MISMATCH", "三个引用数组须等长且非空")
     rows = []
     with connect_database(registry.database) as db:
+        from spectrumagent import projects
+        for cube in cube_ids:
+            projects.require(db, 'cube', cube)
+        for annotation in annotation_version_ids:
+            projects.require(db, 'annotation', annotation)
+        for run in preprocess_run_ids:
+            projects.require(db, 'preprocess', run)
+        if recipe_version_id:
+            projects.require(db, 'recipe_version', recipe_version_id)
         db.row_factory = sqlite3.Row
         # Check every version before checking any preprocess run (R7 ordering).
         for cube, version in zip(cube_ids, annotation_version_ids):
@@ -235,6 +244,9 @@ class SampleTargets:
 
     @staticmethod
     def _validate(db, cube_id, schema_id, value):
+        from spectrumagent import projects
+        projects.require(db, 'cube', cube_id)
+        projects.require(db, 'schema', schema_id)
         if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
             raise ModelingError("INVALID_TARGET_VALUE", "连续量须为有限数值")
         row = db.execute("SELECT d.project_id,s.field_type,s.config FROM dataset_registry d JOIN label_schema s ON s.project_id=d.project_id "
@@ -265,6 +277,11 @@ class SampleTargets:
         return next(row for row in self.list(project) if row["cube_id"] == cube_id and row["schema_id"] == schema_id)
 
     def list(self, project_id=None):
+        from spectrumagent import projects
+        with connect_database(self.database) as db:
+            project_id = project_id or projects.current(db)
+            if project_id != projects.current(db):
+                raise projects.denied()
         with connect_database(self.database) as db:
             db.row_factory = sqlite3.Row
             return [dict(row) for row in db.execute("SELECT t.*,s.tree_path FROM sample_target t JOIN label_schema s ON s.id=t.schema_id "

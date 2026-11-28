@@ -37,6 +37,11 @@ def migrate(db):
 
 
 def assert_available(db, *, recipe_id=None, version_id=None):
+    from spectrumagent import projects
+    if recipe_id:
+        projects.require(db, 'recipe', recipe_id)
+    if version_id:
+        projects.require(db, 'recipe_version', version_id)
     if version_id is not None:
         row = db.execute('SELECT recipe_id FROM preprocess_recipe_version WHERE id=?', (str(version_id),)).fetchone()
         if row is None:
@@ -85,6 +90,9 @@ def _draft(db, identifier, owner):
     if row is None:
         raise DataError('DRAFT_NOT_FOUND', '配方草稿不存在或不属于当前会话')
     result = dict(row)
+    if result.get('source_recipe_version_id'):
+        from spectrumagent import projects
+        projects.require(db, 'recipe_version', result['source_recipe_version_id'])
     for key in ('pipeline','validation_result','metadata'):
         result[key] = json.loads(result[key])
     return result

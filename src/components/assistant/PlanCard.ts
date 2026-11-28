@@ -15,7 +15,7 @@ export function planStepStatus(seq: number, choice: PlanChoice | PlanDecision | 
 
 export function PlanCardView(p: PlanCardViewProps) {
   const submit = () => {
-    if (p.disabled || p.readOnly || !p.choice || p.choice.action === 'approve' || !p.reason.trim()) return;
+    if (p.disabled || p.readOnly || !p.choice || p.choice.action === 'approve' || !p.reason.trim() || p.plan.blocked && p.choice.action !== 'reject') return;
     p.onSubmit({ ...p.choice, reason: p.reason });
   };
   return h('section', { className: 'annotation-card', 'aria-label': '执行计划' },
@@ -29,12 +29,12 @@ export function PlanCardView(p: PlanCardViewProps) {
         h('td', null, step.gpu ? '是' : '否'), h('td', null, step.estimate_ms === null ? '—' : `${step.estimate_ms} ms`),
         h('td', null, planStepStatus(step.seq, p.choice)),
         !p.readOnly && h('td', null,
-          h('button', { disabled: p.disabled, 'aria-label': `跳过第 ${step.seq} 步及之后`,
+          h('button', { disabled: p.disabled || p.plan.blocked, 'aria-label': `跳过第 ${step.seq} 步及之后`,
             onClick: () => { if (!p.disabled) p.onChoose({ action: 'skip', step_ref: step.seq }); } }, '跳过'),
-          h('button', { disabled: p.disabled, 'aria-label': `从第 ${step.seq} 步开始`,
+          h('button', { disabled: p.disabled || p.plan.blocked, 'aria-label': `从第 ${step.seq} 步开始`,
             onClick: () => { if (!p.disabled) p.onChoose({ action: 'rollback', step_ref: step.seq }); } }, `从第 ${step.seq} 步开始`)))))),
     p.readOnly ? p.reason && h('p', null, `原因：${p.reason}`) : h('div', null,
-      h('button', { disabled: p.disabled, onClick: () => { if (!p.disabled) p.onSubmit({ action: 'approve' }); } }, '批准'),
+      h('button', { disabled: p.disabled || p.plan.blocked, onClick: () => { if (!p.disabled && !p.plan.blocked) p.onSubmit({ action: 'approve' }); } }, '批准'),
       h('button', { disabled: p.disabled, onClick: () => { if (!p.disabled) p.onChoose({ action: 'reject' }); } }, '拒绝'),
       h('label', null, '计划动作原因（跳过、回退或拒绝时必填）', h('input', { 'aria-label': '计划动作原因', value: p.reason,
         disabled: p.disabled, required: !!p.choice && p.choice.action !== 'approve',

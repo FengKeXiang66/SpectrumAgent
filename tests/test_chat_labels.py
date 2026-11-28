@@ -240,7 +240,12 @@ def test_duplicate_live_names_abort_and_deleted_name_gets_new_identity(applicati
     assert store.add(SimpleLabelRequest(project_id=project, name='pe', color_hex='#abcdef'))['id'] == old['id']
     # Reproduce a legacy duplicate; current named creation cannot create it.
     from spectrumagent.annotation.labels import CustomRequest
-    store.add(CustomRequest(project_id=project, code='OLD_PE', name='pe', tree_path='材料', color_hex='#abcdef'))
+    with pytest.raises(DataError):
+        store.add(CustomRequest(project_id=project, code='OLD_PE', name='pe', tree_path='材料', color_hex='#abcdef'))
+    with connect_database(database) as db:
+        db.execute("INSERT INTO label(id,project_id,schema_id,code,name,tree_path,color_hex,sort_order,is_background,created_at) "
+                   "SELECT ?,project_id,schema_id,'OLD_PE','pe',tree_path,'#abcdef',sort_order+1,0,created_at FROM label WHERE id=?",
+                   (str(uuid4()), old['id']))
     with pytest.raises(DataError):
         store.ensure_names(project, ['PP', 'PE'])
     assert len(rows(application)) == 2

@@ -188,6 +188,13 @@ pub struct SessionQuery {
 #[derive(Deserialize)]
 #[serde(tag = "op", rename_all = "snake_case", deny_unknown_fields)]
 pub enum AgentRequest {
+    ListProjects {},
+    CreateProject { name: String },
+    SelectProject { project_id: String },
+    ProjectDeletionPreview { project_id: String },
+    DeleteProject { project_id: String, confirm_name: String, confirmation_token: String },
+    RestoreProject { project_id: String },
+    ProjectMigrationPreview {},
     PreprocessingEditor { id: String, kind: String, cube_id: Option<String> },
     RegressionPlan { id: String },
     InferenceHistory { id: String, model_id: String },
@@ -234,6 +241,7 @@ pub enum AgentRequest {
         dataset_version_id: Option<String>,
     },
     CreateSession {
+        project_id: Option<String>,
         scope: Option<SessionScope>,
         request_id: Option<String>,
         partial_confirmation_token: Option<String>,
@@ -304,6 +312,21 @@ fn page_limit(limit: &Option<u32>, maximum: u32) -> Result<(), ForwardError> {
 impl AgentRequest {
     fn validate(&self) -> Result<(), ForwardError> {
         match self {
+            Self::ListProjects {} | Self::ProjectMigrationPreview {} => Ok(()),
+            Self::SelectProject { project_id } | Self::ProjectDeletionPreview { project_id }
+            | Self::RestoreProject { project_id } => uuid(project_id),
+            Self::DeleteProject { project_id, confirm_name, confirmation_token } => {
+                uuid(project_id)?;
+                if confirm_name.is_empty() || confirm_name.chars().count() > 100
+                    || confirmation_token.len() != 64 || !confirmation_token.bytes().all(|c| c.is_ascii_hexdigit()) {
+                    return Err(invalid_request());
+                }
+                Ok(())
+            },
+            Self::CreateProject { name } => {
+                if name.trim().is_empty() || name.chars().count() > 100 || name.chars().any(char::is_control) { return Err(invalid_request()); }
+                Ok(())
+            },
             Self::RegressionPlan { id } => uuid(id),
             Self::PreprocessingEditor { id, kind, cube_id } => {
                 uuid(id)?;
@@ -426,10 +449,12 @@ impl AgentRequest {
                 Ok(())
             }
             Self::CreateSession {
+                project_id,
                 scope,
                 request_id,
                 partial_confirmation_token,
             } => {
+                if let Some(project) = project_id { uuid(project)?; }
                 if let Some(SessionScope::DatasetVersion { dataset_version_id }) = scope {
                     uuid(dataset_version_id)?;
                 }
@@ -532,6 +557,14 @@ impl AgentRequest {
     pub fn destination(&self, port: u16) -> Result<(Url, Method, Option<Value>), ForwardError> {
         self.validate()?;
         let (path, method, body) = match self {
+            Self::ListProjects {} => ("/api/v1/agent/projects".into(), Method::GET, None),
+            Self::CreateProject { name } => ("/api/v1/agent/projects".into(), Method::POST, Some(json!({"name":name}))),
+            Self::SelectProject { project_id } => (format!("/api/v1/agent/projects/{project_id}/current"), Method::PUT, None),
+            Self::ProjectDeletionPreview { project_id } => (format!("/api/v1/agent/projects/{project_id}/deletion-preview"), Method::GET, None),
+            Self::DeleteProject { project_id, confirm_name, confirmation_token } => (format!("/api/v1/agent/projects/{project_id}/trash"), Method::POST,
+                Some(json!({"confirm_name":confirm_name,"confirmation_token":confirmation_token}))),
+            Self::RestoreProject { project_id } => (format!("/api/v1/agent/projects/{project_id}/restore"), Method::POST, None),
+            Self::ProjectMigrationPreview {} => ("/api/v1/agent/projects/migration-preview".into(), Method::GET, None),
             Self::RegressionPlan { id } => (
                 format!("/api/v1/agent/sessions/{id}/regression-plan"), Method::GET, None),
             Self::PreprocessingEditor { id, .. } => (
@@ -612,11 +645,13 @@ impl AgentRequest {
                 ),
             ),
             Self::CreateSession {
+                project_id,
                 scope,
                 request_id,
                 partial_confirmation_token,
             } => {
                 let mut value = json!({});
+                if let Some(project) = project_id { value["project_id"] = json!(project); }
                 if let Some(scope) = scope {
                     value["scope"] = serde_json::to_value(scope).map_err(|_| invalid_request())?;
                 }
@@ -1170,6 +1205,32 @@ fn stream_frames(
 
 #[cfg(test)]
 mod streaming_tests {
+    #[test]
+    fn project_operations_have_fixed_routes_and_session_identity() -> Result<(), super::ForwardError> {
+        use super::{parse_request, Method};
+        use serde_json::json;
+        let pid = "00000000-0000-0000-0000-000000000001";
+        let (url, method, body) = parse_request(json!({"op":"select_project","project_id":pid}))?.destination(12345)?;
+        assert_eq!(url.path(), format!("/api/v1/agent/projects/{pid}/current"));
+        assert_eq!(method, Method::PUT);
+        assert!(body.is_none());
+        let (_, _, body) = parse_request(json!({"op":"create_session","project_id":pid}))?.destination(12345)?;
+        assert_eq!(body.unwrap()["project_id"], pid);
+        assert!(parse_request(json!({"op":"select_project","project_id":"../other"})).is_err());
+        assert!(parse_request(json!({"op":"create_project","name":" ","url":"http://other"})).is_err());
+        let (url, method, body) = parse_request(json!({"op":"delete_project","project_id":pid,
+            "confirm_name":"蛋项目","confirmation_token":"a".repeat(64)}))?.destination(12345)?;
+        assert_eq!(url.path(), format!("/api/v1/agent/projects/{pid}/trash"));
+        assert_eq!(method, Method::POST);
+        assert_eq!(body.unwrap()["confirm_name"], "蛋项目");
+        let (url, method, _) = parse_request(json!({"op":"restore_project","project_id":pid}))?.destination(12345)?;
+        assert_eq!(url.path(), format!("/api/v1/agent/projects/{pid}/restore"));
+        assert_eq!(method, Method::POST);
+        assert!(parse_request(json!({"op":"delete_project","project_id":pid,
+            "confirm_name":"蛋项目","confirmation_token":"bad"})).is_err());
+        Ok(())
+    }
+
     #[test]
     fn regression_plan_is_fixed_read_only_and_session_scoped() -> Result<(), super::ForwardError> {
         use super::{parse_request, Method};

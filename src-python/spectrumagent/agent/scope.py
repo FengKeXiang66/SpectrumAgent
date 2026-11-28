@@ -204,7 +204,8 @@ class ScopedToolRegistry:
             codes = args.get('class_codes') or []
             with connect_database(self.service.database) as db:
                 projects = db.execute('SELECT id,name FROM project').fetchall()
-                target_project = args.get('project_id')
+                from spectrumagent.projects import session_project
+                target_project = args.get('project_id') or session_project(self.service.database, self.session_id)
                 if args.get('cube_id'):
                     row = db.execute('SELECT project_id FROM dataset_registry WHERE id=?', (args['cube_id'],)).fetchone()
                     target_project = row[0] if row else None
@@ -212,7 +213,7 @@ class ScopedToolRegistry:
                     target_project = projects[0][0]
                 existing_codes = {row[0] for row in db.execute('SELECT code FROM label WHERE project_id=? AND deleted_at IS NULL', (target_project,))}
             if target_project and len(projects) > 1 and not any(pid == target_project and (pid in text or pname in text) for pid, pname in projects):
-                if target_project != context.get('label_project_id'):
+                if target_project != context.get('label_project_id') and target_project != session_project(self.service.database, self.session_id):
                     raise DataError('OPERATION_NOT_AUTHORIZED', '请明确要修改标签的项目')
             wanted = set(codes) | ({'BG'} if args.get('include_background', False) else set())
             if (codes and target_project == context.get('label_project_id') and not args.get('class_names')
@@ -343,6 +344,18 @@ class ScopedToolRegistry:
 
     def _check(self, name, args, *, scientific=False, live_references=True):
         self.resolve(name)
+        from .step_plan import validate_tool
+        validate_tool(self.service.database, self.session_id, name)
+        from spectrumagent.projects import bind, check_document, session_project
+        with bind(session_project(self.service.database, self.session_id)), connect_database(self.service.database) as db:
+            check_document(db, args)
+            from spectrumagent.projects import require
+            if args.get('run_id'):
+                kind = 'training' if name in {'modeling.register','modeling.run'} else 'inference' if name == 'modeling.inference' else 'preprocess' if name.startswith('preprocess.') else None
+                if kind:
+                    require(db, kind, args['run_id'])
+            if name == 'datasets.resolve' and re.fullmatch(r'[0-9a-f-]{36}', args.get('query','')):
+                require(db, 'cube', args['query'])
         if self.work and name=='annotations.status_batch':
             for cube in args.get('cube_ids',[]):self.member(cube)
         from .tools.modeling import MODELING_TOOLS, WRITE_TOOLS
@@ -468,11 +481,21 @@ class ScopedToolRegistry:
             refused=(call['name']=='annotations.apply_candidate' and call['arguments'].get('candidate_ref')
                      and call['arguments']['candidate_ref']==state.get('rejected_candidate_ref'))
             args=self.effective_arguments(call['name'],call['arguments'],live_references=not refused)
-            self.authorize_annotation(call['name'], args)
             self._check(call['name'],args,scientific=not refused,live_references=not refused)
+            self.authorize_annotation(call['name'], args)
 
     def hydrate(self, state):
         state=dict(state)
+        from spectrumagent import projects
+        with connect_database(self.service.database) as db:
+            old_catalog = state.get('dataset_catalog') or []
+            if any(not projects.owned(db, 'cube', row['id']) for row in old_catalog):
+                state.pop('dataset_catalog', None)
+                state.pop('catalogs', None)
+                state['scope_notice'] = '数据归属已变化，旧编号与确认需重新核对'
+            if state.get('selected_cube_id') and not projects.owned(db, 'cube', state['selected_cube_id']):
+                for key in ('selected_cube_id','task_target','operation_authorization','gesture_ref','candidate_ref','recipe_version_id'):
+                    state.pop(key, None)
         if self.tasks:
             # Refresh accepted background work at each user turn. A stale
             # "accepted" receipt is not the current completion state.
@@ -487,7 +510,8 @@ class ScopedToolRegistry:
                                 'member_count':self.binding['member_count']}
         if not self.work:
             counts = self.service._counts(self.session_id, False)
-            state['session_scope'].update(kind='global', scope='all', total=counts['total_members'],
+            from spectrumagent.projects import session_project
+            state['session_scope'].update(kind='global', scope='project', project_id=session_project(self.service.database, self.session_id), total=counts['total_members'],
                 member_count=counts['total_members'],
                 available_members=counts['available_members'], availability_status=counts['availability_status'])
             if self.service.registry is not None:
@@ -591,13 +615,18 @@ class ScopedToolRegistry:
         return result
 
     def invoke(self, name, arguments):
+        from spectrumagent.projects import bind, session_project
+        with bind(session_project(self.service.database, self.session_id)):
+            return self._invoke_project(name, arguments)
+
+    def _invoke_project(self, name, arguments):
         if getattr(self, 'control', None) is not None:
             self.control.begin('tool')
         raw=self.validate(name,arguments).model_dump(mode='json', exclude_unset=name.startswith('experiments.') or name == 'modeling.regression_plan_update')
         args=self.effective_arguments(name,raw)
+        self._check(name,args,scientific=True)
         grant = self.authorize_annotation(name, args)
         self.check_preprocess_discovery(name,args)
-        self._check(name,args,scientific=True)
         annotation_target = None
         if name == 'annotations.task':
             if self.tasks is None:

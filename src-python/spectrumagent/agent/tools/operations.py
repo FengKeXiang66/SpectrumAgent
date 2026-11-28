@@ -57,7 +57,9 @@ def finite(value):
 class ReferenceBook:
     """Server-side holder for values the model must never see."""
 
-    def __init__(self):
+    def __init__(self, database=None):
+        self.database = database
+        self.project_owners = {}
         self.sources = {}
         self.entries = {}
         self.deletions = {}
@@ -66,16 +68,29 @@ class ReferenceBook:
     def issue(self, kind, value):
         self.counter[kind] += 1
         reference = f"{kind}-{self.counter[kind]}"
+        if self.database is not None:
+            from spectrumagent.projects import current
+            with connect_database(self.database) as db:
+                self.project_owners[reference] = current(db)
         {"SRC": self.sources, "C": self.entries, "DEL": self.deletions}[kind][reference] = value
         return reference
 
+    def check_owner(self, reference):
+        if self.database is not None and reference in self.project_owners:
+            from spectrumagent import projects
+            with connect_database(self.database) as db:
+                if self.project_owners[reference] != projects.current(db):
+                    raise projects.denied()
+
     def source(self, reference):
+        self.check_owner(reference)
         value = self.sources.get(reference, self.entries.get(reference))
         if value is None:
             raise DataError("REFERENCE_EXPIRED", "导入源引用已失效，请重新列出导入源")
         return value
 
     def deletion(self, reference):
+        self.check_owner(reference)
         value = self.deletions.pop(reference, None)
         if value is None:
             raise DataError("REFERENCE_EXPIRED", "删除预览引用已失效，请重新预览影响清单")
@@ -201,7 +216,7 @@ def _recipe_version(row):
 
 def register_operations(registry, *, datasets=None, recycle=None, runner=None, models=None,
                         inferences=None, training_sets=None, paths=None, database=None):
-    book = ReferenceBook()
+    book = ReferenceBook(database)
 
     # ------------------------------------------------------------ import
     def known_sources():
@@ -212,7 +227,7 @@ def register_operations(registry, *, datasets=None, recycle=None, runner=None, m
             exists = db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='project_path_settings'").fetchone()
             if exists:
                 values = [row[0] for row in db.execute(
-                    "SELECT source_path FROM project_path_settings WHERE source_path<>'' ORDER BY source_path")]
+                    "SELECT source_path FROM project_path_settings WHERE project_id=? AND source_path<>'' ORDER BY source_path", (__import__("spectrumagent.projects", fromlist=["current"]).current(db),))]
         return [Path(value) for value in values if Path(value).is_dir()]
 
     def list_sources(arguments):
@@ -373,14 +388,17 @@ def register_operations(registry, *, datasets=None, recycle=None, runner=None, m
         if database is None:
             raise DataError("TOOL_NOT_IMPLEMENTED", "缺少数据库绑定")
         with connect_database(database) as db:
+            from spectrumagent.projects import current as current_project
+            arguments_project = arguments.project_id or current_project(db)
             exists = db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='project_path_settings'").fetchone()
             if exists:
                 row = db.execute("SELECT project_id,source_path,output_root FROM project_path_settings "
-                                 + ("WHERE project_id=?" if arguments.project_id else "ORDER BY updated_at DESC LIMIT 1"),
-                                 (str(arguments.project_id),) if arguments.project_id else ()).fetchone()
+                                 + "WHERE project_id=?",
+                                 (str(arguments_project),)).fetchone()
             else:
                 row = None
-            projects = db.execute("SELECT id FROM project ORDER BY rowid LIMIT 1").fetchone()
+            from spectrumagent.projects import current as current_project
+            projects = (current_project(db),)
         result = {"project_id": row[0] if row else (projects[0] if projects else ""),
                   "source_configured": 1 if row and row[1] else 0,
                   "output_configured": 1 if row and row[2] else 0,

@@ -8,6 +8,7 @@ from uuid import uuid4
 from pydantic import Field, ValidationError
 
 from backend.database import connect_database
+from spectrumagent.projects import current as project_current
 from spectrumagent.data import DataError
 from spectrumagent.modeling.dataset import build_sample_training_set
 from spectrumagent.modeling.cv import kennard_stone, plan_folds
@@ -105,9 +106,9 @@ class RegressionPlans:
         row = self._read(sid)
         with connect_database(self.database) as db:
             schemas = [dict(zip(('id', 'name', 'unit', 'project_id'), r)) for r in db.execute(
-                "SELECT id,name,unit,project_id FROM label_schema WHERE field_type='continuous' ORDER BY name,id")]
+                "SELECT id,name,unit,project_id FROM label_schema WHERE field_type='continuous' AND project_id=? ORDER BY name,id", (project_current(db),))]
             targets = [dict(zip(('cube_id', 'schema_id', 'value'), r)) for r in db.execute(
-                'SELECT cube_id,schema_id,value FROM sample_target')]
+                'SELECT cube_id,schema_id,value FROM sample_target WHERE project_id=?', (project_current(db),))]
             receipt = db.execute("SELECT status,result_summary FROM agent_step WHERE session_id=? AND tool='modeling.regression_form' ORDER BY seq DESC LIMIT 1", (sid,)).fetchone()
         members = CurrentWorkspace(self.sessions, self.runner).state()['members']
         for member in members:

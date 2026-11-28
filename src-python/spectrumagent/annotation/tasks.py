@@ -86,7 +86,8 @@ class AnnotationTasks:
         """Legacy single-image/custom-parameter endpoints share the same bounded worker."""
         if current_thread() is self.worker:
             return operation()
-        entry = {'operation': operation, 'done': Event()}
+        from spectrumagent.projects import worker
+        entry = {'operation': worker(operation), 'done': Event()}
         with self.lock:
             if self._queued_count() >= self.capacity:
                 raise failure('BUSY', '准备队列已满，请稍后重试')
@@ -158,6 +159,11 @@ class AnnotationTasks:
                     self._finish(task, 'failed', getattr(error, 'code', 'PREPARE_FAILED'))
 
     def _execute(self, task):
+        from spectrumagent.projects import bind, session_project
+        with bind(session_project(self.batch.registry.database, task['owner_session_id'])):
+            return self._execute_project(task)
+
+    def _execute_project(self, task):
         verified = []
         for index, member in enumerate(task['members']):
             cube = member['cube_id']

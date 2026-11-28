@@ -6,6 +6,7 @@ from time import time
 from uuid import uuid4
 
 from backend.database import connect_database
+from spectrumagent.projects import worker as project_worker
 from spectrumagent.data import DataError
 from .conversation import CONFIRM
 
@@ -82,6 +83,8 @@ class ExperimentTasks:
         return self.view(owner, task_id)
 
     def submit(self, owner, content, turn, *, confirmation=None):
+        from spectrumagent.agent.step_plan import validate_operation
+        validate_operation(self.dialogue.database, owner, 'experiment')
         with self.lock:
             record = self.dialogue._read(owner)
             if (not record or not CONFIRM.fullmatch(content.strip())
@@ -108,7 +111,7 @@ class ExperimentTasks:
                 self.dialogue.clear_confirmation(db, owner, 'experiment')
                 self._save(db, row)
             self.rows[task_id] = row
-            Thread(target=self._work, args=(task_id, content, turn, target), daemon=True).start()
+            Thread(target=project_worker(self._work), args=(task_id, content, turn, target), daemon=True).start()
             return self.view(owner, task_id)
 
     def _work(self, task_id, content, turn, accepted_plan):

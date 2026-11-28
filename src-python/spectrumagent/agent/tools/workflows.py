@@ -182,7 +182,9 @@ def _rows(database, query, arguments=()):
 
 
 def dataset_catalog(datasets):
-    rows = _rows(datasets.database, "SELECT id,payload,raw FROM dataset_registry ORDER BY rowid")
+    with connect_database(datasets.database) as db:
+        from spectrumagent.projects import current
+        rows = db.execute("SELECT id,payload,raw FROM dataset_registry WHERE project_id=? ORDER BY rowid", (current(db),)).fetchall()
     names = display_names((identifier, json.loads(payload).get("name"), raw)
                           for identifier, payload, raw in rows)
     result = {"dataset_count": len(rows), "count": len(rows), "truncated": len(rows) > LIMIT}
@@ -245,7 +247,9 @@ class Workflows:
                                           cube_ids=arguments.cube_ids)
 
     def resolve(self, arguments):
-        rows = _rows(self.datasets.database, "SELECT id,payload FROM dataset_registry ORDER BY rowid")
+        with connect_database(self.datasets.database) as db:
+            from spectrumagent.projects import current
+            rows = db.execute('SELECT id,payload FROM dataset_registry WHERE project_id=? ORDER BY rowid', (current(db),)).fetchall()
         query = arguments.query.strip().casefold()
         ordinal = re.fullmatch(r"(?:d|第)?(\d+)(?:项|个|个数据集)?", query)
         words = {"第一项": 1, "第一个": 1, "第一个数据集": 1, "第二项": 2, "第二个": 2,
@@ -406,7 +410,9 @@ class Workflows:
     def ensure_labels(self, arguments):
         with self.sessions._lock:
             cube_id = arguments.cube_id
-            project_id = arguments.project_id
+            from spectrumagent.projects import current as current_project
+            with connect_database(self.sessions.database) as db:
+                project_id = arguments.project_id or current_project(db)
             if cube_id:
                 self.datasets.get(cube_id)
                 actual = _rows(self.sessions.database, "SELECT project_id FROM dataset_registry WHERE id=?", (cube_id,))[0][0]

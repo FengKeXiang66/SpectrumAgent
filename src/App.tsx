@@ -80,7 +80,7 @@ export default function App() {
   }, [catalogController]);
   const composerInput = useRef<HTMLTextAreaElement>(null);
   const session = useSession({ enabled: status.phase === 'Ready', generation: status.generation_id, bootId: status.boot_id,
-    workspace, records, displayName: workspaceName, onWorkspaceChange: changeWorkspace,
+    workspace, records, catalogPhase: catalog.phase, displayName: workspaceName, onWorkspaceChange: changeWorkspace,
     onSessionReset: () => {
       openingTicket.current++; setOpening(false); setSelected(null); setPreviewCandidates({});
       setNavigation(null); setNavigationError(''); setWorkspaceName(''); localDisplay.current={}; setScreen('s01');
@@ -103,7 +103,13 @@ export default function App() {
       setNavigation({ cube_id: target, stage: 'annotation' });
     },
     onPreviewCandidate: (cubeId, candidateRef) => setPreviewCandidates(current => ({ ...current, [cubeId]: candidateRef })),
-    onCatalogChanged: () => catalogController.load(),
+    onCatalogChanged: projectChanged => {
+      if(projectChanged) {
+        catalogController.reset(statusRef.current.generation_id);
+        setDashboardRuns([]);setDashboardError('');
+      }
+      return catalogController.load();
+    },
     onDataChanged: cubeIds => setRefreshVersions(current => {
       const next = { ...current };
       for (const cubeId of cubeIds) next[cubeId] = (next[cubeId] ?? 0) + 1;
@@ -203,7 +209,7 @@ export default function App() {
       .catch(failure => { if (live) setDashboardError(failureMessage(failure)); })
       .finally(() => { if (live) setDashboardLoading(false); });
     return () => { live = false; };
-  }, [screen, status.phase, status.generation_id]);
+  }, [screen, status.phase, status.generation_id, session.projectId]);
   useEffect(() => {
     const shortcut = (event: KeyboardEvent) => {
       if (screen === 's01' || !event.ctrlKey || status.phase !== 'Ready') return;

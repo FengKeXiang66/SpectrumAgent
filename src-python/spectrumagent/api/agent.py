@@ -56,6 +56,7 @@ class GlobalScope(AgentInput):
 
 
 class CreateSession(AgentInput):
+    project_id: UUIDText | None = None
     # 2026-11-13 simplification: only global sessions exist; dataset work
     # sessions and their preflight/confirmation flow were removed.
     scope: GlobalScope | None = None
@@ -518,7 +519,7 @@ def make_router(database, tools, llm_factory=None, runtime_info=None, *, session
                     error.status_code = 409
                 raise
         session = session_service.create(body.scope.model_dump() if body.scope else None,
-                                         body.request_id, body.partial_confirmation_token)
+                                         body.request_id, body.partial_confirmation_token, body.project_id)
         with connect_database(database) as db:
             skill = active_skill(db)
         session["skill_name"] = skill["name"]

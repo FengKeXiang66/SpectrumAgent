@@ -59,7 +59,7 @@ def test_sessions_order_title_and_cursor(application):
         assert store.rounds(old)[0]['user_message']==text
         assert by_id[pending]['pending'] is True and by_id[other]['pending'] is False
         assert by_id[remote]['history_watermark']==1 and by_id[remote]['request']['status']=='completed'
-        assert all(set(row)=={'id','title','created_at','updated_at','pending','request','history_watermark'} for row in collected)
+        assert all(set(row)=={'id','title','created_at','updated_at','pending','request','history_watermark','project_id'} for row in collected)
 
 
 @pytest.mark.parametrize('kind',['training','study','inference'])

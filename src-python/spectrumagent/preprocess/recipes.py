@@ -9,6 +9,7 @@ from threading import RLock
 from uuid import uuid4
 
 from backend.database import connect_database
+from spectrumagent.data import DataError
 from . import builtin_registry
 from .migrations import migrate
 from .registry import PreprocessError, effective_pipeline
@@ -63,6 +64,9 @@ def pipeline_identity(pipeline, registry=None):
     return encoded, hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
 
+from spectrumagent import projects
+
+
 class RecipeStore:
     def __init__(self, database, registry=None):
         self.database = Path(database)
@@ -99,6 +103,8 @@ class RecipeStore:
     def _create(db, identifier, version_id, timestamp, code, name, description, encoded, note, digest):
         db.execute("INSERT INTO preprocess_recipe (id,code,name,description,builtin,created_at) VALUES (?,?,?,?,?,?)",
                        (identifier, code, name, description, 0, timestamp))
+        if db.execute("SELECT 1 FROM sqlite_master WHERE name='project'").fetchone():
+            db.execute('INSERT INTO project_recipe VALUES(?,?,?)', (projects.current(db), identifier, timestamp))
         db.execute("INSERT INTO preprocess_recipe_version (id,recipe_id,version_no,pipeline,note,created_at) VALUES (?,?,?,?,?,?)",
                        (version_id, identifier, 1, encoded, note, timestamp))
         db.execute("INSERT INTO recipe_pipeline_hash (recipe_version_id,algorithm,sha256) VALUES (?,?,?)",
@@ -124,6 +130,9 @@ class RecipeStore:
     def _update_current(self, db, row, digest):
         from .drafts import assert_available
         recipe_id = row['recipe_id']
+        projects.require(db, 'recipe', recipe_id)
+        if db.execute('SELECT 1 FROM preprocess_recipe WHERE id=? AND builtin=1', (recipe_id,)).fetchone():
+            raise DataError('RECIPE_TEMPLATE_READ_ONLY', '公共模板只读，请新建项目配方后修改')
         encoded = row['pipeline']
         if not db.execute("SELECT 1 FROM preprocess_recipe WHERE id=?", (str(recipe_id),)).fetchone():
             raise KeyError(recipe_id)
@@ -143,6 +152,7 @@ class RecipeStore:
 
     @staticmethod
     def _get(db, recipe_id):
+        projects.require(db, 'recipe', recipe_id)
         db.row_factory = sqlite3.Row
         row = db.execute("SELECT * FROM preprocess_recipe WHERE id=?", (str(recipe_id),)).fetchone()
         if row is None:
@@ -159,12 +169,12 @@ class RecipeStore:
         with connect_database(self.database) as db:
             db.execute('BEGIN')
             identifiers = [row[0] for row in db.execute("SELECT r.id FROM preprocess_recipe r LEFT JOIN recipe_runtime_state s ON s.recipe_id=r.id WHERE COALESCE(s.deleted,0)=0 ORDER BY r.code")]
-            return [self._get(db,identifier) for identifier in identifiers]
+            return [self._get(db,identifier) for identifier in projects.filter_ids(db, 'recipe', identifiers)]
 
     def by_code(self, code):
         with connect_database(self.database) as db:
             row = db.execute('SELECT id FROM preprocess_recipe WHERE code=?',(code,)).fetchone()
-            return self._get(db,row[0]) if row else None
+            return self._get(db,row[0]) if row and projects.owned(db, 'recipe', row[0]) else None
 
     def set_deleted(self, recipe_id, deleted):
         with self.lock, connect_database(self.database) as db:
@@ -187,6 +197,9 @@ class RecipeStore:
         with self.lock, connect_database(self.database, timeout=10) as db:
             db.execute("BEGIN IMMEDIATE")
             from .drafts import assert_available
+            projects.require(db, 'recipe', recipe_id)
+            if project_id != projects.current(db):
+                raise projects.denied()
             assert_available(db,recipe_id=recipe_id)
             db.execute("INSERT INTO project_recipe (project_id,recipe_id,selected_at) VALUES (?,?,?) "
                        "ON CONFLICT(project_id,recipe_id) DO NOTHING", (str(project_id), str(recipe_id), _timestamp()))

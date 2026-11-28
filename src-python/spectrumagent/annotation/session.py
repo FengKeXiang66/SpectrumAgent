@@ -174,6 +174,9 @@ class SessionStore:
             self._states.pop(str(cube_id), None)
 
     def _state(self, cube_id):
+        from spectrumagent import projects
+        with connect_database(self.database) as db:
+            projects.require(db, 'cube', cube_id)
         cube_id = str(cube_id)
         if self.resources is not None:
             dataset, _ = self.registry.get(cube_id)
@@ -520,6 +523,9 @@ class SessionStore:
         return annotation_rows, spectrum_rows
 
     def read_version(self, version_id):
+        from spectrumagent import projects
+        with connect_database(self.database) as db:
+            projects.require(db, 'annotation', version_id)
         with self._lock, connect_database(self.database) as db:
             row = db.execute("SELECT snapshot_ref FROM annotation_version WHERE id=?", (str(version_id),)).fetchone()
             if row is None:
@@ -559,6 +565,9 @@ class SessionStore:
             return counts
 
     def sample_labels(self, project_id=None, cube_ids=None):
+        from spectrumagent import projects
+        with connect_database(self.database) as db:
+            project_id = project_id or projects.current(db)
         with connect_database(self.database) as db:
             db.row_factory = sqlite3.Row
             if project_id is not None:

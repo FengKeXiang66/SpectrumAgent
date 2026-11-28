@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
-import { agent, type BatchCard, type BatchScope, type BatchResult, type TaskCard, type MessageBody, type RuntimeInfo, type WorkspaceContext, type SessionDetail, type SessionSummary, type HistoryEvent, type CreateSessionInput } from './api.ts';
+import { agent, type BatchCard, type BatchScope, type BatchResult, type TaskCard, type MessageBody, type RuntimeInfo, type WorkspaceContext, type SessionDetail, type SessionSummary, type HistoryEvent, type CreateSessionInput, type Project } from './api.ts';
 import { initialChat, reduceChat, requestError, validateWorkspaceEvent, type WorkspaceEventData, type ChatEntry, type AgentEvent } from './sse.ts';
 import { catalogChanged, changedCubes, datasetChoices, proposedCandidates, parseBatchSummary } from './presentation.ts';
 import type { DatasetReference } from '../datasets/types.ts';
@@ -40,9 +40,10 @@ function sessionOrder(a: SessionSummary, b: SessionSummary) {
   return b.updated_at.localeCompare(a.updated_at) || b.id.localeCompare(a.id);
 }
 
-export default function useSession({ enabled, generation, bootId, workspace = {}, records = [], displayName,
+export default function useSession({ enabled, generation, bootId, workspace = {}, records = [], catalogPhase, displayName,
   onWorkspaceChange, onSessionReset, onWorkspaceDisplayChange, onWorkspaceNavigate, onBatchOpen, onBatchReset, onPreviewCandidate, onDataChanged, onCatalogChanged }: {
   enabled: boolean; generation: number; bootId?: string | null; workspace?: WorkspaceContext; records?: DatasetReference[]; displayName?: string;
+  catalogPhase?: 'idle' | 'loading' | 'ready' | 'error';
   onSessionReset?(): void;
   onWorkspaceChange?(workspace: WorkspaceContext): void;
   onWorkspaceDisplayChange?(selection: WorkspaceEventData): void;
@@ -51,10 +52,14 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
   onBatchReset?(): void;
   onPreviewCandidate?(cubeId: string, candidateRef: string): void;
   onDataChanged?(cubeIds: string[]): void;
-  onCatalogChanged?(): Promise<void>;
+  onCatalogChanged?(projectChanged?: boolean): Promise<void>;
 }) {
   const [state, dispatch] = useReducer(reduceChat, initialChat);
   const [content, setContent] = useState('');
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [deletedProjects, setDeletedProjects] = useState<Project[]>([]);
+  const [projectId, setProjectId] = useState<string>('');
+  const projectRef = useRef('');
   const [runtime, setRuntime] = useState<RuntimeInfo | null>(null);
   const [batchCards, setBatchCards] = useState<BatchCard[]>([]);
   const [taskCards, setTaskCards] = useState<TaskCard[]>([]);
@@ -145,7 +150,7 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
     if(sessionId.current)return sessionId.current;
     if(creatingSession.current)return creatingSession.current;
     const ticket=epoch.current;
-    const creation=agent.createSession({scope:{kind:'global'},request_id:crypto.randomUUID()}).then(created=>{
+    const creation=agent.createSession({scope:{kind:'global'},request_id:crypto.randomUUID(), ...(projectRef.current?{project_id:projectRef.current}:{})}).then(created=>{
       if(!currentTicket(ticket))throw new Error('会话创建期间引擎已变化');
       sessionId.current=created.id;
       rememberSession(created.id);
@@ -173,8 +178,8 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
   const hydrate = (detail: SessionDetail, rows: HistoryEvent[]) => {
     const pending = detail.pending;
     dispatch({ type: 'hydrate', entries: displayEntries(rows), busy:detail.request?.status==='running', pending: pending ?
-      ('check_id' in pending ? {check_id: pending.check_id, tool: pending.tool, summary: pending.summary, reason: pending.reason}
-        : {plan_id: pending.plan_id, steps: pending.steps, reason: pending.reason}) : null });
+      ('check_id' in pending ? {check_id: pending.check_id, tool: pending.tool, summary: pending.summary, reason: pending.reason, blocked:pending.blocked}
+        : {plan_id: pending.plan_id, steps: pending.steps, reason: pending.reason, blocked:pending.blocked}) : null });
     const restored:TaskCard[]=rows.flatMap(row=>{
       const summary=row.kind==='step'&&['annotations.prepare_batch','annotations.task'].includes(String(row.payload.tool))
         ? row.payload.result_summary as Record<string,unknown> : null;
@@ -207,6 +212,7 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
       if (!currentTicket(ticket)) return false;
       if (detail.id !== id || !detail.boot_id || callbacks.current.bootId && detail.boot_id!==callbacks.current.bootId
           || detail.scope.kind !== 'global') throw new Error('会话身份校验失败');
+      if(detail.project_id && projectRef.current && detail.project_id!==projectRef.current) throw new Error('会话不属于当前项目');
       const page = await agent.getHistory(id);
       if (!currentTicket(ticket)) return false;
       if (page.session_id !== id) throw new Error('会话返回范围不一致');
@@ -263,7 +269,7 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
     const ticket=epoch.current;
     setLoading(true);
     try {
-      const body: CreateSessionInput = {scope:{kind:'global'},request_id:crypto.randomUUID()};
+      const body: CreateSessionInput = {scope:{kind:'global'},request_id:crypto.randomUUID(), ...(projectRef.current?{project_id:projectRef.current}:{})};
       const created=await agent.createSession(body);
       if (!currentTicket(ticket)) return;
       updateSessionRow(created.id,newSessionSummary(created));
@@ -274,6 +280,79 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
       if (currentTicket(ticket)) setLoading(false);
       endSessionChange(operation);
     }
+  };
+  const openProject = async (id:string) => {
+    clearSession(); rememberSession(null);
+    projectRef.current=id; setProjectId(id);
+    setSessionRows([]); setSessionsCursor(null);
+    await onCatalogChanged?.(true);
+    const rows=await refreshSessions();
+    if(rows?.[0]) await openSession(rows[0].id);
+  };
+  const changeProject = async (id:string) => {
+    if (id===projectRef.current) return;
+    const operation=beginSessionChange();
+    if (!operation) return;
+    setLoading(true);
+    try {
+      await agent.selectProject(id);
+      await openProject(id);
+    } catch(error) {setSessionsError(requestError(error));}
+    finally {setLoading(false);endSessionChange(operation);}
+  };
+  const deleteProject = async (id:string, name:string, token:string) => {
+    const operation=beginSessionChange();
+    if(!operation) return false;
+    setLoading(true); setSessionsError(null);
+    let deleted=false;
+    try {
+      const receipt=await agent.deleteProject(id,name,token);
+      if(!receipt.deleted || receipt.project_id!==id) throw new Error('项目删除回执不一致');
+      deleted=true;
+      setProjects(rows=>rows.filter(row=>row.id!==id));
+      setDeletedProjects(rows=>[...rows.filter(row=>row.id!==id),{id,name}]);
+      if(projectRef.current===id) await openProject(receipt.current_project_id);
+      const page=await agent.listProjects();
+      setProjects(page.projects);setDeletedProjects(page.deleted_projects??[]);
+    } catch(error) {setSessionsError(requestError(error));}
+    finally {setLoading(false);endSessionChange(operation);}
+    return deleted;
+  };
+  const restoreProject = async (id:string) => {
+    const operation=beginSessionChange();
+    if(!operation) return false;
+    setLoading(true); setSessionsError(null);
+    try {
+      const project=await agent.restoreProject(id);
+      setProjects(rows=>[...rows.filter(row=>row.id!==id),project]);
+      setDeletedProjects(rows=>rows.filter(row=>row.id!==id));
+      return true;
+    } catch(error) {setSessionsError(requestError(error));return false;}
+    finally {setLoading(false);endSessionChange(operation);}
+  };
+  const createProject = async (name:string) => {
+    const operation=beginSessionChange();
+    if(!operation) return false;
+    setLoading(true); setSessionsError(null);
+    try {
+      const item=await agent.createProject(name);
+      setProjects(current=>[...current,item]);
+      await agent.selectProject(item.id);
+      await openProject(item.id);
+      return projectRef.current === item.id;
+    } catch(error) {setSessionsError(requestError(error));return false;}
+    finally {setLoading(false);endSessionChange(operation);}
+  };
+  const refreshProjects = async () => {
+    const operation=beginSessionChange();
+    if(!operation) return;
+    setLoading(true); setSessionsError(null);
+    try {
+      const page=await agent.listProjects();
+      setProjects(page.projects);setDeletedProjects(page.deleted_projects??[]);
+      if(!page.projects.some(project=>project.id===projectRef.current)) await openProject(page.current_project_id);
+    } catch(error) {setSessionsError(requestError(error));}
+    finally {setLoading(false);endSessionChange(operation);}
   };
   const startNew = () => { void createSession(); };
   const archiveSession = async (id: string): Promise<boolean> => {
@@ -352,10 +431,16 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
     setLoading(true);
     void agent.getRuntime().then(value=>{if(callbacks.current.enabled && callbacks.current.generation===generation)setRuntime(value);}).catch(()=>undefined);
     const ticket=epoch.current;
-    const listing=refreshSessions();
+    const listing=agent.listProjects().then(page=>{
+      if(!currentTicket(ticket))return;
+      setProjects(page.projects);setDeletedProjects(page.deleted_projects??[]);setProjectId(page.current_project_id);projectRef.current=page.current_project_id;
+      return refreshSessions();
+    });
     const restoration=(async()=>{
       try {
-        const previous=savedSession() ?? (await listing)?.[0]?.id;
+        const available=await listing;
+        const saved=savedSession();
+        const previous=available?.find(row=>row.id===saved)?.id ?? available?.[0]?.id;
         if (currentTicket(ticket) && previous) await openSession(previous);
       } catch(error) {
         if(currentTicket(ticket)){setRecoveryFailed(true);dispatch({type:'failed',detail:requestError(error)});}
@@ -649,7 +734,7 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
       }
     }
   };
-  return { state, dispatch, content, setContent, runtime, request, choices, selected, selectedChoice, startNew,
+  return { projects, deletedProjects, projectId, changeProject, createProject, deleteProject, restoreProject, refreshProjects, state, dispatch, content, setContent, runtime, request, choices, selected, selectedChoice, startNew,
     enabled: enabled && !loading, canSend:enabled&&!loading&&!archivingSessionId&&!recoveryFailed&&!state.busy&&active?.request?.status!=='running',
     active, activeSessionId:sessionId.current, historyBefore, loading, sessions, sessionsCursor, sessionsLoading, sessionsError, archivingSessionId,
     refreshSessions, loadMoreSessions, archiveSession, clearSessionsError,
@@ -658,7 +743,7 @@ export default function useSession({ enabled, generation, bootId, workspace = {}
     editLastRequest:()=>setContent(lastUserMessage.current||[...state.entries].reverse().find(entry=>entry.event==='user')?.data.content||''),
     continueRequest:()=>request({content:'请先核对上一请求的真实执行结果，仅继续尚未执行的部分，保留已完成结果，不重复执行已完成操作。'}),
     switchSession, selectCube, loadOlder, selectionEpoch: epoch.current, isCurrentEpoch: currentTicket, currentEpoch: () => epoch.current,
-    workspace, records, displayName, onWorkspaceChange, batchCards, isBatchActive, openBatch, retryBatch,
+    workspace, records, catalogPhase, displayName, onWorkspaceChange, batchCards, isBatchActive, openBatch, retryBatch,
     taskCards, taskActive, openTask, retriedTask, startAnnotation, prepareCube, focusCanvas, bootId, ensureSession };
 }
 

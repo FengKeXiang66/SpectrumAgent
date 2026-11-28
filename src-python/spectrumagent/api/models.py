@@ -186,6 +186,9 @@ def make_router(sessions, runner, boot_id=None):
             row = db.execute("SELECT path,sha256 FROM classification_export WHERE id=?", (export_id,)).fetchone()
         if not row:
             raise ModelingError("EXPORT_NOT_FOUND", "导出文件不存在")
+        from spectrumagent import projects
+        with connect_database(runner.registry.database) as db:
+            projects.require(db, 'classification_export', export_id)
         path = Path(row[0])
         if not path.is_file() or Evaluations.file_hash(path) != row[1]:
             raise ModelingError("ARTIFACT_HASH_MISMATCH", "导出文件缺失或被修改")

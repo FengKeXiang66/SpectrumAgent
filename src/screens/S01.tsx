@@ -4,6 +4,7 @@ import type { AssistantSession } from '../components/assistant/useSession';
 import { displayName as datasetDisplayName } from '../components/datasets/types';
 import '../components/assistant/assistant.css';
 import SessionScope from '../components/assistant/SessionScope';
+import ProjectManager from '../components/assistant/ProjectManager';
 import ExperimentHistory from '../components/assistant/ExperimentHistory';
 import WorkViewer, { type ViewerTarget } from '../components/assistant/WorkViewer';
 
@@ -37,11 +38,13 @@ export default function S01({ session }: { session: AssistantSession }) {
   }
   return <section className="assistant-s01" data-drawer={collapsed?'closed':tab==='context'?'compact':'expanded'} aria-label="S01 全屏助手">
     <aside className="assistant-s01-left" aria-label="会话">
-      <h3 className="agent-side-title">会话</h3>
-      <button type="button" className="agent-primary" disabled={sessionButtonsDisabled} onClick={session.startNew}>新建全局会话</button>
-      <p className="agent-side-hint">各会话独立保存上下文，模型和报告跨会话共享。</p>
+      <ProjectManager session={session} />
+      <SessionScope session={session} />
+      <h3 className="agent-side-title">本项目的对话</h3>
+      <button type="button" className="agent-primary" disabled={sessionButtonsDisabled} onClick={session.startNew}>新建对话</button>
+      <p className="agent-side-hint">沿用本项目数据，单独保存消息和方案。</p>
       <div className="agent-session-scroll">
-        <ul className="agent-session-list" aria-label="历史会话">
+        <ul className="agent-session-list" aria-label="本项目的历史对话">
           {session.sessions.map(item=>{
             const title = item.title || '新会话 · '+item.id.slice(0,8);
             const current = item.id===session.activeSessionId;
@@ -69,7 +72,7 @@ export default function S01({ session }: { session: AssistantSession }) {
           })}
         </ul>
         {session.sessionsLoading&&<p className="agent-side-hint" role="status">正在加载会话…</p>}
-        {!session.sessions.length&&!session.sessionsLoading&&!session.sessionsError&&<p className="agent-side-hint">还没有会话。</p>}
+        {!session.sessions.length&&!session.sessionsLoading&&!session.sessionsError&&<p className="agent-side-hint">本项目还没有对话。可以直接在右侧发送消息。</p>}
       </div>
       {session.sessionsError&&<div className="agent-session-error"><p role="alert">{session.sessionsError}</p>
         {!session.sessions.length&&<button type="button" disabled={sessionButtonsDisabled}
@@ -97,7 +100,7 @@ export default function S01({ session }: { session: AssistantSession }) {
           sessionId={sessionId} onOpen={openViewer} enabled={enabled&&!state.busy&&!state.pending}
           send={text=>{if(!state.busy&&!state.pending)void session.request({content:text});}}/>}
         {tab==='context'&&<>
-      <SessionScope session={session} />
+      <SessionScope session={session} compact />
       <p className="assistant-context" aria-label="当前对话对象">{workspace.cube_id
         ? `当前数据：${(selected && datasetDisplayName(selected)) || selectedChoice?.label || displayName || workspace.cube_id.slice(0, 8)}${workspace.gesture_ref ? ' · 已带入最近的画布提示' : ''}`
         : '可在工作台选择数据，或直接告诉助手要处理哪份数据。'}</p>

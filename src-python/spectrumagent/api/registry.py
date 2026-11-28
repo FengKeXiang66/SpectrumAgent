@@ -13,7 +13,9 @@ from uuid import uuid4
 from pydantic import TypeAdapter
 
 from backend.database import connect_database
+from spectrumagent import projects
 from spectrumagent.annotation.migrations import default_project_id, migrate
+from spectrumagent import projects
 from spectrumagent.agent.migrations import migrate as migrate_agent
 from spectrumagent.modeling.migrations import migrate as migrate_modeling
 from spectrumagent.dataset_version.migrations import migrate as migrate_dataset_versions
@@ -184,6 +186,8 @@ class DatasetRegistry:
             if active and confirm_new is True and planned is not None and planned[key] is None:
                 raise self._import_conflict('REIMPORT_ACTIVE_EXISTS',
                     '确认后该路径已出现活跃数据集，请重新查看已有数据集并决策')
+            if active:
+                projects.require(db, 'cube', active[0])
             decisions[key] = active
         return decisions
 
@@ -195,7 +199,7 @@ class DatasetRegistry:
         identifier = str(uuid4())
         try:
             db.execute('INSERT INTO dataset_registry (id,header_key,raw,payload,project_id) VALUES (?,?,?,?,?)',
-                       (identifier, key, int(raw), json.dumps(dataset.as_dict(), ensure_ascii=False), default_project_id(db)))
+                       (identifier, key, int(raw), json.dumps(dataset.as_dict(), ensure_ascii=False), projects.current(db)))
         except sqlite3.IntegrityError as error:
             code = ('REIMPORT_ACTIVE_EXISTS' if 'UNIQUE constraint failed' in str(error)
                     or getattr(error, 'sqlite_errorname', '') in ('SQLITE_CONSTRAINT_UNIQUE', 'SQLITE_CONSTRAINT_PRIMARYKEY')
@@ -219,7 +223,7 @@ class DatasetRegistry:
                 else:
                     identifier = self._insert_dataset(db, key, dataset, raw)
                     records.append((identifier, dataset, False))
-            rows = db.execute("SELECT id,payload,raw FROM dataset_registry ORDER BY rowid").fetchall()
+            rows = db.execute("SELECT id,payload,raw FROM dataset_registry WHERE project_id=? ORDER BY rowid", (projects.current(db),)).fetchall()
             names = display_names((identifier, json.loads(payload).get("name"), mode)
                                   for identifier, payload, mode in rows)
             records = [DatasetRecord(id=identifier, dataset=dataset, existing=existing,
@@ -234,6 +238,7 @@ class DatasetRegistry:
         return ImportResponse(datasets=records, all_datasets=all_records,
                               summary=ImportSummary(total=len(records), imported=len(records)-existing, existing=existing))
 
+    @projects.checked("cube")
     def get(self, identifier):
         self.recycle.coordinator.check(str(identifier))
         with connect_database(self.database) as db:
@@ -244,7 +249,7 @@ class DatasetRegistry:
 
     def display_names(self):
         with connect_database(self.database) as db:
-            rows = db.execute("SELECT id,payload,raw FROM dataset_registry ORDER BY rowid").fetchall()
+            rows = db.execute("SELECT id,payload,raw FROM dataset_registry WHERE project_id=? ORDER BY rowid", (projects.current(db),)).fetchall()
         return display_names((identifier, json.loads(payload).get("name"), raw)
                              for identifier, payload, raw in rows)
 
@@ -279,9 +284,9 @@ class DatasetRegistry:
         self.recycle.coordinator.check()
         with connect_database(self.database) as db:
             db.execute('BEGIN')  # Names, count and page share one WAL read snapshot.
-            labels = db.execute("SELECT id,json_extract(payload,'$.name'),raw FROM dataset_registry ORDER BY rowid").fetchall()
-            rows = db.execute('SELECT id,payload,raw FROM dataset_registry ORDER BY rowid LIMIT ? OFFSET ?',
-                              (limit, offset)).fetchall()
+            labels = db.execute("SELECT id,json_extract(payload,'$.name'),raw FROM dataset_registry WHERE project_id=? ORDER BY rowid", (projects.current(db),)).fetchall()
+            rows = db.execute('SELECT id,payload,raw FROM dataset_registry WHERE project_id=? ORDER BY rowid LIMIT ? OFFSET ?',
+                              (projects.current(db), limit, offset)).fetchall()
             annotation_states = dict(db.execute('SELECT cube_id,1 FROM annotation_version'))
             ready = set()
             if db.execute("SELECT 1 FROM sqlite_master WHERE name='current_run_input'").fetchone():

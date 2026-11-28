@@ -4,11 +4,13 @@ import json
 from pathlib import Path
 import re
 from threading import RLock
+from uuid import uuid4
 
 import numpy as np
 from pydantic import ValidationError
 
 from backend.database import connect_database
+from spectrumagent import projects
 from spectrumagent.data import DataError
 from .conversation import PATHS, merge
 from .inference import InferenceConfig, InferenceService
@@ -24,6 +26,8 @@ UUID = re.compile(r'\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{1
 PROBE = re.compile(r'(?:探查前景|前景探查)(?:[：:\s]+(.+))?[。！!\s]*')
 PROBE_ACTIONS = {'采用前景建议','关闭前景筛选'}
 INLINE_PREFIX = '应用推理参数 '
+NEW = re.compile(r'新建推理方案(?:\s+(\d+)(?:\s+([0-9a-f-]{36}))?)?[。！!\s]*')
+READ_ONLY = '该方案已执行或已关闭，如需修改请新建推理方案。'
 
 
 def probe_requested(content):
@@ -55,6 +59,9 @@ class InferenceDialogue:
                 db.execute('ALTER TABLE inference_draft ADD COLUMN previous_document_json TEXT')
             db.execute('''CREATE TABLE IF NOT EXISTS inference_foreground_probe (
                 session_id TEXT PRIMARY KEY REFERENCES agent_session(id), revision INTEGER NOT NULL, payload TEXT NOT NULL)''')
+            db.execute('''CREATE TABLE IF NOT EXISTS inference_restart_request (
+                session_id TEXT PRIMARY KEY REFERENCES agent_session(id), revision INTEGER NOT NULL,
+                token TEXT NOT NULL, content TEXT NOT NULL)''')
 
     def read(self, owner):
         with connect_database(self.database) as db:
@@ -75,6 +82,8 @@ class InferenceDialogue:
         with connect_database(self.database) as db:
             db.execute('INSERT OR IGNORE INTO inference_draft(session_id) VALUES (?)', (owner,))
         row = self.read(owner)
+        if row['run_id'] or not row['active']:
+            raise DataError('INFERENCE_DRAFT_READ_ONLY', READ_ONLY)
         for match in PATHS.finditer(content):
             value = match['quoted'] or match['bare']
             if value not in row['sources'].values():
@@ -97,6 +106,41 @@ class InferenceDialogue:
             if row['revision'] != row['reviewed_revision']:
                 self.base.clear_confirmation(db, owner, 'inference')
         return self.redact(owner, content)
+
+    def request_restart(self, owner, content):
+        """Keep a new request separate from the submitted draft until chosen."""
+        with self.lock, connect_database(self.database) as db:
+            db.execute('BEGIN IMMEDIATE')
+            projects.require(db, 'session', owner)
+            row = self.read(owner)
+            if not row or row['active'] and not row['run_id']:
+                raise DataError('INFERENCE_DRAFT_CONFLICT', '推理草稿已更新，请重新打开当前方案')
+            db.execute('INSERT OR REPLACE INTO inference_restart_request VALUES (?,?,?,?)',
+                       (owner, row['revision'], str(uuid4()), content))
+
+    def restart(self, owner, revision=None, token=None):
+        """Create a new draft; never edit or remove the previous run's files."""
+        with self.lock, connect_database(self.database) as db:
+            db.execute('BEGIN IMMEDIATE')
+            projects.require(db, 'session', owner)
+            row = self.read(owner)
+            if (not row or row['active'] and not row['run_id']
+                    or revision is not None and revision != row['revision']):
+                raise DataError('INFERENCE_DRAFT_CONFLICT', '推理草稿已更新，请重新打开当前方案')
+            pending = db.execute('SELECT revision,token,content FROM inference_restart_request WHERE session_id=?', (owner,)).fetchone()
+            if token and (not pending or pending[:2] != (row['revision'], token)):
+                raise DataError('INFERENCE_DRAFT_CONFLICT', '新建请求已更新，请使用最新方案卡')
+            content = pending[2] if pending and pending[0] == row['revision'] else None
+            # A new supplied request must not silently reuse the old input.
+            document = {'model_id':row['document'].get('model_id')} if content else deepcopy(row['document'])
+            sources = {} if content else row['sources']
+            db.execute('UPDATE inference_draft SET document_json=?,sources_json=?,revision=revision+1,active=1,'
+                       'run_id=NULL,reviewed_revision=NULL,review_turn=NULL,review_json=NULL,previous_document_json=NULL WHERE session_id=?',
+                       (json.dumps(document,ensure_ascii=False),json.dumps(sources,ensure_ascii=False),owner))
+            db.execute('DELETE FROM inference_restart_request WHERE session_id=?', (owner,))
+            db.execute('DELETE FROM inference_foreground_probe WHERE session_id=?', (owner,))
+            self.base.clear_confirmation(db, owner, 'inference')
+            return content
 
     def redact(self, owner, text, *, sources=None):
         if sources is None:
@@ -209,6 +253,9 @@ class InferenceDialogue:
             return self.redact(owner,value,sources=row['sources'])
         return {
             'revision':row['revision'], 'ready':False, 'envi':shown.get('input',{}).get('kind')=='envi',
+            'editable':bool(row['active'] and not row['run_id']),
+            'state':'submitted' if row['run_id'] else 'draft' if row['active'] else 'closed',
+            'run_id':row['run_id'],
             'foreground_enabled':shown.get('input',{}).get('foreground',{}).get('mode')=='brightness_edges',
             'todo':question,
             'groups': [{'title':title,'fields':[{'label':label,'value':display(label,pair[1])}
@@ -267,8 +314,12 @@ class InferenceDialogue:
                 plan += '\n整图推理无训练ROI材质隔离，邻域可能跨材质边界；只输出已知类别，未实现背景或未知类拒识。'
             question = '请核对模型、数据与方案；单独回复“确认推理”后执行。'
         if row['run_id']:
-            question = '本方案已经提交，可查看推理任务；更换数据请明确新建推理，不重复提交。'
-        summary={'revision':row['revision'],'can_run':config is not None and not row['run_id'],
+            question = '该方案已执行，当前为只读记录。如需修改请选择“新建推理方案”，或“查看上次推理结果”。'
+        elif not row['active']:
+            question = '该方案已关闭，当前为只读记录。如需修改请新建推理方案。'
+        editable = bool(row['active'] and not row['run_id'])
+        summary={'revision':row['revision'],'can_run':config is not None and editable,
+                 'editable':editable,
                  'plan':plan,'question':question,'run_id':row['run_id']}
         try:
             probe = self.probe_result(owner)
@@ -294,6 +345,14 @@ class InferenceDialogue:
             todo = ('请补充或核对 '+ '、'.join(dict.fromkeys(labels.get(field,'输入设置') for field in missing))+'。'
                     if missing and not row['run_id'] else question)
             summary['presentation'] = self._presentation(owner,row,config,model,seed,todo,previous_document)
+            if not editable:
+                with connect_database(self.database) as db:
+                    pending = db.execute('SELECT revision,token FROM inference_restart_request WHERE session_id=?', (owner,)).fetchone()
+                command = f'新建推理方案 {row["revision"]}'
+                if pending and pending[0] == row['revision']:
+                    command += ' '+pending[1]
+                    summary['presentation']['todo'] += ' 已暂存本次请求；选择新建后会使用本次提供的模型和数据。'
+                summary['presentation']['restart_command'] = command
         return summary
 
     def apply_inline(self, owner, payload):
@@ -302,7 +361,9 @@ class InferenceDialogue:
 
         with self.lock:
             row = self.read(owner)
-            if not row or row['run_id'] or not row['active'] or row['document'].get('input',{}).get('kind')!='envi':
+            if row and (row['run_id'] or not row['active']):
+                raise DataError('INFERENCE_DRAFT_READ_ONLY', READ_ONLY)
+            if not row or row['document'].get('input',{}).get('kind')!='envi':
                 raise DataError('INFERENCE_PROBE_REQUIRED','请打开当前 ENVI 推理方案后再微调')
             try:
                 adjustment = InlineInferenceAdjustment.model_validate_json(payload)
@@ -332,6 +393,8 @@ class InferenceDialogue:
             row = self.read(owner)
             if not row or args.expected_revision != row['revision']:
                 raise DataError('INFERENCE_DRAFT_CONFLICT','推理草稿已更新，请读取最新修订')
+            if (row['run_id'] or not row['active']) and not args.reset:
+                raise DataError('INFERENCE_DRAFT_READ_ONLY', READ_ONLY)
             if row['run_id'] and self.service.status(row['document']['model_id'],row['run_id'])['status'] in {'queued','running'}:
                 raise DataError('EXPERIMENT_BUSY','推理正在运行，不能修改其方案')
             patch = provided(args.model_dump(mode='json',exclude_unset=True))
@@ -372,10 +435,13 @@ class InferenceDialogue:
                                'reviewed_revision=NULL,review_json=NULL,run_id=NULL,active=1 WHERE session_id=?',
                                (json.dumps(doc,ensure_ascii=False),owner))
                     self.base.clear_confirmation(db, owner)
+                    db.execute('DELETE FROM inference_restart_request WHERE session_id=?', (owner,))
         return self.view(owner)
 
     def presented(self, owner, turn, *, check=None, previous_document=None):
         view = self.view(owner,structured=True,previous_document=previous_document)
+        if view.get('editable') is False:
+            return view
         if view['can_run']:
             try:
                 config = self.config(owner)
@@ -488,6 +554,7 @@ class InferenceDialogue:
             self.service.cancel(owner,row['document']['model_id'],row['run_id'])
         with connect_database(self.database) as db:
             db.execute('UPDATE inference_draft SET active=0 WHERE session_id=?',(owner,))
+            db.execute('DELETE FROM inference_restart_request WHERE session_id=?', (owner,))
             self.base.clear_confirmation(db, owner, 'inference')
 
     def focus_run(self, owner, model_id, run_id):

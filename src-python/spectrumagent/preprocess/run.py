@@ -15,6 +15,7 @@ from uuid import UUID, uuid4
 import numpy as np
 
 from backend.database import connect_database
+from spectrumagent import projects
 from spectrumagent.data import DataError
 from spectrumagent.annotation.engines.superpixels import memory_bytes
 from spectrumagent.data.readers.binary import json_object
@@ -156,6 +157,9 @@ class RunEngine:
         self.drafts = RecipeDrafts(self.recipes,self)
 
     def _preflight(self, cube_id, annotation_version_id, recipe_version_id, block_size, guard):
+        with connect_database(self.database) as db:
+            for kind, reference in [('cube', cube_id), ('annotation', annotation_version_id), ('recipe_version', recipe_version_id)]:
+                projects.require(db, kind, reference)
         if type(block_size) is not int or block_size < 1:
             raise invalid("block_size", "block_size 须为正整数")
         dataset, _ = self.registry.readable(cube_id, raw=True)
@@ -556,6 +560,7 @@ class RunEngine:
                 'report_identity_matches':identity_match, 'artifact_metadata_matches':metadata_match,
                 'success_verified':operation['status']=='succeeded' and run['status']=='succeeded' and all(files.values()) and identity_match and metadata_match}
 
+    @projects.checked("preprocess", "identifier")
     def get(self, identifier):
         with connect_database(self.database) as db:
             return self._get(db, identifier)

@@ -78,11 +78,16 @@ def migrate(db):
         for action in ('UPDATE', 'DELETE'):
             db.execute(f"CREATE TRIGGER IF NOT EXISTS {table}_no_{action.lower()} BEFORE {action} ON {table} "
                        "BEGIN SELECT RAISE(ABORT,'SESSION_SNAPSHOT_IMMUTABLE'); END")
+    if db.execute("SELECT 1 FROM sqlite_master WHERE name='project'").fetchone():
+        from spectrumagent.projects import initialize
+        initialize(db)
     db.execute("INSERT OR IGNORE INTO agent_session_scope(session_id,scope_kind,member_count) "
                "SELECT id,'global',0 FROM agent_session")
 
 
 def initialize(database):
+    from spectrumagent.projects import backup_before_migration
+    backup_before_migration(database)
     with connect_database(database) as db:
         db.execute('BEGIN IMMEDIATE')
         migrate(db)

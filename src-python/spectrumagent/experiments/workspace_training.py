@@ -31,7 +31,7 @@ def verified_output(path, digest):
     raise DataError('ANNOTATION_SNAPSHOT_CHANGED', '训练区域副本与生成记录不一致，请重新建立训练方案。')
 
 
-def prepare(dialogue, registry, sessions, owner, cube_ids, check=lambda: None):
+def prepare(dialogue, registry, sessions, owner, cube_ids, check=lambda: None, *, no_defaults=False):
     """Copy confirmed raster truth, never polygon projections or processed spectra."""
     if dialogue.tasks.active(owner) or dialogue.study.has_active(owner):
         raise DataError('EXPERIMENT_BUSY', '训练或寻优正在运行，请等待结束后再建立方案。')
@@ -39,6 +39,10 @@ def prepare(dialogue, registry, sessions, owner, cube_ids, check=lambda: None):
     if not cube_ids:
         raise DataError('ANNOTATION_REQUIRED', '请先保存至少一张图片的区域标注。')
     captured, catalog, declared = [], {}, {}
+    from spectrumagent import projects
+    with connect_database(dialogue.database) as db:
+        for cube in cube_ids:
+            projects.require(db, 'cube', cube)
     for cube in cube_ids:
         check()
         lease = sessions.resources.lease(cube, required=False) if sessions.resources else nullcontext()
@@ -55,7 +59,7 @@ def prepare(dialogue, registry, sessions, owner, cube_ids, check=lambda: None):
             with np.load(folder/'label_map.npz', allow_pickle=False) as archive:
                 raster = archive['label_map'].copy()
             mapping = json.loads((folder/'label_index.json').read_text('utf-8'))
-            labels = {r[0]: (r[1], bool(r[2]), r[3]) for r in db.execute('SELECT id,name,is_background,color_hex FROM label WHERE deleted_at IS NULL')}
+            labels = {r[0]: (r[1], bool(r[2]), r[3]) for r in db.execute('SELECT id,name,is_background,color_hex FROM label WHERE project_id=? AND deleted_at IS NULL', (projects.current(db),))}
             declared.update({key: labels[key][0] for key in mapping.values() if key in labels and not labels[key][1]})
             for index in np.unique(raster[raster >= 0]):
                 identifier = mapping[str(int(index))]
@@ -120,6 +124,10 @@ def prepare(dialogue, registry, sessions, owner, cube_ids, check=lambda: None):
                     preprocessing=[], model=dict(n_components=1, scale=False, max_iter=1000), additional_metrics=['kappa'],
                     test_usage='independent_test', workspace_selection=summaries,
                     notes='从已保存像素标注建立；默认单像元、步长1、无附加预处理。可在对话中修改或进行Study；实物分组未知。')
+    if no_defaults:
+        document.pop('preprocessing', None)
+        document['model'] = {}
+        document['notes'] = '仅接入用户指定的已保存标注；未替用户选择预处理或模型参数。'
     omitted = sorted({name for key, name in declared.items() if key not in used})
     if omitted:
         document['notes'] += '无前景标注像素的标签未纳入：'+'、'.join(omitted)+'。'
