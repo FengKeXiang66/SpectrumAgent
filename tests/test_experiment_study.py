@@ -373,7 +373,8 @@ def test_upper_bound_hint_and_progress_write_throttle(application,tmp_path,monke
             writes.append((payload['phase'],payload['status'],payload.get('fold')))
         return real_write(path,payload)
     monkeypatch.setattr(study,'write_json',observe)
-    def fixed_results(config,data,folds,opts,progress):
+    def fixed_results(config,data,folds,opts,progress,groups=None):
+        assert groups is not None
         nonlocal tick
         for fold,elapsed in enumerate((0.,.24,.25,.49,.50),1):
             tick = elapsed

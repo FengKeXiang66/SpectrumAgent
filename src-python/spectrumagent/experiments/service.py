@@ -155,7 +155,10 @@ class ExperimentService:
 
     def run(self, config: ExperimentConfig, *, expected_sources=None, progress=None, on_detail=None):
         from .evaluation_definition import normalize_config
-        config = normalize_config(config)
+        try:
+            config = normalize_config(config)
+        except ValueError as error:
+            raise DataError('EXPERIMENT_EVALUATION_INVALID', '请核对实物定义、ENVI输入及完整分组表；训练未启动') from error
         from spectrumagent.annotation.palette import model_colors
         config = config.model_copy(update={'class_colors': model_colors(self.paths.database, config)})
         if config.training_sampling is not None:

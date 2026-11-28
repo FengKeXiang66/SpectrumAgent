@@ -36,7 +36,17 @@ def definition_for(config, *, training_only=False):
 
 def normalize_config(config, *, training_only=False):
     value = definition_for(config, training_only=training_only)
-    return config.model_copy(update={'sample_evaluation':SampleDefinition.model_validate(value)}) if value else config
+    if not value: return config
+    changes={'sample_evaluation':SampleDefinition.model_validate(value)}
+    if value['mode']!='MIXED':
+        from .sample_evaluation import source_key, source_ref
+        mapping={row['source_ref']:row['sample_id'] for row in value['mapping']}
+        for role in (('train',) if training_only else ('train','test')):
+            spec=getattr(config,role)
+            changes[role]=spec.model_copy(update={'members':[member.model_copy(update={'sample_id':
+                source_key(member.header_path) if value['mode']=='IMAGE' else mapping[source_ref(member.header_path)]})
+                for member in spec.members]})
+    return config.model_copy(update=changes)
 
 
 def training_digest(config, definition):

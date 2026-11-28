@@ -5,8 +5,16 @@ export type StudyStatus = {study_id:string;status:'queued'|'running'|'succeeded'
   phase:string;candidate?:number;total?:number;component?:number;fold?:number;folds?:number;
   file_index?:number;file_total?:number;rows_done?:number;rows_total?:number;error?:string};
 export type StudyCandidate = {id:number;name:string;n_components:number;preprocessing:{op:string;[key:string]:unknown}[];
+  evaluation_target?:'sample'|'pixel';pixel_rank?:number;sample_rank?:number;rank_change?:number|null;
+  pixel_oof_f1?:number;pixel_oof_accuracy?:number;pixel_fold_f1?:number;pixel_fold_f1_sd?:number;
+  fold_f1_mean?:number;fold_f1_sd?:number;error_code?:string;
+  sample_oof?:import('./sample-evaluation-form').SampleRole & {defined:boolean;missing_classes:number[]};
+  sample_folds?:(import('./sample-evaluation-form').SampleRole & {fold:number;defined:boolean;missing_classes:number[]})[];
   cv_f1?:number;cv_f1_sd?:number;cv_accuracy?:number;cv_accuracy_sd?:number;train_f1?:number;train_accuracy?:number;error?:string};
-export type StudyResult = {study_id:string;best:number;recommended:number;one_se_threshold:number;folds:number;
+export type StudyResult = {study_id:string;best:number|null;recommended:number|null;one_se_threshold:number|null;folds:number;
+  evaluation_target?:'sample'|'pixel';scoring?:string;recommendation_rule?:string;ranking_status?:string;
+  sample_evaluation?:{mode:string;minimum_valid:number}|null;pixel_ranking?:number[];
+  classes?:Record<string,string>;
   grouping:string;group_count:number|null;samples:number;evaluation_unit:string;candidates:StudyCandidate[];
   component_upper?:number;component_upper_reached?:boolean};
 export type ForegroundProbe = {sample:string;rows:number;suggestion:Record<string,unknown>;png_base64?:string;

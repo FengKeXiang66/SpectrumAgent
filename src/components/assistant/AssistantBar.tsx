@@ -237,7 +237,9 @@ export default function AssistantBar({session,onHistory,onViewer}:{
                       <details className="draft-details"><summary>查看寻优配置与评价口径</summary>
                         <p>{readableText(actualText,choices,records)}</p></details>
                       {(current||retained)&&<div className="work-actions"><button className="draft-primary" disabled={!actionsEnabled}
-                        onClick={()=>sendCommand(String(study.study_confirm))}>{String(study.study_confirm)}</button></div>}
+                        onClick={()=>sendCommand(String(study.study_confirm))}>{String(study.study_confirm)}</button>
+                        <button disabled={!actionsEnabled} onClick={()=>sendCommand('调整寻优，按实物评分')}>改为实物评分（需已声明定义）</button>
+                        <button disabled={!actionsEnabled} onClick={()=>sendCommand('调整寻优，按观测评分')}>改为观测评分</button></div>}
                     </section>
                     : draftContent ? currentDraft ? draftContent : <details className="draft-history">
                       <summary>{draftTitle} · 修订 {String(revision)}</summary>{draftContent}</details>

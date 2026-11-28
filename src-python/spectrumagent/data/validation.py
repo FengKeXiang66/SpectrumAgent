@@ -17,6 +17,7 @@ REGRESSION_PLAN_ERRORS = {
 INPUT_ERRORS = PARAMETER_ERRORS | {'RECIPE_DRAFT_REVISION_CONFLICT','RECIPE_CONFIRMATION_STALE','RECIPE_DELETED','SOURCE_CHANGED','QUERY_SNAPSHOT_EXPIRED','QUERY_PAGE_REFERENCE_REQUIRED','QUERY_SCOPE_MISMATCH','PREPROCESS_REFERENCES_REQUIRED','PREPROCESS_RETRY_SCOPE_MISMATCH','RUN_NOT_FOUND'}
 INPUT_ERRORS |= REGRESSION_PLAN_ERRORS.keys()
 SAMPLE_EVALUATION_ERRORS = {
+    'EXPERIMENT_EVALUATION_INVALID': '请核对实物定义、ENVI输入及完整分组表；训练未启动',
     'SAMPLE_EVALUATION_INVALID': '实物定义或完整分组表不合法，请核对表单',
     'SAMPLE_EVALUATION_UNAVAILABLE': '缺少可对应的原图来源、真值或预测；不能从NPZ批次分组猜测实物身份',
     'SAMPLE_EVALUATION_CONFLICT': '实物定义已变化，请刷新后核对当前修订',
@@ -58,6 +59,7 @@ _SEGMENTS = frozenset('''
     wavelength_unit mapping_window_nm nearest_tolerance_nm
     classes label preprocessing preprocessing_edit index step savgol derivative delta_nm center standard_scale
     l2 epsilon ddof pca model n_components scale max_iter tol model_id reset additional_metrics test_usage
+    sample_evaluation minimum_valid mapping evaluation_target study_selection definition_digest scoring
     quality min_mean min_std max_zero_fraction saturation
     foreground brightness_edges none wavelengths_nm threshold left_min right_min edge_search_columns
     edge_bad_fraction edge_low edge_high exclusions exclusions_ref name_fragments prefixes

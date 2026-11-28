@@ -481,7 +481,7 @@ class ExperimentDialogue:
                 result[ref] = '不可读'
         return result
 
-    def _config(self, record, *, training_only=False, train_manifest_rows=None):
+    def _config(self, record, *, training_only=False, train_manifest_rows=None, normalize_evaluation=True):
         document = deepcopy(record['document'])
         selection = document.pop('workspace_selection', None)
         roles = ('train',) if training_only else ('train', 'test')
@@ -617,7 +617,8 @@ class ExperimentDialogue:
             document['test'] = deepcopy(document['train'])
             document['test'].pop('max_per_class', None)
         from .evaluation_definition import normalize_config
-        return normalize_config(ExperimentConfig.model_validate(document), training_only=training_only)
+        config=ExperimentConfig.model_validate(document)
+        return normalize_config(config, training_only=training_only) if normalize_evaluation else config
 
     def has_paired_inputs(self, session_id):
         from .pairing import can_train

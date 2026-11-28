@@ -44,7 +44,7 @@ def sampling_text(spec):
     return text + (f' · 抽样种子 {spec.sampling_seed}' if limit is not None else '')
 
 
-def options(text, waves, current):
+def options(text, waves, current, default_target='pixel'):
     def number(pattern, default):
         values = re.findall(pattern, text)
         return int(values[-1]) if values else default
@@ -94,12 +94,23 @@ def options(text, waves, current):
     if '加入当前预处理' in text:
         preparations.append({'name':'当前预处理', 'steps':current})
     grouping = 'image' if re.search(r'按原图|按图像|按图片',text) else 'batch' if re.search(r'按批次|分组方式\s*[:：]\s*批次',text) else (
-        'sample' if re.search(r'按实物|按样品',text) else 'auto')
-    return dict(folds=folds,seed=seed,components=list(range(low,high+1)),preparations=preparations,grouping=grouping)
+        'sample' if re.search(r'按(?:实物|样品)(?!(?:级)?(?:评分|排序|选优))',text) else 'auto')
+    targets = re.findall(r'(?:评价目标|评分目标)\s*[:：=]\s*(sample|pixel)|按(实物|像元|像素|观测)(?:级)?(?:评分|排序|选优)',text,re.I)
+    target = ('sample' if (targets[-1][0].lower()=='sample' or targets[-1][1]=='实物') else 'pixel') if targets else default_target
+    return dict(folds=folds,seed=seed,components=list(range(low,high+1)),preparations=preparations,grouping=grouping,evaluation_target=target)
 
 
 def group_kind(config, settings):
     spec = config.train
+    definition = config.sample_evaluation
+    if settings.get('evaluation_target') == 'sample':
+        if spec.kind!='roi_images': raise ValueError('NPZ不能启用实物排序；groups字段语义不明')
+        if not definition or definition.mode=='MIXED': raise ValueError('实物排序需要明确IMAGE（一图一物）或MAPPED（完整sample_id表）；MIXED不适用')
+        kind='image' if definition.mode=='IMAGE' else 'sample'
+        if settings['grouping'] not in ('auto',kind): raise ValueError('实物排序的划分须沿用已声明的实物定义，不能改用批次或另一套分组')
+        return kind
+    if definition and definition.mode!='MIXED' and settings['grouping']=='auto':
+        return 'image' if definition.mode=='IMAGE' else 'sample'
     if spec.kind == 'npz':
         return 'npz_group' if spec.groups_key else 'exploratory'
     manifest = config.split_manifest
@@ -123,8 +134,14 @@ def roi_group_support(config, rows, kind):
     support = {name:set() for name in config.classes.values()}
     batch_by_sample = {}
     complete_labels = True
+    physical=None
+    if config.sample_evaluation and config.sample_evaluation.mode!='MIXED' and kind in ('sample','image'):
+        from .study_metrics import physical_ids
+        physical=physical_ids(config,[{'source':member.header_path} for member in config.train.members])
     for index, member in enumerate(config.train.members):
-        if kind == 'batch':
+        if physical is not None:
+            group=physical[index]
+        elif kind == 'batch':
             group = member.batch
             if not group:
                 raise ValueError('缺少批次编号，请补充批次或更改分组方式。')
@@ -182,7 +199,11 @@ def make_folds(data, kind, opts, config):
     from sklearn.model_selection import StratifiedGroupKFold, StratifiedKFold
 
     groups = None
-    if kind != 'exploratory':
+    physical = config.sample_evaluation and config.sample_evaluation.mode!='MIXED' and kind in ('sample','image')
+    if physical:
+        from .study_metrics import physical_ids
+        groups=physical_ids(config,data.origins)
+    elif kind != 'exploratory':
         key = 'batch' if kind == 'batch' else 'sample_id'
         groups = ([image_group(row['source'], row.get('sample_id')) for row in data.origins]
                   if kind=='image' else [row.get(key) for row in data.origins])
@@ -202,7 +223,12 @@ def make_folds(data, kind, opts, config):
     labels = sorted(config.classes)
     support = {str(label):int(len(np.unique(groups[data.y == label])) if groups is not None
                               else np.count_nonzero(data.y == label)) for label in labels}
+    if opts.get('evaluation_target')=='sample':
+        from .study_metrics import SampleScorer
+        support=SampleScorer(config,data).support()
     if min(support.values()) < n:
+        if opts.get('evaluation_target')=='sample':
+            raise ValueError(f'折数 {n} 过多：实物评分需每类至少 {n} 个可评价实物；排除真值冲突和观测不足后数量 {support}。请补数据或明确修改折数，不会自动降折。')
         raise ValueError(f'折数 {n} 过多。各类可用{"分组" if groups is not None else "样本"}数 {support}，请减少折数或补充数据')
     for attempt in range(16 if groups is not None else 1):
         seed = (opts['seed']+attempt) % 2**32
@@ -218,13 +244,21 @@ def make_folds(data, kind, opts, config):
     raise ValueError('分组交叉验证未能使每折覆盖所有类别，请减少折数或修改随机种子')
 
 
-def evaluate(config, data, folds, opts, progress):
+def evaluate(config, data, folds, opts, progress, groups=None):
     from sklearn.cross_decomposition import PLSRegression
     from sklearn.metrics import accuracy_score, f1_score
 
     labels = np.array(sorted(config.classes))
     total = len(opts['preparations'])*len(opts['components'])
     rows = []
+    target=opts.get('evaluation_target','pixel')
+    scorer=None
+    if target=='sample':
+        from .study_metrics import SampleScorer
+        scorer=SampleScorer(config,data)
+        if groups is None or not np.array_equal(groups,scorer.groups):
+            raise ValueError('Study实物编号与评分定义不一致')
+        if any(set(groups[t]) & set(groups[v]) for t,v in folds): raise ValueError('发现同实物跨折，停止评分')
     for prep in opts['preparations']:
         transformed = []
         prep_error = None
@@ -243,7 +277,7 @@ def evaluate(config, data, folds, opts, progress):
                 raise
             prep_error = '预处理无法在全部折计算'
         for components in opts['components']:
-            row = dict(id=len(rows)+1, preprocessing=prep['steps'], name=prep['name'], n_components=components)
+            row = dict(id=len(rows)+1, preprocessing=prep['steps'], name=prep['name'], n_components=components,evaluation_target=target)
             rows.append(row)
             if prep_error or any(components > fold[-1] for fold in transformed):
                 row['error'] = prep_error or '潜变量超出至少一折的训练特征秩'
@@ -251,6 +285,9 @@ def evaluate(config, data, folds, opts, progress):
             params = config.model.model_dump()
             params['n_components'] = components
             scores = []
+            oof=np.empty(len(data.y),dtype=data.y.dtype)
+            assigned=np.zeros(len(data.y),dtype=np.int16)
+            object_folds=[]
             for index,(X,V,y,v,_) in enumerate(transformed,1):
                 progress(candidate=row['id'],total=total,component=components,fold=index,folds=len(folds))
                 try:
@@ -267,23 +304,54 @@ def evaluate(config, data, folds, opts, progress):
                                accuracy_score(y,estimations[0]),
                                f1_score(v,estimations[1],labels=labels,average='macro',zero_division=0),
                                accuracy_score(v,estimations[1])])
+                validation=folds[index-1][1]
+                oof[validation]=estimations[1]; np.add.at(assigned,validation,1)
+                if scorer:
+                    objects=scorer.score(estimations[1],validation)
+                    object_folds.append(dict(fold=index,**objects))
             if 'error' in row:
                 continue
             means, stds = np.mean(scores,axis=0), np.std(scores,axis=0,ddof=1)
-            row.update(train_f1=float(means[0]), train_accuracy=float(means[1]), cv_f1=float(means[2]),
-                       cv_accuracy=float(means[3]), cv_f1_sd=float(stds[2]), cv_accuracy_sd=float(stds[3]))
+            if not np.all(assigned==1): raise ValueError('OOF验证预测须恰好覆盖每条训练观测一次')
+            row.update(train_f1=float(means[0]),train_accuracy=float(means[1]),pixel_fold_f1=float(means[2]),
+                       pixel_fold_accuracy=float(means[3]),pixel_fold_f1_sd=float(stds[2]),pixel_fold_accuracy_sd=float(stds[3]),
+                       pixel_oof_f1=float(f1_score(data.y,oof,labels=labels,average='macro',zero_division=0)),
+                       pixel_oof_accuracy=float(accuracy_score(data.y,oof)))
+            if scorer:
+                pooled=scorer.score(oof)
+                row.update(sample_oof=pooled,sample_folds=object_folds)
+                if not pooled['defined'] or any(not fold['defined'] for fold in object_folds):
+                    row.update(error='sample_metric_undefined：至少一折在排除后缺少某类有效实物，不能进入实物排名',error_code='sample_metric_undefined')
+                    continue
+                fs=[fold['metrics']['macro_f1'] for fold in object_folds]
+                ac=[fold['metrics']['accuracy'] for fold in object_folds]
+                row.update(cv_f1=pooled['metrics']['macro_f1'],cv_accuracy=pooled['metrics']['accuracy'],
+                           fold_f1_mean=float(np.mean(fs)),fold_f1_sd=float(np.std(fs,ddof=1)),
+                           fold_accuracy_mean=float(np.mean(ac)),fold_accuracy_sd=float(np.std(ac,ddof=1)))
+            else:
+                row.update(cv_f1=float(means[2]),cv_accuracy=float(means[3]),cv_f1_sd=float(stds[2]),cv_accuracy_sd=float(stds[3]))
     valid = [row for row in rows if 'cv_f1' in row]
     if not valid:
-        raise ValueError('没有能在全部折评测的候选，请调整范围')
+        if target!='sample': raise ValueError('没有能在全部折评测的候选，请调整范围')
     simplicity = lambda row: (row['n_components'],len(row['preprocessing']),-row['cv_f1'],row['id'])
     ranked = sorted(valid,key=lambda row:(-row['cv_f1'],*simplicity(row)))
-    best = ranked[0]
-    threshold = best['cv_f1'] - best['cv_f1_sd']/np.sqrt(len(folds))
-    recommended = min((row for row in valid if row['cv_f1'] >= threshold),key=simplicity)
+    best = ranked[0] if ranked else None
+    threshold = best['cv_f1'] - best['cv_f1_sd']/np.sqrt(len(folds)) if best and target=='pixel' else None
+    recommended = (min((row for row in valid if row['cv_f1'] >= threshold),key=simplicity) if threshold is not None else best)
+    pixel_ranked=sorted((row for row in rows if 'pixel_oof_f1' in row),key=lambda row:(-row['pixel_oof_f1'] if target=='sample' else -row['pixel_fold_f1'],row['n_components'],len(row['preprocessing']),row['id']))
+    for rank,row in enumerate(pixel_ranked,1):row['pixel_rank']=rank
+    for rank,row in enumerate(ranked,1):row['sample_rank' if target=='sample' else 'rank']=rank
+    for row in rows:
+        if target=='sample' and 'pixel_rank' in row:
+            row['rank_change']=row['pixel_rank']-row['sample_rank'] if 'sample_rank' in row else None
     upper = opts['components'][-1]
-    return dict(candidates=ranked+[row for row in rows if 'error' in row],best=best['id'],
-                recommended=recommended['id'],one_se_threshold=float(threshold),component_upper=upper,
-                component_upper_reached=best['n_components']==upper and upper<min(64,len(config.wavelengths_nm)))
+    return dict(candidates=ranked+[row for row in rows if 'error' in row],best=best['id'] if best else None,
+                recommended=recommended['id'] if recommended else None,one_se_threshold=float(threshold) if threshold is not None else None,
+                evaluation_target=target,scoring='pooled_oof_sample_macro_f1' if target=='sample' else 'fold_mean_macro_f1',
+                protocol='study_sample_oof_v1' if target=='sample' else 'study_pixel_fold_v1',
+                recommendation_rule='best_pooled_oof' if target=='sample' else 'one_se',pixel_ranking=[row['id'] for row in pixel_ranked],
+                ranking_status='ready' if best else 'sample_metric_undefined',component_upper=upper,
+                component_upper_reached=bool(best and best['n_components']==upper and upper<min(64,len(config.wavelengths_nm))))
 
 
 class StudyService:
@@ -303,6 +371,7 @@ class StudyService:
         return path
 
     def prepare(self, owner, turn, text, *, structured=False):
+        incoming = text
         with connect_database(self.dialogue.database) as db:
             previous = db.execute('SELECT document FROM study_draft WHERE session_id=?',(owner,)).fetchone()
         previous = json.loads(previous[0]) if previous else None
@@ -315,20 +384,42 @@ class StudyService:
             if not previous:
                 raise ValueError('当前还没有可调整的寻优方案。请先发起寻优，例如“发起寻优，折数 2，潜变量 2-8”。')
             text = previous['text'] + '\n' + text
-        model = re.search(r'\b[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\b',text)
+        model = re.search(r'\b[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\b',incoming if changing else text)
         record = self.dialogue._read(owner)
-        if model or not record or not record['document'] or record['run_status'] != 'idle':
+        resumed = bool(model or not record or not record['document'] or record['run_status'] != 'idle')
+        if resumed:
             self.dialogue.resume_training(owner, archive_id=model[0] if model else None, study_only=True)
         record = self.dialogue._read(owner)
         rows = []
-        config = self.dialogue._config(record, training_only=True, train_manifest_rows=rows)
+        config = self.dialogue._config(record, training_only=True, train_manifest_rows=rows,normalize_evaluation=False)
+        from .evaluation_definition import normalize_config, training_digest
+        from .schema import SampleDefinition, StudySelection
+        inherited = self.service.sample_evaluations.declared(record['base_experiment_id']) if resumed and record['base_experiment_id'] else None
+        if changing and previous['revision']==record['revision'] and previous.get('sample_specification') is not None:
+            inherited=previous['sample_specification']
+        if inherited: config=config.model_copy(update={'sample_evaluation':SampleDefinition.model_validate(inherited)})
+        modes=re.findall(r'(?:实物定义|数据关系|声明|模式)\s*[:：=]?\s*(IMAGE|MAPPED|MIXED)|(?<!多)(一图一物)|多图一物|(一图多物)',text,re.I)
+        if modes:
+            latest=modes[-1]
+            mode=latest[0].upper() if latest[0] else 'IMAGE' if latest[1] else 'MIXED' if latest[2] else 'MAPPED'
+            prior=config.sample_evaluation
+            config=config.model_copy(update={'sample_evaluation':SampleDefinition(mode=mode,
+                minimum_valid=prior.minimum_valid if prior else 100,mapping=prior.mapping if prior and mode==prior.mode else [])})
+        minimum=re.findall(r'(?:有效观测阈值|最少有效观测)\s*(?:N\s*)?[:：=为]?\s*(\d+)',text,re.I)
+        if minimum:
+            if not config.sample_evaluation: raise ValueError('请先明确IMAGE或MAPPED实物定义')
+            value=config.sample_evaluation.model_dump(); value['minimum_valid']=int(minimum[-1])
+            config=config.model_copy(update={'sample_evaluation':SampleDefinition.model_validate(value)})
+        sample_specification=config.sample_evaluation.model_dump(mode='json') if config.sample_evaluation else None
+        config=normalize_config(config,training_only=True)
         hint = grid_hint(config.wavelengths_nm)
         grouping, fold_note = None, ''
         try:
-            settings = options(text, config.wavelengths_nm, record['document'].get('preprocessing', []))
+            settings = options(text, config.wavelengths_nm, record['document'].get('preprocessing', []),
+                               config.study_selection.evaluation_target if config.study_selection else 'pixel')
             grouping = group_kind(config, settings)
             support = study_group_support(config, rows, grouping)
-            if not FOLDS.search(text) and support and min(support.values()) == 2:
+            if settings['evaluation_target']=='pixel' and not FOLDS.search(text) and support and min(support.values()) == 2:
                 settings['folds'] = 2
                 limited = '、'.join(name for name,count in support.items() if count==2)
                 fold_note = f'未指定折数，{limited} 仅有 2 个训练组，采用 2 折。'
@@ -338,12 +429,19 @@ class StudyService:
             if grouping == 'image':
                 notes.append('缺少完整实物编号，按原图探索性分组，同图不跨折，实物独立性未知。')
             raise ValueError('\n'.join([str(error),*notes])) from error
-        if changing and previous['revision']==record['revision'] and previous['options']==settings:
+        if (changing and previous['revision']==record['revision'] and previous['options']==settings
+                and previous['grouping']==grouping and previous['config'].get('sample_evaluation')==(
+                    config.sample_evaluation.model_dump(mode='json') if config.sample_evaluation else None)):
             raise ValueError('没有识别到有效变化，未重发寻优方案。可用“调整寻优”或“修改寻优”，'
                              '并写明要改的折数、潜变量、SG 窗口或预处理候选。')
         identifier = str(uuid4())
+        config=config.model_copy(update={'study_selection':StudySelection(study_id=identifier,
+            evaluation_target=settings['evaluation_target'],grouping=grouping,
+            scoring='pooled_oof_sample_macro_f1' if settings['evaluation_target']=='sample' else 'fold_mean_macro_f1',
+            definition_digest=training_digest(config,config.sample_evaluation.model_dump() if config.sample_evaluation else None))})
         document = dict(id=identifier, turn=turn, revision=record['revision'], snapshot=record,
                         config=config.model_dump(mode='json', exclude={'test'}), options=settings, grouping=grouping,
+                        sample_specification=sample_specification,
                         text=text, expected_hashes={r[key]:r[key+'_sha256'] for r in rows
                                                     for key in ('hdr','img','annotation') if r.get(key+'_sha256')})
         with connect_database(self.dialogue.database) as db:
@@ -356,11 +454,19 @@ class StudyService:
         grouping_text = {'sample':'按实物分组','batch':'按批次分组','npz_group':f'按 NPZ 字段 {getattr(config.train,"groups_key",None)} 分组',
                          'image':'按原图分组（探索性，同图不跨折，已知同一实物保持同组，其余实物独立性未知）',
                          'exploratory':'缺少实物／批次分组，仅能作探索性分层 CV，同源邻域可能泄漏'}[grouping]
-        confirmation = '确认探索性寻优' if grouping in ('image','exploratory') else '确认寻优'
+        exploratory = grouping=='exploratory' or grouping=='image' and (config.sample_evaluation is None or config.sample_evaluation.mode=='MIXED')
+        confirmation = '确认探索性寻优' if exploratory else '确认寻优'
         notice = '所有候选仅使用训练集。在每折训练侧拟合；留出测试集用于之后单独确认的正式实验。'
+        if config.sample_evaluation and config.sample_evaluation.mode!='MIXED' and grouping in ('sample','image'):
+            grouping_text=f'按已声明 {config.sample_evaluation.mode} 实物分组'
+        if settings['evaluation_target']=='sample':
+            notice += (f' 有效观测阈值 N={config.sample_evaluation.minimum_valid}，作用于质量筛选／抽样后保存的观测，不等于原图全部前景。真值须唯一，所有视图观测合并投票，平票排除。'
+                       ' 排序目标为实物级 pooled OOF Macro-F1；每折排除后必须覆盖全部类别，否则候选无效，绝不降级。'
+                       '同时展示观测级 pooled OOF 排名与逐实物投票。折间标准差仅辅助，不用于1-SE；最高分优先，同分取较少潜变量、较少算子及较小编号。小样本排名差异不代表显著优劣。')
         sampling = sampling_text(config.train)
         axis_notice = hint+'\n' if hint else ''
         overview = f'{settings["folds"]} 折 · {grouping_text} · {len(settings["preparations"])*len(settings["components"])} 个候选'
+        overview += ' · '+('实物 pooled OOF' if settings['evaluation_target']=='sample' else '观测级折均值')
         reply = (f'{base}寻优方案 · {settings["folds"]} 折，{grouping_text}，分折种子 {settings["seed"]}。\n'
                 + (fold_note+'\n' if fold_note else '') + f'预处理候选 {candidates}。'+ ('SG 窗口 '+'、'.join(map(str,windows))+'，二阶多项式。' if windows else '') +
                 ('包含中心化。' if '不中心化' not in text else '') +
@@ -384,13 +490,14 @@ class StudyService:
                     if (not draft or not current or target != ('study',draft['revision'],draft['id'])
                             or draft['revision'] != current['revision'] or draft['turn']==turn):
                         raise DataError('STUDY_CONFIRMATION_REQUIRED','请先审阅当前寻优方案')
-                    if draft['grouping'] in ('image','exploratory') and not content.startswith('确认探索性'):
+                    definition=draft['config'].get('sample_evaluation')
+                    if (draft['grouping']=='exploratory' or draft['grouping']=='image' and (not definition or definition['mode']=='MIXED')) and not content.startswith('确认探索性'):
                         raise DataError('STUDY_CONFIRMATION_REQUIRED','此方案使用探索性分组或分层，请单独回复“确认探索性寻优”')
                     identifier = draft['id']
                     folder = self.folder(identifier)
                     guard.mkdir(folder,parents=True)
                     state = dict(study_id=identifier,session_id=owner,status='queued',phase='checking',
-                                 started_at=time(),finished_at=None)
+                                 started_at=time(),finished_at=None,evaluation_target=draft['options'].get('evaluation_target','pixel'))
                     write_json(folder/'plan.json',draft)
                     state['plan_sha256'] = sha256(folder/'plan.json')
                     write_json(folder/'status.json',state)
@@ -443,12 +550,14 @@ class StudyService:
                                                     for i,(_,v) in enumerate(folds,1)],axis=0))
                 write_json(folder/'sources.json',data.sources)
                 progress(phase='evaluating')
-                result = evaluate(config,data,folds,opts,progress)
+                result = evaluate(config,data,folds,opts,progress,groups=groups)
                 check_sources(data.sources,progress)
             result.update(study_id=identifier,folds=opts['folds'],grouping=draft['grouping'],
                           group_count=len(set(groups)) if groups is not None else None,
                           samples=len(data.y),evaluation_unit=data.unit,class_group_support=support,
                           sampling=data.sampling,seed=seed,requested_seed=opts['seed'])
+            result.update(sample_evaluation=draft['config'].get('sample_evaluation'),study_selection=draft['config'].get('study_selection'),
+                          classes=draft['config']['classes'])
             write_json(folder/'result.json',result)
             state.update(status='succeeded',phase='reporting',result_sha256=sha256(folder/'result.json'))
         except (DataError,ValueError,OSError,KeyError) as error:
@@ -515,11 +624,19 @@ class StudyService:
         path = self.folder(identifier)/'result.json'
         if state.get('result_sha256') and sha256(path) != state['result_sha256']:
             raise DataError('STUDY_RESULT_CHANGED','归档的寻优结果校验失败')
-        return read_json(path)
+        result=read_json(path)
+        # Projection only. Never rewrite the checked legacy archive or convert
+        # old scores into an object ranking.
+        result.setdefault('evaluation_target','pixel')
+        result.setdefault('scoring','fold_mean_macro_f1')
+        result.setdefault('recommendation_rule','one_se')
+        result.setdefault('protocol','study_pixel_fold_v1')
+        return result
 
     def adopt(self, owner, identifier, choice):
         result = self.result(owner,identifier)
-        candidate = next((row for row in result['candidates'] if row['id']==choice and 'cv_f1' in row),None)
+        candidate = next((row for row in result['candidates'] if row['id']==choice and 'cv_f1' in row and 'error' not in row
+                          and row.get('evaluation_target','pixel')==result['evaluation_target']),None)
         if not candidate:
             raise DataError('STUDY_CHOICE_INVALID','请选择有效的已评测候选')
         if self.dialogue.tasks.active(owner):
@@ -531,10 +648,19 @@ class StudyService:
             raise DataError('STUDY_RESULT_CHANGED','归档的寻优方案校验失败')
         plan = read_json(folder/'plan.json')
         snapshot = plan['snapshot']
-        current_train = self.dialogue._config(snapshot,training_only=True).train.model_dump(mode='json')
+        from .evaluation_definition import normalize_config
+        from .schema import SampleDefinition
+        current_config=self.dialogue._config(snapshot,training_only=True,normalize_evaluation=False)
+        if plan['config'].get('sample_evaluation'):
+            current_config=current_config.model_copy(update={'sample_evaluation':SampleDefinition.model_validate(plan['config']['sample_evaluation'])})
+        current_train = normalize_config(current_config,training_only=True).train.model_dump(mode='json')
         if current_train != plan['config']['train']:
             raise DataError('STUDY_SOURCE_CHANGED','训练目录成员已变化，请重新寻优')
         document = deepcopy(snapshot['document'])
+        if 'sample_specification' in plan:
+            if plan['sample_specification'] is not None: document['sample_evaluation']=plan['sample_specification']
+            else: document.pop('sample_evaluation',None)
+        if plan['config'].get('study_selection'): document['study_selection']=plan['config']['study_selection']
         document.update(preprocessing=candidate['preprocessing'],model={**plan['config']['model'],'n_components':candidate['n_components']})
         document['notes'] = (document.get('notes','') + f'\n参数来自训练集内寻优 {identifier}，候选 {choice}。').strip()
         with connect_database(self.dialogue.database) as db:

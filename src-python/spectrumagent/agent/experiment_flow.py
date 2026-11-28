@@ -280,7 +280,8 @@ def generate(machine, content, *, pairing=False, group_split=False, study=False,
                 reply = '寻优任务状态见任务卡。'
                 if state['status']=='succeeded':
                     result = manager.result(session,state['study_id'])
-                    reply = f'寻优已完成。最高分候选 {result["best"]}，1-SE 推荐候选 {result["recommended"]}。'
+                    reply = (f'寻优已完成。最高分候选 {result["best"]}，'+('按 pooled OOF 推荐' if result['evaluation_target']=='sample' else '1-SE 推荐')+f'候选 {result["recommended"]}。'
+                             if result['best'] is not None else '本次所有候选的实物指标均无定义，没有可采用方案；请查看各折排除原因。')
                     if result.get('component_upper_reached'):
                         reply += '\n' + UPPER_BOUND_HINT
                 yield from finish(reply,outcome='succeeded' if state['status']=='succeeded' else 'working')

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { agent, type StudyCandidate, type StudyResult, type StudyStatus } from './api';
-import { CandidateTable, candidateCommand, pct, topCandidates } from './StudyLeaderboard';
+import { CandidateTable, candidateCommand, pct, topCandidates, StudyProtocol } from './StudyLeaderboard';
+import { compatibleCandidates } from './study-ranking';
 
 const labels={queued:'排队中',running:'运行中',succeeded:'已完成',failed:'失败',cancelled:'已取消',interrupted:'已中断'};
 const grouping:Record<string,string>={image:'按原图探索性分组（实物独立性未知）',sample:'实物分组',batch:'批次分组',npz_group:'NPZ 分组字段',exploratory:'探索性分层，实物分组未知'};
@@ -45,9 +46,13 @@ function Curve({rows}:{rows:StudyCandidate[]}) {
 }
 
 export function StudyHighlights({result,enabled,send}:{result:StudyResult;enabled:boolean;send:(text:string)=>void}) {
-  const recommended = result.candidates.find(row=>row.id===result.recommended);
-  const best = result.candidates.find(row=>row.id===result.best);
+  const candidates=compatibleCandidates(result);
+  const recommended = candidates.find(row=>row.id===result.recommended);
+  const best = candidates.find(row=>row.id===result.best);
   const id = result.study_id;
+  if(result.evaluation_target==='sample')return best?<section><h4>实物 pooled OOF 最高分候选 {best.id}</h4><p>{best.name} · {best.n_components} 潜变量 · 实物 Macro-F1 {pct(best.cv_f1)} · 准确率 {pct(best.cv_accuracy)}</p>
+    <p>纳入 {best.sample_oof?.included} / {best.sample_oof?.total} 个实物。折间 F1 均值 {pct(best.fold_f1_mean)}，标准差 {pct(best.fold_f1_sd)}（辅助）。</p>
+    <button disabled={!enabled} onClick={()=>send('采用最高分方案新建正式训练 '+id)}>采用最高分方案新建正式训练</button></section>:<p>没有有效实物候选，不能采用；请查看各折缺失类别与排除明细。</p>;
   return <div className="study-highlights">
         {([['1-SE 推荐候选',recommended,'推荐方案'],['最高分候选',best,'最高分方案']] as const).map(([title,row,command])=>row&&
           <section key={title}><h4>{title}</h4><p>{row.name} · {row.n_components} 潜变量</p>
@@ -79,8 +84,9 @@ export default function StudyCard({sessionId,id,enabled,send,onView}:{sessionId:
     setError('');void poll();
     return()=>{active=false;clearTimeout(timer);};
   },[sessionId,id,enabled,revision]);
-  const curve=result?.candidates.filter(row=>row.name===choice&&row.cv_f1!==undefined)??[];
-  const ranked=result?.candidates.filter(row=>row.cv_f1!==undefined)??[];
+  const candidates=result?compatibleCandidates(result):[];
+  const curve=candidates.filter(row=>row.name===choice&&row.cv_f1!==undefined);
+  const ranked=candidates.filter(row=>row.cv_f1!==undefined);
   return <section className="experiment-task-card" aria-label="训练集寻优">
     <h3>训练集寻优 · {state?labels[state.status]:'正在查询'}</h3>
     {state?.status==='running'&&state.phase==='preparing'&&<p role="status">准备训练侧光谱
@@ -93,16 +99,17 @@ export default function StudyCard({sessionId,id,enabled,send,onView}:{sessionId:
     {(state?.error||error)&&<p role="alert">{state?.error||error}</p>}
     {error&&<button disabled={!enabled} onClick={()=>setRevision(v=>v+1)}>重新读取</button>}
     {result&&<>
-      <p>{result.folds} 折 · {grouping[result.grouping]}{result.group_count!==null&&`（${result.group_count} 组）`} · {result.samples} {result.evaluation_unit==='center_pixel'?'中心像元':'条光谱'}。1-SE 下界 {pct(result.one_se_threshold)}。</p>
+      <StudyProtocol result={result}/>
+      <p>{result.folds} 折 · {result.sample_evaluation&&result.sample_evaluation.mode!=='MIXED'&&['image','sample'].includes(result.grouping)?`实物定义 ${result.sample_evaluation.mode}`:grouping[result.grouping]}{result.group_count!==null&&`（${result.group_count} 组）`} · {result.samples} {result.evaluation_unit==='center_pixel'?'中心像元':'条光谱'}。{result.evaluation_target!=='sample'&&`1-SE 下界 ${pct(result.one_se_threshold)}。`}</p>
       <StudyHighlights result={result} enabled={enabled} send={send}/>
       {result.component_upper_reached&&<p role="status">最高分潜变量已触及本次上界，可扩宽潜变量范围继续寻优。</p>}
-      <label>曲线方案 <select value={choice} onChange={event=>setChoice(event.target.value)}>
+      {result.evaluation_target!=='sample'&&<><label>曲线方案 <select value={choice} onChange={event=>setChoice(event.target.value)}>
         {[...new Set(ranked.map(row=>row.name))].map(name=><option key={name}>{name}</option>)}
       </select></label>
-      {curve.length>0&&<Curve rows={curve}/>}
-      <CandidateTable result={result} rows={topCandidates(result.candidates,result.recommended)} title="候选前十"
+      {curve.length>0&&<Curve rows={curve}/>}</>}
+      <CandidateTable result={result} rows={topCandidates(candidates,result.recommended)} title="候选前十"
         enabled={enabled} adopt={row=>send(candidateCommand(result.study_id,row.id))}/>
-      <button onClick={()=>onView(result)}>查看全部候选（共 {result.candidates.length} 条）</button>
+      <button onClick={()=>onView(result)}>查看全部候选（共 {candidates.length} 条）</button>
     </>}
   </section>;
 }
