@@ -5,7 +5,7 @@ from pydantic import Field, FiniteFloat, model_validator
 
 from . import ToolInput, NoArguments, Reference
 from ..tool_context import owner_session
-from spectrumagent.experiments.schema import L2, Center, Standard, SNV, Metric
+from spectrumagent.experiments.schema import L2, Center, Standard, SNV, Metric, SampleDefinition
 
 
 class ArchiveDraft(ToolInput):
@@ -116,6 +116,7 @@ class DraftUpdate(ToolInput):
     axis: Annotated[Union[ArchiveAxis, GridAxis], Field(discriminator='kind')] | None = None
     additional_metrics: list[Metric] | None = None
     test_usage: Literal['independent_test', 'development_regression'] | None = None
+    sample_evaluation: SampleDefinition | None = None
 
     @model_validator(mode='after')
     def one_preprocessing_operation(self):

@@ -32,4 +32,6 @@
 
 后续第二阶段才把显式 `evaluation_target: sample` 接入新 Study 的折内评分与排序；必须重新计算候选，并与历史观测级排名隔离，不能从旧汇总分数换算。第一阶段报告不宣称已完成实物级选优。
 
+实物定义同时支持写入实验 `config.sample_evaluation`，报告表单默认继承；MAPPED 可显式复用完整已确认的逐图 sample_id 表，禁止将缺省 HDR 路径或 batch 解释为实物编号。新选优来源保留 `study_selection`（任务、划分组类型、评价目标、评分口径及训练定义摘要）。报告覆盖后与摘要不一致时，表单和导出都会提示原排名不代表新口径。已保存报告的用户声明可用于后续 Study 配置继承，该读取只查声明，不读取留出集预测。
+
 验证命令：`python -m pytest tests/test_sample_evaluation.py tests/test_experiment_results.py tests/test_experiment_conversation.py tests/test_agent_router.py -q`、`node --test tests/*.test.mjs`、`npm run build`。Windows 全套回归建议用仓库内专用短临时目录（例如 `--basetemp=.tmp-sample-suite`），避免 UUID 归档路径叠加默认用户临时目录后超过传统路径长度限制；该目录由 pytest 管理，不可指定已有数据目录。

@@ -7,7 +7,7 @@ const label=(classes:Record<string,string>,id:number|null)=>id==null?'无唯一�
 
 export function SampleReport({view,classes}:{view:SampleView;classes:Record<string,string>}) {
   const report=view.report;
-  if(!report)return <p>尚未声明实物定义，不根据 sample_id、文件名或批次自动推断实物。</p>;
+  if(!report)return <p>{view.definition?`已继承实验配置的 ${view.definition.mode} 定义；保存后从原预测生成报告。`:'尚未声明实物定义，不根据 sample_id、文件名或批次自动推断实物。'}</p>;
   if(report.status!=='ready')return <p role="status">{report.reason} 原观测指标继续保留。</p>;
   return <div aria-label="实物级报告">
     <p><strong>全实验实物数 n={report.total_objects}</strong>，不是像元数。协议 {report.protocol} · 修订 {view.revision}。</p>
@@ -90,9 +90,11 @@ export default function SampleEvaluationCard({initial,experimentId,sessionId,cla
   const disabled=busy||!enabled;
   return <section aria-label="实物评价定义与报告">
     <h4>实物评价（报告阶段）</h4>
+    {view.selection_warning&&<p role="alert">{view.selection_warning}</p>}
     <SampleReport view={view} classes={classes}/>
     {!view.applicable?<p>{view.unavailable_reason??'当前报告要求有原图来源。NPZ 的 groups 可能表示批次，不能自动解释为实物编号，本阶段不支持从该字段派生实物报告。'}</p>:<details>
       <summary>声明或调整实物定义</summary>
+      {view.study_selection&&<p>本实验采用过 Study 方案。覆盖实物定义或阈值可能与选优口径不一致；本操作只更新派生报告，不能换算旧候选排名，需要按新定义重新寻优。</p>}
       <fieldset disabled={disabled}>
         <label>数据中的实物关系 <select value={mode} onChange={event=>setMode(event.target.value as SampleMode|'')}>
           <option value="">请选择，不自动推断</option><option value="IMAGE">IMAGE：一图一物</option>

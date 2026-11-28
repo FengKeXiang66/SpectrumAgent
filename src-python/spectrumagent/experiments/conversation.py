@@ -616,7 +616,8 @@ class ExperimentDialogue:
         if training_only and 'train' in document:
             document['test'] = deepcopy(document['train'])
             document['test'].pop('max_per_class', None)
-        return ExperimentConfig.model_validate(document)
+        from .evaluation_definition import normalize_config
+        return normalize_config(ExperimentConfig.model_validate(document), training_only=training_only)
 
     def has_paired_inputs(self, session_id):
         from .pairing import can_train
@@ -728,6 +729,9 @@ class ExperimentDialogue:
         document = (read_json(self.service.folder(model_id)/'config.json') if study_only
                     else deepcopy(self.service.get(model_id)['config']))
         document.pop('training_sampling',None)
+        declared = self.service.sample_evaluations.declared(model_id)
+        if declared is not None:
+            document['sample_evaluation'] = declared
         stored_split = document.pop('split_manifest', None)
         waves = document.pop('wavelengths_nm')
         document.update(axis={'kind':'archived_axis', 'wavelengths_nm':waves},
@@ -809,6 +813,8 @@ class ExperimentDialogue:
             plan += '\n本轮变更\n' + '\n'.join('• '+change for change in changes)
         if config is not None:
             waves = config.wavelengths_nm
+            if config.sample_evaluation:
+                plan += f'\n实物评价定义：{config.sample_evaluation.mode}；有效观测阈值 {config.sample_evaluation.minimum_valid}；真值唯一，合并观测投票，平票排除。'
             if config.split_manifest and config.split_manifest.one_image_one_sample:
                 plan += '\n实物口径：用户声明每幅图对应独立实物。'
             plan += f'\n已核验目标波长：{len(waves)}个，{waves[0]:g}至{waves[-1]:g} nm。'
@@ -1019,7 +1025,10 @@ class ExperimentDialogue:
                     patch['train'] = {**patch.get('train',{}), **sampling}
             if edit:
                 patch['preprocessing'] = edit_preprocessing(record['document'], edit)
-            document = merge({} if reset else record['document'], patch)
+            base = deepcopy({} if reset else record['document'])
+            if 'sample_evaluation' in patch:
+                base.pop('sample_evaluation', None)
+            document = merge(base, patch)
             if document != record['document'] or reset:
                 db.execute("UPDATE experiment_dialogue SET document_json=?,revision=revision+1,reviewed_revision=NULL,"
                            "review_turn=NULL,review_sources_json=NULL,run_status='idle',experiment_id=NULL,active=1,"

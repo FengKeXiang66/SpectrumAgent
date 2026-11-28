@@ -7,6 +7,8 @@ export type SampleRow = {sample_id:string;display_id:string;image_count:number;o
 export type SampleRole = {total:number;included:number;excluded:number;exclusion_counts:Record<string,number>;
   metrics:ExperimentScore|null;rows:SampleRow[]};
 export type SampleView = {revision:number;applicable:boolean;unavailable_reason?:string|null;form_id:string|null;
+  definition_origin?:string;selection_warning?:string|null;
+  study_selection?:{evaluation_target:string;grouping:string;scoring:string}|null;
   sources:{source_ref:string;name:string;roles:string[]}[];
   definition:{mode:SampleMode;minimum_valid:number;mapping:{source_ref:string;sample_id:string}[]}|null;
   report:{status:string;protocol:string;reason?:string;total_objects:number|null;roles:Record<string,SampleRole>;

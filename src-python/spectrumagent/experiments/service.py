@@ -154,6 +154,8 @@ class ExperimentService:
         return path
 
     def run(self, config: ExperimentConfig, *, expected_sources=None, progress=None, on_detail=None):
+        from .evaluation_definition import normalize_config
+        config = normalize_config(config)
         from spectrumagent.annotation.palette import model_colors
         config = config.model_copy(update={'class_colors': model_colors(self.paths.database, config)})
         if config.training_sampling is not None:

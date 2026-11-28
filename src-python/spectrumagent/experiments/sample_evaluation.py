@@ -183,6 +183,13 @@ class SampleEvaluations:
         config = json.loads(self.service.artifact(identifier, 'config.json').read_text('utf-8'))
         return record, config
 
+    def declared(self, identifier):
+        """Read only the user's declaration; no holdout predictions for Study."""
+        from .evaluation_definition import specification
+        with connect_database(self.database) as db:
+            row = db.execute('SELECT definition FROM experiment_sample_evaluation WHERE experiment_id=?',(identifier,)).fetchone()
+        return specification(json.loads(row[0])) if row else None
+
     def sources(self, config):
         if any(config[role]['kind'] != 'roi_images' for role in ('train', 'test')): return []
         rows = {}
@@ -208,11 +215,22 @@ class SampleEvaluations:
         complete = all(name in record['artifacts'] for name in INPUT_ARTIFACTS)
         reason = (None if image_input and complete else '历史记录缺少预测或来源，无法派生实物报告。' if image_input else
             '当前报告需要原图来源。NPZ 的 groups 可能表示批次，本阶段不能将其认定为实物编号。')
-        base = dict(revision=0, definition=None, report=None, sources=self.sources(config),
+        inherited = config.get('sample_evaluation')
+        if inherited:
+            inherited = dict(inherited, merge='pool_observations', tie='exclude', truth='unique_or_exclude', protocol=PROTOCOL)
+        base = dict(revision=0, definition=inherited, definition_origin='experiment_config' if inherited else 'unconfigured',
+                    report=None, sources=self.sources(config),
                     applicable=image_input and complete, unavailable_reason=reason, form_id=None)
         if row:
             if self._digest(record, verify=True) != row[3]: raise DataError('SAMPLE_EVALUATION_STALE', '来源记录变化，请重新核对')
-            base.update(revision=row[0], definition=json.loads(row[1]), report=json.loads(row[2]), form_id=row[4])
+            base.update(revision=row[0], definition=json.loads(row[1]), report=json.loads(row[2]), form_id=row[4],definition_origin='report_override')
+        selection = config.get('study_selection')
+        base.update(study_selection=selection, selection_warning=None)
+        if selection and base['definition']:
+            from .evaluation_definition import training_digest
+            from .schema import ExperimentConfig
+            if not selection.get('definition_digest') or training_digest(ExperimentConfig.model_validate(config),base['definition']) != selection['definition_digest']:
+                base['selection_warning'] = '本报告实物定义与选优时的定义不一致或选优时未明确实物定义；原排名不代表本报告口径，需重新寻优。'
         return base
 
     def csv_mapping(self, identifier, path):
@@ -285,6 +303,7 @@ def report_html(view, classes):
     definition = report['definition']
     body = [f'<section data-sample-evaluation="true"><h2>实物级派生评价 · {PROTOCOL} · 修订 {view["revision"]}</h2>',
         '<p>声明：'+escape(definition['mode'])+f'；有效观测阈值 N={definition["minimum_valid"]}；同实物所有图观测合并投票，平票与真值冲突排除。</p>']
+    if view.get('selection_warning'): body.append('<p role="alert">'+escape(view['selection_warning'])+'</p>')
     if report['status'] != 'ready': return ''.join(body)+ '<p>'+escape(report['reason'])+'</p></section>'
     body += [f'<p><strong>全实验实物数 n={report["total_objects"]}</strong>，不是像元数；训练与测试指标分别计数。</p>',
              '<p>'+escape(report['truth_basis']+' '+report['observation_note']+' '+report['macro_definition'])+'</p>']

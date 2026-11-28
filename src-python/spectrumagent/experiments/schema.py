@@ -154,6 +154,35 @@ class TrainingSampling(InputModel):
     class_counts: dict[str, SamplingCount]
 
 
+class SampleMapping(InputModel):
+    source_ref: Annotated[str, Field(pattern=r'^[a-f0-9]{64}$')]
+    sample_id: Annotated[str, Field(min_length=1, max_length=160)]
+
+
+class SampleDefinition(InputModel):
+    mode: Literal['IMAGE', 'MAPPED', 'MIXED']
+    minimum_valid: Annotated[int, Field(ge=1, le=1000000)] = 100
+    mapping: Annotated[list[SampleMapping], Field(max_length=4096)] = Field(default_factory=list)
+
+    @model_validator(mode='after')
+    def unique_mapping(self):
+        if len({row.source_ref for row in self.mapping}) != len(self.mapping):
+            raise ValueError('每幅原图只能对应一个实物编号')
+        if self.mode != 'MAPPED' and self.mapping:
+            raise ValueError('仅MAPPED使用实物分组表')
+        if any(not row.sample_id.strip() for row in self.mapping):
+            raise ValueError('实物编号不能为空')
+        return self
+
+
+class StudySelection(InputModel):
+    study_id: str
+    evaluation_target: Literal['pixel', 'sample']
+    grouping: Literal['sample', 'image', 'batch', 'npz_group', 'exploratory']
+    scoring: Literal['fold_mean_macro_f1', 'pooled_oof_sample_macro_f1']
+    definition_digest: str | None = None
+
+
 class ExperimentConfig(InputModel):
     schema_version: Literal[1] = 1
     name: Annotated[str, Field(min_length=1, max_length=200)]
@@ -169,6 +198,8 @@ class ExperimentConfig(InputModel):
     notes: str = ""
     split_manifest: SplitManifest | None = None
     training_sampling: TrainingSampling | None = None
+    sample_evaluation: SampleDefinition | None = None
+    study_selection: StudySelection | None = None
 
     @field_validator("classes", "class_colors", mode="before")
     @classmethod

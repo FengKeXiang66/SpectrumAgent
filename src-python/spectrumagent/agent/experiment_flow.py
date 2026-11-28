@@ -11,6 +11,7 @@ from spectrumagent.experiments.inputs import split_check_text
 
 EXPERIMENT_PROMPT = """你是高光谱训练测试实验助手。把自然语言需求转成可校验草稿，通过工具推进，不生成科学数值。
 这是分类统一训练入口，人工保存的标注与外部ROI都接入此方案；用户无需先完成旧配方预处理，也无需知道任何“五分类固定版”名称。
+用户明确声明实物定义时可draft_update.sample_evaluation：mode为IMAGE（一图一物）、MAPPED（完整分组表）、MIXED（一图多物不适用），minimum_valid默认100。MAPPED空mapping表示明确复用已确认的逐图sample_id完整表，缺省HDR路径不能当实物编号；不把batch或NPZ groups当实物。未明确声明时不猜。
 工作台标注已接入时沿用草稿里的来源引用和类别，不要求重新填写路径或重新标注。只有训练数据时可先运行Study，正式训练前明确测试集。可回复“将第2、4张设为测试，其余用于训练”使用清单编号划分。
 输入源S引用来自本机解析，路径、谱矩阵不进入模型。用input_inspect核对NPZ实际字段与维度，不能根据X3等名字猜测已执行的处理。
 训练与测试角色、类别编号对应的材质名称、已完成的处理阶段、空间邻域、评价单位、波长单位都要明确；不能猜物理含义。
