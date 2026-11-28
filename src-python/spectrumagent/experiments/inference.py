@@ -50,12 +50,27 @@ def _read_small_export_file(path, item):
         raise DataError('INFERENCE_ARTIFACT_CHANGED', '推理产物缺失或校验失败') from error
 
 
+MATERIAL_COLORS = {
+    'PE': (255, 62, 62), 'PP': (38, 211, 79), 'PET': (63, 118, 255),
+    'EPS': (255, 163, 35), '纸': (177, 99, 215),
+}
+
+
 def class_palette(classes, materials, colors=None):
-    fixed = [tuple(bytes.fromhex(color[1:])) for color in LABEL_COLORS]
     colors = colors or {}
-    return {str(label): tuple(bytes.fromhex(colors[int(label)][1:])) if int(label) in colors else
-                (fixed[i] if len(classes)<=len(fixed) else tuple(int(v*255) for v in colorsys.hsv_to_rgb(i/len(classes),.65,.85)))
-            for i,label in enumerate(classes)}
+    palette = {}
+    for i, label in enumerate(classes):
+        key = int(label)
+        if key in colors:
+            rgb = tuple(bytes.fromhex(colors[key][1:]))
+        elif materials.get(key) in MATERIAL_COLORS:
+            rgb = MATERIAL_COLORS[materials[key]]
+        elif i < len(LABEL_COLORS):
+            rgb = tuple(bytes.fromhex(LABEL_COLORS[i][1:]))
+        else:
+            rgb = tuple(int(v*255) for v in colorsys.hsv_to_rgb(i/len(classes), .65, .85))
+        palette[str(label)] = rgb
+    return palette
 
 
 def classification_preview(labels, accepted, reasons, palette):

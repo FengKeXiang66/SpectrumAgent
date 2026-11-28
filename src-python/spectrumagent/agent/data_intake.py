@@ -73,7 +73,8 @@ class DatasetIntake:
         current = dialogue._read(machine.session_id) if dialogue else None
         if text == OPEN or workspace_training_requested(text):
             return self.generate(machine, content, '统一训练', state)
-        if state and state['imported_ids'] and text in {'我已经对数据标注完毕', '标注完成', '我已标注完毕', '我已经标注完毕'}:
+        if state and state['imported_ids'] and re.fullmatch(
+                r'(?:我)?(?:已经|已)?(?:对(?:这批)?数据)?标(?:注)?(?:完成|完毕|完了|好了|好)(?:了)?', text):
             return self.generate(machine, content, '标注完成', state)
         if (state and state['imported_ids'] and not (current and current['active'] and current['document'])
                 and re.fullmatch(r'(?:接下来|下一步|然后)?(?:请|帮我)?(?:对(?:这批)?数据)?(?:进行|开始)?预处理', text)):
@@ -354,6 +355,9 @@ class DatasetIntake:
                 if command and (not state or command[2] != state['id']):
                     yield finish('这张导入卡片已失效，请使用当前会话最新的导入卡片。', card=False)
                     return
+                if state and state['stage'] == 'cancelled':
+                    yield finish('本次导入已经取消，请重新发起导入。', card=False)
+                    return
                 from spectrumagent.experiments.workspace_training import prepare
                 if state and state['imported_ids']:
                     self.refresh_annotations(state)
@@ -394,9 +398,23 @@ class DatasetIntake:
             if action == '标注完成':
                 self.refresh_annotations(state)
                 remaining = len(state['imported_ids'])-len(state['ready_ids'])
-                yield finish(f"已核对保存的区域标注：{len(state['ready_ids'])}/{len(state['imported_ids'])} 张。"
-                    + (f'仍有 {remaining} 张未保存，请先在画布保存。' if remaining else
-                       '可点击“配置预处理与训练”，或回复“接下来对数据进行预处理”，在对话中配置方案和Study寻优。'))
+                ready = state['ready_ids']
+                unsaved = f'仍有 {remaining} 张未保存，请先在画布保存。' if remaining else ''
+                guidance = ('' if remaining else
+                            '可点击“配置预处理与训练”，或回复“接下来对数据进行预处理”，在对话中配置方案和Study寻优。')
+                if ready:
+                    with connect_database(self.database) as db:
+                        placeholders = ','.join('?' for _ in ready)
+                        classes = db.execute(
+                            'SELECT COUNT(DISTINCT l.name) FROM annotation_confirmation_state c '
+                            'JOIN annotation a ON a.version_id=c.annotation_version_id '
+                            'JOIN label l ON l.id=a.label_id '
+                            f'WHERE c.cube_id IN ({placeholders}) AND a.pixel_count>0 '
+                            'AND l.is_background=0 AND l.deleted_at IS NULL', ready).fetchone()[0]
+                    if classes < 2:
+                        guidance = ('分类至少需要两个不同的已标注前景类。请在画布补标并保存，'
+                                    '再点击“配置预处理与训练”。')
+                yield finish(f"已核对保存的区域标注：{len(ready)}/{len(state['imported_ids'])} 张。" + unsaved + guidance)
                 return
             if action == 'list':
                 ids = []
@@ -599,6 +617,9 @@ class DatasetIntake:
                 yield finish(f"原图 {len(state['headers'])} 个，成功配对 {len(state['pairs'])} 个，未配对 {len(state['unused'])} 个，异常 {len(state['issues'])} 条。请核对类别与异常后接入标注。")
         except (DataError, OSError, ValueError, KeyError, TypeError) as error:
             detail = error.payload.detail if isinstance(error, DataError) else str(error)
+            if isinstance(error, DataError) and error.code == 'INSUFFICIENT_CLASSES':
+                yield finish(detail+' 请在画布补标不同的前景类并保存，再点击“配置预处理与训练”。')
+                return
             if action == 'create_labels':
                 if isinstance(error, DataError) and error.code == 'INVALID_LABEL':
                     detail = '；'.join(field['message'] for field in error.payload.context.get('fields', [])) or detail

@@ -24,6 +24,8 @@ python scripts/audit_project_resources.py --check
 
 DPAPI 对照复核应在正常 Windows 用户终端运行：`python -m pytest -q tests/test_router_settings.py --basetemp=.tmp-project-settings-user`。该模块仅使用临时测试密钥和临时工作区，不操作实际模型服务密钥。
 
+推送前保留并合并远程 `613f7b2`（标注训练与实验草稿修复）。合并后追加验证路由、实验草稿、推理、Study、工作台标注训练、共享评价定义、回归新数据推理和项目作用域/Study 生命周期，共 **97 项通过**；命令：`python -m pytest -q -x tests/test_agent_router.py tests/test_experiment_conversation.py tests/test_experiment_inference.py tests/test_experiment_study.py tests/test_workspace_training.py tests/test_evaluation_definition.py tests/test_regression_new_inference.py tests/test_project_scopes.py tests/test_study_project_lifecycle.py --basetemp=.tmp-github-merge --tb=short`。上述全量后端数字对应合并前检查，不应冒称合并后重新执行过完整全量。
+
 `tests/project-guidance.test.mjs` 覆盖项目与对话层级、项目目录就绪/未就绪时的计数、新对话复用数据、历史导入卡归属和引导入口只填写消息。计数不使用单张画布数据，也不使用旧会话的历史数量覆盖当前目录。
 
 真实窗口验收：

@@ -81,6 +81,31 @@ class ArchiveAxis(ToolInput):
     role: Literal['train', 'test']
 
 
+class CropAxis(ToolInput):
+    kind: Literal['crop']
+    start_nm: FiniteFloat
+    stop_nm: FiniteFloat
+
+    @model_validator(mode='after')
+    def increasing(self):
+        if self.start_nm >= self.stop_nm:
+            raise ValueError('裁剪终点须大于起点')
+        return self
+
+
+class UnappliedRequest(ToolInput):
+    topic: Literal['wavelength_crop', 'wavelength_grid', 'savgol', 'preprocessing', 'sampling', 'split', 'metrics', 'other']
+    requested: Annotated[str, Field(min_length=1, max_length=300, description='用户请求摘要，省略本地路径')]
+    reason: Annotated[str, Field(min_length=1, max_length=300)]
+
+    @model_validator(mode='after')
+    def path_free_feedback(self):
+        from spectrumagent.experiments.conversation import PATHS
+        if any(PATHS.search(value) or '\\\\' in value for value in (self.requested, self.reason)):
+            raise ValueError('未生效项的摘要与原因须省略本机路径')
+        return self
+
+
 class GridAxis(ToolInput):
     kind: Literal['grid']
     start_nm: FiniteFloat
@@ -113,7 +138,8 @@ class DraftUpdate(ToolInput):
     preprocessing: list[PreprocessingStep] | None = None
     preprocessing_edit: PreprocessingEdit | None = None
     model: ModelDraft | None = None
-    axis: Annotated[Union[ArchiveAxis, GridAxis], Field(discriminator='kind')] | None = None
+    axis: Annotated[Union[ArchiveAxis, GridAxis, CropAxis], Field(discriminator='kind')] | None = None
+    unapplied_requests: list[UnappliedRequest] | None = None
     additional_metrics: list[Metric] | None = None
     test_usage: Literal['independent_test', 'development_regression'] | None = None
     sample_evaluation: SampleDefinition | None = None

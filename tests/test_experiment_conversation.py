@@ -102,6 +102,24 @@ def test_metric_update_keeps_same_reply_explanation(application):
     assert dialogue._read(session)['document']['additional_metrics'] == ['kappa']
 
 
+def test_unapplied_metric_report_is_shown_and_is_not_part_of_the_draft(application):
+    from spectrumagent.agent.experiment_flow import generate
+
+    store = AgentStore(application.state.experiments.paths.database)
+    session = store.create_session()['id']
+    model = ScriptedModel(tool('experiments.draft_update', {
+        'expected_revision': 0, 'additional_metrics': ['kappa'],
+        'unapplied_requests': [{'topic': 'metrics', 'requested': 'AUC', 'reason': '当前未实现'}],
+    }))
+    events = list(generate(machine_for(application, session, model), '加上 kappa 和 AUC'))
+    card = next(payload['result_summary'] for kind, payload in events
+                if kind == 'step' and payload['tool'] == 'experiments.draft_presentation')
+    assert '本轮未生效请求' in events[-1][1]['question']
+    assert all(value in card['draft_notes'] for value in ('AUC', '未实现', 'balanced_accuracy'))
+    dialogue = application.state.agent_tools.experiment_dialogue
+    assert dialogue._read(session)['document'] == {'additional_metrics': ['kappa']}
+
+
 def test_multi_turn_partial_patch_review_execute_and_query(tmp_path, application):
     body, patch = patch_for(tmp_path)
     app = application

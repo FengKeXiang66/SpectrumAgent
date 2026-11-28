@@ -578,3 +578,12 @@ def test_legacy_model_uses_existing_project_palette(application, tmp_path):
     colors = model_colors(application.state.experiments.paths.database, config)
     assert colors == {index: label['color_hex'] for index, label in enumerate(labels, 1)}
     assert len([label for field in store.tree(store.projects()[0]['id']) for label in field['labels']]) == 2
+
+
+def test_material_palette_without_project_colors_and_partial_override():
+    from spectrumagent.experiments.inference import class_palette
+    materials = {1:'EPS', 2:'PE', 3:'PET', 4:'PP', 5:'纸', 6:'自定义'}
+    expected = {'1':(255,163,35), '2':(255,62,62), '3':(63,118,255),
+                '4':(38,211,79), '5':(177,99,215), '6':(6,182,212)}
+    assert class_palette(list(materials), materials) == expected
+    assert class_palette(list(materials), materials, {2:'#123456'}) == {**expected, '2':(18,52,86)}
